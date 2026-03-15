@@ -1,0 +1,55 @@
+# =============================================================================
+# Author Configuration
+# =============================================================================
+# Your personal/professional information displayed throughout the site.
+# This information appears in author bios, citations, and metadata.
+#
+# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/docs/configuration.md
+# =============================================================================
+
+# Basic information
+name: Diogo Ribeiro
+affiliation: ESMAD - Instituto Politécnico do Porto
+email: dfr@esmad.ipp.pt
+professional_email: dfr@esmad.ipp.pt
+
+# Biography (displayed in author cards)
+biography: Data-driven researcher focused on reproducible analytics and thoughtful storytelling.
+
+# Academic/Professional profiles
+profiles:
+  orcid: https://orcid.org/0009-0001-2022-7072
+  github: DiogoRibeiro7
+  twitter: DiogoRibeiro7
+  linkedin: diogoribeiro
+  kaggle: diogoribeiro
+  google_scholar: "" # Optional: Add your Google Scholar profile URL
+  researchgate: https://www.researchgate.net/profile/Diogo-Ribeiro
+  academia: https://www.academia.edu
+
+# Research focus areas (displayed in author cards and used for content filtering)
+research_areas:
+  - id: machine-learning
+    title: Machine Learning
+    url: /tags/machine-learning/
+  - id: statistics
+    title: Statistics
+    url: /tags/statistics/
+  - id: visualization
+    title: Data Visualization
+    url: /tags/visualization/
+  - id: reproducibility
+    title: Reproducible Research
+    url: /tags/reproducibility/
+
+# Methodologies you use (displayed in author cards)
+methodologies:
+  - id: experimental-design
+    title: Experimental Design
+    url: /tags/experimental-design/
+  - id: bayesian
+    title: Bayesian Modeling
+    url: /tags/bayesian/
+  - id: eda
+    title: Exploratory Data Analysis
+    url: /tags/eda/

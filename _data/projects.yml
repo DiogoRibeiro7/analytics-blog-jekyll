@@ -1,0 +1,41 @@
+showcase:
+  - id: predictive-energy
+    title: Predictive Modeling for Energy Demand
+    summary: Gradient boosted models and probabilistic forecasts for campus energy systems.
+    github:
+      owner: DiogoRibeiro7
+      repo: analytics-blog-jekyll
+    tags:
+      - predictive-modeling
+      - energy
+    demo_url: https://example.com/demos/energy-demand
+    featured_metrics:
+      - label: RMSE
+        value: 1.82 kWh
+      - label: MAPE
+        value: 4.2%
+  - id: experimental-design-lab
+    title: Experimental Design Lab Platform
+    summary: Interactive notebooks guiding randomized controlled experiments.
+    github:
+      owner: DiogoRibeiro7
+      repo: experimental-design-lab
+    tags:
+      - experimental-design
+      - reproducibility
+    demo_url: https://example.com/demos/design-lab
+  - id: viz-hub
+    title: Visualization Storytelling Hub
+    summary: Observable notebooks and Plotly dashboards for exploratory narratives.
+    github:
+      owner: DiogoRibeiro7
+      repo: visualization-gallery
+    tags:
+      - visualization
+      - storytelling
+    demo_url: https://example.com/demos/visualization
+
+preferences:
+  github_cache_ttl: 43200
+  show_language_icons: true
+  allow_external_contributors: true

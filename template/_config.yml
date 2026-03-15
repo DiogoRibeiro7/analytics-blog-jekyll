@@ -1,0 +1,90 @@
+title: Datalog Starter
+description: >-
+  A ready-to-use analytics storytelling site powered by the Datalog theme template.
+url: https://your-username.github.io/datalog-starter
+baseurl: ""
+permalink: pretty
+
+collections:
+  portfolio:
+    output: true
+  datasets:
+    output: true
+  notebooks:
+    output: true
+
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: post
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: page
+  - scope:
+      path: ""
+      type: "portfolio"
+    values:
+      layout: portfolio
+  - scope:
+      path: ""
+      type: "datasets"
+    values:
+      layout: dataset
+  - scope:
+      path: ""
+      type: "notebooks"
+    values:
+      layout: notebook
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-include-cache
+  - jekyll-paginate
+
+paginate: 6
+paginate_path: "/blog/page:num/"
+
+kramdown:
+  input: GFM
+  math_engine: mathjax
+  syntax_highlighter: rouge
+
+analytics:
+  plausible:
+    domain: example.com
+
+social:
+  twitter: your_twitter_handle
+  github: your_github_username
+
+nav:
+  primary:
+    - title: Blog
+      url: /blog/
+    - title: Portfolio
+      url: /portfolio/
+    - title: Datasets
+      url: /datasets/
+    - title: Notebooks
+      url: /notebooks/
+    - title: About
+      url: /about/
+
+collections_dir: .
+
+include:
+  - _pages
+  - _portfolio
+  - _datasets
+  - _notebooks
+
+sass:
+  sass_dir: _sass
+  style: compressed
+

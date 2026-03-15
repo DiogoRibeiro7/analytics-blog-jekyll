@@ -1,0 +1,149 @@
+{% assign analytics = site.data.analytics_dashboard | default: {} %}
+<div class="analytics-dashboard" data-status="{{ analytics.status | default: 'unavailable' }}">
+  <div class="analytics-header">
+    <div>
+      <h2 class="analytics-title">{% t 'analytics.dashboard.title' fallback: 'Analytics Overview' %}</h2>
+      <p class="analytics-subtitle">
+        {% if analytics.status == 'ok' %}
+          {% t 'analytics.dashboard.description' fallback: 'Insights powered by Google Analytics 4, refreshed every 24 hours.' %}
+        {% else %}
+          {% t 'analytics.dashboard.disabled' fallback: 'Connect Google Analytics 4 to populate this dashboard. Cached results are reused for 24 hours.' %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="analytics-meta">
+      <span class="analytics-refresh">
+        {% assign fetched = analytics.fetched_at %}
+        {% if fetched %}
+          {% t 'analytics.dashboard.last_updated' fallback: 'Last updated' %}: <time datetime="{{ fetched }}">{{ fetched | date: '%Y-%m-%d %H:%M' }}</time>
+        {% else %}
+          {% t 'analytics.dashboard.last_updated_unknown' fallback: 'Last updated: pending' %}
+        {% endif %}
+      </span>
+      <span class="analytics-cache-window">{% t 'analytics.dashboard.cache_window' fallback: 'Data cached for 24 hours' %}</span>
+    </div>
+  </div>
+
+  {% unless analytics.status == 'ok' %}
+    <div class="analytics-alert">
+      <p>{{ analytics.message | default: "Configure GA4 credentials via GA4_PROPERTY_ID and GA4_CREDENTIALS_JSON." }}</p>
+    </div>
+  {% endunless %}
+
+  <div class="analytics-grid">
+    <section class="analytics-card">
+      <header>
+        <h3>{% t 'analytics.dashboard.top_posts' fallback: 'Top posts' %}</h3>
+      </header>
+      <table class="analytics-table" aria-live="polite">
+        <thead>
+          <tr>
+            <th scope="col">{% t 'analytics.dashboard.table.post' fallback: 'Post' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.views' fallback: 'Views' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.engagement' fallback: 'Engagement (s)' %}</th>
+          </tr>
+        </thead>
+        <tbody id="analytics-top-posts" data-empty-message="{% t 'analytics.dashboard.no_results' fallback: 'No data available' %}">
+          <tr class="placeholder">
+            <td colspan="3">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="analytics-card">
+      <header>
+        <h3>{% t 'analytics.dashboard.search_terms' fallback: 'Search queries' %}</h3>
+      </header>
+      <table class="analytics-table" aria-live="polite">
+        <thead>
+          <tr>
+            <th scope="col">{% t 'analytics.dashboard.table.query' fallback: 'Query' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.sessions' fallback: 'Sessions' %}</th>
+          </tr>
+        </thead>
+        <tbody id="analytics-search-terms" data-empty-message="{% t 'analytics.dashboard.no_searches' fallback: 'No search queries recorded' %}">
+          <tr class="placeholder">
+            <td colspan="2">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="analytics-card analytics-card--wide">
+      <header>
+        <h3>{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}</h3>
+      </header>
+      <canvas id="analytics-visitors-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}"></canvas>
+    </section>
+
+    <section class="analytics-card analytics-card--wide">
+      <header>
+        <h3>{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}</h3>
+      </header>
+      <canvas id="analytics-engagement-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}"></canvas>
+    </section>
+
+    <section class="analytics-card">
+      <header>
+        <h3>{% t 'analytics.dashboard.events' fallback: 'Notebook & demo events' %}</h3>
+      </header>
+      <ul class="analytics-metric-list" id="analytics-key-events">
+        <li class="placeholder">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</li>
+      </ul>
+    </section>
+
+    <section class="analytics-card">
+      <header>
+        <h3>{% t 'analytics.dashboard.scholar' fallback: 'Google Scholar' %}</h3>
+      </header>
+      <dl class="analytics-definition-list">
+        <div>
+          <dt>{% t 'analytics.dashboard.scholar_total' fallback: 'Total citations' %}</dt>
+          <dd data-field="scholar-total">—</dd>
+        </div>
+        <div>
+          <dt>h-index</dt>
+          <dd data-field="scholar-h-index">—</dd>
+        </div>
+        <div>
+          <dt>i10-index</dt>
+          <dd data-field="scholar-i10-index">—</dd>
+        </div>
+      </dl>
+      <canvas id="analytics-scholar-chart" height="200" role="img" aria-label="{% t 'analytics.dashboard.scholar_trend' fallback: 'Citations by year' %}"></canvas>
+    </section>
+
+    <section class="analytics-card analytics-card--wide">
+      <header>
+        <h3>{% t 'analytics.dashboard.monthly_reports' fallback: 'Monthly reports' %}</h3>
+      </header>
+      <table class="analytics-table" aria-live="polite">
+        <thead>
+          <tr>
+            <th scope="col">{% t 'analytics.dashboard.table.month' fallback: 'Month' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.users' fallback: 'Users' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.new_users' fallback: 'New users' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.sessions' fallback: 'Sessions' %}</th>
+            <th scope="col">{% t 'analytics.dashboard.table.page_views' fallback: 'Page views' %}</th>
+          </tr>
+        </thead>
+        <tbody id="analytics-monthly-reports" data-empty-message="{% t 'analytics.dashboard.no_reports' fallback: 'No monthly reports available' %}">
+          <tr class="placeholder">
+            <td colspan="5">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="{{ 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js' | add_sri }}" defer></script>
+  <script nonce="{{ page.csp_nonce }}">
+    {% if analytics %}
+      window.__DATALOG_ANALYTICS__ = {{ analytics | jsonify }};
+    {% else %}
+      window.__DATALOG_ANALYTICS__ = {};
+    {% endif %}
+  </script>
+  <script src="{{ '/assets/js/analytics-dashboard.js' | relative_url }}" defer></script>
+</div>

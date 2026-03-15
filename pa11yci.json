@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "timeout": 60000,
+    "wait": 1000,
+    "standard": "WCAG2AA"
+  },
+  "urls": [
+    "http://localhost:4000/index.html",
+    "http://localhost:4000/blog/index.html",
+    "http://localhost:4000/features/index.html",
+    "http://localhost:4000/visualizations/index.html",
+    "http://localhost:4000/portfolio/index.html"
+  ]
+}

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Jekyll development server with hot-reload
+  jekyll:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: datalog-dev
+    ports:
+      - "4000:4000"    # Jekyll server
+      - "35729:35729"  # LiveReload
+    volumes:
+      # Mount source code for hot-reload
+      - .:/app
+      # Persist dependencies to avoid reinstalling
+      - bundle_cache:/usr/local/bundle
+      - node_modules:/app/node_modules
+    environment:
+      - JEKYLL_ENV=development
+      - NODE_ENV=development
+      - BUNDLE_PATH=/usr/local/bundle
+    command: bundle exec jekyll serve --host 0.0.0.0 --livereload --incremental --trace
+    stdin_open: true
+    tty: true
+    networks:
+      - datalog-network
+
+  # Optional: Run tests in a separate container
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: datalog-test
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=test
+      - JEKYLL_ENV=test
+    command: npm run test
+    profiles:
+      - test
+    networks:
+      - datalog-network
+
+volumes:
+  bundle_cache:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  datalog-network:
+    driver: bridge

@@ -1,0 +1,209 @@
+{%- comment -%}
+Enhanced table of contents with:
+- Sticky positioning
+- Progress indicator
+- Collapsible sections
+- Active section highlighting
+- Scroll spy functionality
+
+Parameters:
+  - html: Content to parse (default: content)
+  - h_min: Minimum heading level (default: 2)
+  - h_max: Maximum heading level (default: 4)
+  - heading: TOC title (default: "Table of Contents")
+  - collapsible: Make TOC collapsible (default: true)
+  - show_progress: Show reading progress bar (default: true)
+{%- endcomment -%}
+
+{%- assign toc_content = include.html | default: content -%}
+{%- assign h_min = include.h_min | default: 2 -%}
+{%- assign h_max = include.h_max | default: 4 -%}
+{%- assign toc_heading = include.heading | default: "Table of Contents" -%}
+{%- assign collapsible = include.collapsible | default: true -%}
+{%- assign show_progress = include.show_progress | default: true -%}
+
+{%- capture toc_markup -%}
+  {{ toc_content | markdownify | tocify: h_min, h_max }}
+{%- endcapture -%}
+
+{%- if toc_markup contains '<li' -%}
+<aside class="enhanced-toc{% if collapsible %} enhanced-toc--collapsible{% endif %}"
+       data-toc-enhanced
+       aria-label="{{ toc_heading }}"
+       role="doc-toc">
+
+  {%- if show_progress -%}
+  <div class="enhanced-toc__progress" aria-hidden="true">
+    <div class="enhanced-toc__progress-bar" data-toc-progress></div>
+  </div>
+  {%- endif -%}
+
+  <div class="enhanced-toc__header">
+    <h2 class="enhanced-toc__heading">{{ toc_heading }}</h2>
+    {%- if collapsible -%}
+    <button type="button"
+            class="enhanced-toc__toggle"
+            aria-expanded="true"
+            aria-controls="toc-content"
+            data-toc-toggle>
+      <svg class="enhanced-toc__toggle-icon enhanced-toc__toggle-icon--expand"
+           xmlns="http://www.w3.org/2000/svg"
+           width="20"
+           height="20"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           aria-hidden="true">
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+      <svg class="enhanced-toc__toggle-icon enhanced-toc__toggle-icon--collapse"
+           xmlns="http://www.w3.org/2000/svg"
+           width="20"
+           height="20"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span class="visually-hidden">Toggle table of contents</span>
+    </button>
+    {%- endif -%}
+  </div>
+
+  <div class="enhanced-toc__content" id="toc-content">
+    {{ toc_markup }}
+  </div>
+
+  <div class="enhanced-toc__stats" aria-live="polite">
+    <span class="enhanced-toc__reading-progress" data-reading-progress>
+      <span class="visually-hidden">Reading progress: </span>
+      <span data-progress-percent>0</span>% complete
+    </span>
+  </div>
+</aside>
+
+<script>
+  (function() {
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const toc = document.querySelector('[data-toc-enhanced]');
+      if (!toc) return;
+
+      const tocContent = toc.querySelector('.enhanced-toc__content');
+      const tocLinks = toc.querySelectorAll('.enhanced-toc__content a');
+      const tocToggle = toc.querySelector('[data-toc-toggle]');
+      const progressBar = toc.querySelector('[data-toc-progress]');
+      const progressPercent = toc.querySelector('[data-progress-percent]');
+
+      // Collapsible functionality
+      if (tocToggle) {
+        tocToggle.addEventListener('click', function() {
+          const isExpanded = tocToggle.getAttribute('aria-expanded') === 'true';
+          tocToggle.setAttribute('aria-expanded', !isExpanded);
+          tocContent.hidden = isExpanded;
+          toc.classList.toggle('is-collapsed', isExpanded);
+        });
+      }
+
+      // Get all headings that are in the TOC
+      const headings = Array.from(document.querySelectorAll('.post-content h2[id], .post-content h3[id], .post-content h4[id]'));
+
+      if (headings.length === 0) return;
+
+      // Scroll spy - highlight active section
+      function updateActiveLink() {
+        const scrollPosition = window.scrollY + 100; // Offset for better UX
+
+        let currentHeading = null;
+        for (let i = headings.length - 1; i >= 0; i--) {
+          if (headings[i].offsetTop <= scrollPosition) {
+            currentHeading = headings[i];
+            break;
+          }
+        }
+
+        tocLinks.forEach(link => {
+          link.classList.remove('is-active');
+          if (currentHeading && link.getAttribute('href') === '#' + currentHeading.id) {
+            link.classList.add('is-active');
+          }
+        });
+      }
+
+      // Reading progress
+      function updateProgress() {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const scrollTop = window.scrollY;
+        const trackLength = documentHeight - windowHeight;
+        const percentScrolled = Math.floor((scrollTop / trackLength) * 100);
+
+        if (progressBar) {
+          progressBar.style.width = percentScrolled + '%';
+        }
+        if (progressPercent) {
+          progressPercent.textContent = percentScrolled;
+        }
+      }
+
+      // Smooth scroll for TOC links
+      tocLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          const targetId = this.getAttribute('href');
+          if (targetId && targetId.startsWith('#')) {
+            e.preventDefault();
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+              const offsetTop = targetElement.offsetTop - 80; // Account for sticky header
+              window.scrollTo({
+                top: offsetTop,
+                behavior: 'smooth'
+              });
+              // Update URL without jumping
+              if (history.pushState) {
+                history.pushState(null, null, targetId);
+              }
+            }
+          }
+        });
+      });
+
+      // Throttle scroll events for performance
+      let scrollTimeout;
+      function throttledScroll() {
+        if (scrollTimeout) {
+          window.cancelAnimationFrame(scrollTimeout);
+        }
+        scrollTimeout = window.requestAnimationFrame(function() {
+          updateActiveLink();
+          updateProgress();
+        });
+      }
+
+      window.addEventListener('scroll', throttledScroll, { passive: true });
+
+      // Initial update
+      updateActiveLink();
+      updateProgress();
+
+      // Make TOC sticky on scroll
+      const tocTop = toc.offsetTop;
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > tocTop - 20) {
+          toc.classList.add('is-sticky');
+        } else {
+          toc.classList.remove('is-sticky');
+        }
+      }, { passive: true });
+    });
+  })();
+</script>
+{%- endif -%}

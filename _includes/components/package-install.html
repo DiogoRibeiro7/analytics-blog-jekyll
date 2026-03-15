@@ -1,0 +1,194 @@
+{%- comment -%}
+Package Installation Component
+Displays installation instructions for different package managers
+
+Parameters:
+  - language: python, r, julia, etc.
+  - package_name: Name of the package
+  - pip_command: Custom pip install command
+  - conda_command: Custom conda install command
+  - cran_command: Custom R install command
+  - git_url: GitHub clone URL
+{%- endcomment -%}
+
+{%- assign language = include.language | default: "python" -%}
+{%- assign package_name = include.package_name | default: page.title -%}
+{%- assign pip_command = include.pip_command -%}
+{%- assign conda_command = include.conda_command -%}
+{%- assign cran_command = include.cran_command -%}
+{%- assign git_url = include.git_url | default: page.github_url -%}
+
+<div class="package-install" id="installation">
+  <h2 class="package-install__title">Installation</h2>
+
+  {%- if language == "python" -%}
+    <div class="package-install__tabs" data-install-tabs>
+      <div class="package-install__tab-buttons">
+        <button class="package-install__tab-btn package-install__tab-btn--active"
+                data-tab="pip">
+          pip
+        </button>
+        <button class="package-install__tab-btn" data-tab="conda">
+          conda
+        </button>
+        <button class="package-install__tab-btn" data-tab="git">
+          Git
+        </button>
+      </div>
+
+      <div class="package-install__tab-content" data-tab-content="pip">
+        <div class="package-install__code-block">
+          <div class="package-install__code-header">
+            <span class="package-install__code-label">Terminal</span>
+            <button class="package-install__copy-btn" data-copy-btn>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre><code data-copy-text>{{ pip_command | default: "pip install " | append: package_name }}</code></pre>
+        </div>
+      </div>
+
+      <div class="package-install__tab-content" data-tab-content="conda" hidden>
+        <div class="package-install__code-block">
+          <div class="package-install__code-header">
+            <span class="package-install__code-label">Terminal</span>
+            <button class="package-install__copy-btn" data-copy-btn>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre><code data-copy-text>{{ conda_command | default: "conda install " | append: package_name }}</code></pre>
+        </div>
+      </div>
+
+      <div class="package-install__tab-content" data-tab-content="git" hidden>
+        <div class="package-install__code-block">
+          <div class="package-install__code-header">
+            <span class="package-install__code-label">Terminal</span>
+            <button class="package-install__copy-btn" data-copy-btn>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre><code data-copy-text>git clone {{ git_url }}
+cd {{ package_name }}
+pip install -e .</code></pre>
+        </div>
+      </div>
+    </div>
+
+  {%- elsif language == "r" -%}
+    <div class="package-install__tabs" data-install-tabs>
+      <div class="package-install__tab-buttons">
+        <button class="package-install__tab-btn package-install__tab-btn--active" data-tab="cran">
+          CRAN
+        </button>
+        <button class="package-install__tab-btn" data-tab="github">
+          GitHub
+        </button>
+      </div>
+
+      <div class="package-install__tab-content" data-tab-content="cran">
+        <div class="package-install__code-block">
+          <div class="package-install__code-header">
+            <span class="package-install__code-label">R Console</span>
+            <button class="package-install__copy-btn" data-copy-btn>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre><code data-copy-text>{{ cran_command | default: "install.packages('" | append: package_name | append: "')" }}</code></pre>
+        </div>
+      </div>
+
+      <div class="package-install__tab-content" data-tab-content="github" hidden>
+        <div class="package-install__code-block">
+          <div class="package-install__code-header">
+            <span class="package-install__code-label">R Console</span>
+            <button class="package-install__copy-btn" data-copy-btn>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre><code data-copy-text>devtools::install_github("{{ git_url | remove: "https://github.com/" }}")</code></pre>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const initInstallTabs = () => {
+    const containers = document.querySelectorAll('[data-install-tabs]');
+
+    containers.forEach(container => {
+      const tabBtns = container.querySelectorAll('[data-tab]');
+      const tabContents = container.querySelectorAll('[data-tab-content]');
+      const copyBtns = container.querySelectorAll('[data-copy-btn]');
+
+      // Tab switching
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tabName = btn.dataset.tab;
+
+          // Update buttons
+          tabBtns.forEach(b => b.classList.remove('package-install__tab-btn--active'));
+          btn.classList.add('package-install__tab-btn--active');
+
+          // Update content
+          tabContents.forEach(content => {
+            content.hidden = content.dataset.tabContent !== tabName;
+          });
+        });
+      });
+
+      // Copy functionality
+      copyBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const codeEl = btn.closest('.package-install__code-block').querySelector('[data-copy-text]');
+          const text = codeEl.textContent.trim();
+
+          try {
+            await navigator.clipboard.writeText(text);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            btn.classList.add('package-install__copy-btn--success');
+
+            setTimeout(() => {
+              btn.innerHTML = originalHTML;
+              btn.classList.remove('package-install__copy-btn--success');
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        });
+      });
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInstallTabs);
+  } else {
+    initInstallTabs();
+  }
+})();
+</script>

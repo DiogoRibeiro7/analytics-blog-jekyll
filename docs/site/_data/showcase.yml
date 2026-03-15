@@ -1,0 +1,15 @@
+- name: Retail Analytics Lab
+  url: https://retail-analytics.example.com
+  description: Combines datasets, notebooks, and dashboards to document a digital merchandising programme.
+  location: Porto, Portugal
+  sector: Retail
+- name: Climate Impact Collective
+  url: https://climate-impact.example.org
+  description: Publishes reproducible notebooks and interactive dashboards tracking global emissions.
+  location: Lisbon, Portugal
+  sector: Sustainability
+- name: Applied DataOps Guild
+  url: https://dataops-guild.example.com
+  description: Internal knowledge base for pipelines, governance workflows, and runbooks built on DataLog.
+  location: Remote
+  sector: Technology

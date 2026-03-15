@@ -1,0 +1,212 @@
+{%- comment -%}
+Enhanced Code Block with Advanced Sharing Options
+Adds copy, download, and playground integration to code blocks
+
+Parameters:
+  - code: Code content
+  - language: Programming language
+  - filename: Optional filename for downloads
+  - playground_url: URL to online playground (optional)
+  - show_line_numbers: Show line numbers (default: true)
+{%- endcomment -%}
+
+{%- assign code_content = include.code -%}
+{%- assign language = include.language | default: "text" -%}
+{%- assign filename = include.filename -%}
+{%- assign playground_url = include.playground_url -%}
+{%- assign show_line_numbers = include.show_line_numbers | default: true -%}
+
+{%- assign code_id = "code-" | append: language | append: "-" | append: include.index | default: "1" -%}
+
+<div class="enhanced-code-block" data-enhanced-code data-language="{{ language }}">
+  <div class="enhanced-code-block__header">
+    <div class="enhanced-code-block__info">
+      <span class="enhanced-code-block__language">{{ language | upcase }}</span>
+      {%- if filename -%}
+        <span class="enhanced-code-block__filename">{{ filename }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="enhanced-code-block__actions">
+      {%- comment -%} Copy button {%- endcomment -%}
+      <button type="button"
+              class="enhanced-code-block__action"
+              data-action="copy"
+              data-code-id="{{ code_id }}"
+              aria-label="Copy code to clipboard"
+              title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <span class="enhanced-code-block__action-text">Copy</span>
+      </button>
+
+      {%- comment -%} Download button {%- endcomment -%}
+      <button type="button"
+              class="enhanced-code-block__action"
+              data-action="download"
+              data-code-id="{{ code_id }}"
+              data-filename="{{ filename | default: 'code.' | append: language }}"
+              aria-label="Download code file"
+              title="Download">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="enhanced-code-block__action-text">Download</span>
+      </button>
+
+      {%- comment -%} Playground button {%- endcomment -%}
+      {%- if playground_url -%}
+        <a href="{{ playground_url }}"
+           class="enhanced-code-block__action"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Open in playground"
+           title="Open in playground">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="enhanced-code-block__action-text">Run</span>
+        </a>
+      {%- elsif language == "python" or language == "javascript" or language == "typescript" -%}
+        <button type="button"
+                class="enhanced-code-block__action"
+                data-action="playground"
+                data-code-id="{{ code_id }}"
+                aria-label="Open in online playground"
+                title="Open in playground">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="enhanced-code-block__action-text">Run</span>
+        </button>
+      {%- endif -%}
+
+      {%- comment -%} Share button {%- endcomment -%}
+      <button type="button"
+              class="enhanced-code-block__action"
+              data-action="share"
+              data-code-id="{{ code_id }}"
+              aria-label="Share code snippet"
+              title="Share snippet">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span class="enhanced-code-block__action-text">Share</span>
+      </button>
+    </div>
+  </div>
+
+  <pre class="enhanced-code-block__pre{% if show_line_numbers %} enhanced-code-block__pre--numbered{% endif %}"><code id="{{ code_id }}" class="language-{{ language }}" data-code-content>{{ code_content }}</code></pre>
+
+  {%- comment -%} Feedback message {%- endcomment -%}
+  <div class="enhanced-code-block__feedback" data-feedback role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Playground URLs for different languages
+  const playgroundUrls = {
+    python: 'https://repl.it/languages/python3',
+    javascript: 'https://jsfiddle.net/',
+    typescript: 'https://www.typescriptlang.org/play',
+    go: 'https://go.dev/play/',
+    rust: 'https://play.rust-lang.org/',
+    sql: 'https://www.db-fiddle.com/'
+  };
+
+  document.addEventListener('click', function(e) {
+    const button = e.target.closest('[data-action]');
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const codeId = button.dataset.codeId;
+    const codeElement = document.getElementById(codeId);
+    if (!codeElement) return;
+
+    const code = codeElement.textContent;
+    const codeBlock = button.closest('[data-enhanced-code]');
+    const feedback = codeBlock.querySelector('[data-feedback]');
+
+    function showFeedback(message, type = 'success') {
+      if (feedback) {
+        feedback.textContent = message;
+        feedback.className = `enhanced-code-block__feedback enhanced-code-block__feedback--${type}`;
+        setTimeout(() => {
+          feedback.textContent = '';
+          feedback.className = 'enhanced-code-block__feedback';
+        }, 3000);
+      }
+    }
+
+    switch (action) {
+      case 'copy':
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(code).then(() => {
+            showFeedback('Code copied to clipboard!');
+            button.querySelector('.enhanced-code-block__action-text').textContent = 'Copied!';
+            setTimeout(() => {
+              button.querySelector('.enhanced-code-block__action-text').textContent = 'Copy';
+            }, 2000);
+          }).catch(() => {
+            showFeedback('Failed to copy code', 'error');
+          });
+        }
+        break;
+
+      case 'download':
+        const filename = button.dataset.filename || 'code.txt';
+        const blob = new Blob([code], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+        showFeedback(`Downloaded as ${filename}`);
+        break;
+
+      case 'playground':
+        const language = codeBlock.dataset.language;
+        const playgroundUrl = playgroundUrls[language];
+        if (playgroundUrl) {
+          // Encode code and open in new window
+          window.open(playgroundUrl, '_blank', 'noopener,noreferrer');
+          showFeedback('Opening in playground...');
+        } else {
+          showFeedback('Playground not available for this language', 'error');
+        }
+        break;
+
+      case 'share':
+        if (navigator.share) {
+          navigator.share({
+            title: 'Code Snippet',
+            text: code
+          }).then(() => {
+            showFeedback('Shared successfully!');
+          }).catch((err) => {
+            if (err.name !== 'AbortError') {
+              showFeedback('Failed to share', 'error');
+            }
+          });
+        } else {
+          // Fallback: copy to clipboard
+          navigator.clipboard.writeText(code).then(() => {
+            showFeedback('Link copied to clipboard!');
+          });
+        }
+        break;
+    }
+  });
+})();
+</script>

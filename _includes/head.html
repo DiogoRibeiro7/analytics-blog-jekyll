@@ -1,0 +1,308 @@
+{% assign page_title = page.title | default: site.title %}
+{% assign page_description = page.excerpt | default: page.description | default: site.description %}
+{% assign canonical_url = page.url | default: page.permalink | default: '/' | absolute_url %}
+{% assign raw_keywords = page.keywords | default: page.tags | default: site.keywords %}
+{% assign localization_config = site.theme_options.localization %}
+{% assign current_locale = page.lang | default: site.locale | default: localization_config.default_locale | default: 'en' %}
+{% capture raw_keywords_json %}{{ raw_keywords | jsonify }}{% endcapture %}
+{% if raw_keywords_json | slice: 0, 1 == '[' %}
+  {% assign keyword_list = raw_keywords %}
+{% elsif raw_keywords %}
+  {% assign keyword_list = raw_keywords | replace: ';', ',' | split: ',' %}
+{% endif %}
+{% assign math_settings = site.theme_options.math %}
+{% assign math_engine = page.math_engine | default: math_settings.engine | default: 'mathjax' %}
+{% assign math_enabled = page.mathjax %}
+{% if math_enabled == nil %}
+  {% assign math_enabled = page.math %}
+{% endif %}
+{% if math_enabled == nil %}
+  {% assign math_enabled = math_settings.render_on_load | default: site.features.mathjax %}
+{% endif %}
+{% assign js_manifest = site.data.js_manifest %}
+{% assign syntax_config = site.theme_options.syntax_highlighting %}
+{% assign prism_cdn = syntax_config.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' %}
+{% assign prism_theme = syntax_config.themes.dark | default: syntax_config.themes.light | default: 'prism-tomorrow' %}
+{% assign prism_theme_url = prism_cdn | append: '/themes/' | append: prism_theme | append: '.css' %}
+{% assign prism_line_numbers_url = prism_cdn | append: '/plugins/line-numbers/prism-line-numbers.min.css' %}
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+{% include csp-meta.html %}
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b1d3d" />
+<meta name="description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+<meta name="author" content="{{ page.author | default: site.author.name }}" />
+{% if keyword_list %}
+<meta name="keywords" content="{{ keyword_list | join: ', ' | strip }}" />
+{% endif %}
+<meta name="generator" content="Jekyll" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+<meta name="robots" content="index,follow" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="application-name" content="{{ site.title }}" />
+<meta property="og:site_name" content="{{ site.title }}" />
+{% if page.layout == 'post' or page.collection == 'posts' %}
+<meta property="og:type" content="article" />
+{% else %}
+<meta property="og:type" content="website" />
+{% endif %}
+<meta property="og:title" content="{{ page_title | strip_html | normalize_whitespace }}" />
+<meta property="og:description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+<meta property="og:url" content="{{ canonical_url }}" />
+{% if page.og_image or page.image %}
+<meta property="og:image" content="{{ page.og_image | default: page.image | absolute_url }}" />
+{% elsif site.social.default_image %}
+<meta property="og:image" content="{{ site.social.default_image | absolute_url }}" />
+{% endif %}
+<meta property="og:locale" content="{{ site.locale | default: 'en_US' }}" />
+<meta property="og:see_also" content="{{ site.url }}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="{{ site.social.twitter | default: site.twitter_username }}" />
+<meta name="twitter:title" content="{{ page_title | strip_html | normalize_whitespace }}" />
+<meta name="twitter:description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+{% if page.twitter_image or page.og_image or page.image %}
+<meta name="twitter:image" content="{{ page.twitter_image | default: page.og_image | default: page.image | absolute_url }}" />
+{% elsif site.social.default_image %}
+<meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
+{% endif %}
+<link rel="canonical" href="{{ canonical_url }}" />
+{% if js_manifest and js_manifest.core %}
+<link rel="modulepreload" href="{{ js_manifest.core | relative_url }}" crossorigin="anonymous" />
+{% if js_manifest.features and js_manifest.features.search and site.features.search %}
+<link rel="modulepreload" href="{{ js_manifest.features.search | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% if js_manifest.features and js_manifest.features.math and math_enabled and math_engine == 'mathjax' %}
+<link rel="modulepreload" href="{{ js_manifest.features.math | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% endif %}
+{% assign alternate_translations = page.translations %}
+{% if alternate_translations %}
+  {% for locale in alternate_translations %}
+    <link rel="alternate" hreflang="{{ locale.code }}" href="{{ locale.url | absolute_url }}" />
+  {% endfor %}
+  {% assign has_x_default = alternate_translations | where: 'code', 'x-default' | size %}
+  {% if has_x_default == 0 %}
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}" />
+  {% endif %}
+{% endif %}
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/img/favicons/apple-touch-icon.png' | relative_url }}" />
+<link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/img/favicons/favicon-32x32.png' | relative_url }}" />
+<link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/img/favicons/favicon-16x16.png' | relative_url }}" />
+<link rel="manifest" href="{{ '/assets/img/favicons/site.webmanifest' | relative_url }}" />
+<link rel="mask-icon" href="{{ '/assets/img/favicons/safari-pinned-tab.svg' | relative_url }}" color="#0b1d3d" />
+<link rel="shortcut icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" />
+<meta name="msapplication-TileColor" content="#0b1d3d" />
+<meta name="msapplication-config" content="{{ '/assets/img/favicons/browserconfig.xml' | relative_url }}" />
+
+{% seo %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" href="{{ 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap' | add_sri }}" as="style" />
+<link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap' | add_sri }}" media="print" onload="this.media='all'" />
+<noscript>
+  <link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap' | add_sri }}" />
+</noscript>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" href="{{ prism_theme_url | add_sri }}" />
+<link rel="stylesheet" href="{{ prism_line_numbers_url | add_sri }}" />
+{% assign critical_config = site.critical_css | default: {} %}
+{% assign critical_enabled = critical_config.enabled | default: false %}
+{% assign main_stylesheet = '/assets/css/main.css' | relative_url %}
+{% assign normalized_layout = page.layout | default: 'default' %}
+{% assign critical_target = nil %}
+{% if critical_enabled %}
+  {% if normalized_layout == 'home' %}
+    {% assign critical_target = 'home' %}
+  {% elsif normalized_layout == 'post' %}
+    {% assign critical_target = 'post' %}
+  {% else %}
+    {% assign critical_target = 'default' %}
+  {% endif %}
+{% endif %}
+{% assign critical_styles = '' %}
+{% if critical_target == 'home' %}
+  {% capture critical_styles %}{% include critical-css/home.html %}{% endcapture %}
+{% elsif critical_target == 'post' %}
+  {% capture critical_styles %}{% include critical-css/post.html %}{% endcapture %}
+{% elsif critical_target == 'default' %}
+  {% capture critical_styles %}{% include critical-css/default.html %}{% endcapture %}
+{% endif %}
+{% assign trimmed_critical = critical_styles | strip %}
+{% if trimmed_critical != '' %}
+<style data-critical-css="{{ critical_target }}" nonce="{{ page.csp_nonce }}">
+{{ trimmed_critical }}
+</style>
+{% endif %}
+<link rel="preload" href="{{ main_stylesheet }}" as="style" />
+<link rel="stylesheet" href="{{ main_stylesheet }}" media="print" onload="this.media='all'" />
+<noscript>
+  <link rel="stylesheet" href="{{ main_stylesheet }}" />
+</noscript>
+
+{% if math_enabled %}
+  {% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
+  {% assign katex_cdn = math_settings.katex_cdn | default: default_katex_cdn %}
+  {% assign katex_stylesheet_url = katex_cdn | append: 'katex.min.css' %}
+  {% assign katex_js_url = katex_cdn | append: 'katex.min.js' %}
+  {% assign katex_autorender_url = katex_cdn | append: 'contrib/auto-render.min.js' %}
+  {% assign default_mathjax_url = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js' %}
+  {% assign mathjax_url = math_settings.mathjax_cdn | default: default_mathjax_url %}
+  {% if math_engine == 'katex' %}
+<link rel="stylesheet" href="{{ katex_stylesheet_url | add_sri }}" />
+<script defer src="{{ katex_js_url | add_sri }}"></script>
+<script defer src="{{ katex_autorender_url | add_sri }}"></script>
+  <script nonce="{{ page.csp_nonce }}">
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.renderMathInElement) {
+      window.renderMathInElement(document.body, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false
+      });
+    }
+  });
+  </script>
+  {% else %}
+<script nonce="{{ page.csp_nonce }}">
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'require', 'boldsymbol', 'braket', 'cancel'] },
+      tags: 'all',
+      tagSide: 'right',
+      tagIndent: '1.25em',
+      macros: {
+        E: '\\mathbb{E}',
+        Var: '\\mathrm{Var}',
+        Cov: '\\mathrm{Cov}',
+        sd: '\\mathrm{sd}',
+        se: '\\mathrm{se}',
+        Prob: '\\mathbb{P}',
+        bb: ['\\mathbb{#1}', 1],
+        vec: ['\\mathbf{#1}', 1],
+        boldsymbol: ['\\boldsymbol{#1}', 1],
+        argmin: ['\\operatorname*{arg\\,min}', 0],
+        argmax: ['\\operatorname*{arg\\,max}', 0],
+        given: '\\mid',
+        diff: ['\\,\\mathrm{d}#1', 1],
+        abs: ['\\lvert#1\\rvert', 1],
+        norm: ['\\lVert#1\\rVert', 1],
+        transpose: ['^{\\mathsf{T}}', 0],
+        inner: ['\\langle #1, #2 \\rangle', 2]
+      }
+    },
+    loader: {
+      load: [
+        '[tex]/require', '[tex]/ams', '[tex]/mathtools', '[tex]/physics', '[tex]/mhchem',
+        '[tex]/boldsymbol', '[tex]/braket', '[tex]/cancel', 'ui/menu', 'a11y/semantic-enrich', 'a11y/assistive-mml'
+      ]
+    },
+    options: {
+      enableAssistiveMml: true,
+      enableMenu: true,
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'code', 'pre'],
+      renderActions: { addMenu: [0, '', ''] },
+      menuOptions: {
+        settings: {
+          assistiveMml: true,
+          collapsible: true,
+          explorer: true
+        }
+      }
+    },
+    chtml: { scale: 1, matchFontHeight: false, displayAlign: 'left', displayIndent: '0' },
+    svg: { fontCache: 'global' },
+    startup: {
+      ready() {
+        const MJ = MathJax;
+        MJ.startup.defaultReady();
+        if (window.DatalogMath && typeof window.DatalogMath.init === 'function') {
+          window.DatalogMath.init(MJ);
+        }
+        MJ.startup.promise.then(() => {
+          document.querySelectorAll('[data-math-alt]').forEach((el) => {
+            const altText = el.getAttribute('data-math-alt');
+            if (altText) {
+              el.setAttribute('aria-label', altText);
+            }
+          });
+        });
+      },
+      pageReady: () => {
+        document.body.classList.add('math-ready');
+        const liveRegion = document.getElementById('math-status');
+        if (liveRegion) { liveRegion.textContent = {{ 'global.math_ready' | t | jsonify }}; }
+        if (window.DatalogMath && typeof window.DatalogMath.onPageReady === 'function') {
+          window.DatalogMath.onPageReady();
+        }
+        return window.MathJax.startup.defaultPageReady();
+      }
+    }
+  };
+  </script>
+<script src="{{ mathjax_url | add_sri }}" id="mathjax-script" async defer></script>
+  {% endif %}
+{% endif %}
+
+{% assign citation_source = page.citation_authors | default: page.authors %}
+{% if page.title or page.citation_title %}
+<meta name="citation_title" content="{{ page.citation_title | default: page_title | strip_html | normalize_whitespace }}" />
+{% endif %}
+{% if citation_source %}
+  {% capture citation_source_json %}{{ citation_source | jsonify }}{% endcapture %}
+  {% assign citation_source_first = citation_source_json | slice: 0, 1 %}
+  {% if citation_source_first == '[' %}
+    {% assign citation_author_list = citation_source %}
+  {% else %}
+    {% assign citation_author_list = citation_source | replace: ';', ',' | split: ',' %}
+  {% endif %}
+  {% for author in citation_author_list %}
+<meta name="citation_author" content="{{ author | strip | escape }}" />
+  {% endfor %}
+{% elsif page.author or site.author.name %}
+<meta name="citation_author" content="{{ page.author | default: site.author.name | strip | escape }}" />
+{% endif %}
+{% if page.date %}
+<meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />
+{% endif %}
+{% if page.doi %}
+<meta name="citation_doi" content="{{ page.doi }}" />
+{% endif %}
+{% if page.journal %}
+<meta name="citation_journal_title" content="{{ page.journal }}" />
+{% endif %}
+{% if page.conference %}
+<meta name="citation_conference_title" content="{{ page.conference }}" />
+{% endif %}
+{% if page.orcid or site.author.orcid %}
+<meta name="citation_orcid" content="{{ page.orcid | default: site.author.orcid }}" />
+{% endif %}
+{% if page.dataset_doi %}
+<meta name="citation_dataset_doi" content="{{ page.dataset_doi }}" />
+{% endif %}
+{% if page.citation_pdf %}
+<link rel="citation_pdf_url" href="{{ page.citation_pdf | absolute_url }}" />
+{% endif %}
+
+<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
+<meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+<meta name="google-site-verification" content="{{ site.google_site_verification }}" />
+<meta name="msvalidate.01" content="{{ site.bing_site_verification }}" />
+<meta name="yandex-verification" content="{{ site.yandex_site_verification }}" />
+<meta name="baidu-site-verification" content="{{ site.baidu_site_verification }}" />
+<meta name="plausible-domain" content="{{ site.url | replace: 'https://', '' | replace: 'http://', '' }}" />
+
+<script nonce="{{ page.csp_nonce }}">
+  document.documentElement.classList.add('js');
+</script>
+
+{% include analytics.html %}

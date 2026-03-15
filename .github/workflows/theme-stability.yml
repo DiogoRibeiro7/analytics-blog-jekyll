@@ -1,0 +1,31 @@
+name: Theme stability tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Jupyter toolchain
+        run: pip install jupyter
+
+      - name: Run stability test suite
+        run: bundle exec ruby -Itests -e "Dir['tests/test_*.rb'].sort.each { |file| require_relative file }"

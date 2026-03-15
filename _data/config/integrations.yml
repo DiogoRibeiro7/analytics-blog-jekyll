@@ -1,0 +1,114 @@
+# =============================================================================
+# External Integrations Configuration
+# =============================================================================
+# Configure connections to external services and platforms.
+# Enable/disable integrations and provide API credentials as needed.
+#
+# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/docs/configuration.md
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# GitHub Integration
+# -----------------------------------------------------------------------------
+github:
+  enabled: true
+  owner: DiogoRibeiro7
+  api_base: https://api.github.com/repos
+  cache_ttl: 43200  # Cache duration in seconds (12 hours)
+
+# -----------------------------------------------------------------------------
+# Notebook Platforms
+# -----------------------------------------------------------------------------
+binder:
+  enabled: true
+  url_template: https://mybinder.org/v2/gh/%{slug}/%{branch}?labpath=%{path}
+
+colab:
+  enabled: true
+  url_template: https://colab.research.google.com/github/%{slug}/blob/%{branch}/%{path}
+
+kaggle:
+  enabled: true
+  profile: diogoribeiro
+
+observable:
+  enabled: true
+
+# -----------------------------------------------------------------------------
+# Data Repositories
+# -----------------------------------------------------------------------------
+zenodo:
+  enabled: true
+  community: datalog
+
+dataverse:
+  enabled: false
+  # server_url: ""  # Add your Dataverse server URL when enabling
+
+# -----------------------------------------------------------------------------
+# Academic Profiles
+# -----------------------------------------------------------------------------
+# See docs/google-scholar-setup.md for Google Scholar configuration instructions
+
+scholar:
+  enabled: false  # Set to true when Google Scholar is configured
+  profile_id: ""  # Add your Google Scholar user ID when enabling
+  metrics_source: data/academic.yml
+
+orcid:
+  enabled: true
+  profile: https://orcid.org/0009-0001-2022-7072
+  auto_sync: true
+  sync_scope:
+    - works
+    - funding
+    - peer-review
+
+researchgate:
+  enabled: true
+  profile: https://www.researchgate.net/profile/Diogo-Ribeiro
+
+academia:
+  enabled: true
+  profile: https://www.academia.edu
+
+# -----------------------------------------------------------------------------
+# Academic Features
+# -----------------------------------------------------------------------------
+academic:
+  submissions:
+    show_collaborators: true
+    status_badges: true
+  calendar:
+    timezone: Europe/Lisbon
+    show_submission_deadlines: true
+  badges:
+    emphasize_open_science: true
+  collaboration:
+    enable_opportunity_board: true
+    enable_mentorship_listings: true
+
+# -----------------------------------------------------------------------------
+# DataLog Plugins
+# -----------------------------------------------------------------------------
+plugins:
+  enabled:
+    - datalog-search
+    - datalog-citations
+    - datalog-slides
+    - datalog-comments
+  options:
+    datalog-citations:
+      bibliography_title: References
+    datalog-slides:
+      cdn: https://unpkg.com/reveal.js@5
+      width: 100%
+      height: 620px
+    datalog-comments:
+      provider: giscus
+      repo: DiogoRibeiro7/analytics-blog-jekyll
+      repo_id: GISCUS_REPO_ID  # Get from https://giscus.app
+      category: General
+      category_id: GISCUS_CATEGORY_ID  # Get from https://giscus.app
+      mapping: pathname
+      theme: light

@@ -1,0 +1,84 @@
+{%- comment -%}
+Visual difficulty badge for posts
+Parameters:
+  - level: Difficulty level (beginner, intermediate, advanced, expert)
+  - show_icon: Show difficulty icon (default: true)
+  - show_description: Show difficulty description (default: false)
+{%- endcomment -%}
+
+{%- assign difficulty_level = include.level | default: page.difficulty | default: "beginner" | downcase -%}
+{%- assign show_icon = include.show_icon | default: true -%}
+{%- assign show_description = include.show_description | default: false -%}
+
+{%- comment -%} Normalize difficulty levels {%- endcomment -%}
+{%- case difficulty_level -%}
+  {%- when "beginner" or "easy" or "introductory" or "basic" -%}
+    {%- assign normalized_level = "beginner" -%}
+    {%- assign level_label = "Beginner" -%}
+    {%- assign level_description = "Suitable for those new to the topic" -%}
+    {%- assign level_color = "green" -%}
+  {%- when "intermediate" or "moderate" or "medium" -%}
+    {%- assign normalized_level = "intermediate" -%}
+    {%- assign level_label = "Intermediate" -%}
+    {%- assign level_description = "Requires some foundational knowledge" -%}
+    {%- assign level_color = "blue" -%}
+  {%- when "advanced" or "hard" or "difficult" -%}
+    {%- assign normalized_level = "advanced" -%}
+    {%- assign level_label = "Advanced" -%}
+    {%- assign level_description = "For experienced practitioners" -%}
+    {%- assign level_color = "orange" -%}
+  {%- when "expert" or "very advanced" or "research" -%}
+    {%- assign normalized_level = "expert" -%}
+    {%- assign level_label = "Expert" -%}
+    {%- assign level_description = "Cutting-edge or highly specialized" -%}
+    {%- assign level_color = "red" -%}
+  {%- else -%}
+    {%- assign normalized_level = "beginner" -%}
+    {%- assign level_label = "Beginner" -%}
+    {%- assign level_description = "Suitable for those new to the topic" -%}
+    {%- assign level_color = "green" -%}
+{%- endcase -%}
+
+<span class="difficulty-badge difficulty-badge--{{ normalized_level }}"
+      data-difficulty="{{ normalized_level }}"
+      aria-label="Difficulty level: {{ level_label }}"
+      title="{{ level_description }}">
+  {%- if show_icon -%}
+    <svg class="difficulty-badge__icon"
+         xmlns="http://www.w3.org/2000/svg"
+         width="16"
+         height="16"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         aria-hidden="true">
+      {%- case normalized_level -%}
+        {%- when "beginner" -%}
+          {%- comment -%} Single bar {%- endcomment -%}
+          <rect x="3" y="14" width="4" height="7" rx="1"></rect>
+          <rect x="10" y="14" width="4" height="7" rx="1" opacity="0.3"></rect>
+          <rect x="17" y="14" width="4" height="7" rx="1" opacity="0.3"></rect>
+        {%- when "intermediate" -%}
+          {%- comment -%} Two bars {%- endcomment -%}
+          <rect x="3" y="14" width="4" height="7" rx="1"></rect>
+          <rect x="10" y="10" width="4" height="11" rx="1"></rect>
+          <rect x="17" y="10" width="4" height="11" rx="1" opacity="0.3"></rect>
+        {%- when "advanced" -%}
+          {%- comment -%} Three bars {%- endcomment -%}
+          <rect x="3" y="14" width="4" height="7" rx="1"></rect>
+          <rect x="10" y="10" width="4" height="11" rx="1"></rect>
+          <rect x="17" y="6" width="4" height="15" rx="1"></rect>
+        {%- when "expert" -%}
+          {%- comment -%} Star icon {%- endcomment -%}
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      {%- endcase -%}
+    </svg>
+  {%- endif -%}
+  <span class="difficulty-badge__label">{{ level_label }}</span>
+  {%- if show_description -%}
+    <span class="difficulty-badge__description">{{ level_description }}</span>
+  {%- endif -%}
+</span>

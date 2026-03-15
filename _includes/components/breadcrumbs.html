@@ -1,0 +1,89 @@
+{%- comment -%}
+Breadcrumb navigation for better orientation
+Automatically generates breadcrumbs based on page location and categories
+Parameters:
+  - show_current: Show current page in breadcrumbs (default: true)
+  - separator: Custom separator (default: / )
+{%- endcomment -%}
+
+{%- assign show_current = include.show_current | default: true -%}
+{%- assign separator = include.separator | default: " / " -%}
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="breadcrumbs__list" itemscope itemtype="https://schema.org/BreadcrumbList">
+    {%- comment -%} Home link {%- endcomment -%}
+    <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a href="{{ '/' | relative_url }}" class="breadcrumbs__link" itemprop="item">
+        <span itemprop="name">Home</span>
+      </a>
+      <meta itemprop="position" content="1" />
+      <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+    </li>
+
+    {%- comment -%} Collection/Section {%- endcomment -%}
+    {%- if page.collection -%}
+      {%- assign position = 2 -%}
+      {%- case page.collection -%}
+        {%- when 'posts' -%}
+          <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{{ '/blog' | relative_url }}" class="breadcrumbs__link" itemprop="item">
+              <span itemprop="name">Blog</span>
+            </a>
+            <meta itemprop="position" content="{{ position }}" />
+            <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+          </li>
+        {%- when 'portfolio' -%}
+          <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{{ '/portfolio' | relative_url }}" class="breadcrumbs__link" itemprop="item">
+              <span itemprop="name">Portfolio</span>
+            </a>
+            <meta itemprop="position" content="{{ position }}" />
+            <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+          </li>
+        {%- when 'datasets' -%}
+          <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{{ '/datasets' | relative_url }}" class="breadcrumbs__link" itemprop="item">
+              <span itemprop="name">Datasets</span>
+            </a>
+            <meta itemprop="position" content="{{ position }}" />
+            <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+          </li>
+        {%- when 'notebooks' -%}
+          <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{{ '/notebooks' | relative_url }}" class="breadcrumbs__link" itemprop="item">
+              <span itemprop="name">Notebooks</span>
+            </a>
+            <meta itemprop="position" content="{{ position }}" />
+            <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+          </li>
+      {%- endcase -%}
+      {%- assign position = position | plus: 1 -%}
+    {%- endif -%}
+
+    {%- comment -%} Category (if exists) {%- endcomment -%}
+    {%- if page.categories and page.categories.size > 0 -%}
+      {%- assign main_category = page.categories | first -%}
+      {%- assign category_slug = main_category | slugify -%}
+      {%- unless position -%}{%- assign position = 2 -%}{%- endunless -%}
+      <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="{{ '/categories/#' | append: category_slug | relative_url }}" class="breadcrumbs__link" itemprop="item">
+          <span itemprop="name">{{ main_category }}</span>
+        </a>
+        <meta itemprop="position" content="{{ position }}" />
+        <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
+      </li>
+      {%- assign position = position | plus: 1 -%}
+    {%- endif -%}
+
+    {%- comment -%} Current page {%- endcomment -%}
+    {%- if show_current -%}
+      {%- unless position -%}{%- assign position = 2 -%}{%- endunless -%}
+      <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+        <span class="breadcrumbs__current" itemprop="item">
+          <span itemprop="name">{{ page.title | truncate: 50 }}</span>
+        </span>
+        <meta itemprop="position" content="{{ position }}" />
+      </li>
+    {%- endif -%}
+  </ol>
+</nav>

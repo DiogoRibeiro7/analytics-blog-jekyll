@@ -1,0 +1,54 @@
+{%- comment -%}
+---
+required:
+  - page
+  - content
+optional:
+  - date_format
+---
+Renders the standard article scaffold used by the default layout.
+{%- endcomment -%}
+{%- assign article_page = include.page -%}
+<article class="content-block" itemscope itemtype="https://schema.org/ScholarlyArticle">
+  <header class="article-header">
+    {%- if article_page.title -%}
+      <h1 class="article-title" itemprop="headline">{{ article_page.title }}</h1>
+    {%- endif -%}
+    {%- if article_page.excerpt -%}
+      <p class="article-summary" itemprop="abstract">{{ article_page.excerpt | strip_html }}</p>
+    {%- endif -%}
+
+    <dl class="article-meta">
+      {%- if article_page.date -%}
+        <div>
+          <dt class="visually-hidden">{% t 'article.meta.published' %}</dt>
+          <dd itemprop="datePublished" content="{{ article_page.date | date_to_xmlschema }}">
+            {% include helpers/date-format.html date=article_page.date format=include.date_format %}
+          </dd>
+        </div>
+      {%- endif -%}
+      {%- assign modified = article_page.last_modified_at | default: article_page.updated -%}
+      {%- if modified -%}
+        <div>
+          <dt class="visually-hidden">{% t 'article.meta.updated' %}</dt>
+          <dd itemprop="dateModified" content="{{ modified | date_to_xmlschema }}">
+            {% include helpers/date-format.html date=modified format=include.date_format %}
+          </dd>
+        </div>
+      {%- endif -%}
+      {%- assign author_name = article_page.author | default: site.author.name -%}
+      {%- if author_name -%}
+        <div>
+          <dt class="visually-hidden">{% t 'article.meta.author' %}</dt>
+          <dd itemprop="author" itemscope itemtype="https://schema.org/Person">
+            <span itemprop="name">{{ author_name }}</span>
+          </dd>
+        </div>
+      {%- endif -%}
+    </dl>
+  </header>
+
+  <div class="article-body" itemprop="articleBody">
+    {{ include.content }}
+  </div>
+</article>

@@ -1,0 +1,29 @@
+---
+layout: page
+title: Research Blog
+---
+
+<section class="post-list">
+  {% assign posts = paginator.posts | default: site.posts %}
+  {% for post in posts %}
+    <article class="post-list-item">
+      <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+      <p class="post-meta">{{ post.date | date: '%B %-d, %Y' }}{% if post.tags %} · {{ post.tags | array_to_sentence_string }}{% endif %}</p>
+      <p>{{ post.excerpt | strip_html | truncate: 180 }}</p>
+      <a class="card-link" href="{{ post.url | relative_url }}">Read article</a>
+    </article>
+  {% endfor %}
+
+  {% if paginator %}
+    {% if paginator.total_pages > 1 %}
+      <nav class="pagination" aria-label="Blog pagination">
+        {% if paginator.previous_page %}
+          <a class="btn" href="{{ paginator.previous_page_path | relative_url }}">Newer posts</a>
+        {% endif %}
+        {% if paginator.next_page %}
+          <a class="btn" href="{{ paginator.next_page_path | relative_url }}">Older posts</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+</section>

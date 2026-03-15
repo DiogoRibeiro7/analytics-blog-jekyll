@@ -1,0 +1,19 @@
+{%- comment -%}
+---
+optional:
+  - expressions
+---
+Renders a noscript fallback for MathJax expressions when available.
+{%- endcomment -%}
+{%- assign expressions = include.expressions | default: '' -%}
+{%- if expressions != blank and expressions != empty and expressions.size > 0 -%}
+  <noscript class="math-noscript">
+    <p class="math-noscript__message">Enable JavaScript to render equations.</p>
+    {%- for expression in expressions -%}
+      <pre class="math-noscript__code">{{ expression.latex | escape }}</pre>
+      {%- if expression.alt -%}
+        <p class="math-noscript__alt">{{ expression.alt }}</p>
+      {%- endif -%}
+    {%- endfor -%}
+  </noscript>
+{%- endif -%}

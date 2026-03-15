@@ -1,0 +1,228 @@
+{%- comment -%}
+Enhanced Metadata Display Component
+Displays comprehensive post metadata including last updated, related tags, and more
+
+Parameters:
+  - show_updated_date: Show last updated date (default: true)
+  - show_tags_cloud: Show related tags cloud (default: true)
+  - show_category_path: Show category breadcrumb (default: true)
+  - show_reading_level: Show reading level indicator (default: true)
+  - show_word_count: Show detailed word count (default: true)
+  - layout: Display layout (inline, stacked, card) (default: inline)
+{%- endcomment -%}
+
+{%- assign show_updated_date = include.show_updated_date | default: true -%}
+{%- assign show_tags_cloud = include.show_tags_cloud | default: true -%}
+{%- assign show_category_path = include.show_category_path | default: true -%}
+{%- assign show_reading_level = include.show_reading_level | default: true -%}
+{%- assign show_word_count = include.show_word_count | default: true -%}
+{%- assign layout = include.layout | default: "inline" -%}
+
+{%- comment -%} Calculate metadata {%- endcomment -%}
+{%- assign word_count = page.content | strip_html | number_of_words -%}
+{%- assign reading_time = word_count | divided_by: 200 | ceil -%}
+
+{%- comment -%} Determine reading level {%- endcomment -%}
+{%- if word_count < 500 -%}
+  {%- assign reading_level = "Quick Read" -%}
+  {%- assign level_class = "quick" -%}
+{%- elsif word_count < 1500 -%}
+  {%- assign reading_level = "Standard" -%}
+  {%- assign level_class = "standard" -%}
+{%- elsif word_count < 3000 -%}
+  {%- assign reading_level = "In-Depth" -%}
+  {%- assign level_class = "in-depth" -%}
+{%- else -%}
+  {%- assign reading_level = "Comprehensive" -%}
+  {%- assign level_class = "comprehensive" -%}
+{%- endif -%}
+
+{%- comment -%} Check for last updated date {%- endcomment -%}
+{%- assign has_updated_date = false -%}
+{%- if page.last_modified_at or page.updated_date -%}
+  {%- assign has_updated_date = true -%}
+  {%- assign updated_date = page.last_modified_at | default: page.updated_date -%}
+{%- endif -%}
+
+<div class="enhanced-metadata enhanced-metadata--{{ layout }}"
+     data-enhanced-metadata
+     itemscope
+     itemtype="https://schema.org/Article">
+
+  <div class="enhanced-metadata__primary">
+    {%- comment -%} Published date {%- endcomment -%}
+    <div class="metadata-item metadata-item--date">
+      <svg class="metadata-item__icon"
+           xmlns="http://www.w3.org/2000/svg"
+           width="16"
+           height="16"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           aria-hidden="true">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      <span class="metadata-item__label">Published</span>
+      <time class="metadata-item__value"
+            datetime="{{ page.date | date_to_xmlschema }}"
+            itemprop="datePublished">
+        {{ page.date | date: "%B %d, %Y" }}
+      </time>
+    </div>
+
+    {%- comment -%} Updated date {%- endcomment -%}
+    {%- if show_updated_date and has_updated_date -%}
+      <div class="metadata-item metadata-item--updated">
+        <svg class="metadata-item__icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <polyline points="23 20 23 14 17 14"></polyline>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+        </svg>
+        <span class="metadata-item__label">Updated</span>
+        <time class="metadata-item__value"
+              datetime="{{ updated_date | date_to_xmlschema }}"
+              itemprop="dateModified">
+          {{ updated_date | date: "%B %d, %Y" }}
+        </time>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Author {%- endcomment -%}
+    {%- if page.author -%}
+      <div class="metadata-item metadata-item--author"
+           itemprop="author"
+           itemscope
+           itemtype="https://schema.org/Person">
+        <svg class="metadata-item__icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="metadata-item__label">By</span>
+        <span class="metadata-item__value" itemprop="name">{{ page.author }}</span>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Word count and reading time {%- endcomment -%}
+    {%- if show_word_count -%}
+      <div class="metadata-item metadata-item--words">
+        <svg class="metadata-item__icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span class="metadata-item__value">
+          {{ word_count | divided_by: 1000 }},{{ word_count | modulo: 1000 | divided_by: 100 }}{{ word_count | modulo: 100 | divided_by: 10 }}{{ word_count | modulo: 10 }} words
+        </span>
+        <span class="metadata-item__separator">·</span>
+        <span class="metadata-item__value"
+              itemprop="timeRequired"
+              content="PT{{ reading_time }}M">
+          {{ reading_time }} min read
+        </span>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Reading level {%- endcomment -%}
+    {%- if show_reading_level -%}
+      <div class="metadata-item metadata-item--level">
+        <span class="reading-level reading-level--{{ level_class }}">
+          {{ reading_level }}
+        </span>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Category path {%- endcomment -%}
+  {%- if show_category_path and page.categories.size > 0 -%}
+    <div class="enhanced-metadata__categories">
+      <svg class="enhanced-metadata__categories-icon"
+           xmlns="http://www.w3.org/2000/svg"
+           width="14"
+           height="14"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <nav class="category-path" aria-label="Categories">
+        {%- for category in page.categories -%}
+          {%- unless forloop.first -%}
+            <span class="category-path__separator" aria-hidden="true">/</span>
+          {%- endunless -%}
+          <a href="{{ '/categories/' | append: category | slugify | append: '/' | relative_url }}"
+             class="category-path__link">
+            {{ category }}
+          </a>
+        {%- endfor -%}
+      </nav>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Tags cloud {%- endcomment -%}
+  {%- if show_tags_cloud and page.tags.size > 0 -%}
+    <div class="enhanced-metadata__tags">
+      <svg class="enhanced-metadata__tags-icon"
+           xmlns="http://www.w3.org/2000/svg"
+           width="14"
+           height="14"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           aria-hidden="true">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+      </svg>
+      <div class="tags-cloud" aria-label="Related tags">
+        {%- for tag in page.tags -%}
+          <a href="{{ '/tags/' | append: tag | slugify | append: '/' | relative_url }}"
+             class="tag-pill"
+             rel="tag">
+            {{ tag }}
+          </a>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Additional structured data {%- endcomment -%}
+  <meta itemprop="wordCount" content="{{ word_count }}">
+  {%- if page.description -%}
+    <meta itemprop="description" content="{{ page.description | strip_html | truncate: 160 }}">
+  {%- endif -%}
+  {%- if page.featured_image or page.image -%}
+    <meta itemprop="image" content="{{ page.featured_image | default: page.image | absolute_url }}">
+  {%- endif -%}
+</div>

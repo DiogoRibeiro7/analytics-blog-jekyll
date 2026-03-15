@@ -1,0 +1,47 @@
+{
+  "name": "analytics-blog-jekyll",
+  "version": "1.0.0",
+  "description": "Performance tooling for the DataLog Jekyll theme.",
+  "type": "module",
+  "scripts": {
+    "build:js": "node ./scripts/build_js.mjs",
+    "build:critical": "node ./scripts/extract_critical_css.js",
+    "build:assets": "npm run build:js",
+    "generate-sri": "node scripts/generate_sri.js",
+    "validate-sri": "node scripts/validate_sri.js",
+    "test": "vitest --run",
+    "test:coverage": "vitest --coverage --run && node scripts/check_coverage.js",
+    "test:integration": "node ./scripts/run_playwright_suite.js",
+    "test:integration:direct": "playwright test",
+    "test:visual": "playwright test --grep @visual",
+    "test:visual:auto": "node ./scripts/run_playwright_suite.js --grep @visual",
+    "test:visual:percy": "percy exec -- node ./scripts/run_playwright_suite.js --grep @visual",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@percy/cli": "^1.31.4",
+    "@percy/playwright": "^1.0.9",
+    "@playwright/test": "^1.56.0",
+    "@vitest/coverage-v8": "^4.0.12",
+    "critical": "^6.0.3",
+    "esbuild": "^0.25.10",
+    "http-server": "^14.1.1",
+    "husky": "^9.1.7",
+    "jsdom": "^24.0.0",
+    "lint-staged": "^16.2.7",
+    "vitest": "^4.0.12",
+    "wait-on": "^7.2.0",
+    "yaml": "^2.5.1"
+  },
+  "lint-staged": {
+    "*.{js,mjs}": [
+      "echo '✓ Checked JavaScript file:'"
+    ],
+    "*.{json,yml,yaml}": [
+      "echo '✓ Checked config file:'"
+    ],
+    "*.md": [
+      "echo '✓ Checked documentation file:'"
+    ]
+  }
+}

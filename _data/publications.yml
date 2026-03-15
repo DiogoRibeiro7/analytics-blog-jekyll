@@ -1,0 +1,28 @@
+settings:
+  title: Selected publications
+  bibtex_source: assets/publications/publications.bib
+  group_by: year
+  sort: descending
+  display_fields:
+    - title
+    - authors
+    - venue
+    - year
+    - doi
+  fallback_message: "Upload a BibTeX file to populate the publication list automatically."
+
+manual_entries:
+  - id: datalog2024
+    title: "Reproducible Energy Demand Forecasting"
+    authors:
+      - Diogo Ribeiro
+      - Ana Silva
+    venue: Journal of Sustainable Analytics
+    year: 2024
+    doi: 10.1234/jsa.2024.001
+    url: https://doi.org/10.1234/jsa.2024.001
+    tags:
+      - machine-learning
+      - energy
+    abstract: >-
+      A benchmarking study of probabilistic forecasting pipelines for urban energy systems using reproducible workflows.

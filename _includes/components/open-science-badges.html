@@ -1,0 +1,16 @@
+{% assign badges = include.badges | default: site.data.academic.badges %}
+{% if badges and badges.size > 0 %}
+<section class="open-science-badges" aria-labelledby="open-science-badges-heading">
+  <h2 id="open-science-badges-heading">{% t 'open_science_badges.title' %}</h2>
+  <p class="open-science-badges__intro">{% t 'open_science_badges.description' %}</p>
+  <ul class="open-science-badges__list">
+    {% for badge in badges %}
+    <li class="open-science-badge" data-badge-label="{{ badge.label | slugify }}">
+      <span class="open-science-badge__label">{{ badge.label }}</span>
+      {% if badge.description %}<span class="open-science-badge__description">{{ badge.description }}</span>{% endif %}
+      {% if badge.criteria %}<span class="open-science-badge__criteria">{{ badge.criteria }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

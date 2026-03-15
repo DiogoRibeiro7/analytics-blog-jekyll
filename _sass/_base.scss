@@ -1,0 +1,141 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// Base reset tuned for technical content
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: $font-size-root;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family-sans;
+  color: $color-ink-900;
+  background-color: $color-surface-50;
+  line-height: $line-height-base;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+body.dark-mode {
+  color: $dark-ink-900;
+  background-color: $dark-surface-100;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: $color-accent-primary;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.25em;
+  transition: color $transition-base;
+
+  &:hover,
+  &:focus {
+    color: $color-accent-secondary;
+  }
+}
+
+body.dark-mode a {
+  color: $dark-accent-primary;
+
+  &:hover,
+  &:focus {
+    color: $dark-accent-secondary;
+  }
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+pre,
+code,
+kbd,
+samp {
+  font-family: $font-family-mono;
+  font-feature-settings: 'calt' 0, 'zero' 1;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+// Skip link visibility
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translate(-50%, -120%);
+  background: $color-accent-primary;
+  color: white;
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-radius: 999px;
+  text-decoration: none;
+  z-index: $z-skiplink;
+  transition: transform $transition-base;
+
+  &:focus {
+    transform: translate(-50%, 0);
+    @include focus-ring(white);
+  }
+}
+
+// Tables accessible defaults
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: map.get($spacing, 5) 0;
+  font-size: map.get($font-size-scale, sm);
+}
+
+thead th {
+  text-align: left;
+  border-bottom: 2px solid $color-neutral-200;
+  padding: map.get($spacing, 3);
+  font-weight: 600;
+}
+
+td {
+  border-bottom: 1px solid $color-neutral-200;
+  padding: map.get($spacing, 3);
+}
+
+body.dark-mode {
+  table {
+    color: inherit;
+  }
+
+  thead th {
+    border-bottom-color: rgba($dark-ink-500, 0.4);
+  }
+
+  td {
+    border-bottom-color: rgba($dark-ink-500, 0.2);
+  }
+}

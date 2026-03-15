@@ -1,0 +1,45 @@
+---
+layout: default
+---
+{% assign localization_config = site.theme_options.localization %}
+{% include components/hero.html %}
+<section class="section section-highlight">
+  <div class="container">
+    <h2 class="section-title">{% t 'home.latest_research' %}</h2>
+    <div class="card-grid">
+      {% assign posts_limit = site.posts | slice: 0, 6 %}
+      {% for post in posts_limit %}
+        <article class="card">
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          {% assign home_date_format = localization_config.date_format | default: 'long' %}
+          {% assign reading_minutes = post.reading_time | default: post.content | number_of_words | divided_by: 180 | ceil %}
+          {% capture reading_label %}
+            {% if reading_minutes == 1 %}
+              {% t 'home.reading_time_one' %}
+            {% else %}
+              {% t 'home.reading_time_many' minutes: reading_minutes %}
+            {% endif %}
+          {% endcapture %}
+          <p class="card-meta">{{ post.date | localize_date: home_date_format }} · {{ reading_label | strip }}</p>
+          <p>{{ post.excerpt | strip_html | truncate: 140 }}</p>
+          <a class="card-link" href="{{ post.url | relative_url }}" aria-label="{% t 'home.read_post' title: post.title %}">{% t 'home.read_more' %}</a>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="section section-portfolio">
+  <div class="container">
+    <h2 class="section-title">{% t 'home.featured_projects' %}</h2>
+    <div class="card-grid">
+      {% assign featured = site.portfolio | sort: 'weight' | slice: 0, 3 %}
+      {% for item in featured %}
+        <article class="card">
+          <h3><a href="{{ item.url | relative_url }}">{{ item.title }}</a></h3>
+          <p>{{ item.summary | default: item.excerpt | strip_html | truncate: 120 }}</p>
+          <a class="card-link" href="{{ item.url | relative_url }}">{% t 'home.view_project' %}</a>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,335 @@
+---
+layout: default
+schema_type: TechnicalArticle
+---
+
+{% assign localization_config = site.theme_options.localization %}
+
+{%- comment -%} ========= Derived values & formatting ========= {%- endcomment -%}
+{% assign date_format = page.date_format | default: localization_config.date_format | default: 'long' %}
+{% assign reading_minutes = page.reading_minutes | default: page.content | strip_html | reading_time %}
+{% if reading_minutes == 1 %}
+  {% capture reading_label %}{% t 'post.reading_time.one' %}{% endcapture %}
+{% else %}
+  {% capture reading_label %}{% t 'post.reading_time.many' minutes: reading_minutes %}{% endcapture %}
+{% endif %}
+{% assign reading_label = reading_label | strip %}
+
+{%- comment -%} Difficulty with safe fallbacks {%- endcomment -%}
+{% capture difficulty_default %}{% t 'post.difficulty_default' %}{% endcapture %}
+{% assign difficulty = page.difficulty | default: site.post_defaults.difficulty | default: difficulty_default | strip %}
+
+{%- comment -%} Notebook path + external flag {%- endcomment -%}
+{% assign notebook_path = page.notebook | default: page.notebook_path | default: page.notebook_url %}
+{% assign notebook_is_external = false %}
+{% if notebook_path and notebook_path contains '://' %}
+  {% assign notebook_is_external = true %}
+{% endif %}
+
+{%- comment -%} TOC settings {%- endcomment -%}
+{% capture toc_default_label %}{% t 'post.toc_heading' %}{% endcapture %}
+{% assign toc_heading = page.toc_label | default: toc_default_label | strip %}
+{% assign toc_min = page.toc_h_min | default: 2 %}
+{% assign toc_max = page.toc_h_max | default: 4 %}
+
+{%- comment -%} Canonical URL & author info {%- endcomment -%}
+{% assign canonical_url = page.url | absolute_url %}
+{% assign author_name = page.author | default: site.author.name %}
+{% assign author_affiliation = page.author_affiliation | default: site.author.affiliation %}
+
+{%- comment -%} Tag/Category flags {%- endcomment -%}
+{% assign post_tags = page.tags %}
+{% assign has_tags = false %}
+{% if post_tags and post_tags.size > 0 %}{% assign has_tags = true %}{% endif %}
+{% assign has_categories = false %}
+{% if page.categories and page.categories.size > 0 %}{% assign has_categories = true %}{% endif %}
+
+{%- comment -%} ISO 8601 duration for reading time {%- endcomment -%}
+{% assign time_required = 'PT' | append: reading_minutes | append: 'M' %}
+
+{%- comment -%} Breadcrumb navigation {%- endcomment -%}
+{% include components/breadcrumbs.html %}
+
+<div class="post-wrapper" itemscope itemtype="https://schema.org/TechnicalArticle">
+  <meta itemprop="url" content="{{ canonical_url }}" />
+  <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
+  {% if page.last_modified_at or page.updated %}
+    <meta itemprop="dateModified" content="{{ page.last_modified_at | default: page.updated | date_to_xmlschema }}" />
+  {% endif %}
+  <meta itemprop="author" content="{{ author_name }}" />
+  <meta itemprop="publisher" content="{{ site.author.affiliation | default: site.title }}" />
+  <meta itemprop="timeRequired" content="{{ time_required }}" />
+  {% if difficulty %}<meta itemprop="learningResourceType" content="{{ difficulty }}" />{% endif %}
+  {% if has_tags %}<meta itemprop="keywords" content="{{ post_tags | join: ', ' }}" />{% endif %}
+
+  <section class="post-meta" aria-labelledby="post-info-heading">
+    <h2 id="post-info-heading" class="visually-hidden">{% t 'post.article_information' %}</h2>
+    <dl class="post-meta-list">
+      <div>
+        <dt class="post-meta-term">{% t 'post.meta.published' %}</dt>
+        <dd class="post-meta-definition">{{ page.date | localize_date: date_format }}</dd>
+      </div>
+      <div>
+        <dt class="post-meta-term">{% t 'post.meta.author' %}</dt>
+        <dd class="post-meta-definition">
+          <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+            <span itemprop="name">{{ author_name }}</span>
+            {% if author_affiliation %}
+              <span class="post-author-affiliation" itemprop="affiliation">{{ author_affiliation }}</span>
+            {% endif %}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt class="post-meta-term">{% t 'post.meta.reading_time' %}</dt>
+        <dd class="post-meta-definition"><span data-reading-time>{{ reading_label }}</span></dd>
+      </div>
+      {% if difficulty %}
+        <div>
+          <dt class="post-meta-term">{% t 'post.meta.difficulty' %}</dt>
+          <dd class="post-meta-definition">{% include components/difficulty-badge.html level=difficulty %}</dd>
+        </div>
+      {% endif %}
+      {% if page.estimated_runtime %}
+        <div>
+          <dt class="post-meta-term">{% t 'post.meta.runtime' %}</dt>
+          <dd class="post-meta-definition">{{ page.estimated_runtime }}</dd>
+        </div>
+      {% endif %}
+      {% if notebook_path %}
+        <div>
+          <dt class="post-meta-term">{% t 'post.meta.notebook' %}</dt>
+          <dd class="post-meta-definition">
+            {% if notebook_is_external %}
+              <a class="post-notebook-link" href="{{ notebook_path }}" rel="noopener noreferrer" target="_blank">{% t 'post.notebook.open_external' %}</a>
+            {% else %}
+              <a class="post-notebook-link" href="{{ notebook_path | relative_url }}" download>{% t 'post.notebook.download' %}</a>
+            {% endif %}
+          </dd>
+        </div>
+      {% endif %}
+    </dl>
+  </section>
+
+  {% if has_tags or has_categories %}
+    <section class="post-taxonomy" aria-labelledby="post-taxonomy-heading">
+      <h2 id="post-taxonomy-heading" class="visually-hidden">{% t 'post.topics_heading' %}</h2>
+      <ul class="post-tag-list">
+        {% if has_tags %}
+          {% for tag in post_tags %}
+            {% assign tag_slug = tag | slugify %}
+            <li><a class="post-tag" href="{{ '/tags/#' | append: tag_slug | relative_url }}">{{ tag }}</a></li>
+          {% endfor %}
+        {% endif %}
+        {% if has_categories %}
+          {% for category in page.categories %}
+            {% assign cat_slug = category | slugify %}
+            <li><a class="post-tag post-category" href="{{ '/categories/#' | append: cat_slug | relative_url }}">{{ category }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </section>
+  {% endif %}
+
+  {%- comment -%} Enhanced social sharing {%- endcomment -%}
+  {% include components/social-share.html url=canonical_url title=page.title description=page.excerpt %}
+
+  <div class="post-body-wrapper">
+    {% if page.toc != false %}
+      {%- comment -%} Enhanced TOC with progress indicator {%- endcomment -%}
+      {% include components/enhanced-toc.html html=content h_min=toc_min h_max=toc_max heading=toc_heading %}
+    {% endif %}
+
+    <div class="post-content" itemprop="articleBody">
+      {{ content }}
+    </div>
+  </div>
+
+  <section class="post-interactive" aria-label="{% t 'post.interactive.label' %}">
+    {% if page.interactive_components and page.interactive_components.size > 0 %}
+      <ul class="post-interactive-list">
+        {% for demo in page.interactive_components %}
+          <li>
+            <strong>{{ demo.title }}</strong>
+            {% if demo.description %}<p>{{ demo.description }}</p>{% endif %}
+            {% if demo.url %}<p><a href="{{ demo.url }}" target="_blank" rel="noopener noreferrer">{% t 'post.interactive.launch' %}</a></p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% elsif page.interactive_embed %}
+      <div class="interactive-embed" aria-live="polite">
+        {{ page.interactive_embed }}
+      </div>
+    {% else %}
+      <p>{% t 'post.interactive.guidance' %}</p>
+    {% endif %}
+  </section>
+
+  {% if page.datalog_slides %}
+    <section class="post-slides" aria-labelledby="post-slides-heading">
+      <h2 id="post-slides-heading">{% t 'post.slides.label' %}</h2>
+      {% datalog_slides %}
+    </section>
+  {% endif %}
+
+  {% if page.datalog_bibliography and page.datalog_bibliography.size > 0 %}
+    {% if page.datalog_bibliography_title %}
+      {% assign bibliography_heading = page.datalog_bibliography_title %}
+    {% else %}
+      {% capture bibliography_heading %}{% t 'post.bibliography.label' %}{% endcapture %}
+    {% endif %}
+    <section class="post-bibliography" aria-labelledby="post-bibliography-heading">
+      <h2 id="post-bibliography-heading">{{ bibliography_heading | strip }}</h2>
+      {% datalog_bibliography %}
+    </section>
+  {% endif %}
+
+  {% if page.datalog_comments %}
+    <section class="post-comments" aria-labelledby="post-comments-heading">
+      <h2 id="post-comments-heading">{% t 'post.comments.label' %}</h2>
+      <p class="post-comments-intro">{% t 'post.comments.cta' %}</p>
+      {% datalog_comments %}
+    </section>
+  {% endif %}
+
+  {%- comment -%} ===== Citation tools & badges ===== {%- endcomment -%}
+  {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
+  {% assign citation_authors = page.authors | default: page.author | default: author_name %}
+  {% include components/citation-tools.html
+       title=page.title
+       authors=citation_authors
+       date=page.date
+       url=canonical_url
+       citation_key=citation_key
+       publisher=site.author.affiliation
+       citation_type='article'
+       doi=page.doi %}
+  {% include components/open-science-badges.html %}
+
+  {%- comment -%} Author bio card {%- endcomment -%}
+  {% include components/author-bio.html author=author_name %}
+
+  {%- comment -%} ===== Robust related posts (no where_exp, no nil sort) ===== {%- endcomment -%}
+  {% include post/related-posts.html page=page date_format=date_format %}
+
+  <nav class="post-pagination" aria-label="Post navigation">
+    {% if page.previous %}
+      <div class="post-prev">
+        <span class="post-pagination-label">Previous</span>
+        <a href="{{ page.previous.url | relative_url }}">{{ page.previous.title }}</a>
+        {% if page.previous.tags and page.tags %}
+          {% assign shared_prev = '' %}
+          {% for tag in page.tags %}
+            {% if page.previous.tags contains tag %}
+              {% if shared_prev != '' %}{% assign shared_prev = shared_prev | append: ', ' %}{% endif %}
+              {% assign shared_prev = shared_prev | append: tag %}
+            {% endif %}
+          {% endfor %}
+          {% if shared_prev != '' %}
+            <p class="post-pagination-context">Shared topics: {{ shared_prev }}</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if page.next %}
+      <div class="post-next">
+        <span class="post-pagination-label">Next</span>
+        <a href="{{ page.next.url | relative_url }}">{{ page.next.title }}</a>
+        {% if page.next.tags and page.tags %}
+          {% assign shared_next = '' %}
+          {% for tag in page.tags %}
+            {% if page.next.tags contains tag %}
+              {% if shared_next != '' %}{% assign shared_next = shared_next | append: ', ' %}{% endif %}
+              {% assign shared_next = shared_next | append: tag %}
+            {% endif %}
+          {% endfor %}
+          {% if shared_next != '' %}
+            <p class="post-pagination-context">Shared topics: {{ shared_next }}</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+  </nav>
+</div>
+
+<script nonce="{{ page.csp_nonce }}">
+  // Enhance code blocks with a copy button and language badge.
+  document.addEventListener('DOMContentLoaded', function () {
+    const codeBlocks = document.querySelectorAll('.post-content pre > code');
+    codeBlocks.forEach(function (codeBlock) {
+      const pre = codeBlock.parentElement;
+      if (!pre || pre.querySelector('.code-copy')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+
+      const metaBar = document.createElement('div');
+      metaBar.className = 'code-block-meta';
+
+      const lang = codeBlock.getAttribute('class');
+      if (lang) {
+        const m = lang.match(/language-([a-z0-9+#]+)/i);
+        if (m) {
+          const langBadge = document.createElement('span');
+          langBadge.className = 'code-language';
+          langBadge.textContent = m[1].toUpperCase();
+          metaBar.appendChild(langBadge);
+        }
+      }
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'code-copy';
+      button.setAttribute('aria-label', 'Copy code to clipboard');
+      button.textContent = 'Copy';
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        button.addEventListener('click', function () {
+          navigator.clipboard.writeText(codeBlock.textContent).then(function () {
+            button.textContent = 'Copied!';
+            button.classList.add('is-copied');
+            setTimeout(function () {
+              button.textContent = 'Copy';
+              button.classList.remove('is-copied');
+            }, 2000);
+          }).catch(function () {
+            button.textContent = 'Error';
+          });
+        });
+      } else {
+        button.disabled = true;
+        button.title = 'Clipboard copying is not supported in this browser';
+      }
+
+      metaBar.appendChild(button);
+      wrapper.insertBefore(metaBar, pre);
+    });
+
+    // Make equation references focus their targets for accessibility.
+    if (window.MathJax && window.MathJax.startup) {
+      window.MathJax.startup.promise.then(function () {
+        const equations = document.querySelectorAll('.post-content mjx-container[display="true"]');
+        let eqIndex = 1;
+        equations.forEach(function (container) {
+          if (!container.id) {
+            const eqId = 'eq-' + eqIndex++;
+            container.id = eqId;
+            container.setAttribute('tabindex', '-1');
+            const number = container.querySelector('mjx-mrow mjx-tag');
+            if (number) number.setAttribute('aria-label', 'Equation ' + (eqIndex - 1));
+          }
+        });
+        const refs = document.querySelectorAll('a[href^="#eq-"]');
+        refs.forEach(function (ref) {
+          ref.addEventListener('click', function () {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) { target.focus(); }
+          });
+        });
+      });
+    }
+  });
+</script>

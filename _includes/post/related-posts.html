@@ -1,0 +1,60 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - limit
+  - date_format
+---
+Builds a list of related posts based on overlapping tags or categories.
+Falls back to a friendly message when no related content is available.
+{%- endcomment -%}
+{%- assign related_limit = include.limit | default: 3 -%}
+{%- assign source_posts = site.collections.posts.docs | default: site.posts | default: '' | split: '' -%}
+{%- assign layout_filtered = source_posts | where: 'layout', 'post' -%}
+{%- assign collection_filtered = source_posts | where: 'collection', 'posts' -%}
+{%- assign candidate_posts = layout_filtered | concat: collection_filtered -%}
+{%- assign sorted_candidates = candidate_posts | sort: 'date' | reverse -%}
+{%- assign rendered_count = 0 -%}
+<section class="post-related" aria-labelledby="post-related-heading">
+  <h2 id="post-related-heading">Related posts</h2>
+  <ul class="post-related-list">
+    {%- for candidate in sorted_candidates -%}
+      {%- if candidate.url != include.page.url and rendered_count < related_limit -%}
+        {%- assign overlap = 0 -%}
+        {%- if include.page.tags and candidate.tags -%}
+          {%- for tag in include.page.tags -%}
+            {%- if candidate.tags contains tag -%}
+              {%- assign overlap = overlap | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+        {%- assign category_match = false -%}
+        {%- if include.page.categories and candidate.categories -%}
+          {%- for category in include.page.categories -%}
+            {%- if candidate.categories contains category -%}
+              {%- assign category_match = true -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+        {%- if overlap > 0 or category_match -%}
+          {%- assign rendered_count = rendered_count | plus: 1 -%}
+          <li>
+            <article class="related-post">
+              <h3><a href="{{ candidate.url | relative_url }}">{{ candidate.title }}</a></h3>
+              <p class="related-post-meta">
+                {% include helpers/date-format.html date=candidate.date format=include.date_format %} · {{ candidate.excerpt | strip_html | default: '' | truncate: 140 }}
+              </p>
+              {%- if candidate.tags -%}
+                <p class="related-post-tags">Topics: {% include helpers/array-to-sentence.html items=candidate.tags %}</p>
+              {%- endif -%}
+            </article>
+          </li>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if rendered_count == 0 -%}
+      <li>No related posts yet. Explore the archive for more content.</li>
+    {%- endif -%}
+  </ul>
+</section>

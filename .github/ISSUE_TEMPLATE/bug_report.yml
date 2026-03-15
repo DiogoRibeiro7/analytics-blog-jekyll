@@ -1,0 +1,197 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in DataLog theme
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the sections below to help us understand and fix the issue.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this isn't a duplicate
+          required: true
+        - label: I have read the [documentation](https://github.com/DiogoRibeiro7/analytics-blog-jekyll#readme)
+          required: true
+        - label: I am using a supported version (0.2.x)
+          required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: When I try to... I expect... but instead...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: The page should display...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Instead, the page shows...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the theme is affected?
+      options:
+        - Layout/Design
+        - Notebook Integration
+        - Analytics/Dashboard
+        - Search Functionality
+        - Visualization (Plotly, D3, etc.)
+        - Math Rendering (MathJax/KaTeX)
+        - Build Process
+        - Plugin System
+        - CLI Tool (bin/datalog)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: DataLog Version
+      description: What version of DataLog are you using? (check _config.yml or CHANGELOG.md)
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: ruby-version
+    attributes:
+      label: Ruby Version
+      description: Output of `ruby --version`
+      placeholder: "ruby 3.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: jekyll-version
+    attributes:
+      label: Jekyll Version
+      description: Output of `bundle exec jekyll --version`
+      placeholder: "jekyll 4.3.3"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version (if applicable)
+      description: Output of `node --version`
+      placeholder: "v20.11.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Platform
+      options:
+        - GitHub Pages
+        - Local Development
+        - Netlify
+        - Vercel
+        - Docker
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: Please copy and paste any relevant error messages or log output
+      render: shell
+      placeholder: Paste error messages here...
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant Configuration
+      description: Share relevant portions of your _config.yml or other config files
+      render: yaml
+      placeholder: |
+        # Paste relevant config here
+        notebooks:
+          enabled: true
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain the problem
+      placeholder: Drag and drop images here...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: This started happening after...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severely does this affect your usage?
+      options:
+        - Critical (completely broken)
+        - High (major functionality affected)
+        - Medium (inconvenient but workaround exists)
+        - Low (minor issue)
+    validations:
+      required: false

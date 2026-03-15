@@ -1,0 +1,81 @@
+title: DataLog Theme Documentation
+description: Official documentation, demos, and migration guides for the DataLog analytics storytelling theme.
+url: https://datalog-theme.github.io
+baseurl: ""
+lang: en
+timezone: Etc/UTC
+
+theme: datalog-theme
+
+author:
+  name: DataLog Theme Team
+  email: dfr@esmad.ipp.pt
+
+hero_tagline: Build analytics narratives with notebooks, dashboards, and reproducible research in minutes.
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      author: DataLog Theme Team
+  - scope:
+      path: ""
+      type: datasets
+    values:
+      layout: dataset
+  - scope:
+      path: ""
+      type: notebooks
+    values:
+      layout: notebook
+  - scope:
+      path: ""
+      type: portfolio
+    values:
+      layout: project
+  - scope:
+      path: features
+    values:
+      layout: page
+  - scope:
+      path: guides
+    values:
+      layout: page
+  - scope:
+      path: showcase
+    values:
+      layout: page
+  - scope:
+      path: visualizations
+    values:
+      layout: page
+
+collections:
+  posts:
+    output: true
+  portfolio:
+    output: true
+  datasets:
+    output: true
+  notebooks:
+    output: true
+
+permalink: pretty
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+feed:
+  path: feed.xml
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .github

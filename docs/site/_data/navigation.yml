@@ -1,0 +1,44 @@
+header:
+  - title: Overview
+    url: /
+    section: home
+  - title: Features
+    url: /features/
+    section: features
+  - title: Plugins
+    url: /plugins/
+    section: plugins
+  - title: Visualizations
+    url: /visualizations/
+    section: visualizations
+  - title: Showcase
+    url: /showcase/
+    section: showcase
+  - title: Guides
+    url: /guides/
+    section: guides
+  - title: Blog
+    url: /blog/
+    section: blog
+
+quick_links:
+  - title: Launch the starter repository
+    url: https://github.com/DiogoRibeiro7/datalog-starter
+  - title: Install the theme in an existing site
+    url: /guides/migration/#installing-the-theme-gem
+  - title: Explore interactive chart embeds
+    url: /visualizations/#interactive-gallery
+  - title: Browse the plugin marketplace
+    url: /plugins/
+  - title: Clone the documentation source
+    url: https://github.com/datalog-theme/datalog-theme.github.io
+
+footer:
+  - title: GitHub
+    url: https://github.com/DiogoRibeiro7
+  - title: Issues
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues
+  - title: License
+    url: /license/
+  - title: Accessibility
+    url: /accessibility/

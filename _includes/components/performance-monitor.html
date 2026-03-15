@@ -1,0 +1,170 @@
+{%- comment -%}
+Performance Monitoring - Track Core Web Vitals and RUM
+{%- endcomment -%}
+
+<script>
+(function() {
+  'use strict';
+
+  class PerformanceMonitor {
+    constructor() {
+      this.metrics = {};
+      this.init();
+    }
+
+    init() {
+      // Core Web Vitals
+      this.measureCLS();
+      this.measureFID();
+      this.measureLCP();
+      this.measureTTFB();
+      this.measureFCP();
+
+      // Custom metrics
+      this.measurePageLoad();
+      this.measureResourceTiming();
+
+      // Report after page load
+      window.addEventListener('load', () => {
+        setTimeout(() => this.reportMetrics(), 2000);
+      });
+    }
+
+    measureCLS() {
+      let clsValue = 0;
+      let clsEntries = [];
+
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+            clsEntries.push(entry);
+          }
+        }
+      });
+
+      observer.observe({type: 'layout-shift', buffered: true});
+      this.metrics.cls = () => clsValue;
+    }
+
+    measureFID() {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          this.metrics.fid = entry.processingStart - entry.startTime;
+        }
+      });
+
+      observer.observe({type: 'first-input', buffered: true});
+    }
+
+    measureLCP() {
+      const observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        this.metrics.lcp = lastEntry.renderTime || lastEntry.loadTime;
+      });
+
+      observer.observe({type: 'largest-contentful-paint', buffered: true});
+    }
+
+    measureTTFB() {
+      const navTiming = performance.getEntriesByType('navigation')[0];
+      if (navTiming) {
+        this.metrics.ttfb = navTiming.responseStart - navTiming.requestStart;
+      }
+    }
+
+    measureFCP() {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.name === 'first-contentful-paint') {
+            this.metrics.fcp = entry.startTime;
+          }
+        }
+      });
+
+      observer.observe({type: 'paint', buffered: true});
+    }
+
+    measurePageLoad() {
+      window.addEventListener('load', () => {
+        const navTiming = performance.getEntriesByType('navigation')[0];
+        if (navTiming) {
+          this.metrics.domContentLoaded = navTiming.domContentLoadedEventEnd - navTiming.domContentLoadedEventStart;
+          this.metrics.loadComplete = navTiming.loadEventEnd - navTiming.loadEventStart;
+          this.metrics.totalTime = navTiming.loadEventEnd - navTiming.fetchStart;
+        }
+      });
+    }
+
+    measureResourceTiming() {
+      window.addEventListener('load', () => {
+        const resources = performance.getEntriesByType('resource');
+        const byType = {};
+
+        resources.forEach(resource => {
+          const type = resource.initiatorType;
+          if (!byType[type]) byType[type] = {count: 0, totalSize: 0, totalDuration: 0};
+
+          byType[type].count++;
+          byType[type].totalSize += resource.transferSize || 0;
+          byType[type].totalDuration += resource.duration;
+        });
+
+        this.metrics.resources = byType;
+      });
+    }
+
+    reportMetrics() {
+      const report = {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        connection: navigator.connection ? {
+          effectiveType: navigator.connection.effectiveType,
+          downlink: navigator.connection.downlink,
+          rtt: navigator.connection.rtt
+        } : null,
+        metrics: {
+          cls: typeof this.metrics.cls === 'function' ? this.metrics.cls() : this.metrics.cls,
+          fid: this.metrics.fid,
+          lcp: this.metrics.lcp,
+          ttfb: this.metrics.ttfb,
+          fcp: this.metrics.fcp,
+          domContentLoaded: this.metrics.domContentLoaded,
+          loadComplete: this.metrics.loadComplete,
+          totalTime: this.metrics.totalTime
+        },
+        resources: this.metrics.resources,
+        timestamp: new Date().toISOString()
+      };
+
+      // Log to console (in production, send to analytics endpoint)
+      console.log('Performance Metrics:', report);
+
+      // Store in localStorage for debugging
+      try {
+        const history = JSON.parse(localStorage.getItem('performanceHistory') || '[]');
+        history.push(report);
+        localStorage.setItem('performanceHistory', JSON.stringify(history.slice(-10))); // Keep last 10
+      } catch (e) {
+        console.error('Failed to store performance metrics:', e);
+      }
+
+      // Send to analytics (if configured)
+      if (window.gtag) {
+        window.gtag('event', 'web_vitals', {
+          event_category: 'Performance',
+          cls: report.metrics.cls,
+          fid: report.metrics.fid,
+          lcp: report.metrics.lcp
+        });
+      }
+    }
+  }
+
+  // Initialize
+  if ('PerformanceObserver' in window) {
+    new PerformanceMonitor();
+  }
+})();
+</script>

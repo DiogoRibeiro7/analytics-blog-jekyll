@@ -1,0 +1,10 @@
+version: 2
+static:
+  ignore:
+    - "*.map"
+discovery:
+  disable-cache: false
+snapshot:
+  widths: [375, 768, 1920]
+  min-height: 1024
+  enable-javascript: true

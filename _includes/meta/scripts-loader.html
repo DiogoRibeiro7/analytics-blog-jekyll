@@ -1,0 +1,52 @@
+{%- comment -%}
+---
+required:
+  - location
+optional:
+  - syntax_config
+---
+Outputs Prism assets in the head and shared data bootstrapping scripts in the body.
+Pass location="head" or location="body" to control which block renders.
+{%- endcomment -%}
+{%- assign syntax = include.syntax_config | default: site.theme_options.syntax_highlighting | default: {} -%}
+{%- assign prism_cdn = syntax.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' -%}
+{%- assign default_components = 'python|r|sql|julia|javascript' | split: '|' -%}
+{%- assign prism_components = syntax.components | default: default_components -%}
+{%- if include.location == 'head' -%}
+  <script defer src="{{ (prism_cdn | append: '/prism.min.js') | add_sri }}"></script>
+  {%- for component in prism_components -%}
+    {%- unless component == 'core' -%}
+      <script defer src="{{ (prism_cdn | append: '/components/prism-' | append: component | append: '.min.js') | add_sri }}"></script>
+    {%- endunless -%}
+  {%- endfor -%}
+  <script defer src="{{ (prism_cdn | append: '/plugins/normalize-whitespace/prism-normalize-whitespace.min.js') | add_sri }}"></script>
+{%- elsif include.location == 'body' -%}
+  {%- assign publications = site.data.publications | default: {} -%}
+  <script nonce="{{ page.csp_nonce }}">
+    window.DatalogAcademic = {{ site.data.academic | jsonify }};
+    window.DatalogPublications = {
+      "metrics": {{ publications.metrics | jsonify }},
+      "bibliography": {{ publications.bibliography | jsonify }},
+      "citation_totals": {{ publications.citation_totals | jsonify }},
+      "yearly_totals": {{ publications.yearly_totals | jsonify }}
+    };
+  </script>
+  {% include scripts.html %}
+  <script nonce="{{ page.csp_nonce }}">
+    window.DatalogTheme = {{ site.theme_options | jsonify }};
+    window.DatalogIntegrations = {{ site.integrations | jsonify }};
+    window.DatalogContent = {{ site.content | jsonify }};
+  </script>
+  <script nonce="{{ page.csp_nonce }}">
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.Prism && window.Prism.plugins && window.Prism.plugins.NormalizeWhitespace) {
+        Prism.plugins.NormalizeWhitespace.setDefaults({
+          'remove-trailing': true,
+          'remove-indent': true,
+          'left-trim': true,
+          'right-trim': true
+        });
+      }
+    });
+  </script>
+{%- endif -%}

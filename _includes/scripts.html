@@ -1,0 +1,72 @@
+{% assign math_settings = site.theme_options.math %}
+{% assign math_engine = page.math_engine | default: math_settings.engine | default: 'mathjax' %}
+{% assign math_enabled = page.mathjax %}
+{% if math_enabled == nil %}
+  {% assign math_enabled = page.math %}
+{% endif %}
+{% if math_enabled == nil %}
+  {% assign math_enabled = math_settings.render_on_load | default: site.features.mathjax %}
+{% endif %}
+{% assign js_manifest = site.data.js_manifest %}
+
+{% if site.features.search %}
+  {% assign search_flag = 'auto' %}
+{% else %}
+  {% assign search_flag = 'false' %}
+{% endif %}
+
+{% if site.features.visualizations %}
+  {% assign visualizations_flag = 'auto' %}
+{% else %}
+  {% assign visualizations_flag = 'false' %}
+{% endif %}
+
+{% if math_enabled and math_engine == 'mathjax' %}
+  {% assign math_flag = 'true' %}
+{% else %}
+  {% assign math_flag = 'false' %}
+{% endif %}
+
+{% if page.notebook_post %}
+  {% assign notebook_flag = 'true' %}
+{% else %}
+  {% assign notebook_flag = 'false' %}
+{% endif %}
+
+{% if site.features.academic_dashboard or site.features.citation_tracking %}
+  {% assign academic_flag = 'auto' %}
+{% else %}
+  {% assign academic_flag = 'false' %}
+{% endif %}
+
+<script nonce="{{ page.csp_nonce }}">
+  (function () {
+    const body = document.body;
+    if (!body) {
+      return;
+    }
+    body.dataset.featureSearch = "{{ search_flag }}";
+    body.dataset.featureVisualizations = "{{ visualizations_flag }}";
+    body.dataset.featureMath = "{{ math_flag }}";
+    body.dataset.featureNotebook = "{{ notebook_flag }}";
+    body.dataset.featureAcademic = "{{ academic_flag }}";
+  })();
+</script>
+
+{% if js_manifest %}
+  <script id="datalog-js-manifest" type="application/json" nonce="{{ page.csp_nonce }}">{{ js_manifest | jsonify }}</script>
+{% endif %}
+
+{% assign loader_src = js_manifest.loader | default: '/assets/js/loader.js' %}
+<script type="module" src="{{ loader_src | relative_url }}"></script>
+{% if jekyll.environment != 'production' %}
+<script nonce="{{ page.csp_nonce }}">
+  window.addEventListener('securitypolicyviolation', function (event) {
+    console.warn('CSP violation blocked', {
+      blocked: event.blockedURI,
+      directive: event.violatedDirective,
+      lineNumber: event.lineNumber
+    });
+  });
+</script>
+{% endif %}

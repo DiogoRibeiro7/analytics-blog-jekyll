@@ -1,0 +1,26 @@
+{%- comment -%}
+---
+required:
+  - url
+  - label
+optional:
+  - icon
+  - rel
+  - target
+  - class
+---
+Renders a consistently styled link with optional icon support.
+External targets automatically receive noopener + noreferrer when a target is set.
+{%- endcomment -%}
+{%- if include.url and include.label -%}
+  {%- assign rel_value = include.rel | default: '' -%}
+  {%- if include.target and rel_value == '' -%}
+    {%- assign rel_value = 'noopener noreferrer' -%}
+  {%- endif -%}
+  <a{% if include.class %} class="{{ include.class }}"{% endif %} href="{{ include.url }}"{% if include.target %} target="{{ include.target }}"{% endif %}{% if rel_value != '' %} rel="{{ rel_value }}"{% endif %}>
+    {%- if include.icon -%}
+      <span class="link-icon" aria-hidden="true">{{ include.icon }}</span>
+    {%- endif -%}
+    <span class="link-label">{{ include.label }}</span>
+  </a>
+{%- endif -%}

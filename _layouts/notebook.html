@@ -1,0 +1,173 @@
+---
+layout: default
+---
+
+{%- comment -%}
+  Prepare safe aliases and fallbacks. Never use `| default: {}` in Liquid.
+{%- endcomment -%}
+{% assign localization_config = site.theme_options.localization %}
+{% assign date_format = page.date_format | default: localization_config.date_format | default: 'long' %}
+{% assign nb = page.notebook %}
+{% assign nb_lang = '' %}
+{% if nb and nb.kernelspec and nb.kernelspec.language %}
+  {% assign nb_lang = nb.kernelspec.language %}
+{% endif %}
+
+<article class="notebook-article"
+         data-language="{{ page.language | default: nb_lang }}"
+         itemscope itemtype="https://schema.org/TechArticle">
+
+  <header class="notebook-article__header">
+    <p class="notebook-article__label">{% t 'notebook.label' %}</p>
+    <h1 class="notebook-article__title" itemprop="headline">{{ page.title }}</h1>
+    <p class="notebook-article__summary">{{ page.summary | default: page.excerpt }}</p>
+
+    <ul class="notebook-article__meta">
+      <li>
+        <span>{% t 'notebook.meta.published' %}</span>
+        <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">{{ page.date | localize_date: date_format }}</time>
+      </li>
+
+      {% if page.last_modified_at %}
+        <li>
+          <span>{% t 'notebook.meta.updated' %}</span>
+          <time datetime="{{ page.last_modified_at | date_to_xmlschema }}" itemprop="dateModified">{{ page.last_modified_at | localize_date: date_format }}</time>
+        </li>
+      {% endif %}
+
+      {% if nb and nb.executed_at %}
+        <li>
+          <span>{% t 'notebook.meta.executed' %}</span>
+          <time datetime="{{ nb.executed_at | date_to_xmlschema }}">{{ nb.executed_at | localize_date: 'datetime' }}</time>
+        </li>
+      {% endif %}
+
+      {% if nb and nb.kernelspec and nb.kernelspec.display_name %}
+        <li><span>{% t 'notebook.meta.kernel' %}</span> {{ nb.kernelspec.display_name }}</li>
+      {% endif %}
+
+      {% if nb_lang %}
+        <li><span>{% t 'notebook.meta.language' %}</span> {{ nb_lang | capitalize }}</li>
+      {% endif %}
+
+      {% if page.difficulty %}
+        <li><span>{% t 'notebook.meta.difficulty' %}</span> {{ page.difficulty | capitalize }}</li>
+      {% endif %}
+
+      {% if nb and nb.duration %}
+        <li><span>{% t 'notebook.meta.runtime' %}</span> {{ nb.duration }}</li>
+      {% endif %}
+    </ul>
+
+    <div class="notebook-article__actions">
+      {% if nb and nb.download %}
+        <a class="btn" href="{{ nb.download | relative_url }}" download>
+          <span aria-hidden="true">⬇</span>
+          <span>{% t 'notebook.actions.download' %}</span>
+        </a>
+      {% endif %}
+
+      {% if nb and nb.integrations and nb.integrations.binder %}
+        <a class="btn btn--ghost" href="{{ nb.integrations.binder }}" rel="noopener" target="_blank">{% t 'notebook.actions.launch_binder' %}</a>
+      {% endif %}
+
+      {% if nb and nb.integrations and nb.integrations.colab %}
+        <a class="btn btn--ghost" href="{{ nb.integrations.colab }}" rel="noopener" target="_blank">{% t 'notebook.actions.open_colab' %}</a>
+      {% endif %}
+
+      {% if nb and nb.integrations and nb.integrations.source %}
+        <a class="btn btn--ghost" href="{{ nb.integrations.source }}" rel="noopener" target="_blank">{% t 'notebook.actions.view_source' %}</a>
+      {% endif %}
+    </div>
+
+    {% if page.tags %}
+      <ul class="notebook-article__tags" aria-label="{% t 'notebook.tags_label' %}">
+        {% for tag in page.tags %}
+          <li>{{ tag }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </header>
+
+  <div class="notebook-article__layout">
+    <div class="notebook-article__content" itemprop="articleBody">
+      {{ content }}
+    </div>
+
+    <aside class="notebook-article__sidebar" aria-label="{% t 'notebook.sidebar_label' %}">
+      <section class="notebook-sidebar__section">
+        <h2>{% t 'notebook.sidebar.overview' %}</h2>
+        <ul class="notebook-sidebar__stats">
+          {% assign code_cells = nb.code_cells | default: 0 %}
+          {% assign markdown_cells = nb.markdown_cells | default: 0 %}
+          {% assign error_cells = nb.error_cells | default: 0 %}
+          <li><strong>{{ code_cells }}</strong> {% t 'notebook.sidebar.code_cells' %}</li>
+          <li><strong>{{ markdown_cells }}</strong> {% t 'notebook.sidebar.markdown_cells' %}</li>
+          <li><strong>{{ error_cells }}</strong> {% t 'notebook.sidebar.error_outputs' %}</li>
+        </ul>
+      </section>
+
+      <section class="notebook-sidebar__section">
+        <h2>{% t 'notebook.sidebar.execution' %}</h2>
+        {% capture sidebar_kernel_fallback %}{% t 'notebook.sidebar.not_specified' %}{% endcapture %}
+        {% capture sidebar_language_fallback %}{% t 'notebook.sidebar.na' %}{% endcapture %}
+        <dl class="notebook-sidebar__metadata">
+          <div>
+            <dt>{% t 'notebook.sidebar.kernel' %}</dt>
+            <dd>{{ nb.kernelspec.display_name | default: sidebar_kernel_fallback | strip }}</dd>
+          </div>
+          <div>
+            <dt>{% t 'notebook.sidebar.language' %}</dt>
+            <dd>{{ nb_lang | default: sidebar_language_fallback | strip }}</dd>
+          </div>
+          <div>
+            <dt>{% t 'notebook.sidebar.file' %}</dt>
+            <dd><code>{{ nb.source }}</code></dd>
+          </div>
+
+          {% if nb and nb.integrations and nb.integrations.branch %}
+            <div>
+              <dt>{% t 'notebook.sidebar.branch' %}</dt>
+              <dd>{{ nb.integrations.branch }}</dd>
+            </div>
+          {% endif %}
+
+          {% if nb and nb.duration %}
+            <div>
+              <dt>{% t 'notebook.sidebar.runtime' %}</dt>
+              <dd>{{ nb.duration }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+      </section>
+
+      {% if nb.integrations %}
+        {% if nb.integrations.binder or nb.integrations.colab %}
+          <section class="notebook-sidebar__section">
+            <h2>{% t 'notebook.sidebar.run_online' %}</h2>
+            <ul class="notebook-sidebar__links">
+              {% if nb.integrations.binder %}
+                <li><a href="{{ nb.integrations.binder }}" target="_blank" rel="noopener">{% t 'notebook.sidebar.launch_binder' %}</a></li>
+              {% endif %}
+              {% if nb.integrations.colab %}
+                <li><a href="{{ nb.integrations.colab }}" target="_blank" rel="noopener">{% t 'notebook.sidebar.open_colab' %}</a></li>
+              {% endif %}
+            </ul>
+          </section>
+        {% endif %}
+      {% endif %}
+
+      {% if nb and nb.git and nb.git.last_commit %}
+        <section class="notebook-sidebar__section">
+          <h2>{% t 'notebook.sidebar.version_history' %}</h2>
+          {% assign commit_short = nb.git.last_commit | slice: 0, 7 %}
+          {% capture commit_markup %}<code>{{ commit_short }}</code>{% endcapture %}
+          <p>{% t 'notebook.sidebar.last_commit' commit: commit_markup %}</p>
+          {% if nb.integrations and nb.integrations.source %}
+            <a class="notebook-sidebar__link" href="{{ nb.integrations.source }}" target="_blank" rel="noopener">{% t 'notebook.sidebar.view_latest' %}</a>
+          {% endif %}
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+</article>

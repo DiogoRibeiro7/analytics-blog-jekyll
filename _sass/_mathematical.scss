@@ -1,0 +1,368 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.math-expression {
+  position: relative;
+  margin: map.get($spacing, 6) auto;
+  padding: map.get($spacing, 6) map.get($spacing, 6) map.get($spacing, 5) map.get($spacing, 6);
+  border-radius: 1.1rem;
+  border: 1px solid rgba($color-neutral-900, 0.12);
+  background: rgba($color-neutral-100, 0.9);
+  box-shadow: 0 12px 30px rgba($color-neutral-900, 0.08);
+  display: grid;
+  gap: map.get($spacing, 3);
+  transition: border-color $transition-snappy, box-shadow $transition-snappy, background $transition-snappy;
+
+  &:focus-within {
+    border-color: $color-accent-primary;
+    box-shadow: 0 0 0 4px rgba($color-accent-primary, 0.18);
+    background: rgba($color-neutral-100, 0.96);
+  }
+
+  mjx-container[display='true'] {
+    justify-self: center;
+  }
+}
+
+.math-expression--display {
+  max-width: 48rem;
+}
+
+.math-expression__inline {
+  display: inline-flex !important;
+  align-items: center;
+  padding: 0 map.get($spacing, 1);
+  margin: 0 map.get($spacing, 1);
+  background: rgba($color-accent-secondary, 0.15);
+  border-radius: 0.4rem;
+  font-family: $font-family-serif;
+}
+
+.math-expression__toolbar {
+  position: absolute;
+  top: map.get($spacing, 3);
+  left: map.get($spacing, 3);
+  display: inline-flex;
+  gap: map.get($spacing, 2);
+  z-index: 2;
+}
+
+.math-expression__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba($color-neutral-900, 0.18);
+  background: white;
+  color: $color-ink-700;
+  font-size: map.get($font-size-scale, sm);
+  transition: background $transition-snappy, border-color $transition-snappy, color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-primary, 0.1);
+    border-color: rgba($color-accent-primary, 0.35);
+    color: $color-accent-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring($color-accent-primary);
+  }
+}
+
+.math-expression__number {
+  position: absolute;
+  top: map.get($spacing, 3);
+  right: map.get($spacing, 3);
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $color-ink-500;
+}
+
+.math-expression__message {
+  position: absolute;
+  bottom: map.get($spacing, 3);
+  left: map.get($spacing, 3);
+  font-size: map.get($font-size-scale, xs);
+  color: $color-accent-primary;
+  background: rgba($color-accent-primary, 0.12);
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 1px rgba($color-accent-primary, 0.2);
+}
+
+.math-reference {
+  font-family: $font-family-mono;
+  color: $color-accent-primary;
+  font-weight: 600;
+}
+
+.proof {
+  border-left: 4px solid $color-accent-tertiary;
+  padding-left: map.get($spacing, 4);
+  margin: map.get($spacing, 5) 0;
+  font-family: $font-family-serif;
+}
+
+.proof__title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+#math-tooling-panel {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: map.get($spacing, 6);
+  background: rgba($color-neutral-900, 0.45);
+  backdrop-filter: blur(10px);
+  z-index: $z-overlay;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.math-tooling {
+  background: $color-surface-50;
+  border-radius: 1.25rem;
+  padding: map.get($spacing, 6);
+  width: min(48rem, 100%);
+  box-shadow: $shadow-strong;
+  display: grid;
+  gap: map.get($spacing, 4);
+}
+
+.math-tooling__title {
+  margin: 0;
+  font-size: map.get($font-size-scale, xl);
+}
+
+.math-tooling__description {
+  margin: 0;
+  color: $color-ink-600;
+  font-size: map.get($font-size-scale, sm);
+}
+
+.math-tooling__input {
+  width: 100%;
+  min-height: 10rem;
+  border-radius: 1rem;
+  border: 1px solid rgba($color-neutral-900, 0.16);
+  padding: map.get($spacing, 4);
+  font-family: $font-family-mono;
+  font-size: map.get($font-size-scale, sm);
+  resize: vertical;
+
+  &:focus {
+    border-color: $color-accent-primary;
+    box-shadow: 0 0 0 3px rgba($color-accent-primary, 0.2);
+    outline: none;
+  }
+}
+
+.math-tooling__preview {
+  min-height: 6rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba($color-neutral-900, 0.2);
+  background: rgba($color-neutral-100, 0.75);
+  padding: map.get($spacing, 5);
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.math-tooling__placeholder {
+  margin: 0;
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+.math-tooling__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: map.get($spacing, 3);
+}
+
+.math-tooling__copy,
+.math-tooling__close {
+  border-radius: 999px;
+  border: 1px solid rgba($color-neutral-900, 0.18);
+  padding: 0.5rem 1.1rem;
+  font-size: map.get($font-size-scale, xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: white;
+  color: $color-ink-700;
+  transition: background $transition-snappy, border-color $transition-snappy, color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-primary, 0.08);
+    border-color: rgba($color-accent-primary, 0.3);
+    color: $color-accent-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring($color-accent-primary);
+  }
+}
+
+.math-tooling__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+
+.math-tooling__status {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-accent-primary;
+}
+
+.math-tooling__library {
+  border-top: 1px solid rgba($color-neutral-900, 0.1);
+  padding-top: map.get($spacing, 4);
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+.math-tooling__library-title {
+  margin: 0;
+  font-size: map.get($font-size-scale, sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $color-ink-500;
+}
+
+.math-tooling__symbols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+.math-tooling__symbol {
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-neutral-900, 0.16);
+  padding: 0.45rem 0.9rem;
+  font-size: map.get($font-size-scale, xs);
+  background: rgba($color-neutral-100, 0.85);
+  color: $color-ink-700;
+  transition: background $transition-snappy, border-color $transition-snappy, color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-secondary, 0.12);
+    border-color: rgba($color-accent-secondary, 0.4);
+    color: $color-accent-secondary;
+  }
+}
+
+.math-tooling-open {
+  overflow: hidden;
+}
+
+body.dark-mode {
+  .math-expression {
+    background: rgba($dark-surface-200, 0.92);
+    border-color: rgba($dark-ink-500, 0.3);
+    box-shadow: none;
+  }
+
+  .math-expression__number {
+    color: rgba($dark-ink-500, 0.85);
+  }
+
+  .math-expression__toolbar .math-expression__button {
+    background: $dark-surface-300;
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-700;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($dark-accent-primary, 0.15);
+      border-color: rgba($dark-accent-primary, 0.45);
+      color: $dark-accent-primary;
+    }
+  }
+
+  .math-expression__message {
+    background: rgba($dark-accent-primary, 0.18);
+    color: $dark-accent-primary;
+    box-shadow: inset 0 0 0 1px rgba($dark-accent-primary, 0.35);
+  }
+
+  .math-expression__inline {
+    background: rgba($dark-accent-secondary, 0.2);
+    color: $dark-ink-900;
+  }
+
+  .math-tooling {
+    background: $dark-surface-200;
+    color: $dark-ink-900;
+  }
+
+  .math-tooling__description {
+    color: $dark-ink-700;
+  }
+
+  .math-tooling__input {
+    background: $dark-surface-300;
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-900;
+
+    &:focus {
+      border-color: $dark-accent-primary;
+      box-shadow: 0 0 0 3px rgba($dark-accent-primary, 0.35);
+    }
+  }
+
+  .math-tooling__preview {
+    background: rgba($dark-surface-300, 0.85);
+    border-color: rgba($dark-ink-500, 0.25);
+  }
+
+  .math-tooling__copy,
+  .math-tooling__close {
+    background: $dark-surface-300;
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-900;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($dark-accent-primary, 0.12);
+      border-color: rgba($dark-accent-primary, 0.45);
+      color: $dark-accent-primary;
+    }
+  }
+
+  .math-tooling__library-title {
+    color: $dark-ink-700;
+  }
+
+  .math-tooling__symbol {
+    background: rgba($dark-surface-300, 0.85);
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-700;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($dark-accent-secondary, 0.18);
+      border-color: rgba($dark-accent-secondary, 0.45);
+      color: $dark-accent-secondary;
+    }
+  }
+}

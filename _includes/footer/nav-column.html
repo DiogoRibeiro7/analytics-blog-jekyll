@@ -1,0 +1,31 @@
+{%- comment -%}
+---
+required:
+  - title
+  - items
+optional:
+  - show_descriptions
+---
+Renders a footer navigation column with optional item descriptions.
+{%- endcomment -%}
+{%- assign column_items = include.items | default: '' -%}
+{%- if column_items == '' -%}
+  {%- assign column_items = '' | split: '' -%}
+{%- endif -%}
+<div>
+  <h4>{{ include.title | strip }}</h4>
+  <ul>
+    {%- for item in column_items -%}
+      {%- capture item_label -%}{% if item.label %}{{ item.label }}{% elsif item.label_key %}{% t item.label_key %}{% endif %}{%- endcapture -%}
+      {%- capture item_description -%}{% if item.description %}{{ item.description }}{% elsif item.description_key %}{% t item.description_key %}{% endif %}{%- endcapture -%}
+      <li>
+        <a href="{{ item.url | relative_url }}">
+          <span>{{ item_label | strip }}</span>
+          {%- if include.show_descriptions and item_description != '' -%}
+            <span class="footer-nav__description">{{ item_description | strip }}</span>
+          {%- endif -%}
+        </a>
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>

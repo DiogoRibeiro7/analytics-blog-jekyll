@@ -1,0 +1,48 @@
+- title: CO₂ emissions explorer
+  summary: Plotly dashboard for tracking emissions scenarios with exportable charts.
+  tech: plotly
+  tags: [climate, dashboards]
+  version: 1.0
+  updated: 2024-03-01
+  demo: /visualizations/#plotlyjs-line-chart
+  source: https://github.com/DiogoRibeiro7/datalog-visualizations
+- title: Streaming sensor scatterplot
+  summary: D3 WebGL scatterplot with brushing and real-time updates.
+  tech: d3
+  tags: [manufacturing, streaming]
+  version: 0.9
+  updated: 2024-02-20
+  demo: /visualizations/#d3js-bar-comparison
+  source: https://github.com/DiogoRibeiro7/datalog-visualizations
+- title: Topic modelling notebook
+  summary: Observable notebook with live hyperparameter sliders and provenance metadata.
+  tech: observable
+  tags: [nlp, notebooks]
+  version: 1.1
+  updated: 2024-01-18
+  demo: https://observablehq.com/@datalog/topic-modeling-overview
+  source: https://observablehq.com/@datalog/topic-modeling-overview
+- title: Pipeline performance monitor
+  summary: Bokeh dashboard summarising nightly ETL runtimes and alerts.
+  tech: bokeh
+  tags: [etl, operations]
+  version: 0.8
+  updated: 2024-02-15
+  demo: https://demo.bokeh.org/dashboard/
+  source: https://github.com/bokeh/bokeh
+- title: Retail demand forecaster
+  summary: R Shiny app for exploring pricing strategies and demand elasticity.
+  tech: shiny
+  tags: [retail, forecasting]
+  version: 1.4
+  updated: 2024-02-22
+  demo: https://shiny.posit.co/r/price-forecasting/
+  source: https://github.com/rstudio/shiny
+- title: Feature importance inspector
+  summary: ipywidgets application to compare feature distributions across models.
+  tech: ipywidgets
+  tags: [machine-learning, explainability]
+  version: 0.6
+  updated: 2024-01-30
+  demo: /visualizations/#ipywidgets-viewer
+  source: https://github.com/DiogoRibeiro7/datalog-visualizations

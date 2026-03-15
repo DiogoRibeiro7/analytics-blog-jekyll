@@ -1,0 +1,129 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.viz-table-container {
+  display: grid;
+  gap: map.get($spacing, 3);
+  padding-top: map.get($spacing, 3);
+  border-top: 1px solid rgba($color-ink-900, 0.12);
+}
+
+body.dark-mode .viz-table-container {
+  border-top-color: rgba($dark-ink-500, 0.35);
+}
+
+.viz-table-toggle {
+  justify-self: start;
+  border: 1px solid rgba($color-ink-900, 0.18);
+  background: rgba($color-ink-900, 0.04);
+  color: $color-ink-800;
+  font-weight: 600;
+  font-size: map.get($font-size-scale, xs);
+  border-radius: 999px;
+  padding: map.get($spacing, 2) map.get($spacing, 4);
+  cursor: pointer;
+  transition: background $transition-base, color $transition-base, border-color $transition-base;
+}
+
+.viz-table-toggle:hover,
+.viz-table-toggle:focus-visible {
+  border-color: $color-accent-primary;
+  background: rgba($color-accent-primary, 0.16);
+  color: $color-accent-primary;
+}
+
+.viz-table-toggle:focus-visible {
+  outline: 3px solid rgba($color-accent-primary, 0.35);
+  outline-offset: 2px;
+}
+
+body.dark-mode .viz-table-toggle {
+  border-color: rgba($dark-ink-500, 0.35);
+  background: rgba($dark-surface-300, 0.55);
+  color: rgba($dark-ink-500, 0.9);
+}
+
+body.dark-mode .viz-table-toggle:hover,
+body.dark-mode .viz-table-toggle:focus-visible {
+  border-color: $dark-accent-primary;
+  background: rgba($dark-accent-primary, 0.28);
+  color: $dark-accent-primary;
+  outline-color: rgba($dark-accent-primary, 0.45);
+}
+
+.viz-table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-ink-900, 0.12);
+  background: $color-surface;
+  padding: map.get($spacing, 3);
+}
+
+body.dark-mode .viz-table-wrapper {
+  border-color: rgba($dark-ink-500, 0.35);
+  background: rgba($dark-surface-200, 0.7);
+}
+
+.viz-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 18rem;
+  font-size: map.get($font-size-scale, sm);
+}
+
+.viz-table caption {
+  text-align: left;
+  font-weight: 600;
+  color: $color-ink-700;
+  margin-bottom: map.get($spacing, 2);
+}
+
+body.dark-mode .viz-table caption {
+  color: rgba($dark-ink-500, 0.95);
+}
+
+.viz-table th,
+.viz-table td {
+  padding: map.get($spacing, 2);
+  border-bottom: 1px solid rgba($color-ink-900, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.viz-table th[scope='col'] {
+  font-size: map.get($font-size-scale, xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $color-ink-600;
+}
+
+body.dark-mode .viz-table th,
+body.dark-mode .viz-table td {
+  border-bottom-color: rgba($dark-ink-500, 0.3);
+}
+
+body.dark-mode .viz-table th[scope='col'] {
+  color: rgba($dark-ink-500, 0.85);
+}
+
+.viz-table tbody tr:nth-of-type(even) {
+  background: rgba($color-accent-secondary, 0.06);
+}
+
+body.dark-mode .viz-table tbody tr:nth-of-type(even) {
+  background: rgba($dark-accent-secondary, 0.22);
+}
+
+.viz-table td:focus-visible,
+.viz-table th:focus-visible {
+  outline: 3px solid rgba($color-accent-primary, 0.45);
+  outline-offset: 2px;
+}
+
+body.dark-mode .viz-table td:focus-visible,
+body.dark-mode .viz-table th:focus-visible {
+  outline-color: rgba($dark-accent-primary, 0.5);
+}

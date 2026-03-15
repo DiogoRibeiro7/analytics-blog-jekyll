@@ -1,0 +1,52 @@
+---
+layout: default
+---
+{% assign localization_config = site.theme_options.localization %}
+{% assign date_format = page.date_format | default: localization_config.date_format | default: 'long' %}
+<article class="dataset">
+  <header class="dataset-header">
+    <h1>{{ page.title }}</h1>
+    {% if page.updated %}<p class="dataset-meta"><strong>{% t 'dataset.last_updated' %}</strong> {{ page.updated | localize_date: date_format }}</p>{% endif %}
+    {% if page.license %}<p class="dataset-meta"><strong>{% t 'dataset.license' %}</strong> {{ page.license }}</p>{% endif %}
+  </header>
+  <div class="dataset-summary">
+    {{ page.summary | default: page.excerpt }}
+  </div>
+  <section class="dataset-details">
+    {{ content }}
+  </section>
+  {% if page.download_url and page.download_button %}
+    <p class="dataset-download">
+      <a class="btn btn-primary" href="{{ page.download_url }}">{% t 'dataset.download' %}</a>
+    </p>
+  {% endif %}
+  {% if page.schema %}
+    <section class="dataset-schema">
+      <h2>{% t 'dataset.schema_title' %}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>{% t 'dataset.schema.field' %}</th>
+            <th>{% t 'dataset.schema.description' %}</th>
+            <th>{% t 'dataset.schema.type' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for field in page.schema %}
+            <tr>
+              <td>{{ field.name }}</td>
+              <td>{{ field.description }}</td>
+              <td>{{ field.type }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+  {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
+  {% assign citation_authors = page.authors | default: page.author | default: site.author.name %}
+  {% assign citation_date = page.date | default: page.updated %}
+  {% assign citation_url = page.url | absolute_url %}
+  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key publisher=site.author.affiliation citation_type='dataset' doi=page.doi %}
+  {% include components/open-science-badges.html %}
+</article>

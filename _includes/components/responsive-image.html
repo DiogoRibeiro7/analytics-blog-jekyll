@@ -1,0 +1,63 @@
+{% assign image_src = include.src | to_s | strip %}
+{% assign alt_text = include.alt | to_s %}
+{% if image_src == '' or alt_text == '' %}
+  {% comment %}Missing required parameters{% endcomment %}
+  {% assign fallback_loading = include.loading | default: site.config.datalog_image_config.lazy_loading | default: 'lazy' %}
+  <img src="{{ image_src }}" alt="{{ alt_text }}" loading="{{ fallback_loading }}" decoding="async" />
+{% else %}
+  {% assign baseurl = site.baseurl | default: '' %}
+  {% assign manifest = site.data.datalog_responsive_images | default: {} %}
+  {% assign normalized_src = image_src %}
+  {% if normalized_src contains '://' %}
+    {% assign responsive_entry = nil %}
+  {% else %}
+    {% if baseurl != '' %}
+      {% assign normalized_src = normalized_src | replace_first: baseurl, '' %}
+    {% endif %}
+    {% assign site_url = site.url | default: '' %}
+    {% if site_url != '' %}
+      {% assign normalized_src = normalized_src | replace_first: site_url, '' %}
+    {% endif %}
+    {% assign normalized_src = normalized_src | prepend: '/' %}
+    {% assign normalized_src = normalized_src | replace: '//', '/' %}
+    {% assign responsive_entry = manifest[normalized_src] %}
+  {% endif %}
+  {% assign requested_sizes = include.sizes | default: site.config.datalog_image_config.default_sizes | default: '100vw' %}
+  {% assign loading_mode = include.loading | default: site.config.datalog_image_config.lazy_loading | default: 'lazy' %}
+  {% if responsive_entry %}
+    <picture>
+      {% for source in responsive_entry.sources %}
+        {% assign srcset_items = '' %}
+        {% for variant in source.variants %}
+          {% assign variant_url = variant.url | relative_url %}
+          {% assign descriptor = variant.width | append: 'w' %}
+          {% if forloop.first %}
+            {% assign srcset_items = variant_url | append: ' ' | append: descriptor %}
+          {% else %}
+            {% assign srcset_items = srcset_items | append: ', ' | append: variant_url | append: ' ' | append: descriptor %}
+          {% endif %}
+        {% endfor %}
+        <source type="{{ source.type }}" srcset="{{ srcset_items }}" sizes="{{ requested_sizes }}">
+      {% endfor %}
+      {% assign fallback_srcset = '' %}
+      {% for variant in responsive_entry.fallback.variants %}
+        {% assign variant_url = variant.url | relative_url %}
+        {% assign descriptor = variant.width | append: 'w' %}
+        {% if forloop.first %}
+          {% assign fallback_srcset = variant_url | append: ' ' | append: descriptor %}
+        {% else %}
+          {% assign fallback_srcset = fallback_srcset | append: ', ' | append: variant_url | append: ' ' | append: descriptor %}
+        {% endif %}
+      {% endfor %}
+      {% assign fallback_default = responsive_entry.fallback.variants | last %}
+      {% assign fallback_src = fallback_default.url | relative_url %}
+      <img src="{{ fallback_src }}" srcset="{{ fallback_srcset }}" sizes="{{ requested_sizes }}" alt="{{ alt_text }}" loading="{{ loading_mode }}" decoding="async"{% if responsive_entry.width %} width="{{ responsive_entry.width }}"{% endif %}{% if responsive_entry.height %} height="{{ responsive_entry.height }}"{% endif %}{% if include.class %} class="{{ include.class }}"{% endif %}>
+    </picture>
+  {% else %}
+    {% assign resolved_src = image_src %}
+    {% unless image_src contains '://' %}
+      {% assign resolved_src = image_src | relative_url %}
+    {% endunless %}
+    <img src="{{ resolved_src }}" alt="{{ alt_text }}" sizes="{{ requested_sizes }}" loading="{{ loading_mode }}" decoding="async"{% if include.class %} class="{{ include.class }}"{% endif %}>
+  {% endif %}
+{% endif %}

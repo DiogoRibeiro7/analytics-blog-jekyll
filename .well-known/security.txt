@@ -1,0 +1,22 @@
+# DataLog Jekyll Theme Security Contact
+# https://securitytxt.org/
+# RFC 9116: https://www.rfc-editor.org/rfc/rfc9116
+
+# Security vulnerability reporting contact
+Contact: mailto:dfr@esmad.ipp.pt
+Contact: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/security/advisories/new
+
+# Security policy location
+Policy: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/SECURITY.md
+
+# Preferred languages for security communications
+Preferred-Languages: en, pt
+
+# This file expires in one year - update annually
+Expires: 2026-11-26T00:00:00.000Z
+
+# Canonical URL for this security.txt
+Canonical: https://diogoribeiro7.github.io/.well-known/security.txt
+
+# Acknowledgments page for security researchers
+Acknowledgments: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/security/advisories

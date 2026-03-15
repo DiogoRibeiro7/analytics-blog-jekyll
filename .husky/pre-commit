@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Run security audit (high+ only; moderate issues in dev deps are non-blocking)
+npm audit --audit-level=high --omit=dev || {
+  echo "Security vulnerabilities found. Run npm audit fix to resolve."
+  exit 1
+}
+
+# Run lint-staged (format and lint staged files)
+npx lint-staged
+
+# Run tests
+npm test

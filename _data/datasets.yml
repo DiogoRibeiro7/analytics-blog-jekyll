@@ -1,0 +1,28 @@
+collections:
+  - id: urban-energy
+    title: Urban Energy Usage Benchmark
+    description: Smart meter and weather aligned dataset for forecasting tasks.
+    license: CC-BY-4.0
+    tags:
+      - energy
+      - time-series
+      - forecasting
+    source_url: https://example.com/datasets/urban-energy
+    documentation: /datasets/sample-dataset/
+    update_frequency: quarterly
+  - id: mobility-sensing
+    title: Mobility Sensing Signals
+    description: Multimodal mobility traces with aggregated privacy-preserving features.
+    license: CC-BY-SA-4.0
+    tags:
+      - mobility
+      - sensors
+      - anomaly-detection
+    source_url: https://example.com/datasets/mobility
+    documentation: /datasets/
+    update_frequency: annually
+
+preferences:
+  availability_statement: "Datasets include licensing, provenance, update cadence, and recommended citation language."
+  download_button: true
+  badge_style: outlined

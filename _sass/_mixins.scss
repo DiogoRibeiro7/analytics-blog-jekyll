@@ -1,0 +1,99 @@
+@use 'sass:map';
+@use 'sass:math';
+
+@use 'variables' as *;
+
+// Media query helper referencing the $breakpoints map
+@mixin respond-to($breakpoint) {
+  $value: map.get($breakpoints, $breakpoint);
+  @if $value {
+    @media (min-width: $value) {
+      @content;
+    }
+  } @else {
+    @warn 'Unknown breakpoint: #{$breakpoint}';
+  }
+}
+
+// Media query helper for max-width (desktop-first) queries
+@mixin respond-below($breakpoint) {
+  $value: map.get($breakpoints, $breakpoint);
+  @if $value {
+    @media (max-width: $value) {
+      @content;
+    }
+  } @else {
+    @warn 'Unknown breakpoint: #{$breakpoint}';
+  }
+}
+
+// Fluid type scale for headings and hero text
+@mixin fluid-type($min, $max, $min-vw: 20rem, $max-vw: 80rem) {
+  font-size: clamp($min, calc(#{$min} + (#{$max} - #{$min}) * ((100vw - #{$min-vw}) / (#{$max-vw} - #{$min-vw}))), $max);
+}
+
+// Accessible focus outline
+@mixin focus-ring($color: $color-accent-secondary) {
+  outline: 2px solid $color;
+  outline-offset: 3px;
+}
+
+// Code block styling with subtle grid background
+@mixin code-block($background: rgba($color-surface-900, 0.04)) {
+  background: linear-gradient(transparent 24px, rgba(0, 0, 0, 0.04) 24px) 0 0 / 100% 48px,
+              $background;
+  border: 1px solid rgba($color-ink-900, 0.08);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: map.get($spacing, 5);
+}
+
+// Mathematical expression formatting for display equations
+@mixin math-display {
+  font-family: $font-family-serif;
+  font-size: 1.05em;
+  line-height: $line-height-tight;
+  text-align: center;
+  margin: map.get($spacing, 5) auto;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// Responsive chart container using aspect ratio
+@mixin responsive-chart($ratio: math.div(9, 16)) {
+  position: relative;
+  width: 100%;
+  padding-bottom: $ratio * 100%;
+  background: rgba($color-accent-primary, 0.04);
+  border: 1px solid rgba($color-accent-primary, 0.2);
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  iframe,
+  canvas,
+  svg,
+  object {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Data grid layout used across technical pages
+@mixin data-grid($min: 18rem, $gap: map.get($spacing, 5)) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
+  gap: $gap;
+}
+
+// Utility for scientific callouts
+@mixin callout($accent: $color-accent-secondary) {
+  border-left: 4px solid $accent;
+  background-color: rgba($accent, 0.08);
+  padding: map.get($spacing, 4) map.get($spacing, 5);
+  border-radius: 0.75rem;
+}

@@ -1,0 +1,126 @@
+name: Question / Support
+description: Ask a question or request help with using DataLog
+title: "[Question]: "
+labels: ["question", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reaching out! For general questions, consider using [GitHub Discussions](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/discussions) for better visibility and community engagement.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have read the relevant [documentation](https://github.com/DiogoRibeiro7/analytics-blog-jekyll#readme)
+          required: true
+        - label: I have checked the [configuration reference](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md)
+          required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Installation / Setup
+        - Configuration
+        - Notebook Integration
+        - Analytics Setup
+        - Deployment (GitHub Pages, Netlify, etc.)
+        - Customization / Styling
+        - Plugin Development
+        - Content Creation
+        - Performance Optimization
+        - Troubleshooting
+        - Best Practices
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I... What is the best way to... Why does...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide context about what you're trying to accomplish
+      placeholder: I'm trying to... My goal is to... I want to create...
+    validations:
+      required: false
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried?
+      description: What steps have you already taken to solve this?
+      placeholder: |
+        I tried...
+        I looked at...
+        I searched for...
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: DataLog Version
+      description: What version are you using? (check _config.yml)
+      placeholder: "0.2.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Platform
+      description: Where are you deploying DataLog?
+      options:
+        - GitHub Pages
+        - Local Development
+        - Netlify
+        - Vercel
+        - Docker
+        - Other
+        - Not Yet Deployed
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant Configuration
+      description: Share relevant portions of your _config.yml if applicable
+      render: yaml
+      placeholder: |
+        # Paste relevant config here
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example / Reference
+      description: Link to similar examples or implementations you've seen
+      placeholder: I saw this example... I want to achieve something like...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other details that might be helpful
+    validations:
+      required: false

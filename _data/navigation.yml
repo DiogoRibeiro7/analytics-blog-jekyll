@@ -1,0 +1,145 @@
+header:
+  - title: Blog
+    description: Tutorials, walkthroughs, and code-along guides
+    title_key: navigation.header.blog.title
+    description_key: navigation.header.blog.description
+    url: /blog/
+    section: blog
+  - title: Research
+    description: Papers, replication studies, and documentation
+    title_key: navigation.header.research.title
+    description_key: navigation.header.research.description
+    url: /research/
+    section: research
+  - title: Projects
+    description: Interactive case studies with GitHub integration
+    title_key: navigation.header.projects.title
+    description_key: navigation.header.projects.description
+    url: /portfolio/
+    section: portfolio
+  - title: Datasets
+    description: Curated data sources with licensing metadata
+    title_key: navigation.header.datasets.title
+    description_key: navigation.header.datasets.description
+    url: /datasets/
+    section: datasets
+  - title: Visualizations
+    description: Plotly, D3, and Observable notebooks
+    title_key: navigation.header.visualizations.title
+    description_key: navigation.header.visualizations.description
+    url: /visualizations/
+    section: visualizations
+  - title: Packages
+    description: Software packages, libraries, and tools
+    title_key: navigation.header.packages.title
+    description_key: navigation.header.packages.description
+    url: /packages/
+    section: packages
+  - title: Academic Ops
+    description: Citation metrics, submissions, and collaboration hub
+    title_key: navigation.header.academic.title
+    description_key: navigation.header.academic.description
+    url: /academic/
+    section: academic
+  - title: About
+    description: Research profile, credentials, and contact
+    title_key: navigation.header.about.title
+    description_key: navigation.header.about.description
+    url: /about/
+    section: about
+
+quick_links:
+  - title: Getting started with the DataLog workflow
+    title_key: navigation.quick_links.getting_started
+    url: /getting-started/
+  - title: Publish a Jupyter notebook as a post
+    title_key: navigation.quick_links.publish_notebook
+    url: /notebooks/
+  - title: Explore predictive modeling projects
+    title_key: navigation.quick_links.predictive_modeling
+    url: /portfolio/#predictive-modeling
+  - title: Research methodology checklist
+    title_key: navigation.quick_links.research_checklist
+    url: /research/#methodology
+  - title: Track conference submissions
+    title_key: navigation.quick_links.submission_tracker
+    url: /academic/#submission-tracker
+
+footer:
+  - title: Privacy
+    title_key: navigation.footer.privacy
+    url: /privacy/
+  - title: Accessibility
+    title_key: navigation.footer.accessibility
+    url: /accessibility/
+  - title: Tutorials index
+    title_key: navigation.footer.tutorials
+    url: /tutorials/
+  - title: Archive by topic
+    title_key: navigation.footer.archive
+    url: /archive/topics/
+  - title: Contact
+    title_key: navigation.footer.contact
+    url: mailto:dfr@esmad.ipp.pt
+
+content_overview:
+  research_areas:
+    title: Research areas
+    title_key: navigation.content.research_areas.title
+    items:
+      - label: Machine Learning
+        label_key: navigation.content.research_areas.machine_learning.label
+        description: Supervised, unsupervised, and deep learning case studies
+        description_key: navigation.content.research_areas.machine_learning.description
+        url: /tags/machine-learning/
+      - label: Statistics
+        label_key: navigation.content.research_areas.statistics.label
+        description: Experimental design, inference, and hypothesis testing
+        description_key: navigation.content.research_areas.statistics.description
+        url: /tags/statistics/
+      - label: Data Visualization
+        label_key: navigation.content.research_areas.visualization.label
+        description: Storytelling dashboards and narrative graphics
+        description_key: navigation.content.research_areas.visualization.description
+        url: /tags/visualization/
+      - label: Reproducibility
+        label_key: navigation.content.research_areas.reproducibility.label
+        description: Open science workflows and methodology best practices
+        description_key: navigation.content.research_areas.reproducibility.description
+        url: /tags/reproducibility/
+  methodologies:
+    title: Methodologies
+    title_key: navigation.content.methodologies.title
+    items:
+      - label: Experimental design
+        label_key: navigation.content.methodologies.experimental_design
+        url: /tags/experimental-design/
+      - label: Bayesian modeling
+        label_key: navigation.content.methodologies.bayesian
+        url: /tags/bayesian/
+      - label: Exploratory data analysis
+        label_key: navigation.content.methodologies.eda
+        url: /tags/eda/
+      - label: Causal inference
+        label_key: navigation.content.methodologies.causal_inference
+        url: /tags/causal-inference/
+
+languages:
+  title: Programming Languages
+  title_key: navigation.languages.title
+  items:
+    - label: Python
+      label_key: navigation.languages.items.python
+      url: /tags/python/
+    - label: R
+      label_key: navigation.languages.items.r
+      url: /tags/r/
+    - label: SQL
+      label_key: navigation.languages.items.sql
+      url: /tags/sql/
+    - label: Julia
+      label_key: navigation.languages.items.julia
+      url: /tags/julia/
+    - label: JavaScript
+      label_key: navigation.languages.items.javascript
+      url: /tags/javascript/

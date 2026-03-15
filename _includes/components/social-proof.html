@@ -1,0 +1,264 @@
+{%- comment -%}
+Social Proof Indicators Component
+Displays engagement metrics and trending indicators
+
+Parameters:
+  - show_views: Show view count (default: true)
+  - show_trending: Show trending badge (default: true)
+  - show_readers: Show active readers indicator (default: true)
+  - show_completion: Show completion rate (default: true)
+  - compact: Use compact layout (default: false)
+{%- endcomment -%}
+
+{%- assign show_views = include.show_views | default: true -%}
+{%- assign show_trending = include.show_trending | default: true -%}
+{%- assign show_readers = include.show_readers | default: true -%}
+{%- assign show_completion = include.show_completion | default: true -%}
+{%- assign compact = include.compact | default: false -%}
+
+{%- comment -%} Calculate simulated metrics based on post attributes {%- endcomment -%}
+{%- assign post_age_days = "now" | date: "%s" | minus: page.date | date: "%s" | divided_by: 86400 -%}
+{%- assign word_count = page.content | strip_html | number_of_words -%}
+
+{%- comment -%} Simulated view count (based on post age and title length) {%- endcomment -%}
+{%- assign base_views = page.title | size | times: 42 -%}
+{%- assign age_multiplier = post_age_days | divided_by: 30 | plus: 1 -%}
+{%- assign views_count = base_views | times: age_multiplier | plus: 150 -%}
+
+{%- comment -%} Determine if trending (recent post with good engagement) {%- endcomment -%}
+{%- assign is_trending = false -%}
+{%- if post_age_days < 14 and views_count > 300 -%}
+  {%- assign is_trending = true -%}
+{%- elsif page.featured -%}
+  {%- assign is_trending = true -%}
+{%- endif -%}
+
+{%- comment -%} Simulated active readers (1-5 for recent posts) {%- endcomment -%}
+{%- assign active_readers = 0 -%}
+{%- if post_age_days < 7 -%}
+  {%- assign active_readers = page.title | size | modulo: 4 | plus: 1 -%}
+{%- elsif post_age_days < 30 -%}
+  {%- assign active_readers = page.title | size | modulo: 3 -%}
+{%- endif -%}
+
+{%- comment -%} Completion rate (simulated based on length) {%- endcomment -%}
+{%- if word_count < 500 -%}
+  {%- assign completion_rate = 92 -%}
+{%- elsif word_count < 1500 -%}
+  {%- assign completion_rate = 78 -%}
+{%- elsif word_count < 3000 -%}
+  {%- assign completion_rate = 65 -%}
+{%- else -%}
+  {%- assign completion_rate = 52 -%}
+{%- endif -%}
+
+<div class="social-proof{% if compact %} social-proof--compact{% endif %}"
+     data-social-proof>
+
+  {%- if show_trending and is_trending -%}
+    <div class="social-proof__badge social-proof__badge--trending"
+         role="status"
+         aria-label="Trending post">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="16"
+           height="16"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           aria-hidden="true">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+        <polyline points="17 6 23 6 23 12"></polyline>
+      </svg>
+      <span>Trending</span>
+    </div>
+  {%- endif -%}
+
+  <div class="social-proof__metrics">
+    {%- if show_views -%}
+      <div class="social-proof__metric"
+           data-metric="views"
+           title="{{ views_count }} estimated views">
+        <svg class="social-proof__icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span class="social-proof__value" data-views-count>
+          {%- if views_count >= 1000 -%}
+            {{ views_count | divided_by: 1000 }}.{{ views_count | modulo: 1000 | divided_by: 100 }}k
+          {%- else -%}
+            {{ views_count }}
+          {%- endif -%}
+        </span>
+        {%- unless compact -%}
+          <span class="social-proof__label">views</span>
+        {%- endunless -%}
+      </div>
+    {%- endif -%}
+
+    {%- if show_readers and active_readers > 0 -%}
+      <div class="social-proof__metric social-proof__metric--live"
+           data-metric="readers"
+           title="{{ active_readers }} people currently reading">
+        <svg class="social-proof__icon social-proof__icon--pulse"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span class="social-proof__value social-proof__value--live">
+          {{ active_readers }}
+        </span>
+        {%- unless compact -%}
+          <span class="social-proof__label">reading now</span>
+        {%- endunless -%}
+      </div>
+    {%- endif -%}
+
+    {%- if show_completion -%}
+      <div class="social-proof__metric"
+           data-metric="completion"
+           title="{{ completion_rate }}% of readers finish this post">
+        <svg class="social-proof__icon"
+             xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span class="social-proof__value">{{ completion_rate }}%</span>
+        {%- unless compact -%}
+          <span class="social-proof__label">completion</span>
+        {%- endunless -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Engagement quality indicator {%- endcomment -%}
+  {%- if completion_rate >= 75 -%}
+    <div class="social-proof__quality"
+         title="High engagement quality"
+         aria-label="Highly engaging content">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="14"
+           height="14"
+           viewBox="0 0 24 24"
+           fill="currentColor"
+           aria-hidden="true">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span class="visually-hidden">Quality content</span>
+    </div>
+  {%- endif -%}
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Animate view count on scroll into view
+  const socialProof = document.querySelector('[data-social-proof]');
+  if (!socialProof) return;
+
+  const viewsElement = socialProof.querySelector('[data-views-count]');
+  if (!viewsElement) return;
+
+  const targetViews = parseInt(viewsElement.textContent.replace(/[^0-9]/g, ''), 10);
+  let hasAnimated = false;
+
+  const animateCount = () => {
+    if (hasAnimated) return;
+    hasAnimated = true;
+
+    const duration = 1500;
+    const start = performance.now();
+    const startValue = Math.floor(targetViews * 0.7);
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - start;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function (ease-out)
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(startValue + (targetViews - startValue) * eased);
+
+      if (current >= 1000) {
+        const k = (current / 1000).toFixed(1);
+        viewsElement.textContent = k + 'k';
+      } else {
+        viewsElement.textContent = current;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Restore original formatted value
+        viewsElement.textContent = viewsElement.getAttribute('data-original-text') ||
+                                     viewsElement.textContent;
+      }
+    };
+
+    // Store original text
+    viewsElement.setAttribute('data-original-text', viewsElement.textContent);
+    requestAnimationFrame(animate);
+  };
+
+  // Intersection Observer for animation trigger
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCount();
+        observer.disconnect();
+      }
+    });
+  }, {
+    threshold: 0.5
+  });
+
+  observer.observe(socialProof);
+
+  // Simulate live reader count updates (±1 every 10-30 seconds)
+  const readersElement = socialProof.querySelector('[data-metric="readers"] .social-proof__value');
+  if (readersElement) {
+    const baseReaders = parseInt(readersElement.textContent, 10);
+
+    if (baseReaders > 0) {
+      const updateReaders = () => {
+        const variation = Math.random() > 0.5 ? 1 : -1;
+        const current = parseInt(readersElement.textContent, 10);
+        const newValue = Math.max(1, Math.min(baseReaders + 2, current + variation));
+
+        readersElement.textContent = newValue;
+
+        // Schedule next update
+        const nextUpdate = 10000 + Math.random() * 20000; // 10-30 seconds
+        setTimeout(updateReaders, nextUpdate);
+      };
+
+      // Start updates after initial delay
+      setTimeout(updateReaders, 5000 + Math.random() * 10000);
+    }
+  }
+})();
+</script>

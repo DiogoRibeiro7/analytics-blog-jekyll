@@ -1,0 +1,21 @@
+{%- comment -%}
+---
+required:
+  - items
+optional:
+  - conjunction
+  - fallback
+---
+Converts an array into a human readable sentence using the configured conjunction.
+Pass an empty or nil array to emit the fallback value (defaults to blank).
+{%- endcomment -%}
+{%- assign items = include.items | default: '' -%}
+{%- if items == blank or items == empty -%}
+  {{ include.fallback | default: '' }}
+{%- else -%}
+  {%- if include.conjunction -%}
+    {{ items | array_to_sentence_string: include.conjunction }}
+  {%- else -%}
+    {{ items | array_to_sentence_string }}
+  {%- endif -%}
+{%- endif -%}

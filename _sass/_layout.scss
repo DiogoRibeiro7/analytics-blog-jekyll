@@ -1,0 +1,63 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.container {
+  width: min(100% - 2rem, $max-width-wide);
+  margin-inline: auto;
+}
+
+.container--narrow {
+  width: min(100% - 2rem, $max-width-reading + 4rem);
+}
+
+main {
+  padding: map.get($spacing, 6) 0 map.get($spacing, 8);
+}
+
+.page-shell {
+  display: grid;
+  gap: map.get($spacing, 6);
+}
+
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 3);
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+body.dark-mode .page-meta {
+  color: rgba($dark-ink-500, 0.8);
+}
+
+.sidebar-layout {
+  display: grid;
+  gap: map.get($spacing, 6);
+
+  @include respond-to(lg) {
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr);
+    align-items: start;
+  }
+}
+
+aside {
+  position: sticky;
+  top: 6.5rem;
+}
+
+.footer {
+  background: $color-surface-100;
+  color: $color-ink-700;
+  padding: map.get($spacing, 7) 0;
+  margin-top: map.get($spacing, 8);
+  border-top: 1px solid rgba($color-neutral-200, 0.9);
+}
+
+body.dark-mode .footer {
+  background: $dark-surface-200;
+  color: $dark-ink-700;
+  border-top-color: rgba($dark-ink-500, 0.25);
+}

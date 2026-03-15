@@ -1,0 +1,302 @@
+# =============================================================================
+# DataLog Jekyll Theme Configuration
+# =============================================================================
+# This is the core Jekyll configuration file. For easier customization,
+# additional settings have been organized into modular files:
+#
+#   _data/config/site.yml         - Brand, contact, SEO, analytics
+#   _data/config/author.yml       - Author profile and academic info
+#   _data/config/theme.yml        - Visual settings, math, syntax, images
+#   _data/config/integrations.yml - External service connections
+#   _data/config/features.yml     - Feature flags organized by phase
+#
+# Access these in templates via: site.data.config.site, site.data.config.author, etc.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Site Settings
+# -----------------------------------------------------------------------------
+name: DataLog
+locale: en_US
+title: DataLog | Data Science & Research Theme
+email: diogo.debastos.ribeiro@gmail.com
+description: >-
+  DataLog is a clean and academic-inspired Jekyll theme crafted for
+  data scientists, researchers, and technical writers who want to share
+  reproducible analyses, research papers, tutorials, datasets, and project portfolios.
+url: "https://diogoribeiro7.github.io"
+baseurl: ""
+theme_version: 0.2.0
+
+# Author (basic info for Jekyll - full profile in _data/config/author.yml)
+author:
+  name: Diogo Ribeiro
+  affiliation: ESMAD - Instituto Politécnico do Porto
+  email: dfr@esmad.ipp.pt
+  orcid: https://orcid.org/0009-0001-2022-7072
+  github: DiogoRibeiro7
+  twitter: DiogoRibeiro7
+  linkedin: diogoribeiro
+
+contact_email: diogo.debastos.ribeiro@gmail.com
+repository_url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+
+# -----------------------------------------------------------------------------
+# Build Settings
+# -----------------------------------------------------------------------------
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  math_engine: mathjax
+  smart_quotes: ["apos", "apos", "quot", "quot"]
+  syntax_highlighter_opts:
+    block:
+      line_numbers: true
+highlighter: rouge
+
+permalink: pretty
+paginate: 10
+paginate_path: "/blog/page:num/"
+timezone: Europe/Lisbon
+
+# -----------------------------------------------------------------------------
+# Collections
+# -----------------------------------------------------------------------------
+collections:
+  portfolio:
+    output: true
+    permalink: /portfolio/:name/
+  datasets:
+    output: true
+    permalink: /datasets/:name/
+  notebooks:
+    output: false
+    permalink: /notebooks/:name/
+  packages:
+    output: true
+    permalink: /packages/:name/
+
+# -----------------------------------------------------------------------------
+# Directories
+# -----------------------------------------------------------------------------
+includes_dir: _includes
+layouts_dir: _layouts
+include:
+  - _pages
+  - .well-known
+sass:
+  sass_dir: _sass
+  style: compressed
+
+# -----------------------------------------------------------------------------
+# Plugins
+# -----------------------------------------------------------------------------
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-paginate
+  - jekyll-jupyter-notebook
+  - jekyll-include-cache
+
+# -----------------------------------------------------------------------------
+# Notebook Integration
+# -----------------------------------------------------------------------------
+notebooks:
+  enabled: true
+  source: _notebooks
+  output: notebooks
+  download_dir: notebooks
+  default_layout: notebook
+  collection: notebooks
+  permalink_base: /notebooks
+  repository: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+  branch: main
+  binder:
+    base_url: https://mybinder.org/v2/gh/%{slug}/%{branch}?labpath=%{path}
+  colab:
+    base_url: https://colab.research.google.com/github/%{slug}/blob/%{branch}/%{path}
+
+# -----------------------------------------------------------------------------
+# Theme Defaults
+# -----------------------------------------------------------------------------
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: post
+      toc: true
+      toc_label: On this page
+      author: Diogo Ribeiro
+      mathjax: true
+  - scope:
+      path: ""
+      type: "portfolio"
+    values:
+      layout: portfolio
+      hero_image: /assets/img/portfolio-placeholder.svg
+  - scope:
+      path: ""
+      type: "datasets"
+    values:
+      layout: dataset
+      download_button: true
+  - scope:
+      path: "_pages"
+    values:
+      layout: page
+
+# -----------------------------------------------------------------------------
+# SEO & Social (basic - extended config in _data/config/site.yml)
+# -----------------------------------------------------------------------------
+seo:
+  type: "ResearchProject"
+  name: "DataLog"
+  description: "Jekyll theme for data science and research communication"
+
+social:
+  twitter: datalog_theme
+  github: DiogoRibeiro7
+  linkedin: diogoribeiro
+  default_image: /assets/img/social-card.png
+
+google_analytics: ""
+
+# -----------------------------------------------------------------------------
+# Feature Flags (reference _data/config/features.yml for full options)
+# -----------------------------------------------------------------------------
+features:
+  mathjax: true
+  math_toolkit: true
+  math_search: true
+  search: true
+  accessibility_skip_link: true
+  dark_mode_toggle: true
+  notebook_support: true
+  portfolio: true
+  datasets: true
+  visualizations: true
+  academic_dashboard: true
+  citation_tracking: true
+  academic_calendar: true
+
+critical_css:
+  enabled: true
+  dimensions:
+    - width: 1920
+      height: 1080
+    - width: 375
+      height: 667
+  penthouse_options:
+    timeout: 30000
+
+# -----------------------------------------------------------------------------
+# Theme Options (reference _data/config/theme.yml for full options)
+# -----------------------------------------------------------------------------
+theme_options:
+  math:
+    engine: mathjax
+    output: chtml
+    equation_numbering: true
+    accessibility: true
+    render_on_load: true
+    katex_cdn: https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/
+    mathjax_cdn: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
+  syntax_highlighting:
+    engine: prism
+    cdn: https://cdn.jsdelivr.net/npm/prismjs@1.29.0
+    themes:
+      light: prism-coy
+      dark: prism-tomorrow
+    components:
+      - core
+      - python
+      - r
+      - sql
+      - julia
+      - javascript
+  localization:
+    default_locale: en
+    locales:
+      - code: en
+        label: English
+        url: /
+
+# -----------------------------------------------------------------------------
+# Integrations (reference _data/config/integrations.yml for full options)
+# -----------------------------------------------------------------------------
+integrations:
+  github:
+    owner: DiogoRibeiro7
+    api_base: https://api.github.com/repos
+    cache_ttl: 43200
+    enabled: true
+  binder:
+    enabled: true
+    url_template: https://mybinder.org/v2/gh/%{slug}/%{branch}?labpath=%{path}
+  colab:
+    enabled: true
+    url_template: https://colab.research.google.com/github/%{slug}/blob/%{branch}/%{path}
+
+# -----------------------------------------------------------------------------
+# DataLog Plugins
+# -----------------------------------------------------------------------------
+datalog_plugins:
+  enabled:
+    - datalog-search
+    - datalog-citations
+    - datalog-slides
+    - datalog-comments
+  options:
+    datalog-citations:
+      bibliography_title: References
+    datalog-slides:
+      cdn: https://unpkg.com/reveal.js@5
+      width: 100%
+      height: 620px
+    datalog-comments:
+      provider: giscus
+      repo: DiogoRibeiro7/analytics-blog-jekyll
+      repo_id: GISCUS_REPO_ID
+      category: General
+      category_id: GISCUS_CATEGORY_ID
+      mapping: pathname
+      theme: light
+
+# -----------------------------------------------------------------------------
+# Analytics
+# -----------------------------------------------------------------------------
+analytics:
+  ga4_property_id: ""
+  ga4_credentials_path: ""
+
+# -----------------------------------------------------------------------------
+# Exclusions
+# -----------------------------------------------------------------------------
+exclude:
+  - Gemfile.lock
+  - README.md
+  - vendor
+  - node_modules
+  - scripts
+  - lib
+  - docs/site
+  - Gemfile
+  - node_modules/
+  - vendor/
+  - .bundle/
+  - lib/
+  - bin/
+  - datalog-theme.gemspec
+  - "*.gemspec"
+  - script/
+  - tmp/
+  - template/
+
+# -----------------------------------------------------------------------------
+# Development
+# -----------------------------------------------------------------------------
+development:
+  livereload: true

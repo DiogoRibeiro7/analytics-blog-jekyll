@@ -1,0 +1,714 @@
+// ============================================================================
+// Package Documentation Styles
+// ReadTheDocs / R Documentation inspired styling
+// ============================================================================
+
+@use 'mixins' as *;
+
+// Color scheme - ReadTheDocs inspired
+$pkg-primary: #2980b9;
+$pkg-success: #27ae60;
+$pkg-warning: #f39c12;
+$pkg-danger: #e74c3c;
+$pkg-sidebar-bg: #343131;
+$pkg-sidebar-text: #b3b3b3;
+$pkg-sidebar-link: #9b9b9b;
+$pkg-sidebar-link-hover: #fff;
+$pkg-code-bg: #f8f8f8;
+$pkg-border: #e1e4e5;
+
+// Package Docs Container
+.package-docs {
+  min-height: 100vh;
+
+  &__header {
+    background: linear-gradient(135deg, $pkg-primary 0%, darken($pkg-primary, 10%) 100%);
+    color: white;
+    padding: 2rem 0;
+    border-bottom: 3px solid darken($pkg-primary, 15%);
+  }
+
+  &__header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  &__title-area {
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  &__icon {
+    font-size: 2rem;
+  }
+
+  &__tagline {
+    margin: 0;
+    font-size: 1.125rem;
+    opacity: 0.95;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+
+    > div {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9375rem;
+      opacity: 0.9;
+
+      svg {
+        opacity: 0.8;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  &__container {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  // Sidebar
+  &__sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    background: $pkg-sidebar-bg;
+    color: $pkg-sidebar-text;
+    min-height: calc(100vh - 200px);
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    max-height: 100vh;
+  }
+
+  // Main Content
+  &__main {
+    flex: 1;
+    padding: 2rem 3rem;
+    background: white;
+    min-width: 0;
+  }
+
+  &__content {
+    max-width: 900px;
+
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      line-height: 1.3;
+
+      &:first-child {
+        margin-top: 0;
+      }
+
+      code {
+        background: $pkg-code-bg;
+        padding: 0.125rem 0.375rem;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+    }
+
+    h2 {
+      font-size: 1.875rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid $pkg-border;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    h4 {
+      font-size: 1.25rem;
+    }
+
+    p {
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    code {
+      background: $pkg-code-bg;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      font-size: 0.9em;
+      color: #c7254e;
+    }
+
+    pre {
+      background: #f8f8f8;
+      border: 1px solid $pkg-border;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+
+      code {
+        background: none;
+        padding: 0;
+        color: inherit;
+        font-size: 0.875rem;
+        line-height: 1.6;
+      }
+    }
+
+    .admonition {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-left: 4px solid;
+      border-radius: 4px;
+
+      &.note {
+        background: #e7f2fa;
+        border-color: $pkg-primary;
+      }
+
+      &.tip {
+        background: #dbf5e8;
+        border-color: $pkg-success;
+      }
+
+      &.warning {
+        background: #fff3cd;
+        border-color: $pkg-warning;
+      }
+
+      &.danger {
+        background: #f8d7da;
+        border-color: $pkg-danger;
+      }
+
+      .admonition-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+
+  &__footer-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid $pkg-border;
+  }
+
+  &__footer-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid $pkg-border;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    flex: 1;
+
+    &:hover {
+      background: #e9ecef;
+      border-color: $pkg-primary;
+    }
+
+    &--prev {
+      justify-content: flex-start;
+    }
+
+    &--next {
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
+  &__footer-nav-label {
+    font-size: 0.8125rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__footer-nav-title {
+    font-weight: 600;
+    color: #212529;
+  }
+}
+
+// Package Navigation
+.package-nav {
+  padding: 1.5rem 0;
+
+  &__section {
+    margin-bottom: 1.5rem;
+    padding: 0 1.5rem;
+
+    &--versions {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.5rem;
+    }
+  }
+
+  &__section-title {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  &__item {
+    margin-bottom: 0.25rem;
+  }
+
+  &__link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: $pkg-sidebar-link;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: $pkg-sidebar-link-hover;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &--active {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 500;
+    }
+  }
+
+  &__version-select {
+    width: 100%;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9375rem;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    option {
+      background: $pkg-sidebar-bg;
+      color: white;
+    }
+  }
+}
+
+// Package Installation Component
+.package-install {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid $pkg-border;
+  border-radius: 6px;
+
+  &__title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+  }
+
+  &__tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid $pkg-border;
+  }
+
+  &__tab-btn {
+    padding: 0.625rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6c757d;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: $pkg-primary;
+    }
+
+    &--active {
+      color: $pkg-primary;
+      border-bottom-color: $pkg-primary;
+    }
+  }
+
+  &__code-block {
+    position: relative;
+    background: #2d2d2d;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  &__code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #1e1e1e;
+    border-bottom: 1px solid #3d3d3d;
+  }
+
+  &__code-label {
+    font-size: 0.8125rem;
+    color: #9d9d9d;
+    font-weight: 500;
+  }
+
+  &__copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &--success {
+      background: $pkg-success;
+      border-color: $pkg-success;
+    }
+  }
+
+  &__code-block pre {
+    margin: 0;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+
+    code {
+      color: #e6e6e6;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+// API Function Documentation
+.api-function {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid $pkg-border;
+  border-left: 4px solid $pkg-primary;
+  border-radius: 4px;
+
+  &__header {
+    margin-bottom: 1rem;
+  }
+
+  &__name {
+    margin: 0 0 0.75rem;
+    font-size: 1.5rem;
+    color: $pkg-primary;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: inherit;
+    }
+  }
+
+  &__signature {
+    background: #2d2d2d;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 0;
+
+    code {
+      color: #e6e6e6;
+      font-size: 0.9375rem;
+    }
+  }
+
+  &__description {
+    margin: 1rem 0;
+    line-height: 1.6;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__section {
+    margin-top: 1.5rem;
+  }
+
+  &__section-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #343a40;
+  }
+
+  &__params {
+    margin: 0;
+  }
+
+  &__param {
+    margin-bottom: 1.25rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__param-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+
+    code {
+      font-size: 1em;
+      font-weight: 600;
+    }
+  }
+
+  &__param-type {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+    font-weight: normal;
+  }
+
+  &__param-default {
+    font-size: 0.875rem;
+    color: $pkg-success;
+    font-weight: normal;
+  }
+
+  &__param-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: #e9ecef;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+
+  &__param-desc {
+    margin: 0;
+    padding-left: 1rem;
+    color: #495057;
+    line-height: 1.6;
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__returns {
+    padding: 1rem;
+    background: white;
+    border-radius: 4px;
+  }
+
+  &__return-type {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    background: #e7f2fa;
+    border-radius: 3px;
+    color: $pkg-primary;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__examples {
+    pre {
+      background: #2d2d2d;
+      border: none;
+
+      code {
+        color: #e6e6e6;
+      }
+    }
+  }
+
+  &__see-also {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    li {
+      margin: 0;
+    }
+
+    a {
+      color: $pkg-primary;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Responsive
+@include respond-below(lg) {
+  .package-docs {
+    &__container {
+      flex-direction: column;
+    }
+
+    &__sidebar {
+      width: 100%;
+      position: static;
+      max-height: none;
+    }
+
+    &__main {
+      padding: 1.5rem;
+    }
+  }
+
+  .package-nav {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+}
+
+@include respond-below(md) {
+  .package-docs {
+    &__header-content {
+      padding: 0 1rem;
+    }
+
+    &__title {
+      font-size: 2rem;
+    }
+
+    &__main {
+      padding: 1rem;
+    }
+
+    &__footer-nav {
+      flex-direction: column;
+    }
+  }
+
+  .package-install {
+    padding: 1rem;
+
+    &__tab-buttons {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+    }
+  }
+}
+
+// Print
+@media print {
+  .package-docs {
+    &__header {
+      background: none;
+      color: black;
+      border-bottom: 2px solid black;
+    }
+
+    &__sidebar {
+      display: none;
+    }
+
+    &__action-btn {
+      display: none;
+    }
+
+    &__footer-nav {
+      display: none;
+    }
+  }
+
+  .package-install__copy-btn {
+    display: none;
+  }
+}

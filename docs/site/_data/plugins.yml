@@ -1,0 +1,42 @@
+- id: datalog-citations
+  name: DataLog Citations
+  summary: Generate numbered references, render inline citation tags, and add citation metadata to the search index.
+  hooks:
+    - before_render
+    - custom_liquid_tags
+    - search_indexing
+  includes:
+    - '{% datalog_cite li2010 %} — render an inline citation link.'
+    - '{% datalog_bibliography %} — output the formatted reference list.'
+  configuration:
+    bibliography_title: Customize the bibliography heading per site.
+  status: bundled
+
+- id: datalog-slides
+  name: DataLog Slides
+  summary: Embed Reveal.js or hosted slide decks with automatic metadata and search signals.
+  hooks:
+    - before_render
+    - custom_liquid_tags
+    - search_indexing
+  includes:
+    - '{% datalog_slides %} — display the configured deck inside any post or page.'
+  configuration:
+    cdn: Override the Reveal.js CDN root.
+    theme: Apply a default slide theme.
+  status: bundled
+
+- id: datalog-comments
+  name: DataLog Comments
+  summary: Wire up community discussion using Giscus, Utterances, or Disqus from front matter.
+  hooks:
+    - before_render
+    - custom_liquid_tags
+    - search_indexing
+  includes:
+    - '{% datalog_comments %} — render the provider embed.'
+  configuration:
+    provider: Select `giscus`, `utterances`, or `disqus`.
+    mapping: Control how threads are matched to posts.
+    theme: Choose the embed palette.
+  status: bundled

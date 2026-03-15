@@ -1,0 +1,94 @@
+{% assign citation_title = include.title | default: page.title | default: site.title %}
+{% assign citation_url = include.url | default: page.url | default: '/' | absolute_url %}
+{% assign citation_date = include.date | default: page.date %}
+{% assign citation_year = citation_date | date: '%Y' %}
+{% assign authors_source = include.authors | default: page.authors | default: page.author | default: site.author.name %}
+{% assign authors_array = authors_source | arrayify %}
+{% assign publisher = include.publisher | default: site.author.affiliation | default: site.title %}
+{% assign doi = include.doi | default: page.doi %}
+{% assign citation_type = include.citation_type | default: include.type | default: 'article' %}
+{% assign citation_key = include.citation_key | default: page.citation_key | default: page.slug | default: citation_title | slugify %}
+{% capture author_line %}
+  {% for author in authors_array %}
+    {% if author.name %}
+      {{ author.name | strip }}{% unless forloop.last %} and {% endunless %}
+    {% else %}
+      {{ author | strip }}{% unless forloop.last %} and {% endunless %}
+    {% endif %}
+  {% endfor %}
+{% endcapture %}
+{% capture ris_authors %}
+  {% for author in authors_array %}
+    {% assign author_name = author.name | default: author %}
+AU  - {{ author_name | strip }}
+  {% endfor %}
+{% endcapture %}
+{% capture bibtex_entry %}@{{ citation_type }}{ {{ citation_key }},
+  title = { {{ citation_title | strip }} },
+  author = { {{ author_line | strip }} },
+  {% if citation_year %}year = { {{ citation_year }} },{% endif %}
+  {% if publisher %}publisher = { {{ publisher | strip }} },{% endif %}
+  {% if doi %}doi = { {{ doi }} },{% endif %}
+  url = { {{ citation_url }} }
+}
+{% endcapture %}
+{% capture ris_entry %}TY  - {{ citation_type | upcase }}
+TI  - {{ citation_title | strip }}
+{% if citation_year %}PY  - {{ citation_year }}
+{% endif %}{{ ris_authors | strip }}
+{% if publisher %}PB  - {{ publisher | strip }}
+{% endif %}
+{% if doi %}DO  - {{ doi }}
+{% endif %}UR  - {{ citation_url }}
+ER  -
+{% endcapture %}
+{% capture endnote_entry %}%0 {{ citation_type | capitalize }}
+%T {{ citation_title | strip }}
+{{ ris_authors | strip | replace: 'AU', '%A' }}
+{% if citation_year %}%D {{ citation_year }}
+{% endif %}
+{% if publisher %}%I {{ publisher | strip }}
+{% endif %}
+{% if doi %}%R {{ doi }}
+{% endif %}
+%U {{ citation_url }}
+{% endcapture %}
+{% capture authors_plain %}
+  {% for author in authors_array %}
+    {% assign author_name = author.name | default: author %}
+    {{ author_name | strip }}{% unless forloop.last %}, {% endunless %}
+  {% endfor %}
+{% endcapture %}
+{% capture citation_text %}
+  {{ authors_plain | strip }}{% if citation_year %} ({{ citation_year }}){% endif %}. {{ citation_title | strip }}. {{ publisher | strip }}. {{ citation_url }}.
+{% endcapture %}
+<section class="citation-tools" aria-labelledby="citation-tools-heading-{{ citation_key }}">
+  <div class="citation-tools__header">
+    <h2 id="citation-tools-heading-{{ citation_key }}">{% t 'citation_tools.heading' %}</h2>
+    <p class="citation-tools__summary">{% t 'citation_tools.summary' %}</p>
+    <p class="citation-tools__citation">{{ citation_text | strip }}</p>
+  </div>
+  <div class="citation-tools__exports">
+    <article class="citation-tools__format" data-citation-format="bibtex">
+      <header>
+        <h3>{% t 'citation_tools.formats.bibtex' %}</h3>
+        <button type="button" class="btn btn--ghost" data-copy-citation data-target="bibtex-{{ citation_key }}">{% t 'citation_tools.copy' %}</button>
+      </header>
+      <textarea id="bibtex-{{ citation_key }}" readonly aria-label="{% t 'citation_tools.aria.bibtex' %}">{{ bibtex_entry | strip }}</textarea>
+    </article>
+    <article class="citation-tools__format" data-citation-format="ris">
+      <header>
+        <h3>{% t 'citation_tools.formats.ris' %}</h3>
+        <button type="button" class="btn btn--ghost" data-copy-citation data-target="ris-{{ citation_key }}">{% t 'citation_tools.copy' %}</button>
+      </header>
+      <textarea id="ris-{{ citation_key }}" readonly aria-label="{% t 'citation_tools.aria.ris' %}">{{ ris_entry | strip }}</textarea>
+    </article>
+    <article class="citation-tools__format" data-citation-format="endnote">
+      <header>
+        <h3>{% t 'citation_tools.formats.endnote' %}</h3>
+        <button type="button" class="btn btn--ghost" data-copy-citation data-target="endnote-{{ citation_key }}">{% t 'citation_tools.copy' %}</button>
+      </header>
+      <textarea id="endnote-{{ citation_key }}" readonly aria-label="{% t 'citation_tools.aria.endnote' %}">{{ endnote_entry | strip }}</textarea>
+    </article>
+  </div>
+</section>

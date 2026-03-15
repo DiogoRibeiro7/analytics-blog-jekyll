@@ -1,0 +1,94 @@
+{%- comment -%}
+API Function Documentation Component
+Documents a function/method in ReadTheDocs style
+
+Parameters:
+  - name: Function name
+  - signature: Function signature
+  - description: Function description
+  - parameters: Array of parameter objects {name, type, description, default}
+  - returns: Return value description
+  - return_type: Return type
+  - examples: Code examples
+  - see_also: Related functions
+{%- endcomment -%}
+
+<div class="api-function" id="{{ include.name | slugify }}">
+  <div class="api-function__header">
+    <h3 class="api-function__name">
+      <code>{{ include.name }}</code>
+    </h3>
+    {% if include.signature %}
+      <pre class="api-function__signature"><code>{{ include.signature }}</code></pre>
+    {% endif %}
+  </div>
+
+  {% if include.description %}
+    <div class="api-function__description">
+      {{ include.description | markdownify }}
+    </div>
+  {% endif %}
+
+  {% if include.parameters %}
+    <div class="api-function__section">
+      <h4 class="api-function__section-title">Parameters</h4>
+      <dl class="api-function__params">
+        {% for param in include.parameters %}
+          <div class="api-function__param">
+            <dt class="api-function__param-name">
+              <code>{{ param.name }}</code>
+              {% if param.type %}
+                <span class="api-function__param-type">{{ param.type }}</span>
+              {% endif %}
+              {% if param.default %}
+                <span class="api-function__param-default">= {{ param.default }}</span>
+              {% endif %}
+              {% if param.optional %}
+                <span class="api-function__param-badge">optional</span>
+              {% endif %}
+            </dt>
+            <dd class="api-function__param-desc">
+              {{ param.description | markdownify }}
+            </dd>
+          </div>
+        {% endfor %}
+      </dl>
+    </div>
+  {% endif %}
+
+  {% if include.returns or include.return_type %}
+    <div class="api-function__section">
+      <h4 class="api-function__section-title">Returns</h4>
+      <div class="api-function__returns">
+        {% if include.return_type %}
+          <span class="api-function__return-type">{{ include.return_type }}</span>
+        {% endif %}
+        {% if include.returns %}
+          <p>{{ include.returns | markdownify }}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if include.examples %}
+    <div class="api-function__section">
+      <h4 class="api-function__section-title">Examples</h4>
+      <div class="api-function__examples">
+        {{ include.examples | markdownify }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if include.see_also %}
+    <div class="api-function__section">
+      <h4 class="api-function__section-title">See Also</h4>
+      <ul class="api-function__see-also">
+        {% for item in include.see_also %}
+          <li>
+            <a href="#{{ item | slugify }}"><code>{{ item }}</code></a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>

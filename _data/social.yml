@@ -1,0 +1,71 @@
+primary:
+  - id: twitter
+    label: Twitter
+    url: https://twitter.com/DiogoRibeiro7
+    rel: noopener
+  - id: linkedin
+    label: LinkedIn
+    url: https://www.linkedin.com/in/diogoribeiro
+    rel: noopener
+  - id: github
+    label: GitHub
+    url: https://github.com/DiogoRibeiro7
+    rel: noopener
+  - id: kaggle
+    label: Kaggle
+    url: https://www.kaggle.com/diogoribeiro
+    rel: noopener
+
+academic:
+  - id: orcid
+    label: ORCID
+    url: https://orcid.org/0009-0001-2022-7072
+    rel: me noopener
+  - id: google-scholar
+    label: Google Scholar
+    url: https://scholar.google.com/citations?user=example
+    rel: noopener
+  - id: researchgate
+    label: ResearchGate
+    url: https://www.researchgate.net/profile/Diogo-Ribeiro
+    rel: noopener
+  - id: academia
+    label: Academia.edu
+    url: https://www.academia.edu
+    rel: noopener
+
+community:
+  - label: Papers with Code
+    url: https://paperswithcode.com
+  - label: OpenML
+    url: https://openml.org
+  - label: Data Science Stack Exchange
+    url: https://datascience.stackexchange.com
+  - label: Open Data Stack Exchange
+    url: https://opendata.stackexchange.com
+
+contact:
+  - type: professional
+    label: Professional inquiries
+    value: dfr@esmad.ipp.pt
+    url: mailto:dfr@esmad.ipp.pt
+  - type: general
+    label: General contact
+    value: diogo.debastos.ribeiro@gmail.com
+    url: mailto:diogo.debastos.ribeiro@gmail.com
+
+rss:
+  - label: Main feed
+    url: /feed.xml
+  - label: Research & tutorials
+    url: /blog/feed.xml
+  - label: Datasets
+    url: /datasets/feed.xml
+
+integrity:
+  statement: >-
+    All published material follows academic citation standards. When reusing code or analyses, attribute sources and include DOIs where possible.
+  dataset_guidance: >-
+    Datasets are provided with explicit licenses. Refer to each dataset entry for permitted uses and citation language.
+  reproducibility: >-
+    Every project highlights datasets, computational environments, and validation metrics to encourage transparent, reproducible research.

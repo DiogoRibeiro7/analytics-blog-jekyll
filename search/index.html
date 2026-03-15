@@ -1,0 +1,143 @@
+---
+layout: page
+title: Technical search
+subtitle: Explore tutorials, research, datasets, and projects with code-aware, LaTeX-friendly search.
+permalink: /search/
+page_classes: search-page
+---
+<div class="search-app" data-search-app data-search-index="{{ '/search.json' | relative_url }}">
+  <div class="search-app__panel">
+    <form class="search-app__form" data-search-form novalidate role="search" aria-label="Technical content search">
+      <div class="search-app__query">
+        <label class="search-app__label" for="advanced-search-input">Query</label>
+        <div class="search-app__input-group">
+          <input
+            id="advanced-search-input"
+            class="search-app__input"
+            type="search"
+            name="q"
+            placeholder="Search code, LaTeX, datasets, and more"
+            autocomplete="off"
+            spellcheck="false"
+            data-search-input
+            aria-describedby="search-shortcuts"
+            aria-activedescendant=""
+          />
+          <button type="submit" class="search-app__submit">Search</button>
+        </div>
+        <p id="search-shortcuts" class="search-app__shortcuts" data-search-shortcuts>
+          Keyboard shortcuts: <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd> to focus, <kbd>Enter</kbd> to run, <kbd>Esc</kbd> to clear.
+        </p>
+        <div class="search-app__autocomplete" data-search-autocomplete role="listbox" aria-label="Search suggestions"></div>
+      </div>
+      <fieldset class="search-app__filters" data-search-filters>
+        <legend>Advanced filters</legend>
+        <div class="search-app__filters-grid">
+          <label class="search-filter">
+            <span class="search-filter__label">Content type</span>
+            <select data-filter-type>
+              <option value="">All content</option>
+              <option value="post">Tutorials &amp; blog posts</option>
+              <option value="research">Research outputs</option>
+              <option value="project">Projects &amp; portfolio</option>
+              <option value="dataset">Datasets</option>
+              <option value="page">Pages</option>
+            </select>
+          </label>
+          <label class="search-filter">
+            <span class="search-filter__label">Programming language</span>
+            <select data-filter-language>
+              <option value="">Any language</option>
+              <option value="python">Python</option>
+              <option value="r">R</option>
+              <option value="sql">SQL</option>
+              <option value="julia">Julia</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+          </label>
+          <label class="search-filter">
+            <span class="search-filter__label">Difficulty</span>
+            <select data-filter-difficulty>
+              <option value="">All levels</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </label>
+          <div class="search-filter">
+            <span class="search-filter__label">Topics</span>
+            <div class="search-filter__tags" data-filter-tags role="group" aria-label="Filter by topic tags"></div>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+    <aside class="search-app__analytics" data-search-analytics aria-live="polite">
+      <h2 class="search-app__analytics-title">Popular technical queries</h2>
+      <p class="search-app__analytics-empty">Search activity will appear here once queries are made.</p>
+      <ol class="search-app__analytics-list"></ol>
+    </aside>
+  </div>
+  <section class="search-app__results" aria-live="polite" data-search-region>
+    <header class="search-app__results-header">
+      <h2>Results</h2>
+      <p class="search-app__results-meta" data-search-meta>Enter a query to begin.</p>
+      <div class="search-app__loading" data-search-loading hidden>
+        <span class="search-app__spinner" aria-hidden="true"></span>
+        <span class="search-app__loading-text">Searching…</span>
+      </div>
+      <div class="visually-hidden" data-search-announcements>
+        <p aria-live="polite" data-search-live="count" hidden></p>
+        <p aria-live="polite" data-search-live="selection" hidden></p>
+        <p aria-live="polite" data-search-live="status" hidden></p>
+      </div>
+    </header>
+    <ol class="search-app__results-list" data-search-results role="listbox" aria-label="Search results"></ol>
+    <template id="search-result-template">
+      <li class="search-result" role="option" data-result-item>
+        <article class="search-result__card">
+          <header class="search-result__header">
+            <p class="search-result__meta">
+              <span class="search-result__type" data-result-type></span>
+              <span class="search-result__difficulty" data-result-difficulty></span>
+              <span class="search-result__language" data-result-languages></span>
+            </p>
+            <h3 class="search-result__title"><a data-result-link></a></h3>
+            <p class="search-result__summary" data-result-summary></p>
+          </header>
+          <div class="search-result__body">
+            <pre class="search-result__code language-none line-numbers" data-result-code><code></code></pre>
+            <div class="search-result__math" data-result-math hidden>
+              <div class="search-result__math-preview" data-result-math-preview aria-hidden="true"></div>
+              <pre class="search-result__math-source"><code data-result-math-code></code></pre>
+              <button type="button" class="search-result__math-copy" data-result-math-copy>
+                <span aria-hidden="true">⧉</span>
+                <span class="visually-hidden">Copy LaTeX</span>
+              </button>
+            </div>
+            <p class="search-result__excerpt" data-result-excerpt></p>
+          </div>
+          <footer class="search-result__footer">
+            <ul class="search-result__tags" data-result-tags></ul>
+            <time class="search-result__date" data-result-date></time>
+          </footer>
+        </article>
+      </li>
+    </template>
+    <div class="search-app__no-results" data-search-empty hidden>
+      <div class="search-app__no-results-illustration" aria-hidden="true">
+        <svg viewBox="0 0 120 80" role="presentation" focusable="false">
+          <g fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="40" cy="34" r="18" opacity="0.35" />
+            <circle cx="72" cy="46" r="14" opacity="0.2" />
+            <path d="M28 58h64" stroke-linecap="round" opacity="0.45" />
+            <path d="M48 33l8 9 16-18" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+      </div>
+      <p>No matching entries were found. Try refining your filters or adjusting the query.</p>
+    </div>
+  </section>
+</div>
+<noscript>
+  <p class="search-app__noscript">JavaScript is required for the interactive search experience. Please enable JavaScript to explore technical content.</p>
+</noscript>

@@ -1,0 +1,153 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - type
+---
+Outputs comprehensive JSON-LD metadata for the current page.
+Provides rich structured data for:
+- Article/BlogPosting/TechnicalArticle schema for posts
+- WebPage schema for standard pages
+- Author information with social profile links
+- Publisher organization with branding
+- Images, keywords, and content metadata
+
+Defaults to TechnicalArticle for posts, WebPage for other pages.
+{%- endcomment -%}
+{%- assign schema_page = include.page -%}
+{%- assign is_post = false -%}
+{%- if schema_page.layout == 'post' or schema_page.collection == 'posts' -%}
+  {%- assign is_post = true -%}
+{%- endif -%}
+{%- assign default_type = 'WebPage' -%}
+{%- if is_post -%}
+  {%- assign default_type = 'TechnicalArticle' -%}
+{%- endif -%}
+{%- assign schema_type = include.type | default: schema_page.schema_type | default: default_type -%}
+{%- assign csp_registry = site.data.csp | default: {} -%}
+{%- assign nonce_lookup = csp_registry.nonces | default: {} -%}
+{%- assign schema_nonce = schema_page.csp_nonce | default: page.csp_nonce | default: nonce_lookup[schema_page.path] | default: nonce_lookup[page.path] | default: nonce_lookup[page.url] -%}
+{%- assign description = schema_page.description | default: schema_page.excerpt | strip_html | strip_newlines | truncate: 300 -%}
+{%- assign page_url = schema_page.url | absolute_url -%}
+{%- assign author_name = schema_page.author | default: site.author.name -%}
+{%- assign word_count = schema_page.content | strip_html | number_of_words -%}
+{%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_page.date -%}
+<script type="application/ld+json" nonce="{{ schema_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@type": "{{ schema_type }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ page_url | jsonify }}
+  },
+  "headline": {{ schema_page.title | truncate: 110 | jsonify }},
+  {%- if description -%}
+  "description": {{ description | jsonify }},
+  {%- endif -%}
+  "url": {{ page_url | jsonify }},
+  {%- if schema_page.image or schema_page.og_image -%}
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ schema_page.image | default: schema_page.og_image | absolute_url | jsonify }},
+    "width": {{ schema_page.image_width | default: 1200 }},
+    "height": {{ schema_page.image_height | default: 630 }}
+  },
+  {%- elsif site.social.default_image -%}
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ site.social.default_image | absolute_url | jsonify }},
+    "width": 1200,
+    "height": 630
+  },
+  {%- endif -%}
+  {%- if schema_page.date -%}
+  "datePublished": "{{ schema_page.date | date_to_xmlschema }}",
+  {%- endif -%}
+  "dateModified": "{{ modified | date_to_xmlschema }}",
+  {%- if word_count > 0 -%}
+  "wordCount": {{ word_count }},
+  {%- endif -%}
+  {%- if schema_page.tags and schema_page.tags.size > 0 -%}
+  "keywords": {{ schema_page.tags | jsonify }},
+  {%- endif -%}
+  {%- if schema_page.categories and schema_page.categories.size > 0 -%}
+  "articleSection": {{ schema_page.categories | first | jsonify }},
+  {%- endif -%}
+  {%- if is_post -%}
+  "inLanguage": "{{ schema_page.lang | default: site.locale | default: 'en' | split: '_' | first }}",
+  {%- endif -%}
+  "author": {
+    "@type": "Person",
+    "name": {{ author_name | jsonify }},
+    "url": {{ site.url | jsonify }}
+    {%- if site.author.orcid -%},
+    "sameAs": [
+      {{ site.author.orcid | jsonify }}
+      {%- if site.author.github -%},
+      "https://github.com/{{ site.author.github }}"
+      {%- endif -%}
+      {%- if site.author.twitter -%},
+      "https://twitter.com/{{ site.author.twitter }}"
+      {%- endif -%}
+      {%- if site.author.linkedin -%},
+      "https://linkedin.com/in/{{ site.author.linkedin }}"
+      {%- endif -%}
+      {%- if site.author.researchgate -%},
+      {{ site.author.researchgate | jsonify }}
+      {%- endif -%}
+    ]
+    {%- endif -%}
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ site.author.affiliation | default: site.title | jsonify }},
+    "url": {{ site.url | jsonify }},
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ '/assets/img/favicons/android-chrome-512x512.png' | absolute_url | jsonify }},
+      "width": 512,
+      "height": 512
+    }
+  }
+  {%- if schema_page.doi -%},
+  "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "doi",
+    "value": {{ schema_page.doi | jsonify }}
+  }
+  {%- endif -%}
+  {%- if schema_page.citation_key -%},
+  "citation": {{ schema_page.citation_key | jsonify }}
+  {%- endif -%}
+}
+</script>
+{%- comment -%} Add BreadcrumbList schema for posts {%- endcomment -%}
+{%- if is_post -%}
+<script type="application/ld+json" nonce="{{ schema_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": {{ site.url | jsonify }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": {{ '/blog/' | absolute_url | jsonify }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": {{ schema_page.title | truncate: 50 | jsonify }},
+      "item": {{ page_url | jsonify }}
+    }
+  ]
+}
+</script>
+{%- endif -%}

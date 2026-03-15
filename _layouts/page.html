@@ -1,0 +1,20 @@
+---
+layout: default
+---
+<section class="page">
+  <div class="container">
+    <header class="page-header">
+      <h1>{{ page.title }}</h1>
+      {% if page.subtitle %}<p class="page-subtitle">{{ page.subtitle }}</p>{% endif %}
+    </header>
+    {% if page.hero_image %}
+    <div class="page-hero-media">
+      {% assign hero_alt = page.hero_alt | default: page.title | default: site.title %}
+      {% include components/responsive-image.html src=page.hero_image alt=hero_alt sizes="(min-width: 64rem) 40rem, 100vw" class="page-hero-image" %}
+    </div>
+    {% endif %}
+    <div class="page-content">
+      {{ content }}
+    </div>
+  </div>
+</section>

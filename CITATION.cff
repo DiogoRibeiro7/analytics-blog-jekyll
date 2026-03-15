@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "DataLog Jekyll Theme"
+message: "If you use this theme, please cite it as below."
+authors:
+  - family-names: Ribeiro
+    given-names: Diogo
+    email: diogo.debastos.ribeiro@gmail.com
+    affiliation: ESMAD - Instituto Politécnico do Porto
+    orcid: https://orcid.org/0009-0001-2022-7072
+identifiers:
+  - type: url
+    value: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+repository-code: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+abstract: >-
+  DataLog is an academic-grade Jekyll theme created for data scientists and researchers.
+  It offers integrated notebook publishing, advanced math rendering, interactive
+  visualization workflows, and reproducibility tooling optimised for open science communities.
+license: MIT
+version: 0.2.0
+date-released: 2025-10-09
+keywords:
+  - data-science
+  - jekyll
+  - research
+  - reproducibility
+  - academic-blogging
+contact:
+  email: dfr@esmad.ipp.pt
+  name: Diogo Ribeiro

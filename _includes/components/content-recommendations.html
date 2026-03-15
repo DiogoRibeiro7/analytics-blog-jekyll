@@ -1,0 +1,228 @@
+{%- comment -%}
+Content Recommendations Component
+Displays related/recommended posts based on similarity scoring
+
+Parameters:
+  - current_post: Current post object (default: page)
+  - max_recommendations: Maximum posts to show (default: 3)
+  - algorithm: Scoring algorithm (tag-based, category-based, hybrid) (default: hybrid)
+  - show_score: Show similarity score (default: false, for debugging)
+  - layout: Display layout (grid, list, compact) (default: grid)
+  - heading: Custom heading (default: "Recommended for You")
+{%- endcomment -%}
+
+{%- assign current_post = include.current_post | default: page -%}
+{%- assign max_recommendations = include.max_recommendations | default: 3 -%}
+{%- assign algorithm = include.algorithm | default: "hybrid" -%}
+{%- assign show_score = include.show_score | default: false -%}
+{%- assign layout = include.layout | default: "grid" -%}
+{%- assign heading = include.heading | default: "Recommended for You" -%}
+
+{%- comment -%} Get current post metadata {%- endcomment -%}
+{%- assign current_tags = current_post.tags | default: empty -%}
+{%- assign current_categories = current_post.categories | default: empty -%}
+{%- assign current_difficulty = current_post.difficulty | default: "" -%}
+{%- assign current_series = current_post.series | default: "" -%}
+
+{%- comment -%} Initialize recommendations array {%- endcomment -%}
+{%- assign recommendations = "" | split: "" -%}
+{%- assign scored_posts = "" | split: "" -%}
+
+{%- comment -%} Score all posts except current {%- endcomment -%}
+{%- for post in site.posts -%}
+  {%- if post.url != current_post.url -%}
+    {%- assign score = 0 -%}
+
+    {%- comment -%} Series bonus (highest priority) {%- endcomment -%}
+    {%- if current_series != "" and post.series == current_series -%}
+      {%- assign score = score | plus: 100 -%}
+    {%- endif -%}
+
+    {%- comment -%} Tag matching {%- endcomment -%}
+    {%- if algorithm == "tag-based" or algorithm == "hybrid" -%}
+      {%- for tag in current_tags -%}
+        {%- if post.tags contains tag -%}
+          {%- assign score = score | plus: 10 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    {%- comment -%} Category matching {%- endcomment -%}
+    {%- if algorithm == "category-based" or algorithm == "hybrid" -%}
+      {%- for category in current_categories -%}
+        {%- if post.categories contains category -%}
+          {%- assign score = score | plus: 15 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    {%- comment -%} Difficulty matching {%- endcomment -%}
+    {%- if current_difficulty != "" and post.difficulty == current_difficulty -%}
+      {%- assign score = score | plus: 5 -%}
+    {%- endif -%}
+
+    {%- comment -%} Recency bonus (prefer recent posts) {%- endcomment -%}
+    {%- assign days_old = "now" | date: "%s" | minus: post.date | date: "%s" | divided_by: 86400 -%}
+    {%- if days_old < 30 -%}
+      {%- assign score = score | plus: 3 -%}
+    {%- elsif days_old < 90 -%}
+      {%- assign score = score | plus: 1 -%}
+    {%- endif -%}
+
+    {%- comment -%} Store post with score {%- endcomment -%}
+    {%- if score > 0 -%}
+      {%- assign post_with_score = post.url | append: "||" | append: score -%}
+      {%- assign scored_posts = scored_posts | push: post_with_score -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- comment -%} Sort by score (manual bubble sort since Liquid doesn't have sort by custom field) {%- endcomment -%}
+{%- assign sorted_posts = scored_posts -%}
+{%- for i in (1..scored_posts.size) -%}
+  {%- for j in (1..scored_posts.size) -%}
+    {%- assign current_item = sorted_posts[j] | split: "||" -%}
+    {%- assign prev_item = sorted_posts[j-1] | split: "||" -%}
+    {%- if current_item[1] and prev_item[1] -%}
+      {%- assign current_score = current_item[1] | plus: 0 -%}
+      {%- assign prev_score = prev_item[1] | plus: 0 -%}
+      {%- if current_score > prev_score -%}
+        {%- comment -%} Swap items {%- endcomment -%}
+        {%- assign temp = sorted_posts[j] -%}
+        {%- assign sorted_posts[j] = sorted_posts[j-1] -%}
+        {%- assign sorted_posts[j-1] = temp -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endfor -%}
+
+{%- comment -%} Get top N recommendations {%- endcomment -%}
+{%- assign recommendation_count = 0 -%}
+{%- for item in sorted_posts limit: max_recommendations -%}
+  {%- assign item_parts = item | split: "||" -%}
+  {%- assign post_url = item_parts[0] -%}
+  {%- assign post_score = item_parts[1] -%}
+
+  {%- comment -%} Find the actual post object {%- endcomment -%}
+  {%- for post in site.posts -%}
+    {%- if post.url == post_url -%}
+      {%- assign recommendations = recommendations | push: post -%}
+      {%- assign recommendation_count = recommendation_count | plus: 1 -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endfor -%}
+
+{%- comment -%} Display recommendations if we have any {%- endcomment -%}
+{%- if recommendation_count > 0 -%}
+  <aside class="content-recommendations content-recommendations--{{ layout }}"
+         data-recommendations
+         aria-label="Recommended articles">
+
+    <h3 class="content-recommendations__heading">{{ heading }}</h3>
+
+    <div class="content-recommendations__list">
+      {%- for post in recommendations limit: max_recommendations -%}
+        {%- comment -%} Get recommendation score for display {%- endcomment -%}
+        {%- assign post_score = 0 -%}
+        {%- if show_score -%}
+          {%- for item in sorted_posts -%}
+            {%- assign item_parts = item | split: "||" -%}
+            {%- if item_parts[0] == post.url -%}
+              {%- assign post_score = item_parts[1] -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+        <article class="recommendation-card"
+                 itemscope
+                 itemtype="https://schema.org/BlogPosting">
+
+          {%- if post.featured_image or post.image -%}
+            <div class="recommendation-card__image">
+              <a href="{{ post.url | relative_url }}" tabindex="-1" aria-hidden="true">
+                <img src="{{ post.featured_image | default: post.image | relative_url }}"
+                     alt="{{ post.title }}"
+                     loading="lazy"
+                     itemprop="image">
+              </a>
+            </div>
+          {%- endif -%}
+
+          <div class="recommendation-card__content">
+            <h4 class="recommendation-card__title" itemprop="headline">
+              <a href="{{ post.url | relative_url }}"
+                 class="recommendation-card__link">
+                {{ post.title }}
+              </a>
+            </h4>
+
+            {%- if post.excerpt -%}
+              <p class="recommendation-card__excerpt" itemprop="description">
+                {{ post.excerpt | strip_html | truncatewords: 20 }}
+              </p>
+            {%- endif -%}
+
+            <div class="recommendation-card__meta">
+              {%- if post.date -%}
+                <time class="recommendation-card__date"
+                      datetime="{{ post.date | date_to_xmlschema }}"
+                      itemprop="datePublished">
+                  {{ post.date | date: "%B %d, %Y" }}
+                </time>
+              {%- endif -%}
+
+              {%- if post.difficulty -%}
+                <span class="recommendation-card__separator" aria-hidden="true">•</span>
+                {% include components/difficulty-badge.html level=post.difficulty %}
+              {%- endif -%}
+
+              {%- comment -%} Reading time {%- endcomment -%}
+              <span class="recommendation-card__separator" aria-hidden="true">•</span>
+              {% include components/reading-time.html content=post.content variant="inline" show_icon=false %}
+
+              {%- if show_score -%}
+                <span class="recommendation-card__separator" aria-hidden="true">•</span>
+                <span class="recommendation-card__score" aria-label="Similarity score">
+                  Score: {{ post_score }}
+                </span>
+              {%- endif -%}
+            </div>
+
+            {%- if post.tags.size > 0 -%}
+              <div class="recommendation-card__tags">
+                {%- for tag in post.tags limit: 3 -%}
+                  <span class="recommendation-card__tag">{{ tag }}</span>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+
+    {%- comment -%} View all link {%- endcomment -%}
+    {%- if site.phase3_features.recommendations.show_view_all -%}
+      <div class="content-recommendations__footer">
+        <a href="{{ '/archive/' | relative_url }}"
+           class="content-recommendations__view-all">
+          View all articles
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16"
+               height="16"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+    {%- endif -%}
+  </aside>
+{%- endif -%}

@@ -1,0 +1,217 @@
+profiles:
+  google_scholar:
+    label: "Google Scholar"
+    url: "https://scholar.google.com/citations?user=example"
+    user_id: "example"
+    last_synced: "2024-03-01"
+    auto_update: true
+  orcid:
+    label: "ORCID"
+    url: "https://orcid.org/0009-0001-2022-7072"
+    sync:
+      enabled: true
+      last_synced: "2024-03-01"
+      scope:
+        - "funding"
+        - "works"
+        - "peer-review"
+  researchgate:
+    label: "ResearchGate"
+    url: "https://www.researchgate.net/profile/Diogo-Ribeiro"
+    projects:
+      - "Predictive Energy Demand Modeling"
+      - "Open Visualization Systems"
+  academia:
+    label: "Academia.edu"
+    url: "https://www.academia.edu"
+    collections:
+      - "Reproducible Analytics Playbook"
+      - "Teaching Portfolio"
+
+citations:
+  reporting_period: "2024"
+  metrics:
+    total: 245
+    h_index: 9
+    i10_index: 12
+    since_2019:
+      total: 210
+      h_index: 8
+      i10_index: 11
+  per_publication:
+    datalog2024:
+      total: 37
+      last_updated: "2024-02-01"
+    open_science2023:
+      total: 64
+      last_updated: "2024-01-12"
+    accessible_viz2022:
+      total: 48
+      last_updated: "2023-11-30"
+  yearly_totals:
+    "2019": 12
+    "2020": 24
+    "2021": 38
+    "2022": 51
+    "2023": 62
+    "2024": 58
+
+bibliography:
+  preferred_style: "apa"
+  exports:
+    - format: "bibtex"
+      filename: "datalog-publications.bib"
+    - format: "ris"
+      filename: "datalog-publications.ris"
+
+submissions:
+  - title: "Hierarchical Forecasting under Climate Volatility"
+    venue: "International Conference on Smart Energy Systems"
+    type: "conference"
+    deadline: "2024-04-15"
+    status: "In review"
+    submitted: "2024-03-18"
+    collaborators:
+      - "Ana Silva"
+      - "Hugo Martins"
+    notes: "Awaiting reviewer assignment."
+  - title: "Accessible Visualization Platforms for Civic Data"
+    venue: "Journal of Open Visualization Research"
+    type: "journal"
+    deadline: "2024-05-10"
+    status: "Drafting"
+    submitted: ~
+    collaborators:
+      - "Rita Almeida"
+    notes: "Finalizing reproducibility appendix."
+  - title: "Open Science Practices for Applied Analytics Teams"
+    venue: "ReScience C"
+    type: "journal"
+    deadline: "2024-06-01"
+    status: "Revision requested"
+    submitted: "2024-02-07"
+    collaborators:
+      - "João Santos"
+    notes: "Address reviewer feedback on dataset licensing section."
+
+workflow:
+  peer_review:
+    - title: "Bayesian Hierarchical Modeling for Energy Demand"
+      journal: "Journal of Sustainable Analytics"
+      status: "Reviewer invited"
+      assigned_date: "2024-03-02"
+      due_date: "2024-03-30"
+      notes: "Emphasize reproducibility checklist in review."
+    - title: "Robust Visualization Evaluation Metrics"
+      journal: "VIS4GOOD Proceedings"
+      status: "Completed"
+      assigned_date: "2024-01-12"
+      due_date: "2024-02-05"
+      notes: "Submitted structured review with replication package checklist."
+  collaborations:
+    - name: "Climate Resilience Analytics Consortium"
+      role: "Co-investigator"
+      stage: "Proposal development"
+      contact: "consortium@climateanalytics.org"
+      notes: "Coordinate dataset harmonization workshop."
+    - name: "EU Data Stories Mentorship Program"
+      role: "Mentor"
+      stage: "Active"
+      contact: "mentorship@eudatastories.eu"
+      notes: "Monthly office hours supporting reproducible storytelling."
+
+calendar:
+  description: "Upcoming academic commitments, conferences, and submission deadlines."
+  events:
+    - name: "Smart Energy Systems Conference"
+      type: "conference"
+      start_date: "2024-07-10"
+      end_date: "2024-07-13"
+      location: "Copenhagen, Denmark"
+      submission_deadline: "2024-04-15"
+    - name: "Data Visualization for Social Good Workshop"
+      type: "workshop"
+      start_date: "2024-05-28"
+      end_date: "2024-05-29"
+      location: "Porto, Portugal"
+      submission_deadline: "2024-04-01"
+    - name: "ReScience C Special Issue Deadline"
+      type: "journal"
+      start_date: "2024-06-01"
+      end_date: "2024-06-01"
+      location: "Remote"
+      submission_deadline: "2024-06-01"
+    - name: "Horizon Europe Call: Digital Resilience"
+      type: "funding"
+      start_date: "2024-09-05"
+      end_date: "2024-09-05"
+      location: "Brussels, Belgium"
+      submission_deadline: "2024-09-05"
+
+funding:
+  - title: "Horizon Europe Digital Resilience Pilot"
+    agency: "European Commission"
+    amount: "€450,000"
+    role: "Co-PI"
+    status: "Under consideration"
+    deadline: "2024-09-05"
+    focus: "Building reproducible analytics infrastructure for climate resilience."
+  - title: "National Science Foundation Data Literacy Grant"
+    agency: "NSF"
+    amount: "$120,000"
+    role: "Senior Personnel"
+    status: "Awarded"
+    period: "2023-2025"
+    focus: "Mentorship and curriculum development for applied data science."
+
+collaboration_opportunities:
+  - title: "Reproducible Energy Benchmarking Collective"
+    description: "Seeking partners to contribute datasets and evaluation metrics for open benchmarking of energy demand models."
+    contact: "reproducibility@datalog.dev"
+    tags:
+      - "energy"
+      - "reproducibility"
+      - "benchmarking"
+  - title: "Civic Data Visualization Fellows"
+    description: "Recruiting designers and analysts to co-create accessible dashboards for public policy audiences."
+    contact: "vizfellows@datalog.dev"
+    tags:
+      - "visualization"
+      - "accessibility"
+      - "civic-tech"
+
+mentorship:
+  - program: "Applied Data Science Residency"
+    offering: "6-week guided mentorship on experiment design and reporting."
+    cohorts: "Spring, Autumn"
+    application_deadline: "2024-04-30"
+    contact: "mentorship@datalog.dev"
+  - program: "Open Science Clinic"
+    offering: "Drop-in sessions for reproducibility audits and tooling support."
+    schedule: "Monthly (first Thursday)"
+    contact: "openscience@datalog.dev"
+
+badges:
+  - label: "Open Data"
+    description: "Dataset and code repository published with permissive license."
+    criteria: "Public repository, DOI issued, README with reproduction steps."
+  - label: "Reproducible Workflow"
+    description: "Containerized environment and automated tests provided."
+    criteria: "Continuous integration pipeline with reproducibility checks."
+  - label: "Transparent Peer Review"
+    description: "Peer review reports archived with DOI and linked to article."
+    criteria: "Open peer review statement and archived reports on Zenodo."
+
+networking:
+  platforms:
+    - name: "IEEE Data Science Community"
+      role: "Member"
+      url: "https://datascience.ieee.org"
+    - name: "Lisbon Data Science Meetup"
+      role: "Organizer"
+      url: "https://www.meetup.com/lisbon-data-science"
+  mentorship_channels:
+    - channel: "Slack"
+      description: "Private workspace for mentee discussions and resource sharing."
+    - channel: "Office hours"
+      description: "Bi-weekly Zoom sessions focused on paper feedback and reproducibility planning."

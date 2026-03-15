@@ -1,0 +1,10 @@
+<section class="hero">
+  <div class="container">
+    <h1>{{ page.hero_title | default: site.title }}</h1>
+    <p class="hero-tagline">{{ page.hero_tagline | default: site.hero_tagline }}</p>
+    {% if page.hero_cta_url %}
+      {% capture hero_cta_fallback %}{% t 'home.read_more' %}{% endcapture %}
+      <a class="btn btn-primary" href="{{ page.hero_cta_url | relative_url }}">{{ page.hero_cta_label | default: hero_cta_fallback | strip }}</a>
+    {% endif %}
+  </div>
+</section>

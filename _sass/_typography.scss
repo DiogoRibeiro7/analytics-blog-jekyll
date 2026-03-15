@@ -1,0 +1,148 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+body {
+  font-size: map.get($font-size-scale, base);
+}
+
+p,
+li {
+  max-width: $max-width-reading;
+}
+
+p {
+  margin: 0 0 map.get($spacing, 4);
+}
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $font-family-serif;
+  font-weight: 600;
+  color: $color-ink-900;
+  line-height: $line-height-tight;
+  margin: map.get($spacing, 6) 0 map.get($spacing, 3);
+}
+
+h1 {
+  @include fluid-type(2rem, 3rem);
+}
+
+h2 {
+  @include fluid-type(1.75rem, 2.5rem);
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1.125rem;
+}
+
+h6 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+  color: $dark-ink-900;
+}
+
+blockquote {
+  @include callout($color-accent-tertiary);
+  font-style: italic;
+  margin: map.get($spacing, 5) 0;
+  max-width: $max-width-reading;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid $color-neutral-200;
+  margin: map.get($spacing, 6) 0;
+}
+
+figure {
+  margin: map.get($spacing, 5) 0;
+}
+
+figcaption {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  margin-top: map.get($spacing, 2);
+}
+
+body.dark-mode figcaption {
+  color: rgba($dark-ink-500, 0.85);
+}
+
+dt {
+  font-weight: 600;
+}
+
+dd {
+  margin: 0 0 map.get($spacing, 3) map.get($spacing, 4);
+}
+
+.lead {
+  font-size: map.get($font-size-scale, lg);
+  color: $color-ink-700;
+  max-width: $max-width-reading;
+}
+
+body.dark-mode .lead {
+  color: rgba($dark-ink-900, 0.85);
+}
+
+code {
+  background-color: rgba($color-surface-900, 0.05);
+  color: $color-ink-700;
+  border-radius: 0.35rem;
+  padding: 0.1em 0.35em;
+}
+
+body.dark-mode code {
+  background-color: rgba($dark-surface-300, 0.6);
+  color: $dark-ink-700;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.citation {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  display: block;
+  margin-top: map.get($spacing, 2);
+}
+
+.caption-number {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

@@ -1,0 +1,51 @@
+- title: Global CO₂ Emissions Explorer
+  summary: Interactive Plotly dashboard tracking CO₂ emissions across regions with scenario toggles.
+  tech: plotly
+  tags: [climate, python, dashboards]
+  version: 1.2
+  updated: 2024-02-01
+  demo: https://example.com/datalog/co2-dashboard/
+  snapshot: https://example.com/datalog/co2-dashboard/static/co2-dashboard.png
+  source: https://github.com/DiogoRibeiro7/datalog-co2-dashboard
+- title: Streaming Sensor Scatterplot
+  summary: WebGL-accelerated D3 scatterplot that streams manufacturing telemetry with brushing controls.
+  tech: d3
+  tags: [manufacturing, streaming, javascript]
+  version: 0.9
+  updated: 2023-12-11
+  demo: https://example.com/datalog/d3-streaming/
+  source: https://github.com/DiogoRibeiro7/datalog-d3-streaming
+- title: Observable Notebook — Topic Modeling
+  summary: Observable-powered topic modeling notebook with live parameter tuning and data provenance notes.
+  tech: observable
+  tags: [nlp, notebooks, reproducibility]
+  version: 1.0
+  updated: 2024-01-18
+  demo: https://observablehq.com/embed/@datalog/topic-modeling-overview?cells=chart
+  snapshot: https://example.com/datalog/topic-modeling/static/overview.pdf
+  source: https://observablehq.com/@datalog/topic-modeling-overview
+- title: Bokeh Pipeline Performance Monitor
+  summary: Bokeh dashboard summarising nightly ETL run durations with alert thresholds and filters.
+  tech: bokeh
+  tags: [etl, python, operations]
+  version: 2.3
+  updated: 2024-03-05
+  demo: https://example.com/datalog/bokeh-pipeline/
+  snapshot: https://example.com/datalog/bokeh-pipeline/static/export.html
+  source: https://github.com/DiogoRibeiro7/datalog-bokeh-pipeline
+- title: R Shiny Demand Forecaster
+  summary: Forecasting interface for retail demand with what-if scenarios and automated report exports.
+  tech: shiny
+  tags: [forecasting, r, retail]
+  version: 1.4
+  updated: 2024-02-22
+  demo: https://example.com/datalog/shiny-demand-forecast/
+  source: https://github.com/DiogoRibeiro7/datalog-shiny-demand
+- title: Jupyter Widget Model Inspector
+  summary: Ipywidgets-powered model inspector for comparing feature importance distributions interactively.
+  tech: ipywidgets
+  tags: [machine-learning, explainability, python]
+  version: 0.6
+  updated: 2024-01-30
+  snapshot: https://example.com/datalog/widget-inspector/static/inspector.html
+  source: https://github.com/DiogoRibeiro7/datalog-widget-inspector

@@ -1,0 +1,252 @@
+---
+layout: default
+---
+{% assign localization_config = site.theme_options.localization %}
+{% assign date_format = localization_config.date_format | default: 'long' %}
+<article class="project-case" itemscope itemtype="https://schema.org/SoftwareApplication">
+  <header class="project-case__header">
+    <div class="project-case__intro">
+      <p class="project-case__eyebrow">{% t 'project.header.eyebrow' %}</p>
+      <h1 class="project-case__title" itemprop="name">{{ page.title }}</h1>
+      {% if page.description %}
+      <p class="project-case__description" itemprop="description">{{ page.description }}</p>
+      {% endif %}
+    </div>
+    <div class="project-case__meta">
+      {% if page.key_technologies %}
+      <section class="project-case__technologies" aria-labelledby="tech-stack-heading">
+        <h2 id="tech-stack-heading">{% t 'project.header.key_technologies' %}</h2>
+        <ul class="project-case__technology-list">
+          {% for tech in page.key_technologies %}
+          <li class="project-case__technology" itemprop="applicationCategory">
+            {% if tech.icon %}<span class="project-case__technology-icon" aria-hidden="true">{{ tech.icon }}</span>{% endif %}
+            <span class="project-case__technology-name">{{ tech.name | default: tech }}</span>
+            {% if tech.description %}<span class="project-case__technology-description">{{ tech.description }}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+      {% if page.github %}
+      <section class="project-case__github" aria-labelledby="github-heading">
+        <h2 id="github-heading">{% t 'project.header.github_repository' %}</h2>
+        <div class="project-case__github-card" data-github-repo="{{ page.github.repo }}" data-github-owner="{{ page.github.owner }}">
+          <div class="project-case__github-meta">
+            <p class="project-case__github-name">
+              <a href="https://github.com/{{ page.github.owner }}/{{ page.github.repo }}" itemprop="url">{{ page.github.owner }}/{{ page.github.repo }}</a>
+            </p>
+            {% if page.github.description %}
+            <p class="project-case__github-description">{{ page.github.description }}</p>
+            {% endif %}
+          </div>
+          <dl class="project-case__github-stats" aria-live="polite">
+            <div>
+              <dt>{% t 'project.github.stats.stars' %}</dt>
+              <dd data-github-stat="stargazers_count">—</dd>
+            </div>
+            <div>
+              <dt>{% t 'project.github.stats.forks' %}</dt>
+              <dd data-github-stat="forks_count">—</dd>
+            </div>
+            <div>
+              <dt>{% t 'project.github.stats.open_issues' %}</dt>
+              <dd data-github-stat="open_issues_count">—</dd>
+            </div>
+            {% if page.github.primary_language %}
+            <div>
+              <dt>{% t 'project.github.stats.primary_language' %}</dt>
+              <dd>{{ page.github.primary_language }}</dd>
+            </div>
+            {% endif %}
+          </dl>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if page.demo_url or page.visualization_embed or page.interactive_component %}
+  <section class="project-case__demo" aria-labelledby="demo-heading">
+    <h2 id="demo-heading">{% t 'project.demo.title' %}</h2>
+    {% if page.visualization_embed %}
+    <div class="project-case__embed" aria-live="polite">
+      {{ page.visualization_embed }}
+    </div>
+    {% endif %}
+    {% if page.demo_url %}
+    <p class="project-case__demo-link">
+      <a class="button" href="{{ page.demo_url }}" rel="noopener" target="_blank">{% t 'project.demo.launch' %}</a>
+    </p>
+    {% endif %}
+    {% if page.interactive_component %}
+    <div class="project-case__interactive">
+      {{ page.interactive_component }}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <div class="project-case__body">
+    {% if page.problem_statement %}
+    <section class="project-case__section" aria-labelledby="problem-heading">
+      <h2 id="problem-heading">{% t 'project.sections.problem_statement' %}</h2>
+      <div class="project-case__content">{{ page.problem_statement | markdownify }}</div>
+    </section>
+    {% endif %}
+
+    {% if page.solution_approach %}
+    <section class="project-case__section" aria-labelledby="solution-heading">
+      <h2 id="solution-heading">{% t 'project.sections.solution_approach' %}</h2>
+      <div class="project-case__content">{{ page.solution_approach | markdownify }}</div>
+    </section>
+    {% endif %}
+
+    {% if page.results %}
+    <section class="project-case__section" aria-labelledby="results-heading">
+      <h2 id="results-heading">{% t 'project.sections.results_findings' %}</h2>
+      <div class="project-case__content">{{ page.results | markdownify }}</div>
+      {% if page.metrics %}
+      <div class="project-case__metrics" role="group" aria-label="{% t 'project.metrics.aria_label' %}">
+        {% for metric in page.metrics %}
+        <figure class="project-case__metric">
+          <figcaption>{{ metric.label }}</figcaption>
+          <strong>{{ metric.value }}</strong>
+          {% if metric.description %}<p>{{ metric.description }}</p>{% endif %}
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.challenges %}
+    <section class="project-case__section" aria-labelledby="challenges-heading">
+      <h2 id="challenges-heading">{% t 'project.sections.challenges' %}</h2>
+      <div class="project-case__content">{{ page.challenges | markdownify }}</div>
+    </section>
+    {% endif %}
+
+    {% if page.dataset_information %}
+    <section class="project-case__section" aria-labelledby="dataset-heading">
+      <h2 id="dataset-heading">{% t 'project.sections.datasets_sources' %}</h2>
+      <div class="project-case__content">{{ page.dataset_information | markdownify }}</div>
+      {% if page.datasets %}
+      <ul class="project-case__datasets">
+        {% for dataset in page.datasets %}
+        <li>
+          {% if dataset.url %}
+          <a href="{{ dataset.url }}" target="_blank" rel="noopener">{{ dataset.name | default: dataset }}</a>
+          {% else %}
+          <span>{{ dataset.name | default: dataset }}</span>
+          {% endif %}
+          {% if dataset.description %}<p>{{ dataset.description }}</p>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.model_performance or page.model_visualizations %}
+    <section class="project-case__section" aria-labelledby="model-performance-heading">
+      <h2 id="model-performance-heading">{% t 'project.sections.model_performance' %}</h2>
+      {% if page.model_performance %}
+      <div class="project-case__content">{{ page.model_performance | markdownify }}</div>
+      {% endif %}
+      {% if page.model_visualizations %}
+      <div class="project-case__visualizations">
+        {% for viz in page.model_visualizations %}
+        <figure>
+          {{ viz.embed }}
+          {% if viz.caption %}<figcaption>{{ viz.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.future_work %}
+    <section class="project-case__section" aria-labelledby="future-work-heading">
+      <h2 id="future-work-heading">{% t 'project.sections.future_work' %}</h2>
+      <div class="project-case__content">{{ page.future_work | markdownify }}</div>
+    </section>
+    {% endif %}
+
+    {% if page.collaboration %}
+    <section class="project-case__section" aria-labelledby="collaboration-heading">
+      <h2 id="collaboration-heading">{% t 'project.sections.collaboration_contributions' %}</h2>
+      <div class="project-case__content">{{ page.collaboration | markdownify }}</div>
+      {% if page.contribution_guidelines %}
+      <p class="project-case__contribution-link">
+        <a href="{{ page.contribution_guidelines }}" target="_blank" rel="noopener">{% t 'project.sections.read_guidelines' %}</a>
+      </p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.related_projects %}
+    <section class="project-case__section" aria-labelledby="related-projects-heading">
+      <h2 id="related-projects-heading">{% t 'project.sections.related_projects' %}</h2>
+      <ul class="project-case__related">
+        {% for project in page.related_projects %}
+        <li>
+          {% if project.url %}<a href="{{ project.url }}">{{ project.title | default: project }}</a>{% else %}<span>{{ project.title | default: project }}</span>{% endif %}
+          {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+
+  {% if page.similar_work %}
+  <aside class="project-case__similar" aria-labelledby="similar-work-heading">
+    <h2 id="similar-work-heading">{% t 'project.sections.similar_work' %}</h2>
+    <div class="project-case__content">{{ page.similar_work | markdownify }}</div>
+  </aside>
+  {% endif %}
+
+  {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
+  {% assign citation_authors = page.authors | default: page.author | default: site.author.name %}
+  {% assign citation_date = page.date | default: page.last_updated %}
+  {% assign citation_url = page.url | absolute_url %}
+  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key publisher=site.author.affiliation citation_type='software' doi=page.doi %}
+
+  {% include components/open-science-badges.html %}
+
+  <footer class="project-case__footer">
+    {% if page.last_updated %}
+    <p class="project-case__updated">{% t 'project.footer.last_updated' %} <time datetime="{{ page.last_updated | date_to_xmlschema }}">{{ page.last_updated | localize_date: date_format }}</time></p>
+    {% endif %}
+    {% if page.content %}
+    <div class="project-case__supplemental">{{ content }}</div>
+    {% else %}
+    {{ content }}
+    {% endif %}
+  </footer>
+</article>
+
+<script nonce="{{ page.csp_nonce }}">
+  (function() {
+    const card = document.querySelector('.project-case__github-card');
+    if (!card) return;
+    const owner = card.dataset.githubOwner;
+    const repo = card.dataset.githubRepo;
+    if (!owner || !repo) return;
+
+    fetch(`https://api.github.com/repos/${owner}/${repo}`)
+      .then(response => response.ok ? response.json() : Promise.reject(response))
+      .then(data => {
+        card.querySelector('[data-github-stat="stargazers_count"]').textContent = data.stargazers_count;
+        card.querySelector('[data-github-stat="forks_count"]').textContent = data.forks_count;
+        card.querySelector('[data-github-stat="open_issues_count"]').textContent = data.open_issues_count;
+      })
+      .catch(() => {
+        const unavailable = {{ 'project.github.unavailable' | t | jsonify }};
+        card.querySelectorAll('[data-github-stat]').forEach(el => {
+          el.textContent = unavailable;
+        });
+      });
+  })();
+</script>

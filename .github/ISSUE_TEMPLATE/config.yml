@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Security Vulnerability
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/security/advisories/new
+    about: Report security vulnerabilities privately (do not use issues)
+  - name: Documentation
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll#readme
+    about: Read the complete documentation and guides

@@ -1,0 +1,2 @@
+{% assign toc_html = include.html | markdownify | tocify: include.h_min, include.h_max %}
+<div class="toc">{{ toc_html }}</div>

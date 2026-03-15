@@ -1,0 +1,25 @@
+{%- comment -%}
+---
+optional:
+  - page
+---
+Calculates normalized language and direction attributes for the html element.
+Sets html_lang and html_dir variables based on site localization settings.
+{%- endcomment -%}
+{%- assign localization_config = site.theme_options.localization | default: {} -%}
+{%- assign lang_raw = include.page.lang | default: page.lang | default: site.locale | default: localization_config.default_locale | default: 'en' -%}
+{%- assign lang_code = lang_raw | downcase | strip | split: '-' | first | split: '_' | first -%}
+{%- assign rtl_locales = localization_config.rtl_locales -%}
+{%- if rtl_locales -%}
+  {%- assign rtl_locales = rtl_locales | join: ',' | split: ',' -%}
+{%- else -%}
+  {%- assign rtl_locales = 'ar|he|fa|ur' | split: '|' -%}
+{%- endif -%}
+{%- assign html_dir = 'ltr' -%}
+{%- for rtl_code in rtl_locales -%}
+  {%- assign rtl_code = rtl_code | downcase | strip -%}
+  {%- if rtl_code == lang_code -%}
+    {%- assign html_dir = 'rtl' -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign html_lang = lang_code -%}

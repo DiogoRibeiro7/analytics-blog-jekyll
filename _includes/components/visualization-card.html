@@ -1,0 +1,47 @@
+{% assign tech = visualization.tech | default: 'plotly' %}
+{% assign localization_config = site.theme_options.localization %}
+{% assign date_format = localization_config.date_format | default: 'long' %}
+<article
+  class="viz-card"
+  data-viz-card
+  data-viz-tech="{{ tech }}"
+  data-viz-tags="{{ visualization.tags | join: ',' }}"
+>
+  <header>
+    <h3 class="viz-card__title">{{ visualization.title }}</h3>
+    <p class="viz-card__summary">{{ visualization.summary }}</p>
+  </header>
+  <dl class="viz-card__meta">
+    {% if visualization.version %}
+    <div>
+      <dt>{% t 'visualization_card.version' %}</dt>
+      <dd>{{ visualization.version }}</dd>
+    </div>
+    {% endif %}
+    {% if visualization.updated %}
+    <div>
+      <dt>{% t 'visualization_card.updated' %}</dt>
+      <dd>{{ visualization.updated | localize_date: date_format }}</dd>
+    </div>
+    {% endif %}
+    {% if visualization.source %}
+    <div>
+      <dt>{% t 'visualization_card.source' %}</dt>
+      <dd><a href="{{ visualization.source }}">{% t 'visualization_card.view_repository' %}</a></dd>
+    </div>
+    {% endif %}
+  </dl>
+  <div class="viz-card__tags">
+    {% for tag in visualization.tags %}
+    <span class="viz-card__tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+  <footer class="viz-toolbar">
+    {% if visualization.demo %}
+    <a class="viz-toolbar__button" href="{{ visualization.demo }}">{% t 'visualization_card.open_demo' %}</a>
+    {% endif %}
+    {% if visualization.snapshot %}
+    <a class="viz-toolbar__button" href="{{ visualization.snapshot }}">{% t 'visualization_card.download_snapshot' %}</a>
+    {% endif %}
+  </footer>
+</article>

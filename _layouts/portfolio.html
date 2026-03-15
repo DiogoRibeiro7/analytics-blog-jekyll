@@ -1,0 +1,41 @@
+---
+layout: default
+---
+<article class="portfolio-item">
+  <header class="portfolio-header">
+    <h1>{{ page.title }}</h1>
+    {% if page.hero_image %}
+    <div class="portfolio-hero-media">
+      {% assign hero_alt = page.hero_alt | default: page.title %}
+      {% include components/responsive-image.html src=page.hero_image alt=hero_alt sizes="(min-width: 64rem) 48rem, 100vw" class="portfolio-hero-image" %}
+    </div>
+    {% endif %}
+    {% if page.client %}<p class="portfolio-meta"><strong>Client:</strong> {{ page.client }}</p>{% endif %}
+    {% if page.tools %}<p class="portfolio-meta"><strong>Tools:</strong> {{ page.tools | array_to_sentence_string }}</p>{% endif %}
+    {% if page.metrics %}
+      <ul class="portfolio-metrics">
+        {% for metric in page.metrics %}
+          <li><span class="metric-label">{{ metric.label }}:</span> <span class="metric-value">{{ metric.value }}</span></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </header>
+  <div class="portfolio-content">
+    {{ content }}
+  </div>
+  {% if page.visualization_embed %}
+    <div class="portfolio-visualization" role="region" aria-label="Interactive visualization">
+      {{ page.visualization_embed | raw }}
+    </div>
+  {% endif %}
+  {% if page.links %}
+    <div class="portfolio-links">
+      <h2>Resources</h2>
+      <ul>
+        {% for link in page.links %}
+          <li><a href="{{ link.url }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</article>

@@ -1,0 +1,16 @@
+{%- comment -%}
+---
+required:
+  - date
+optional:
+  - format
+  - localization
+---
+Formats a date using the localized format preferences.
+Falls back to the localization config's date_format and finally "long".
+{%- endcomment -%}
+{%- if include.date -%}
+  {%- assign localization = include.localization | default: site.theme_options.localization -%}
+  {%- assign resolved_format = include.format | default: localization.date_format | default: 'long' -%}
+  {{ include.date | localize_date: resolved_format }}
+{%- endif -%}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DataLog Theme Customizer</title>
+    <link rel="stylesheet" href="customizer.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">🎨</span>
+        <div>
+          <h1>DataLog Theme Customizer</h1>
+          <p>Create, preview, and export personalized styles for your DataLog-powered site.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="generate-dark" class="secondary">Generate Dark Mode</button>
+        <button type="button" id="export-scss" class="primary">Export SCSS Variables</button>
+      </div>
+    </header>
+
+    <main class="app-body">
+      <section class="controls">
+        <h2>Design Controls</h2>
+        <form id="customizer-form" autocomplete="off">
+          <div class="control-group">
+            <h3>Brand Colors</h3>
+            <label>
+              <span>Primary</span>
+              <input type="color" name="primary" />
+            </label>
+            <label>
+              <span>Secondary</span>
+              <input type="color" name="secondary" />
+            </label>
+            <label>
+              <span>Accent</span>
+              <input type="color" name="accent" />
+            </label>
+            <label>
+              <span>Background</span>
+              <input type="color" name="background" />
+            </label>
+            <label>
+              <span>Surface</span>
+              <input type="color" name="surface" />
+            </label>
+            <label>
+              <span>Text</span>
+              <input type="color" name="text" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <h3>Typography</h3>
+            <label>
+              <span>Body Font</span>
+              <select name="bodyFont">
+                <option value="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif">Inter</option>
+                <option value="'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif">Source Sans Pro</option>
+                <option value="'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif">Roboto</option>
+                <option value="'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif">Work Sans</option>
+                <option value="'Merriweather', Georgia, 'Times New Roman', serif">Merriweather</option>
+                <option value="'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif">IBM Plex Sans</option>
+              </select>
+            </label>
+            <label>
+              <span>Heading Font</span>
+              <select name="headingFont">
+                <option value="'Merriweather', Georgia, 'Times New Roman', serif">Merriweather</option>
+                <option value="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif">Inter</option>
+                <option value="'Source Serif Pro', Georgia, 'Times New Roman', serif">Source Serif Pro</option>
+                <option value="'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif">Work Sans</option>
+                <option value="'Space Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif">Space Grotesk</option>
+                <option value="'Playfair Display', Georgia, 'Times New Roman', serif">Playfair Display</option>
+              </select>
+            </label>
+            <label>
+              <span>Monospace Font</span>
+              <select name="monoFont">
+                <option value="'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace">Fira Code</option>
+                <option value="'Source Code Pro', Menlo, Monaco, 'Courier New', monospace">Source Code Pro</option>
+                <option value="'IBM Plex Mono', Menlo, Monaco, 'Courier New', monospace">IBM Plex Mono</option>
+                <option value="'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace">JetBrains Mono</option>
+              </select>
+            </label>
+            <label>
+              <span>Base Font Size</span>
+              <input type="number" name="baseFontSize" min="14" max="22" step="1" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <h3>Spacing &amp; Details</h3>
+            <label>
+              <span>Base Spacing (px)</span>
+              <input type="range" name="spacing" min="4" max="28" step="2" />
+            </label>
+            <label>
+              <span>Border Radius (px)</span>
+              <input type="range" name="radius" min="0" max="24" step="2" />
+            </label>
+            <label>
+              <span>Max Content Width (px)</span>
+              <input type="number" name="maxWidth" min="640" max="1320" step="20" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <h3>Presets</h3>
+            <label>
+              <span>Preset Name</span>
+              <input type="text" id="preset-name" placeholder="e.g. Ocean Research" />
+            </label>
+            <div class="preset-actions">
+              <button type="button" id="save-preset" class="primary">Save Preset</button>
+              <button type="button" id="load-preset" class="secondary">Load Preset</button>
+              <button type="button" id="delete-preset" class="danger">Delete Preset</button>
+            </div>
+            <select id="preset-list" size="5" aria-label="Saved theme presets"></select>
+            <div class="preset-import">
+              <label class="file-input">
+                <span>Import Preset JSON</span>
+                <input type="file" id="import-preset" accept="application/json" />
+              </label>
+              <button type="button" id="export-preset" class="secondary">Export Selected Preset</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="preview">
+        <h2>Live Preview</h2>
+        <div class="preview-panels">
+          <article class="preview-canvas" id="light-preview">
+            <header>
+              <h3>Analytics Weekly</h3>
+              <p class="tagline">Insights, notebooks, and visualizations built with DataLog.</p>
+            </header>
+            <main>
+              <h4>Capturing signal in streaming telemetry</h4>
+              <p>
+                This sample article illustrates how your palette, typography, and spacing choices
+                will appear on a standard post. Adjust the settings to the left to see real-time
+                updates.
+              </p>
+              <pre><code>df.groupby('sensor_id').rolling(window=12).mean()</code></pre>
+              <a class="cta" href="#">Read the full analysis</a>
+              <div class="metrics">
+                <div class="metric">
+                  <span class="metric-label">Subscribers</span>
+                  <strong>12,481</strong>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Avg. time on page</span>
+                  <strong>4m 21s</strong>
+                </div>
+              </div>
+            </main>
+          </article>
+          <article class="preview-canvas" id="dark-preview">
+            <header>
+              <h3>Analytics Weekly · Dark</h3>
+              <p class="tagline">Automatically generated contrast-aware palette.</p>
+            </header>
+            <main>
+              <h4>Streaming telemetry in night mode</h4>
+              <p>
+                Dark mode is derived from your brand colors. Use it to evaluate dual-theme support
+                before exporting your variables.
+              </p>
+              <pre><code>SELECT window_start, avg(reading) FROM telemetry GROUP BY window_start;</code></pre>
+              <a class="cta" href="#">Read the full analysis</a>
+              <div class="metrics">
+                <div class="metric">
+                  <span class="metric-label">Subscribers</span>
+                  <strong>12,481</strong>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Avg. time on page</span>
+                  <strong>4m 21s</strong>
+                </div>
+              </div>
+            </main>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <template id="scss-template">
+$brand-primary: {{primary}};
+$brand-secondary: {{secondary}};
+$brand-accent: {{accent}};
+$background-color: {{background}};
+$surface-color: {{surface}};
+$text-color: {{text}};
+$body-font-family: {{bodyFont}};
+$heading-font-family: {{headingFont}};
+$monospace-font-family: {{monoFont}};
+$base-font-size: {{baseFontSize}}px;
+$base-spacing-unit: {{spacing}}px;
+$border-radius-base: {{radius}}px;
+$content-max-width: {{maxWidth}}px;
+// Dark mode suggestions generated from the current palette
+$dark-background-color: {{darkBackground}};
+$dark-surface-color: {{darkSurface}};
+$dark-text-color: {{darkText}};
+$dark-accent-color: {{darkAccent}};
+    </template>
+
+    <script src="customizer.js"></script>
+  </body>
+</html>

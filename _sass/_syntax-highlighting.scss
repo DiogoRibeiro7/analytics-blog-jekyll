@@ -1,0 +1,128 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+
+// Prism.js inspired syntax highlighting tuned for analytical workloads
+pre[class*='language-'],
+code[class*='language-'] {
+  color: $color-ink-900;
+  background: transparent;
+  font-family: $font-family-mono;
+  font-size: map.get($font-size-scale, sm);
+  line-height: 1.6;
+}
+
+pre[class*='language-'] {
+  position: relative;
+  padding-top: map.get($spacing, 5);
+}
+
+:not(pre) > code[class*='language-'],
+pre[class*='language-'] {
+  background: rgba($color-surface-900, 0.02);
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: $color-ink-300;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: $color-ink-500;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: $color-accent-tertiary;
+}
+
+.token.boolean,
+.token.number {
+  color: $color-accent-secondary;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: $color-success;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.token.variable {
+  color: $color-accent-primary;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: $color-accent-secondary;
+}
+
+.token.function,
+.token.class-name {
+  color: $color-accent-primary;
+  font-weight: 600;
+}
+
+.token.regex,
+.token.important {
+  color: $color-warning;
+}
+
+.token.important,
+.token.bold {
+  font-weight: 700;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+body.dark-mode pre[class*='language-'],
+body.dark-mode code[class*='language-'] {
+  color: $dark-ink-900;
+}
+
+body.dark-mode pre[class*='language-'] {
+  background: rgba($dark-surface-300, 0.8);
+}
+
+body.dark-mode .token.comment,
+body.dark-mode .token.prolog,
+body.dark-mode .token.doctype,
+body.dark-mode .token.cdata {
+  color: rgba($dark-ink-500, 0.7);
+}
+
+body.dark-mode .token.boolean,
+body.dark-mode .token.number {
+  color: $dark-accent-secondary;
+}
+
+body.dark-mode .token.selector,
+body.dark-mode .token.attr-name,
+body.dark-mode .token.string,
+body.dark-mode .token.inserted {
+  color: #5fe3aa;
+}
+
+body.dark-mode .token.keyword,
+body.dark-mode .token.operator {
+  color: $dark-accent-primary;
+}
+
+body.dark-mode .token.function,
+body.dark-mode .token.class-name {
+  color: #9fb6ff;
+}

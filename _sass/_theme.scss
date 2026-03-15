@@ -1,0 +1,79 @@
+// Primary manifest for the DataLog theme.
+// Provides CSS custom properties and composes the Sass partials.
+@use "sass:color";
+// 1) Modules FIRST (no CSS before these)
+@use 'variables' as *;            // gives access to Sass tokens here
+@use 'mixins' as *;
+
+// Each partial below MUST import its own tokens if it references them.
+// `@use` here does NOT leak variables into those files' scopes.
+@use 'base';
+@use 'typography';
+@use 'layout';
+@use 'header';
+@use 'components';
+@use 'utilities';
+@use 'syntax-highlighting';
+@use 'mathematical';
+@use 'interactive';
+@use 'search';
+@use 'visualizations';
+@use 'phase1-enhancements';
+@use 'phase3-enhancements';
+@use 'phase4-enhancements';
+@use 'phase5-enhancements';
+@use 'package-docs';
+
+// 2) CSS rules AFTER all @use/@forward
+:root {
+  // Surface/background colors
+  --color-surface: #{$color-surface-50};
+  --color-surface-alt: #{$color-surface-100};
+  --color-background: #{$color-surface-50};
+  --color-background-secondary: #{$color-surface-100};
+
+  // Text/ink colors
+  --color-ink: #{$color-ink-900};
+  --color-ink-muted: #{$color-ink-500};
+  --color-text-primary: #{$color-ink-900};
+  --color-text-secondary: #{$color-ink-500};
+  --color-text-tertiary: #{$color-ink-300};
+
+  // Accent colors
+  --color-accent: #{$color-accent-primary};
+  --color-accent-secondary: #{$color-accent-secondary};
+  --color-accent-dark: #{color.adjust($color-accent-primary, $lightness: -10%)};
+
+  // Border colors
+  --color-border: #{$color-neutral-200};
+
+  // Typography
+  --max-width-reading: #{$max-width-reading};
+  --font-sans: #{$font-family-sans};
+  --font-serif: #{$font-family-serif};
+  --font-mono: #{$font-family-mono};
+  --base-font-size: #{$font-size-root};
+}
+
+body.dark-mode {
+  // Surface/background colors
+  --color-surface: #{$dark-surface-100};
+  --color-surface-alt: #{$dark-surface-200};
+  --color-background: #{$dark-surface-100};
+  --color-background-secondary: #{$dark-surface-200};
+
+  // Text/ink colors
+  --color-ink: #{$dark-ink-900};
+  --color-ink-muted: #{$dark-ink-500};
+  --color-text-primary: #{$dark-ink-900};
+  --color-text-secondary: #{$dark-ink-500};
+  --color-text-tertiary: #{$dark-ink-300};
+
+  // Accent colors
+  --color-accent: #{$dark-accent-primary};
+  --color-accent-secondary: #{$dark-accent-secondary};
+  --color-accent-dark: #{color.adjust($dark-accent-primary, $lightness: -10%)};
+
+  // Border colors
+  --color-border: #{$dark-surface-300};
+}

@@ -1,0 +1,145 @@
+name: Documentation Improvement
+description: Suggest improvements to documentation, guides, or examples
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve DataLog's documentation! Clear documentation helps everyone.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this isn't a duplicate
+          required: true
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation needs improvement?
+      options:
+        - README.md
+        - INSTALL.md
+        - CONTRIBUTING.md
+        - User Guide (docs/user-guide.md)
+        - Configuration Reference (docs/configuration-reference.md)
+        - Plugin Development Guide
+        - Visual Testing Guide
+        - Content Security Policy Guide
+        - Template Repository Guide
+        - Code Comments
+        - API Documentation
+        - Examples / Sample Content
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing Documentation
+        - Incorrect/Outdated Information
+        - Unclear/Confusing Explanation
+        - Broken Links
+        - Typo/Grammar
+        - Missing Examples
+        - Needs More Detail
+        - Organization/Structure
+        - Accessibility Issues
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: Where is the documentation issue located?
+      placeholder: |
+        File: docs/user-guide.md
+        Section: "Notebook Integration"
+        Lines: 45-60
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current State
+      description: What does the documentation currently say? (quote if possible)
+      placeholder: The current documentation states...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: What is unclear, missing, or incorrect?
+      placeholder: This is confusing because... This doesn't explain...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: |
+        It should instead say...
+        Add a section explaining...
+        Include an example showing...
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example Content
+      description: If you have specific text or examples to add, include them here
+      placeholder: |
+        ## Proposed Section
+
+        Here's how to...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who would benefit most from this improvement?
+      options:
+        - New Users
+        - Experienced Users
+        - Theme Developers
+        - Plugin Developers
+        - Academic Researchers
+        - All Users
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be interested in contributing to this improvement?
+      options:
+        - label: I would be willing to submit a pull request with the improved documentation
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the documentation issue
+      placeholder: Related documentation... Similar issues...
+    validations:
+      required: false

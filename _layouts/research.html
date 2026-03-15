@@ -1,0 +1,500 @@
+---
+layout: default
+schema_type: ScholarlyArticle
+---
+{% assign date_format = site.date_format | default: '%B %-d, %Y' %}
+{% assign authors_source = page.authors | default: page.author | default: site.author %}
+{% assign authors = authors_source | arrayify %}
+{% assign publication_name = page.publication | default: page.journal | default: page.conference %}
+{% assign publication_status = page.publication_status | default: page.status %}
+{% assign doi = page.doi %}
+{% assign keywords = page.keywords | default: page.tags %}
+{% assign keywords_list = keywords | arrayify %}
+{% assign subject_classification = page.subject_classification | default: page.subjects %}
+{% assign subject_list = subject_classification | arrayify %}
+{% assign citation_key = page.citation_key | default: page.title | slugify %}
+{% assign repository_links = page.code_repositories | default: page.repositories %}
+{% assign repository_array = repository_links | arrayify %}
+{% assign dataset_links = page.datasets | default: page.dataset_links %}
+{% assign dataset_array = dataset_links | arrayify %}
+{% assign methodology_content = page.methodology %}
+{% assign results_content = page.results %}
+{% assign data_availability = page.data_availability %}
+{% assign reproducibility = page.reproducibility | default: page.reproducibility_notes %}
+{% assign peer_review = page.peer_review | default: page.peer_review_notes %}
+{% assign version_history = page.version_history %}
+{% assign appendices = page.appendices %}
+{% assign supplementary = page.supplementary | default: page.supplementary_materials %}
+{% assign references = page.references %}
+{% assign references_array = references | arrayify %}
+{% assign funding = page.funding %}
+{% assign rights = page.rights | default: page.license %}
+{% assign affiliation_default = site.author.affiliation %}
+{% assign show_publications = page.show_publications | default: false %}
+
+<div class="research-wrapper" itemscope itemtype="https://schema.org/ScholarlyArticle">
+  <meta itemprop="headline" content="{{ page.title }}" />
+  {% if page.date %}
+    <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
+  {% endif %}
+  {% if page.last_modified_at or page.updated %}
+    <meta itemprop="dateModified" content="{{ page.last_modified_at | default: page.updated | date_to_xmlschema }}" />
+  {% endif %}
+  {% if doi %}
+    <meta itemprop="identifier" content="doi:{{ doi }}" />
+  {% endif %}
+  {% if publication_name %}
+    <meta itemprop="isPartOf" content="{{ publication_name }}" />
+  {% endif %}
+  {% if keywords_list and keywords_list.size > 0 %}
+    <meta itemprop="keywords" content="{{ keywords_list | join: ', ' }}" />
+  {% endif %}
+
+  <header class="research-header" aria-labelledby="research-title">
+    <h1 id="research-title" class="research-title">{{ page.title }}</h1>
+
+    <div class="research-authors" aria-label="Authors">
+      <h2 class="visually-hidden">Authors</h2>
+      <ul class="research-author-list">
+        {% for author in authors %}
+          {% assign author_name = author.name | default: author %}
+          {% assign author_affiliation = author.affiliation | default: author.institution | default: affiliation_default %}
+          {% assign author_orcid = author.orcid | default: site.author.orcid %}
+          {% assign author_email = author.email | default: author.contact %}
+          <li class="research-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+            <span class="research-author-name" itemprop="name">{{ author_name }}</span>
+            {% if author_affiliation %}
+              <span class="research-author-affiliation" itemprop="affiliation">{{ author_affiliation }}</span>
+            {% endif %}
+            {% if author_orcid %}
+              <span class="research-author-orcid">
+                <a href="{{ author_orcid }}" target="_blank" rel="noopener noreferrer" itemprop="identifier" aria-label="ORCID profile for {{ author_name }}">
+                  ORCID
+                </a>
+              </span>
+            {% endif %}
+            {% if author_email %}
+              <span class="research-author-contact">
+                <a href="mailto:{{ author_email }}" aria-label="Email {{ author_name }}">{{ author_email }}</a>
+              </span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <dl class="research-metadata">
+      {% if page.date %}
+        <div>
+          <dt>Publication date</dt>
+          <dd>{{ page.date | localize_date: date_format }}</dd>
+        </div>
+      {% endif %}
+      {% if publication_name %}
+        <div>
+          <dt>Journal / Conference</dt>
+          <dd>{{ publication_name }}</dd>
+        </div>
+      {% endif %}
+      {% if publication_status %}
+        <div>
+          <dt>Status</dt>
+          <dd>{{ publication_status }}</dd>
+        </div>
+      {% endif %}
+      {% if doi %}
+        <div>
+          <dt>DOI</dt>
+          <dd><a href="https://doi.org/{{ doi }}" rel="noopener noreferrer">{{ doi }}</a></dd>
+        </div>
+      {% endif %}
+      {% if page.issn or page.isbn %}
+        <div>
+          <dt>{{ page.issn and 'ISSN' or 'ISBN' }}</dt>
+          <dd>{{ page.issn | default: page.isbn }}</dd>
+        </div>
+      {% endif %}
+      {% if funding %}
+        <div>
+          <dt>Funding</dt>
+          <dd>{{ funding }}</dd>
+        </div>
+      {% endif %}
+      {% if rights %}
+        <div>
+          <dt>Rights</dt>
+          <dd>{{ rights }}</dd>
+        </div>
+      {% endif %}
+    </dl>
+
+    {% if (keywords_list and keywords_list.size > 0) or (subject_list and subject_list.size > 0) %}
+      <section class="research-topics" aria-label="Keywords and classification">
+        {% if keywords_list and keywords_list.size > 0 %}
+          <div class="research-keywords">
+            <h3>Keywords</h3>
+            <ul>
+              {% for keyword in keywords_list %}
+                <li itemprop="keywords">{{ keyword }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        {% if subject_list and subject_list.size > 0 %}
+          <div class="research-classification">
+            <h3>Subject classification</h3>
+            <ul>
+              {% for subject in subject_list %}
+                <li>{{ subject }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+  </header>
+
+  {% assign academic_profiles = site.data.academic.profiles %}
+  {% if academic_profiles %}
+    <nav class="research-profiles" aria-label="Academic profiles">
+      <ul>
+        {% if academic_profiles.google_scholar %}
+          <li><a href="{{ academic_profiles.google_scholar.url }}" target="_blank" rel="noopener">Google Scholar</a></li>
+        {% endif %}
+        {% if academic_profiles.orcid %}
+          <li><a href="{{ academic_profiles.orcid.url }}" target="_blank" rel="noopener">ORCID</a></li>
+        {% endif %}
+        {% if academic_profiles.researchgate %}
+          <li><a href="{{ academic_profiles.researchgate.url }}" target="_blank" rel="noopener">ResearchGate</a></li>
+        {% endif %}
+        {% if academic_profiles.academia %}
+          <li><a href="{{ academic_profiles.academia.url }}" target="_blank" rel="noopener">Academia.edu</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  {% assign publication_metrics = site.data.publications.metrics %}
+  {% if publication_metrics %}
+  <aside class="research-metrics" aria-labelledby="research-metrics-heading">
+    <h2 id="research-metrics-heading">Citation impact</h2>
+    <ul class="research-metrics__list">
+      <li><span class="research-metric-label">Total citations</span> <span class="research-metric-value" data-citation-metric="total">{{ publication_metrics.total }}</span></li>
+      <li><span class="research-metric-label">h-index</span> <span class="research-metric-value" data-citation-metric="h_index">{{ publication_metrics.h_index }}</span></li>
+      <li><span class="research-metric-label">i10-index</span> <span class="research-metric-value" data-citation-metric="i10_index">{{ publication_metrics.i10_index }}</span></li>
+    </ul>
+  </aside>
+  {% endif %}
+
+  {% if page.abstract %}
+    <section class="research-abstract" aria-labelledby="abstract-heading">
+      <h2 id="abstract-heading">Abstract</h2>
+      <div class="abstract-content" itemprop="abstract">
+        {{ page.abstract | markdownify }}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="research-citation" aria-labelledby="citation-exports-heading">
+    <h2 id="citation-exports-heading">Citation exports</h2>
+    {% capture bibtex_authors %}
+      {% for author in authors %}
+        {% assign author_name = author.name | default: author %}
+        {{ author_name | strip }}{% unless forloop.last %} and {% endunless %}
+      {% endfor %}
+    {% endcapture %}
+    {% capture bibtex_entry %}
+@article{ {{ citation_key }},
+  title = { {{ page.title | strip }} },
+  author = { {{ bibtex_authors | strip }} },
+  {% if publication_name %}journal = { {{ publication_name | strip }} },{% endif %}
+  {% if page.date %}year = { {{ page.date | date: '%Y' }} },{% endif %}
+  {% if doi %}doi = { {{ doi }} },{% endif %}
+  {% if page.publisher %}publisher = { {{ page.publisher }} },{% endif %}
+  {% if page.volume %}volume = { {{ page.volume }} },{% endif %}
+  {% if page.number %}number = { {{ page.number }} },{% endif %}
+  {% if page.pages %}pages = { {{ page.pages }} },{% endif %}
+}
+    {% endcapture %}
+    {% capture ris_entry %}
+TY  - JOUR
+TI  - {{ page.title | strip }}
+{% if publication_name %}JO  - {{ publication_name | strip }}
+{% endif %}
+{% if page.date %}PY  - {{ page.date | date: '%Y/%m/%d' }}
+{% endif %}
+{% for author in authors %}{% assign author_name = author.name | default: author %}AU  - {{ author_name | strip }}
+{% endfor %}
+{% if doi %}DO  - {{ doi }}
+{% endif %}
+ER  -
+    {% endcapture %}
+    {% capture endnote_entry %}
+%0 Journal Article
+%T {{ page.title | strip }}
+{% for author in authors %}{% assign author_name = author.name | default: author %}%A {{ author_name | strip }}
+{% endfor %}
+{% if publication_name %}%J {{ publication_name | strip }}
+{% endif %}
+{% if page.date %}%D {{ page.date | date: '%Y' }}
+{% endif %}
+{% if doi %}%R {{ doi }}
+{% endif %}
+    {% endcapture %}
+    <div class="citation-export-grid">
+      <article>
+        <h3>BibTeX</h3>
+        <textarea readonly aria-label="BibTeX citation">{{ bibtex_entry | strip }}</textarea>
+      </article>
+      <article>
+        <h3>RIS</h3>
+        <textarea readonly aria-label="RIS citation">{{ ris_entry | strip }}</textarea>
+      </article>
+      <article>
+        <h3>EndNote</h3>
+        <textarea readonly aria-label="EndNote citation">{{ endnote_entry | strip }}</textarea>
+      </article>
+    </div>
+  </section>
+
+  <section class="research-body" itemprop="articleBody">
+    {% if methodology_content %}
+      <section class="research-methodology" aria-labelledby="methodology-heading">
+        <h2 id="methodology-heading">Methodology</h2>
+        {{ methodology_content | markdownify }}
+      </section>
+    {% endif %}
+
+    {% if results_content %}
+      <section class="research-results" aria-labelledby="results-heading">
+        <h2 id="results-heading">Results</h2>
+        {{ results_content | markdownify }}
+      </section>
+    {% endif %}
+
+    {{ content }}
+  </section>
+
+  {% if data_availability or (dataset_array and dataset_array.size > 0) %}
+    <section class="research-data" aria-labelledby="data-availability-heading">
+      <h2 id="data-availability-heading">Data availability</h2>
+      {% if data_availability %}
+        <div class="data-availability-note">
+          {{ data_availability | markdownify }}
+        </div>
+      {% endif %}
+      {% if dataset_array and dataset_array.size > 0 %}
+        <ul class="research-datasets">
+          {% for dataset in dataset_array %}
+            {% assign dataset_label = dataset.title | default: dataset.name | default: dataset %}
+            {% assign dataset_url = dataset.url | default: dataset %}
+            <li>
+              <a href="{{ dataset_url }}" rel="noopener noreferrer" target="_blank">{{ dataset_label }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if (repository_array and repository_array.size > 0) or reproducibility %}
+    <section class="research-reproducibility" aria-labelledby="reproducibility-heading">
+      <h2 id="reproducibility-heading">Code and reproducibility</h2>
+      {% if repository_array and repository_array.size > 0 %}
+        <ul class="research-repositories">
+          {% for repo in repository_array %}
+            {% assign repo_label = repo.title | default: repo.name | default: repo %}
+            {% assign repo_url = repo.url | default: repo %}
+            <li><a href="{{ repo_url }}" rel="noopener noreferrer" target="_blank">{{ repo_label }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if reproducibility %}
+        <div class="reproducibility-notes">
+          {{ reproducibility | markdownify }}
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if supplementary or appendices %}
+    <section class="research-appendices" aria-labelledby="appendix-heading">
+      <h2 id="appendix-heading">Appendix and supplementary materials</h2>
+      {% if supplementary %}
+        <div class="supplementary-materials">
+          {{ supplementary | markdownify }}
+        </div>
+      {% endif %}
+      {% if appendices %}
+        <ol class="appendix-list">
+          {% for appendix in appendices %}
+            <li>
+              <article class="appendix-item">
+                {% if appendix.title %}
+                  <h3>{{ appendix.title }}</h3>
+                {% endif %}
+                {% if appendix.content %}
+                  {{ appendix.content | markdownify }}
+                {% else %}
+                  {{ appendix | markdownify }}
+                {% endif %}
+              </article>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if references_array and references_array.size > 0 %}
+    <section class="research-references" aria-labelledby="references-heading">
+      <h2 id="references-heading">References</h2>
+      {% assign references_markup = references_array | join: '' %}
+      {% if references_markup contains '<li>' %}
+        {{ references_markup }}
+      {% else %}
+        <ol class="reference-list">
+          {% for reference in references_array %}
+            <li>{{ reference | markdownify }}</li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% assign publication_data = site.data.publications %}
+  {% assign publication_entries = publication_data.entries %}
+  {% assign publication_groups = publication_data.grouped %}
+  {% if show_publications and publication_entries and publication_entries.size > 0 %}
+    <section class="research-publications" aria-labelledby="publication-list-heading">
+      <h2 id="publication-list-heading">Related publications</h2>
+      {% if publication_groups %}
+        {% for group in publication_groups %}
+          {% assign group_label = group[0] %}
+          {% assign group_items = group[1] %}
+          <h3 class="research-publications__group">{{ group_label }}</h3>
+          <ul class="publication-list">
+            {% for publication in group_items %}
+            <li class="publication-list__item">
+              <article>
+                <h4 class="publication-title">{{ publication.title }}</h4>
+                {% assign publication_authors = publication.authors | arrayify %}
+                {% if publication_authors and publication_authors.size > 0 %}
+                <p class="publication-authors">{{ publication_authors | join: ', ' }}</p>
+                {% endif %}
+                <p class="publication-venue">
+                  {% if publication.venue %}{{ publication.venue }}{% endif %}
+                  {% if publication.year %} <span class="publication-year">({{ publication.year }})</span>{% endif %}
+                </p>
+                <p class="publication-links">
+                  {% if publication.doi %}<a href="https://doi.org/{{ publication.doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}
+                  {% if publication.url %}<a href="{{ publication.url }}" target="_blank" rel="noopener">Access</a>{% endif %}
+                </p>
+              </article>
+            </li>
+            {% endfor %}
+          </ul>
+        {% endfor %}
+      {% else %}
+        <ul class="publication-list">
+          {% for publication in publication_entries %}
+          <li class="publication-list__item">
+            <article>
+              <h4 class="publication-title">{{ publication.title }}</h4>
+              {% assign publication_authors = publication.authors | arrayify %}
+              {% if publication_authors and publication_authors.size > 0 %}
+              <p class="publication-authors">{{ publication_authors | join: ', ' }}</p>
+              {% endif %}
+              <p class="publication-venue">
+                {% if publication.venue %}{{ publication.venue }}{% endif %}
+                {% if publication.year %} <span class="publication-year">({{ publication.year }})</span>{% endif %}
+              </p>
+              <p class="publication-links">
+                {% if publication.doi %}<a href="https://doi.org/{{ publication.doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}
+                {% if publication.url %}<a href="{{ publication.url }}" target="_blank" rel="noopener">Access</a>{% endif %}
+              </p>
+            </article>
+          </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% elsif show_publications and publication_data.settings.fallback_message %}
+    <section class="research-publications" aria-labelledby="publication-list-heading">
+      <h2 id="publication-list-heading">Related publications</h2>
+      <p>{{ publication_data.settings.fallback_message }}</p>
+    </section>
+  {% endif %}
+
+  {% if peer_review or version_history %}
+    <section class="research-history" aria-labelledby="history-heading">
+      <h2 id="history-heading">Peer review & version history</h2>
+      {% if peer_review %}
+        <div class="peer-review-notes">
+          {{ peer_review | markdownify }}
+        </div>
+      {% endif %}
+      {% if version_history %}
+        <ol class="version-history-list">
+          {% for version in version_history %}
+            <li>
+              <article class="version-entry">
+                <header>
+                  <strong>{{ version.version | default: version.title | default: version }}</strong>
+                  {% if version.date %}<span class="version-date">{{ version.date | localize_date: date_format }}</span>{% endif %}
+                </header>
+                {% if version.notes %}
+                  <div class="version-notes">{{ version.notes | markdownify }}</div>
+                {% elsif version.description %}
+                  <div class="version-notes">{{ version.description | markdownify }}</div>
+                {% endif %}
+              </article>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% include components/open-science-badges.html %}
+</div>
+
+<script nonce="{{ page.csp_nonce }}">
+  document.addEventListener('DOMContentLoaded', function () {
+    const figureSelector = '.research-body figure';
+    const tableSelector = '.research-body table';
+    let figureCount = 0;
+    document.querySelectorAll(figureSelector).forEach(function (figure) {
+      const caption = figure.querySelector('figcaption');
+      if (!caption) return;
+      figureCount += 1;
+      const numberSpan = document.createElement('span');
+      numberSpan.className = 'figure-label';
+      numberSpan.textContent = `Figure ${figureCount}. `;
+      if (!caption.dataset.numbered) {
+        caption.dataset.numbered = 'true';
+        caption.prepend(numberSpan);
+      }
+      if (!figure.id) {
+        figure.id = `figure-${figureCount}`;
+      }
+    });
+
+    let tableCount = 0;
+    document.querySelectorAll(tableSelector).forEach(function (table) {
+      const caption = table.querySelector('caption');
+      if (!caption) return;
+      tableCount += 1;
+      const label = document.createElement('span');
+      label.className = 'table-label';
+      label.textContent = `Table ${tableCount}. `;
+      if (!caption.dataset.numbered) {
+        caption.dataset.numbered = 'true';
+        caption.prepend(label);
+      }
+      if (!table.id) {
+        table.id = `table-${tableCount}`;
+      }
+    });
+  });
+</script>

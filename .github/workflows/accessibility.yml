@@ -1,0 +1,53 @@
+name: Accessibility Audit
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  pa11y:
+    name: Pa11y checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install nbformat jupyter
+
+      - name: Build site
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --trace
+
+      - name: Install accessibility tooling
+        run: npm install --no-save pa11y-ci http-server
+
+      - name: Run Pa11y CI
+        run: |
+          npx http-server _site -p 4000 --silent &
+          SERVER_PID=$!
+          npx pa11y-ci --config pa11yci.json
+          kill $SERVER_PID
