@@ -25,6 +25,51 @@ body.dark-mode .card {
   box-shadow: 0 12px 24px rgba($color-accent-primary, 0.18);
 }
 
+// ---------------------------------------------------------------------------
+// Buttons
+// ---------------------------------------------------------------------------
+.btn {
+  display: inline-block;
+  padding: map.get($spacing, 3) map.get($spacing, 5);
+  border-radius: map.get($radius, md);
+  font-weight: 500;
+  font-size: map.get($font-size-scale, base);
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+  background: $color-accent-primary;
+  color: #fff;
+
+  &:hover {
+    background: lighten($color-accent-primary, 6%);
+    box-shadow: 0 4px 12px rgba($color-accent-primary, 0.35);
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: $color-accent-primary;
+  border-color: $color-accent-primary;
+
+  &:hover {
+    background: rgba($color-accent-primary, 0.08);
+  }
+}
+
+body.dark-mode .btn-primary {
+  background: $dark-accent-primary;
+  color: $color-surface-900;
+}
+
+body.dark-mode .btn-secondary {
+  color: $dark-accent-primary;
+  border-color: $dark-accent-primary;
+}
+
 .stat {
   display: grid;
   gap: map.get($spacing, 1);
