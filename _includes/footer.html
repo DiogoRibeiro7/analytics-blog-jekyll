@@ -1,195 +1,73 @@
-<footer class="site-footer" role="contentinfo" aria-labelledby="footer-heading">
-  {% assign footer_site_name = site.title | default: site.name %}
-  {% assign footer_year = site.time | date: '%Y' %}
-  <h2 id="footer-heading" class="visually-hidden">{% t 'footer.heading' %}</h2>
-  {% assign navigation_data = site.data.navigation %}
-  {% assign social_data = site.data.social %}
+{% assign footer_site_name = site.title | default: site.name %}
+{% assign footer_year = site.time | date: '%Y' %}
+{% assign navigation_data = site.data.navigation %}
+{% assign social_data = site.data.social %}
+<footer class="site-footer" role="contentinfo">
   <div class="container footer-container">
-    <section class="footer-about" aria-labelledby="footer-about-heading">
-      {% capture footer_about_title %}{% t 'footer.about_title' site: footer_site_name %}{% endcapture %}
-      <h3 id="footer-about-heading">{{ footer_about_title | strip }}</h3>
-      <p class="footer-description">{{ site.description | strip_html }}</p>
+    <section class="footer-about">
+      <h3>{{ site.name | default: 'DataLog' }}</h3>
+      <p class="footer-description">{{ site.description | strip_html | truncate: 160 }}</p>
       <p class="footer-author">
         <strong>{{ site.author.name }}</strong>
+        {% if site.author.affiliation %}
         <span class="footer-affiliation">{{ site.author.affiliation }}</span>
-      </p>
-      {% if site.brand.tagline %}
-      <p class="footer-tagline">{{ site.brand.tagline }}</p>
-      {% endif %}
-      <p class="footer-orcid">
-        {% if site.author.orcid %}
-          <a href="{{ site.author.orcid }}" rel="me noopener" target="_blank">{% t 'footer.orcid_label' id: site.author.orcid | replace: 'https://orcid.org/', '' %}</a>
         {% endif %}
       </p>
-      <p class="footer-contact">
-        <a href="mailto:{{ site.contact_email | default: site.author.email }}">{{ site.contact_email | default: site.author.email }}</a>
+      {% if site.author.orcid %}
+      <p class="footer-orcid">
+        <a href="{{ site.author.orcid }}" rel="me noopener" target="_blank">ORCID {{ site.author.orcid | replace: 'https://orcid.org/', '' }}</a>
       </p>
-      <p class="footer-citation">{% t 'footer.citation_notice' year: footer_year author: site.author.name %}</p>
+      {% endif %}
     </section>
 
-    <section class="footer-social" aria-labelledby="footer-social-heading">
-      <h3 id="footer-social-heading">{% t 'footer.stay_connected' %}</h3>
+    <nav class="footer-navigation">
+      <h3>Explore</h3>
+      <ul class="footer-link-list">
+        <li><a href="{{ '/blog/' | relative_url }}">Blog</a></li>
+        <li><a href="{{ '/research/' | relative_url }}">Research</a></li>
+        <li><a href="{{ '/portfolio/' | relative_url }}">Projects</a></li>
+        <li><a href="{{ '/datasets/' | relative_url }}">Datasets</a></li>
+        <li><a href="{{ '/visualizations/' | relative_url }}">Visualizations</a></li>
+        <li><a href="{{ '/about/' | relative_url }}">About</a></li>
+      </ul>
+    </nav>
+
+    <section class="footer-connect">
+      <h3>Connect</h3>
       {% assign primary_social = social_data.primary %}
       {% if primary_social %}
       <ul class="footer-link-list">
         {% for profile in primary_social %}
-        <li>{% include helpers/link-with-icon.html url=profile.url label=profile.label target='_blank' rel=profile.rel %}</li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p>{% t 'footer.follow_default' %}</p>
-      {% endif %}
-    </section>
-
-    <section class="footer-networks" aria-labelledby="footer-networks-heading">
-      <h3 id="footer-networks-heading">{% t 'footer.professional_profiles' %}</h3>
-      {% assign academic_social = social_data.academic %}
-      {% if academic_social %}
-      <ul class="footer-link-list">
-        {% for profile in academic_social %}
-        <li>{% include helpers/link-with-icon.html url=profile.url label=profile.label target='_blank' rel=profile.rel %}</li>
+        <li><a href="{{ profile.url }}" target="_blank" rel="{{ profile.rel | default: 'noopener' }}">{{ profile.label }}</a></li>
         {% endfor %}
       </ul>
       {% endif %}
+      {% if site.author.email %}
+      <p class="footer-contact">
+        <a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a>
+      </p>
+      {% endif %}
     </section>
 
-    <nav class="footer-navigation" aria-labelledby="footer-nav-heading">
-      <h3 id="footer-nav-heading">{% t 'footer.explore_content' %}</h3>
-      <div class="footer-nav-columns">
-        {% assign research_config = navigation_data.content_overview.research_areas %}
-        {% capture footer_research_heading %}{% t 'footer.research_areas' %}{% endcapture %}
-        {% capture research_title %}
-          {% if research_config.title_key %}
-            {% t research_config.title_key %}
-          {% else %}
-            {{ research_config.title | default: footer_research_heading }}
-          {% endif %}
-        {% endcapture %}
-        {% include footer/nav-column.html title=research_title items=research_config.items show_descriptions=true %}
-
-        {% assign methodology_config = navigation_data.content_overview.methodologies %}
-        {% capture footer_methodology_heading %}{% t 'footer.methodologies' %}{% endcapture %}
-        {% capture methodology_title %}
-          {% if methodology_config.title_key %}
-            {% t methodology_config.title_key %}
-          {% else %}
-            {{ methodology_config.title | default: footer_methodology_heading }}
-          {% endif %}
-        {% endcapture %}
-        {% include footer/nav-column.html title=methodology_title items=methodology_config.items %}
-
-        {% assign languages_config = navigation_data.languages %}
-        {% capture footer_languages_heading %}{% t 'footer.languages_frameworks' %}{% endcapture %}
-        {% capture languages_title %}
-          {% if languages_config.title_key %}
-            {% t languages_config.title_key %}
-          {% else %}
-            {{ languages_config.title | default: footer_languages_heading }}
-          {% endif %}
-        {% endcapture %}
-        {% include footer/nav-column.html title=languages_title items=languages_config.items %}
-      </div>
-    </nav>
-
-    <section class="footer-newsletter" aria-labelledby="footer-newsletter-heading">
-      <h3 id="footer-newsletter-heading">{% t 'footer.subscribe_title' %}</h3>
-      <p>{% t 'footer.subscribe_description' %}</p>
+    <section class="footer-subscribe">
+      <h3>Stay updated</h3>
+      <p>Get notified about new research and tutorials.</p>
       <form class="footer-form" action="{{ site.newsletter_form_action | default: '#' }}" method="post">
-        <label class="visually-hidden" for="footer-newsletter-email">{% t 'footer.newsletter_label' %}</label>
-        <input id="footer-newsletter-email" type="email" name="email" placeholder="{% t 'footer.newsletter_placeholder' %}" required>
-        <button type="submit">{% t 'footer.newsletter_button' %}</button>
+        <label class="visually-hidden" for="footer-newsletter-email">Email address</label>
+        <input id="footer-newsletter-email" type="email" name="email" placeholder="your@email.com" required>
+        <button type="submit">Subscribe</button>
       </form>
-      <p class="footer-privacy-note">{% t 'footer.newsletter_privacy' %}</p>
-    </section>
-
-    <section class="footer-feeds" aria-labelledby="footer-feeds-heading">
-      <h3 id="footer-feeds-heading">{% t 'footer.rss_feeds' %}</h3>
       {% assign rss_links = social_data.rss %}
       {% if rss_links %}
-      <ul class="footer-link-list">
+      <ul class="footer-link-list footer-feeds">
         {% for feed in rss_links %}
-        {% capture feed_url %}{{ feed.url | relative_url }}{% endcapture %}
-        <li>{% include helpers/link-with-icon.html url=feed_url label=feed.label %}</li>
+        <li><a href="{{ feed.url | relative_url }}">{{ feed.label }}</a></li>
         {% endfor %}
       </ul>
       {% endif %}
     </section>
-
-    <section class="footer-contact" aria-labelledby="footer-contact-heading">
-      <h3 id="footer-contact-heading">{% t 'footer.collaborate_title' %}</h3>
-      <p>{% t 'footer.collaborate_description' %}</p>
-      {% assign contact_entries = social_data.contact %}
-      <ul class="footer-link-list">
-        {% if contact_entries %}
-          {% for entry in contact_entries %}
-            {% capture contact_label %}{{ entry.label }}: {{ entry.value }}{% endcapture %}
-            <li>{% include helpers/link-with-icon.html url=entry.url label=contact_label %}</li>
-          {% endfor %}
-        {% else %}
-          {% capture inquiries_label %}{% t 'footer.professional_inquiries' email: site.author.email %}{% endcapture %}
-          {% capture author_mailto %}mailto:{{ site.author.email }}{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=author_mailto label=inquiries_label %}</li>
-        {% endif %}
-        {% assign repo_url = site.repository_url | default: site.github.repository_url %}
-        {% if repo_url %}
-          {% capture contribute_label %}{% t 'footer.contribute_github' %}{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=repo_url label=contribute_label target='_blank' %}</li>
-        {% endif %}
-      </ul>
-    </section>
-
-    <section class="footer-contribute" aria-labelledby="footer-contribute-heading">
-      <h3 id="footer-contribute-heading">{% t 'footer.open_source_title' %}</h3>
-      <p>{% t 'footer.open_source_description' %}</p>
-      <ul class="footer-link-list">
-        {% assign repo_url = site.repository_url | default: site.github.repository_url %}
-        {% if repo_url %}
-          {% capture view_source_label %}{% t 'footer.view_source' %}{% endcapture %}
-          {% capture open_issues_label %}{% t 'footer.open_issues' %}{% endcapture %}
-          {% capture guidelines_label %}{% t 'footer.contribution_guidelines' %}{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=repo_url label=view_source_label target='_blank' %}</li>
-          {% capture issues_url %}{{ repo_url }}/issues{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=issues_url label=open_issues_label target='_blank' %}</li>
-          {% capture contributing_url %}{{ repo_url }}#contributing{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=contributing_url label=guidelines_label target='_blank' %}</li>
-        {% else %}
-          {% capture request_label %}{% t 'footer.request_guidelines' %}{% endcapture %}
-          {% capture request_mailto %}mailto:{{ site.author.email }}{% endcapture %}
-          <li>{% include helpers/link-with-icon.html url=request_mailto label=request_label %}</li>
-        {% endif %}
-      </ul>
-    </section>
-
-    <section class="footer-community" aria-labelledby="footer-community-heading">
-      <h3 id="footer-community-heading">{% t 'footer.community_resources' %}</h3>
-      {% assign community_links = social_data.community %}
-      {% if community_links %}
-      <ul class="footer-link-list">
-        {% for resource in community_links %}
-        <li>{% include helpers/link-with-icon.html url=resource.url label=resource.label target='_blank' %}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-    </section>
-
-    <section class="footer-integrity" aria-labelledby="footer-integrity-heading">
-      <h3 id="footer-integrity-heading">{% t 'footer.academic_integrity' %}</h3>
-      {% if social_data.integrity.statement %}
-      <p>{{ social_data.integrity.statement }}</p>
-      {% endif %}
-      {% if social_data.integrity.dataset_guidance %}
-      <p class="footer-licensing">{{ social_data.integrity.dataset_guidance }}</p>
-      {% endif %}
-    </section>
-
-    <section class="footer-reproducibility" aria-labelledby="footer-reproducibility-heading">
-      <h3 id="footer-reproducibility-heading">{% t 'footer.open_science_title' %}</h3>
-      {% if social_data.integrity.reproducibility %}
-      <p>{{ social_data.integrity.reproducibility }}</p>
-      {% else %}
-      <p>{% t 'footer.open_science_default' %}</p>
-      {% endif %}
-      <p>{% t 'footer.open_science_support' %}</p>
-    </section>
+  </div>
+  <div class="container footer-bottom">
+    <p>&copy; {{ footer_year }} {{ site.author.name }}. Built with the DataLog theme.</p>
   </div>
 </footer>
