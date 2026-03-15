@@ -1,21 +1,40 @@
 @use 'sass:map';
+@use 'sass:color';
 
 @use 'variables' as *;
 @use 'mixins' as *;
 
+// ---------------------------------------------------------------------------
+// Container
+// ---------------------------------------------------------------------------
 .container {
   width: min(100% - 2rem, $max-width-wide);
   margin-inline: auto;
+  padding-inline: map.get($spacing, 3);
+
+  @include respond-to(md) {
+    padding-inline: map.get($spacing, 5);
+  }
 }
 
 .container--narrow {
   width: min(100% - 2rem, $max-width-reading + 4rem);
 }
 
+// ---------------------------------------------------------------------------
+// Main content
+// ---------------------------------------------------------------------------
 main {
   padding: map.get($spacing, 6) 0 map.get($spacing, 8);
 }
 
+.site-main {
+  min-height: 60vh;
+}
+
+// ---------------------------------------------------------------------------
+// Page structure
+// ---------------------------------------------------------------------------
 .page-shell {
   display: grid;
   gap: map.get($spacing, 6);
@@ -48,6 +67,163 @@ aside {
   top: 6.5rem;
 }
 
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
+.hero {
+  position: relative;
+  background: linear-gradient(160deg, $color-surface-900 0%, color.adjust($color-accent-primary, $lightness: -22%) 50%, $dark-surface-300 100%);
+  color: #fff;
+  padding: clamp(3rem, 8vw, 6rem) 0;
+  text-align: center;
+  overflow: hidden;
+
+  // Subtle pattern overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 80%, rgba($color-accent-secondary, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba($color-accent-tertiary, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+  }
+
+  h1 {
+    font-size: map.get($font-size-scale, display);
+    font-weight: 800;
+    margin: 0 0 map.get($spacing, 3);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-tagline {
+    font-size: map.get($font-size-scale, md);
+    opacity: 0.8;
+    max-width: 48ch;
+    margin: 0 auto map.get($spacing, 5);
+    line-height: $line-height-loose;
+    font-weight: 300;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sections
+// ---------------------------------------------------------------------------
+.section {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+}
+
+.section-highlight {
+  background: $color-surface-100;
+  border-top: 1px solid rgba($color-neutral-200, 0.5);
+  border-bottom: 1px solid rgba($color-neutral-200, 0.5);
+}
+
+body.dark-mode .section-highlight {
+  background: rgba($dark-surface-200, 0.5);
+  border-color: rgba($dark-ink-500, 0.1);
+}
+
+.section-portfolio {
+  background: $color-surface-50;
+}
+
+body.dark-mode .section-portfolio {
+  background: $dark-surface-100;
+}
+
+.section-title {
+  font-size: map.get($font-size-scale, xxl);
+  font-weight: 700;
+  margin: 0 0 map.get($spacing, 2);
+  color: $color-ink-900;
+  letter-spacing: -0.01em;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 3rem;
+    height: 3px;
+    background: $color-accent-primary;
+    border-radius: 2px;
+    margin-top: map.get($spacing, 2);
+    margin-bottom: map.get($spacing, 4);
+  }
+}
+
+body.dark-mode .section-title {
+  color: $dark-ink-900;
+
+  &::after {
+    background: $dark-accent-primary;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Card grid
+// ---------------------------------------------------------------------------
+.card-grid {
+  display: grid;
+  gap: map.get($spacing, 5);
+  grid-template-columns: 1fr;
+
+  @include respond-to(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card-meta {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+body.dark-mode .card-meta {
+  color: $dark-ink-500;
+}
+
+.card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: map.get($font-size-scale, sm);
+  font-weight: 600;
+  color: $color-accent-primary;
+  text-decoration: none;
+  margin-top: auto;
+  padding-top: map.get($spacing, 2);
+  transition: gap $transition-base;
+
+  &::after {
+    content: '\2192';
+    transition: transform $transition-base;
+  }
+
+  &:hover {
+    &::after {
+      transform: translateX(3px);
+    }
+  }
+}
+
+body.dark-mode .card-link {
+  color: $dark-accent-primary;
+}
+
+// ---------------------------------------------------------------------------
+// Old footer class (kept for compatibility)
+// ---------------------------------------------------------------------------
 .footer {
   background: $color-surface-100;
   color: $color-ink-700;
@@ -63,135 +239,51 @@ body.dark-mode .footer {
 }
 
 // ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-.hero {
-  background: linear-gradient(135deg, $color-surface-900, $dark-surface-300);
-  color: #fff;
-  padding: map.get($spacing, 8) 0;
-  text-align: center;
-
-  h1 {
-    font-size: map.get($font-size-scale, display);
-    font-weight: 700;
-    margin: 0 0 map.get($spacing, 3);
-    line-height: $line-height-tight;
-  }
-
-  .hero-tagline {
-    font-size: map.get($font-size-scale, lg);
-    opacity: 0.85;
-    max-width: 40ch;
-    margin: 0 auto map.get($spacing, 5);
-    line-height: $line-height-base;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Sections
-// ---------------------------------------------------------------------------
-.section {
-  padding: map.get($spacing, 7) 0;
-}
-
-.section-highlight {
-  background: $color-surface-50;
-}
-
-body.dark-mode .section-highlight {
-  background: $dark-surface-100;
-}
-
-.section-title {
-  font-size: map.get($font-size-scale, xl);
-  font-weight: 600;
-  margin: 0 0 map.get($spacing, 5);
-  color: $color-ink-900;
-}
-
-body.dark-mode .section-title {
-  color: $dark-ink-900;
-}
-
-// ---------------------------------------------------------------------------
-// Card grid
-// ---------------------------------------------------------------------------
-.card-grid {
-  display: grid;
-  gap: map.get($spacing, 5);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-}
-
-.card-meta {
-  font-size: map.get($font-size-scale, sm);
-  color: $color-ink-500;
-  margin: 0;
-}
-
-body.dark-mode .card-meta {
-  color: $dark-ink-500;
-}
-
-.card-link {
-  display: inline-block;
-  font-weight: 500;
-  color: $color-accent-primary;
-  text-decoration: none;
-  margin-top: auto;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-body.dark-mode .card-link {
-  color: $dark-accent-primary;
-}
-
-// ---------------------------------------------------------------------------
-// Site main
-// ---------------------------------------------------------------------------
-.site-main {
-  min-height: 60vh;
-}
-
-// ---------------------------------------------------------------------------
 // Site footer
 // ---------------------------------------------------------------------------
 .site-footer {
   background: $color-surface-900;
-  color: rgba(#fff, 0.8);
-  padding: map.get($spacing, 7) 0 map.get($spacing, 5);
-  margin-top: map.get($spacing, 8);
+  color: rgba(#fff, 0.75);
+  padding: clamp(2.5rem, 5vw, 4rem) 0 map.get($spacing, 5);
+  margin-top: 0;
   font-size: map.get($font-size-scale, sm);
   line-height: $line-height-base;
 
   h3 {
     color: #fff;
-    font-size: map.get($font-size-scale, base);
+    font-size: map.get($font-size-scale, sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     margin: 0 0 map.get($spacing, 3);
   }
 
   a {
-    color: $dark-accent-secondary;
+    color: rgba(#fff, 0.85);
     text-decoration: none;
+    transition: color $transition-base;
 
     &:hover {
-      text-decoration: underline;
+      color: $dark-accent-secondary;
     }
+  }
+
+  p {
+    margin: 0 0 map.get($spacing, 2);
   }
 }
 
 .footer-container {
   display: grid;
   gap: map.get($spacing, 6);
+  grid-template-columns: 1fr;
 
-  @include respond-to(md) {
+  @include respond-to(sm) {
     grid-template-columns: repeat(2, 1fr);
   }
 
   @include respond-to(lg) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -205,12 +297,12 @@ body.dark-mode .card-link {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: map.get($spacing, 2);
+  gap: map.get($spacing, 1);
 }
 
 .footer-nav-columns {
   display: grid;
-  gap: map.get($spacing, 5);
+  gap: map.get($spacing, 4);
 
   @include respond-to(md) {
     grid-template-columns: repeat(3, 1fr);
@@ -220,17 +312,22 @@ body.dark-mode .card-link {
 .footer-form {
   display: flex;
   gap: map.get($spacing, 2);
+  max-width: 24rem;
 
   input[type="email"] {
     flex: 1;
+    min-width: 0;
     padding: map.get($spacing, 2) map.get($spacing, 3);
-    border: 1px solid rgba(#fff, 0.2);
+    border: 1px solid rgba(#fff, 0.15);
     border-radius: map.get($radius, md);
-    background: rgba(#fff, 0.1);
+    background: rgba(#fff, 0.08);
     color: #fff;
+    font-size: map.get($font-size-scale, sm);
 
-    &::placeholder {
-      color: rgba(#fff, 0.5);
+    &::placeholder { color: rgba(#fff, 0.4); }
+    &:focus {
+      outline: none;
+      border-color: $dark-accent-secondary;
     }
   }
 
@@ -241,16 +338,39 @@ body.dark-mode .card-link {
     border: none;
     border-radius: map.get($radius, md);
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: map.get($font-size-scale, sm);
+    white-space: nowrap;
+    transition: background-color $transition-base;
 
-    &:hover {
-      background: lighten($color-accent-primary, 8%);
-    }
+    &:hover { background: color.adjust($color-accent-primary, $lightness: 8%); }
   }
 }
 
 .footer-privacy-note {
   font-size: map.get($font-size-scale, xs);
-  opacity: 0.6;
-  margin-top: map.get($spacing, 2);
+  opacity: 0.5;
+  margin-top: map.get($spacing, 1);
+}
+
+.footer-author {
+  strong { color: #fff; }
+}
+
+.footer-affiliation {
+  display: block;
+  opacity: 0.65;
+  font-size: map.get($font-size-scale, xs);
+}
+
+.footer-citation,
+.footer-orcid,
+.footer-contact {
+  font-size: map.get($font-size-scale, xs);
+  opacity: 0.65;
+}
+
+.footer-tagline {
+  font-style: italic;
+  opacity: 0.7;
 }
