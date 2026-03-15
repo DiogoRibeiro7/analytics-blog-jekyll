@@ -135,11 +135,15 @@
 {{ trimmed_critical }}
 </style>
 {% endif %}
+{% if trimmed_critical != '' %}
 <link rel="preload" href="{{ main_stylesheet }}" as="style" />
 <link rel="stylesheet" href="{{ main_stylesheet }}" media="print" onload="this.media='all'" />
 <noscript>
   <link rel="stylesheet" href="{{ main_stylesheet }}" />
 </noscript>
+{% else %}
+<link rel="stylesheet" href="{{ main_stylesheet }}" />
+{% endif %}
 
 {% if math_enabled %}
   {% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
