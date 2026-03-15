@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "loofah", "~> 2.21"
+gem "loofah", "~> 2.25"
 
 group :development do
   # gem "github-pages", "~> 232"
