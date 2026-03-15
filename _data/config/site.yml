@@ -3,7 +3,7 @@
 # =============================================================================
 # Basic site settings and branding. Edit these values to customize your site.
 #
-# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/docs/configuration.md
+# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md
 # =============================================================================
 
 # Brand identity
@@ -32,9 +32,9 @@ social:
 # Analytics configuration
 analytics:
   # Google Analytics 4
-  ga4_property_id: ""
-  ga4_credentials_path: ""
-  # Leave empty to disable analytics
+  ga4_property_id: "" # Set to your GA4 property ID to enable the analytics dashboard
+  ga4_credentials_path: "" # Path to Google service account credentials JSON
+  # Leave both empty to disable analytics
 
 # Repository information
 repository:

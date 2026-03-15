@@ -106,6 +106,7 @@ async function buildAll() {
     metafile: true,
     entryNames: "[name]",
     chunkNames: "chunks/[name]-[hash]",
+    drop: (process.env.NODE_ENV || "production") === "production" ? ["console"] : [],
     define: {
       "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production")
     }

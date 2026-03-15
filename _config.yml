@@ -162,7 +162,7 @@ social:
   linkedin: diogoribeiro
   default_image: /assets/img/social-card.png
 
-google_analytics: ""
+google_analytics: "" # Set to your GA4 measurement ID (e.g. "G-XXXXXXXXXX") to enable tracking
 
 # -----------------------------------------------------------------------------
 # Feature Flags (reference _data/config/features.yml for full options)

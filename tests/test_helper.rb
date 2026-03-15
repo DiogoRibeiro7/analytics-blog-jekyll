@@ -29,8 +29,7 @@ module SiteBuilder
     Jekyll.logger.log_level = :error
 
     config_files = [
-      File.join(root, "_config.yml"),
-      File.join(root, "_config.performance.yml")
+      File.join(root, "_config.yml")
     ]
 
     config = Jekyll.configuration(
