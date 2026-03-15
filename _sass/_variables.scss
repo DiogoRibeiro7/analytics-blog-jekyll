@@ -2,10 +2,10 @@
 // Focused on high contrast readability for code, math, and academic layouts.
 
 // Font families
-// Using Roboto (ReadTheDocs standard) with system font fallbacks for optimal technical documentation
-$font-family-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-$font-family-serif: 'Source Serif Pro', 'Merriweather', Georgia, serif;
-$font-family-mono: 'Roboto Mono', 'Fira Code', 'Source Code Pro', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+// IBM Plex — designed for technical and data-driven content
+$font-family-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+$font-family-serif: 'IBM Plex Serif', Georgia, serif;
+$font-family-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 $font-stack-code: $font-family-mono !default;
 $font-stack-sans: $font-family-sans !default;
 $font-stack-serif: $font-family-serif !default;
