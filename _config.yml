@@ -282,7 +282,7 @@ exclude:
   - node_modules
   - scripts
   - lib
-  - docs/site
+  - docs
   - Gemfile
   - node_modules/
   - vendor/
