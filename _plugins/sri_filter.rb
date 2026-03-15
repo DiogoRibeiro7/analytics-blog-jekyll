@@ -8,9 +8,9 @@ module Jekyll
       entry = integrity_map[url]
       return url unless entry
 
-      attributes = "#{url}\" integrity=\"#{entry['integrity']}\""
+      attributes = "#{url}\" integrity=\"#{entry['integrity']}"
       if entry['crossorigin']
-        attributes += " crossorigin=\"#{entry['crossorigin']}\""
+        attributes += "\" crossorigin=\"#{entry['crossorigin']}"
       end
       attributes
     end
