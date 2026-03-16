@@ -486,6 +486,57 @@ body.dark-mode .research-area-card {
 }
 
 // ---------------------------------------------------------------------------
+// Project cards
+// ---------------------------------------------------------------------------
+.project-card {
+  .project-metrics {
+    display: flex;
+    gap: map.get($spacing, 4);
+    padding: map.get($spacing, 3) 0;
+    border-top: 1px solid rgba($color-neutral-200, 0.5);
+    margin-top: auto;
+  }
+
+  .project-links {
+    display: flex;
+    gap: map.get($spacing, 2);
+    padding-top: map.get($spacing, 2);
+  }
+}
+
+.project-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-metric__value {
+  font-size: map.get($font-size-scale, lg);
+  font-weight: 700;
+  font-family: $font-family-mono;
+  color: $color-accent-primary;
+  line-height: 1;
+}
+
+body.dark-mode .project-metric__value {
+  color: $dark-accent-primary;
+}
+
+.project-metric__label {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+body.dark-mode .project-metric__label {
+  color: $dark-ink-500;
+}
+
+body.dark-mode .project-card .project-metrics {
+  border-top-color: rgba($dark-ink-500, 0.12);
+}
+
+// ---------------------------------------------------------------------------
 // Blog post list
 // ---------------------------------------------------------------------------
 .post-list {
