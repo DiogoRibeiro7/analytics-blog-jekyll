@@ -135,7 +135,7 @@ Matplotlib/Seaborn plots, LaTeX, and code syntax highlighting are optimized for 
 
 4. **Deploy to GitHub Pages**
    - Push the repository to GitHub
-   - Enable GitHub Pages on the repository settings (use the `main` branch)
+   - Enable GitHub Pages on the repository settings (use the `develop` branch)
    - GitHub Pages will automatically build the site using the `github-pages` gem
 
 ## Data Science Workflow Integration

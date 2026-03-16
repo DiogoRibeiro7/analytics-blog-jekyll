@@ -2,7 +2,7 @@ name: Accessibility Audit
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [ develop ]
   workflow_dispatch:
 
 jobs:

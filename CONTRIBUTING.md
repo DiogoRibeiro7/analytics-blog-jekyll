@@ -143,8 +143,8 @@ git remote add upstream https://github.com/DiogoRibeiro7/analytics-blog-jekyll.g
 ```bash
 # Update your fork
 git fetch upstream
-git checkout main
-git merge upstream/main
+git checkout develop
+git merge upstream/develop
 
 # Create feature branch
 git checkout -b feature/your-feature-name

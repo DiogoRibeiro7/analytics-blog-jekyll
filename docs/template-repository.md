@@ -26,7 +26,7 @@ git init
 git add .
 git commit -m "Bootstrap Datalog starter"
 git remote add origin git@github.com:DiogoRibeiro7/datalog-starter.git
-git push -u origin main
+git push -u origin develop
 ```
 
 > 💡 Update the remote to match your GitHub username if different.

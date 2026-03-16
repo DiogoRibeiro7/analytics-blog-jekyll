@@ -3,7 +3,7 @@
 # =============================================================================
 # Basic site settings and branding. Edit these values to customize your site.
 #
-# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md
+# Documentation: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/develop/docs/configuration-reference.md
 # =============================================================================
 
 # Brand identity
@@ -39,4 +39,4 @@ analytics:
 # Repository information
 repository:
   url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
-  branch: main
+  branch: develop
