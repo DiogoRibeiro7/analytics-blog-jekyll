@@ -486,6 +486,68 @@ body.dark-mode .research-area-card {
 }
 
 // ---------------------------------------------------------------------------
+// About page header
+// ---------------------------------------------------------------------------
+.about-header {
+  display: grid;
+  gap: map.get($spacing, 5);
+  margin-bottom: map.get($spacing, 6);
+  padding-bottom: map.get($spacing, 6);
+  border-bottom: 1px solid rgba($color-neutral-200, 0.5);
+
+  @include respond-to(md) {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+}
+
+body.dark-mode .about-header {
+  border-bottom-color: rgba($dark-ink-500, 0.12);
+}
+
+.about-header__name {
+  font-size: map.get($font-size-scale, xxl);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.about-header__affiliation {
+  color: $color-ink-500;
+  font-size: map.get($font-size-scale, sm);
+  margin: map.get($spacing, 1) 0 0;
+}
+
+body.dark-mode .about-header__affiliation {
+  color: $dark-ink-500;
+}
+
+.about-header__bio {
+  font-size: map.get($font-size-scale, lg);
+  color: $color-ink-700;
+  line-height: $line-height-loose;
+  margin: map.get($spacing, 3) 0;
+  max-width: 48ch;
+}
+
+body.dark-mode .about-header__bio {
+  color: $dark-ink-700;
+}
+
+.research-metrics--compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: map.get($spacing, 3);
+
+  .card {
+    padding: map.get($spacing, 4) map.get($spacing, 3);
+  }
+
+  .stat__value {
+    font-size: 2rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Year chart (citations by year)
 // ---------------------------------------------------------------------------
 .year-chart {
