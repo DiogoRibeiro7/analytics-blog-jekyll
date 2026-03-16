@@ -7,7 +7,7 @@ export function renderResults(results, query, elements) {
     return;
   }
 
-  resultsList.innerHTML = "";
+  resultsList.replaceChildren();
 
   if (!query) {
     resultsMeta.textContent = "Enter a query to begin.";
@@ -71,7 +71,8 @@ export function renderResults(results, query, elements) {
     }
 
     if (summaryEl) {
-      summaryEl.innerHTML = highlightText(result.summary || "", query);
+      summaryEl.replaceChildren();
+      summaryEl.insertAdjacentHTML("beforeend", highlightText(result.summary || "", query));
     }
 
     if (mathEl && mathCodeEl) {
@@ -103,7 +104,8 @@ export function renderResults(results, query, elements) {
 
     if (excerptEl) {
       if (result.snippet) {
-        excerptEl.innerHTML = highlightText(result.snippet, query);
+        excerptEl.replaceChildren();
+        excerptEl.insertAdjacentHTML("beforeend", highlightText(result.snippet, query));
         excerptEl.hidden = false;
       } else {
         excerptEl.hidden = true;
@@ -130,7 +132,7 @@ export function renderResults(results, query, elements) {
     }
 
     if (tagsEl) {
-      tagsEl.innerHTML = "";
+      tagsEl.replaceChildren();
       (result.tags || []).forEach((tag) => {
         const li = document.createElement("li");
         li.textContent = `#${tag}`;

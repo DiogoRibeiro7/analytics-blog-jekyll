@@ -82,7 +82,7 @@
       "format": "esm"
     },
     "assets/js/search/analytics.js": {
-      "bytes": 2139,
+      "bytes": 2144,
       "imports": [],
       "format": "esm"
     },
@@ -92,7 +92,7 @@
       "format": "esm"
     },
     "assets/js/search/autocomplete.js": {
-      "bytes": 3225,
+      "bytes": 3285,
       "imports": [
         {
           "path": "assets/js/search/utils.js",
@@ -114,12 +114,12 @@
       "format": "esm"
     },
     "assets/js/search/filters.js": {
-      "bytes": 1006,
+      "bytes": 1089,
       "imports": [],
       "format": "esm"
     },
     "assets/js/search/render.js": {
-      "bytes": 7107,
+      "bytes": 7229,
       "imports": [
         {
           "path": "assets/js/search/utils.js",
@@ -172,17 +172,17 @@
       "format": "esm"
     },
     "assets/js/math.js": {
-      "bytes": 26230,
+      "bytes": 27298,
       "imports": [],
       "format": "esm"
     },
     "assets/js/visualizations.js": {
-      "bytes": 26967,
+      "bytes": 27138,
       "imports": [],
       "format": "esm"
     },
     "assets/js/notebook.js": {
-      "bytes": 5161,
+      "bytes": 5385,
       "imports": [],
       "format": "esm"
     },
@@ -192,7 +192,7 @@
       "format": "esm"
     },
     "assets/js/analytics-dashboard.js": {
-      "bytes": 12099,
+      "bytes": 12542,
       "imports": [],
       "format": "esm"
     }
@@ -209,7 +209,7 @@
           "bytesInOutput": 630
         },
         "assets/js/core/github-cards.js": {
-          "bytesInOutput": 1476
+          "bytesInOutput": 1333
         },
         "assets/js/core/language-filter.js": {
           "bytesInOutput": 163
@@ -230,7 +230,7 @@
           "bytesInOutput": 125
         }
       },
-      "bytes": 5892
+      "bytes": 5749
     },
     "assets/js/dist/loader.js": {
       "imports": [],
@@ -240,10 +240,10 @@
       "entryPoint": "assets/js/loader.js",
       "inputs": {
         "assets/js/loader.js": {
-          "bytesInOutput": 1772
+          "bytesInOutput": 1534
         }
       },
-      "bytes": 1804
+      "bytes": 1566
     },
     "assets/js/dist/search.js": {
       "imports": [],
@@ -255,31 +255,31 @@
       "entryPoint": "assets/js/search.js",
       "inputs": {
         "assets/js/search/analytics.js": {
-          "bytesInOutput": 1044
+          "bytesInOutput": 955
         },
         "assets/js/search/utils.js": {
           "bytesInOutput": 1374
         },
         "assets/js/search/autocomplete.js": {
-          "bytesInOutput": 1514
+          "bytesInOutput": 1566
         },
         "assets/js/search/engine.js": {
           "bytesInOutput": 2886
         },
         "assets/js/search/filters.js": {
-          "bytesInOutput": 542
+          "bytesInOutput": 603
         },
         "assets/js/search/render.js": {
-          "bytesInOutput": 3593
+          "bytesInOutput": 3641
         },
         "assets/js/search/app.js": {
-          "bytesInOutput": 3488
+          "bytesInOutput": 3441
         },
         "assets/js/search.js": {
           "bytesInOutput": 4357
         }
       },
-      "bytes": 18874
+      "bytes": 18899
     },
     "assets/js/dist/math.js": {
       "imports": [],
@@ -287,10 +287,10 @@
       "entryPoint": "assets/js/math.js",
       "inputs": {
         "assets/js/math.js": {
-          "bytesInOutput": 13885
+          "bytesInOutput": 14151
         }
       },
-      "bytes": 13886
+      "bytes": 14152
     },
     "assets/js/dist/visualizations.js": {
       "imports": [],
@@ -298,10 +298,10 @@
       "entryPoint": "assets/js/visualizations.js",
       "inputs": {
         "assets/js/visualizations.js": {
-          "bytesInOutput": 12567
+          "bytesInOutput": 12621
         }
       },
-      "bytes": 12568
+      "bytes": 12622
     },
     "assets/js/dist/notebook.js": {
       "imports": [],
@@ -316,10 +316,10 @@
       "entryPoint": "assets/js/notebook.js",
       "inputs": {
         "assets/js/notebook.js": {
-          "bytesInOutput": 2376
+          "bytesInOutput": 2548
         }
       },
-      "bytes": 2497
+      "bytes": 2669
     },
     "assets/js/dist/academic.js": {
       "imports": [],
@@ -362,10 +362,10 @@
       "entryPoint": "assets/js/analytics-dashboard.js",
       "inputs": {
         "assets/js/analytics-dashboard.js": {
-          "bytesInOutput": 6615
+          "bytesInOutput": 6918
         }
       },
-      "bytes": 6886
+      "bytes": 7189
     }
   }
 }

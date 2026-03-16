@@ -46,8 +46,9 @@ export const initPlotly = () => {
         const data = Array.isArray(spec.data) ? spec.data : Array.isArray(spec) ? spec : [];
         Plotly.newPlot(target, data, layout, { responsive: true });
       } catch (error) {
-        target.innerHTML =
-          '<p class="notebook-output__warning">Plotly figure could not be rendered. Open in Binder or Colab to interact.</p>';
+        target.replaceChildren();
+        target.insertAdjacentHTML('afterbegin',
+          '<p class="notebook-output__warning">Plotly figure could not be rendered. Open in Binder or Colab to interact.</p>');
       }
     });
   });
@@ -74,8 +75,9 @@ export const initVega = () => {
         const spec = JSON.parse(target.dataset.vega || '{}');
         window.vegaEmbed(target, spec, { actions: false });
       } catch (error) {
-        target.innerHTML =
-          '<p class="notebook-output__warning">Vega specification could not be parsed. Open in Binder for the interactive version.</p>';
+        target.replaceChildren();
+        target.insertAdjacentHTML('afterbegin',
+          '<p class="notebook-output__warning">Vega specification could not be parsed. Open in Binder for the interactive version.</p>');
       }
     });
   });
@@ -133,14 +135,16 @@ export const initNotebookFeatures = () => {
   annotateCells();
   initPlotly().catch(() => {
     document.querySelectorAll('.notebook-output-plotly').forEach((target) => {
-      target.innerHTML =
-        '<p class="notebook-output__warning">Plotly assets failed to load. Launch Binder/Colab to view the interactive chart.</p>';
+      target.replaceChildren();
+      target.insertAdjacentHTML('afterbegin',
+        '<p class="notebook-output__warning">Plotly assets failed to load. Launch Binder/Colab to view the interactive chart.</p>');
     });
   });
   initVega().catch(() => {
     document.querySelectorAll('.notebook-output-vega').forEach((target) => {
-      target.innerHTML =
-        '<p class="notebook-output__warning">Vega assets failed to load. Launch Binder/Colab to view the interactive chart.</p>';
+      target.replaceChildren();
+      target.insertAdjacentHTML('afterbegin',
+        '<p class="notebook-output__warning">Vega assets failed to load. Launch Binder/Colab to view the interactive chart.</p>');
     });
   });
   handleScrollSpy();

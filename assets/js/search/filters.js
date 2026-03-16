@@ -15,7 +15,10 @@ export function renderTagFilters(container, documents, selectedTags) {
 
   const tags = Array.from(tagSet).sort();
   if (tags.length === 0) {
-    container.innerHTML = '<p class="search-filter__empty">No tags available yet.</p>';
+    const p = document.createElement("p");
+    p.className = "search-filter__empty";
+    p.textContent = "No tags available yet.";
+    container.replaceChildren(p);
     return;
   }
 
@@ -30,6 +33,6 @@ export function renderTagFilters(container, documents, selectedTags) {
     fragment.appendChild(button);
   });
 
-  container.innerHTML = "";
+  container.replaceChildren();
   container.appendChild(fragment);
 }

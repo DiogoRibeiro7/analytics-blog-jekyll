@@ -247,14 +247,28 @@
         copyButton.className = 'math-expression__button';
         copyButton.setAttribute('data-math-copy', 'true');
         copyButton.setAttribute('aria-label', 'Copy LaTeX code');
-        copyButton.innerHTML = '<span aria-hidden="true">⧉</span><span class="visually-hidden">Copy equation</span>';
+        const copyIcon = document.createElement('span');
+        copyIcon.setAttribute('aria-hidden', 'true');
+        copyIcon.textContent = '⧉';
+        const copySr = document.createElement('span');
+        copySr.className = 'visually-hidden';
+        copySr.textContent = 'Copy equation';
+        copyButton.appendChild(copyIcon);
+        copyButton.appendChild(copySr);
 
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'math-expression__button';
         editButton.setAttribute('data-math-edit', 'true');
         editButton.setAttribute('aria-label', 'Open equation editor');
-        editButton.innerHTML = '<span aria-hidden="true">✎</span><span class="visually-hidden">Edit equation</span>';
+        const editIcon = document.createElement('span');
+        editIcon.setAttribute('aria-hidden', 'true');
+        editIcon.textContent = '✎';
+        const editSr = document.createElement('span');
+        editSr.className = 'visually-hidden';
+        editSr.textContent = 'Edit equation';
+        editButton.appendChild(editIcon);
+        editButton.appendChild(editSr);
 
         const message = document.createElement('span');
         message.className = 'math-expression__message';
@@ -408,6 +422,7 @@
 
       const helper = document.createElement('p');
       helper.className = 'math-tooling__description';
+      // innerHTML required for MathJax rendering
       helper.innerHTML =
         'Craft LaTeX expressions with live preview, quick statistical symbols, and chemistry support.';
 
@@ -469,7 +484,14 @@
       closeButton.type = 'button';
       closeButton.className = 'math-tooling__close';
       closeButton.setAttribute('data-math-editor-close', 'true');
-      closeButton.innerHTML = '<span aria-hidden="true">✕</span><span class="visually-hidden">Close equation editor</span>';
+      const closeIcon = document.createElement('span');
+      closeIcon.setAttribute('aria-hidden', 'true');
+      closeIcon.textContent = '✕';
+      const closeSr = document.createElement('span');
+      closeSr.className = 'visually-hidden';
+      closeSr.textContent = 'Close equation editor';
+      closeButton.appendChild(closeIcon);
+      closeButton.appendChild(closeSr);
 
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
@@ -535,7 +557,11 @@
       }
       const latex = this.editor.textarea.value.trim();
       if (!latex) {
-        this.editor.preview.innerHTML = '<p class="math-tooling__placeholder">Preview will appear here.</p>';
+        this.editor.preview.replaceChildren();
+        const placeholder = document.createElement('p');
+        placeholder.className = 'math-tooling__placeholder';
+        placeholder.textContent = 'Preview will appear here.';
+        this.editor.preview.appendChild(placeholder);
         return;
       }
       this.renderLatex(this.editor.preview, latex, { display: true, enhance: false });
@@ -627,6 +653,7 @@
         return Promise.resolve();
       }
       const wrapperLatex = display ? `\\[${latex}\\]` : `\\(${latex}\\)`;
+      // innerHTML required for MathJax rendering
       target.innerHTML = wrapperLatex;
       return this.MathJax.typesetPromise([target]).catch((error) => {
         console.warn('MathJax failed to typeset preview', error);
