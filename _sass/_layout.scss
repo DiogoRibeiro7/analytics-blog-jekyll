@@ -391,6 +391,101 @@ body.dark-mode .footer {
 }
 
 // ---------------------------------------------------------------------------
+// Research page
+// ---------------------------------------------------------------------------
+.research-intro {
+  margin-bottom: map.get($spacing, 5);
+  padding-bottom: map.get($spacing, 5);
+  border-bottom: 1px solid rgba($color-neutral-200, 0.5);
+
+  .research-bio {
+    font-size: map.get($font-size-scale, lg);
+    color: $color-ink-700;
+    line-height: $line-height-loose;
+    margin: 0 0 map.get($spacing, 2);
+  }
+
+  p:last-child {
+    margin: 0;
+    font-size: map.get($font-size-scale, sm);
+    color: $color-ink-500;
+  }
+}
+
+body.dark-mode .research-intro {
+  border-bottom-color: rgba($dark-ink-500, 0.12);
+  .research-bio { color: $dark-ink-700; }
+  p:last-child { color: $dark-ink-500; }
+}
+
+.research-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: map.get($spacing, 4);
+  margin-bottom: map.get($spacing, 6);
+
+  .card {
+    text-align: center;
+    padding: map.get($spacing, 5) map.get($spacing, 3);
+  }
+
+  .stat__value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: $font-family-mono;
+    color: $color-accent-primary;
+    line-height: 1;
+    margin-bottom: map.get($spacing, 1);
+  }
+
+  .stat__label {
+    display: block;
+    font-size: map.get($font-size-scale, xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $color-ink-500;
+    font-weight: 600;
+  }
+}
+
+body.dark-mode .research-metrics {
+  .stat__value { color: $dark-accent-primary; }
+  .stat__label { color: $dark-ink-500; }
+}
+
+.research-area-card {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color $transition-base;
+
+  h3 {
+    color: $color-accent-primary;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  &:hover {
+    border-color: rgba($color-accent-primary, 0.4);
+    h3 { color: $color-accent-primary; }
+  }
+}
+
+body.dark-mode .research-area-card {
+  h3 { color: $dark-accent-primary; }
+  &:hover { border-color: rgba($dark-accent-primary, 0.4); }
+}
+
+.research-profiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+// ---------------------------------------------------------------------------
 // Blog post list
 // ---------------------------------------------------------------------------
 .post-list {
