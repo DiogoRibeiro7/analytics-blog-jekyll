@@ -389,3 +389,142 @@ body.dark-mode .footer {
 
   p { margin: 0; }
 }
+
+// ---------------------------------------------------------------------------
+// Blog post list
+// ---------------------------------------------------------------------------
+.post-list {
+  display: grid;
+  gap: 0;
+}
+
+.post-list-item {
+  display: grid;
+  gap: map.get($spacing, 2);
+  padding: map.get($spacing, 5) 0;
+  border-bottom: 1px solid rgba($color-neutral-200, 0.6);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+body.dark-mode .post-list-item {
+  border-bottom-color: rgba($dark-ink-500, 0.12);
+}
+
+.post-list-item__title {
+  font-size: map.get($font-size-scale, xl);
+  font-weight: 700;
+  margin: 0;
+  line-height: $line-height-tight;
+
+  a {
+    color: $color-ink-900;
+    text-decoration: none;
+    transition: color $transition-base;
+
+    &:hover { color: $color-accent-primary; }
+  }
+}
+
+body.dark-mode .post-list-item__title a {
+  color: $dark-ink-900;
+  &:hover { color: $dark-accent-primary; }
+}
+
+.post-list-item__excerpt {
+  margin: 0;
+  color: $color-ink-500;
+  font-size: map.get($font-size-scale, base);
+  line-height: $line-height-base;
+}
+
+body.dark-mode .post-list-item__excerpt {
+  color: $dark-ink-500;
+}
+
+.post-list-item__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    font-size: map.get($font-size-scale, xs);
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: rgba($color-accent-primary, 0.08);
+    color: $color-accent-primary;
+    font-weight: 500;
+  }
+}
+
+body.dark-mode .post-list-item__tags li {
+  background: rgba($dark-accent-primary, 0.12);
+  color: $dark-accent-primary;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing, 2);
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  margin: 0;
+}
+
+body.dark-mode .post-meta {
+  color: $dark-ink-500;
+}
+
+.post-meta__badge {
+  display: inline-block;
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 0.1rem 0.5rem;
+  border-radius: map.get($radius, sm);
+  background: rgba($color-accent-secondary, 0.1);
+  color: $color-accent-secondary;
+}
+
+body.dark-mode .post-meta__badge {
+  background: rgba($dark-accent-secondary, 0.15);
+  color: $dark-accent-secondary;
+}
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+.pagination {
+  padding-top: map.get($spacing, 5);
+  margin-top: map.get($spacing, 3);
+  border-top: 1px solid rgba($color-neutral-200, 0.6);
+}
+
+body.dark-mode .pagination {
+  border-top-color: rgba($dark-ink-500, 0.12);
+}
+
+.pagination__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: map.get($spacing, 4);
+}
+
+.pagination__info {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+body.dark-mode .pagination__info {
+  color: $dark-ink-500;
+}

@@ -1,29 +1,45 @@
 ---
 layout: page
-title: Research Blog
+title: Blog
+subtitle: Tutorials, research notes, and data science walkthroughs
 ---
 
 <section class="post-list">
   {% assign posts = paginator.posts | default: site.posts %}
   {% for post in posts %}
     <article class="post-list-item">
-      <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
-      <p class="post-meta">{{ post.date | date: '%B %-d, %Y' }}{% if post.tags %} · {{ post.tags | array_to_sentence_string }}{% endif %}</p>
-      <p>{{ post.excerpt | strip_html | truncate: 180 }}</p>
+      <div class="post-list-item__body">
+        <p class="post-meta">
+          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%B %-d, %Y' }}</time>
+          {% if post.difficulty %}
+            <span class="post-meta__badge">{{ post.difficulty }}</span>
+          {% endif %}
+        </p>
+        <h2 class="post-list-item__title"><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+        <p class="post-list-item__excerpt">{{ post.excerpt | strip_html | truncate: 200 }}</p>
+        {% if post.tags and post.tags.size > 0 %}
+          <ul class="post-list-item__tags">
+            {% for tag in post.tags limit: 4 %}
+              <li>{{ tag }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
       <a class="card-link" href="{{ post.url | relative_url }}">Read article</a>
     </article>
   {% endfor %}
-
-  {% if paginator %}
-    {% if paginator.total_pages > 1 %}
-      <nav class="pagination" aria-label="Blog pagination">
-        {% if paginator.previous_page %}
-          <a class="btn" href="{{ paginator.previous_page_path | relative_url }}">Newer posts</a>
-        {% endif %}
-        {% if paginator.next_page %}
-          <a class="btn" href="{{ paginator.next_page_path | relative_url }}">Older posts</a>
-        {% endif %}
-      </nav>
-    {% endif %}
-  {% endif %}
 </section>
+
+{% if paginator and paginator.total_pages > 1 %}
+  <nav class="pagination" aria-label="Blog pagination">
+    <div class="pagination__links">
+      {% if paginator.previous_page %}
+        <a class="btn btn-secondary" href="{{ paginator.previous_page_path | relative_url }}">&larr; Newer posts</a>
+      {% endif %}
+      <span class="pagination__info">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+      {% if paginator.next_page %}
+        <a class="btn btn-secondary" href="{{ paginator.next_page_path | relative_url }}">Older posts &rarr;</a>
+      {% endif %}
+    </div>
+  </nav>
+{% endif %}
