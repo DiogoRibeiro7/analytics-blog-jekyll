@@ -434,7 +434,7 @@ body.dark-mode .research-intro {
     font-size: 2.5rem;
     font-weight: 800;
     font-family: $font-family-mono;
-    color: $color-accent-primary;
+    color: $color-accent-tertiary;
     line-height: 1;
     margin-bottom: map.get($spacing, 1);
   }
@@ -450,7 +450,7 @@ body.dark-mode .research-intro {
 }
 
 body.dark-mode .research-metrics {
-  .stat__value { color: $dark-accent-primary; }
+  .stat__value { color: $dark-accent-tertiary; }
   .stat__label { color: $dark-ink-500; }
 }
 
@@ -460,7 +460,7 @@ body.dark-mode .research-metrics {
   transition: border-color $transition-base;
 
   h3 {
-    color: $color-accent-primary;
+    color: $color-accent-secondary;
     margin: 0;
   }
 
@@ -469,14 +469,14 @@ body.dark-mode .research-metrics {
   }
 
   &:hover {
-    border-color: rgba($color-accent-primary, 0.4);
-    h3 { color: $color-accent-primary; }
+    border-color: rgba($color-accent-secondary, 0.4);
+    h3 { color: $color-accent-secondary; }
   }
 }
 
 body.dark-mode .research-area-card {
-  h3 { color: $dark-accent-primary; }
-  &:hover { border-color: rgba($dark-accent-primary, 0.4); }
+  h3 { color: $dark-accent-secondary; }
+  &:hover { border-color: rgba($dark-accent-secondary, 0.4); }
 }
 
 .research-profiles {
@@ -585,7 +585,7 @@ body.dark-mode .year-chart__value {
   max-width: 3rem;
   height: var(--bar-height, 10%);
   min-height: 4px;
-  background: linear-gradient(to top, $color-accent-primary, $color-accent-secondary);
+  background: linear-gradient(to top, $color-accent-primary, $color-accent-tertiary);
   border-radius: map.get($radius, sm) map.get($radius, sm) 0 0;
   transition: height 0.3s ease;
 }
@@ -720,15 +720,15 @@ body.dark-mode .post-list-item__excerpt {
     font-size: map.get($font-size-scale, xs);
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: rgba($color-accent-primary, 0.08);
-    color: $color-accent-primary;
+    background: rgba($color-accent-tertiary, 0.08);
+    color: $color-accent-tertiary;
     font-weight: 500;
   }
 }
 
 body.dark-mode .post-list-item__tags li {
-  background: rgba($dark-accent-primary, 0.12);
-  color: $dark-accent-primary;
+  background: rgba($dark-accent-tertiary, 0.12);
+  color: $dark-accent-tertiary;
 }
 
 .post-meta {

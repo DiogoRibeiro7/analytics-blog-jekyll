@@ -28,34 +28,33 @@ $line-height-tight: 1.3;
 $line-height-base: 1.6;
 $line-height-loose: 1.75;
 
-// Color palette emphasising accessibility and scientific clarity
-$color-surface-50: #f6f8fb;
-$color-surface-100: #edf1f7;
-$color-surface-900: #0b1220;
-$color-ink-900: #0f172a;
-$color-ink-700: #243654;
-$color-ink-500: #3d4f73;
-$color-ink-300: #9aa6c3;
-$color-ink-100: #e2e8f0 !default; // optional if referenced
-$color-ink-400: #94a3b8 !default; // optional if referenced
-$color-ink-600: #475569 !default; // REQUIRED (was missing)
-$color-ink-800: #1f2937 !default; // optional if referenced
-$color-accent-primary: #3454d1;
-$color-accent-secondary: #0b9ed9;
-$color-accent-tertiary: #7f4ce0;
-$color-success: #0f9d58;
-$color-warning: #f4b400;
-$color-critical: #db4437;
-$color-neutral-50: #f9fafb !default;
-$color-neutral-100: #f4f6fb;
-$color-neutral-200: #dbe1ec;
-$color-neutral-400: #94a3c1;
-$color-neutral-600: #4b5d80;
-$color-neutral-900: #121c33;
-// Neutral palette (fill in missing mid steps)
-$color-neutral-300: #b6c2d6 !default; // between 200 (#dbe1ec) and 400 (#94a3c1)
-$color-neutral-500: #647196 !default; // optional midpoint between 400 and 600
-$color-neutral-700: #2f3e5b !default; // optional if darker tones are used
+// Color palette — balanced warm/cool tones for readability and visual variety
+$color-surface-50: #fafaf9;     // warm white
+$color-surface-100: #f3f2ef;    // warm light gray
+$color-surface-900: #1a1a2e;    // deep navy (kept for hero/footer contrast)
+$color-ink-900: #1c1917;        // warm near-black
+$color-ink-700: #44403c;        // warm dark gray
+$color-ink-500: #78716c;        // warm mid gray
+$color-ink-300: #a8a29e;        // warm light gray
+$color-ink-100: #e7e5e4 !default;
+$color-ink-400: #a1a1aa !default;
+$color-ink-600: #57534e !default;
+$color-ink-800: #292524 !default;
+$color-accent-primary: #2563eb;   // vivid blue — links, primary actions
+$color-accent-secondary: #0d9488; // teal — badges, secondary highlights
+$color-accent-tertiary: #7c3aed;  // purple — charts, visual accents
+$color-success: #16a34a;
+$color-warning: #d97706;
+$color-critical: #dc2626;
+$color-neutral-50: #fafaf9 !default;
+$color-neutral-100: #f5f5f4;
+$color-neutral-200: #e7e5e4;
+$color-neutral-400: #a8a29e;
+$color-neutral-600: #57534e;
+$color-neutral-900: #1c1917;
+$color-neutral-300: #d6d3d1 !default;
+$color-neutral-500: #78716c !default;
+$color-neutral-700: #44403c !default;
 $color-critical-50:  #fdecea !default;
 $color-critical-100: #f9d1cd !default;
 $color-critical-200: #f3a9a2 !default;
@@ -76,21 +75,21 @@ $color-danger-700: #a52714 !default;
 $color-danger-900: #7f1d1d !default;
 
 // Dark mode adjustments
-$dark-surface-50: #2a2a2a !default;
-$dark-surface-100: #0a0f1e;
-$dark-surface-200: #111a33;
-$dark-surface-300: #1a2846;
-$dark-ink-900: #e6ecfb;
-$dark-ink-700: #c5d3f3;
-$dark-ink-500: #8fa2d9;
-$dark-ink-300: #6b80bf !default;
-$dark-ink-200: #5265a3 !default; // ← missing tone
-$dark-ink-100: #3d4d85 !default;
-$dark-ink-050: #f1f4ff !default;  // ← NEW: ultra-lightest ink tone
-$dark-ink-000: #f9fbff !default;
-$dark-accent-primary: #7f9dff;
-$dark-accent-secondary: #4ec9f5;
-$dark-accent-tertiary: #b088ff !default;
+$dark-surface-50: #262626 !default;
+$dark-surface-100: #171717;        // near-black, neutral
+$dark-surface-200: #1e1e1e;        // slightly lighter
+$dark-surface-300: #2a2a2a;        // card backgrounds
+$dark-ink-900: #f5f5f4;            // warm white text
+$dark-ink-700: #d6d3d1;
+$dark-ink-500: #a8a29e;
+$dark-ink-300: #78716c !default;
+$dark-ink-200: #57534e !default;
+$dark-ink-100: #44403c !default;
+$dark-ink-050: #fafaf9 !default;
+$dark-ink-000: #fafaf9 !default;
+$dark-accent-primary: #60a5fa;     // lighter blue for dark bg
+$dark-accent-secondary: #2dd4bf;   // lighter teal
+$dark-accent-tertiary: #a78bfa !default; // lighter purple
 
 // Border colors
 $color-border: $color-neutral-200 !default;

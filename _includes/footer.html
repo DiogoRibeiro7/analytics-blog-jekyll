@@ -51,15 +51,10 @@
 
     <section class="footer-subscribe">
       <h3>Stay updated</h3>
-      <p>Get notified about new research and tutorials.</p>
-      <form class="footer-form" action="{{ site.newsletter_form_action | default: '#' }}" method="post">
-        <label class="visually-hidden" for="footer-newsletter-email">Email address</label>
-        <input id="footer-newsletter-email" type="email" name="email" placeholder="your@email.com" required>
-        <button type="submit">Subscribe</button>
-      </form>
+      <p>Follow via RSS or check back for new research and tutorials.</p>
       {% assign rss_links = social_data.rss %}
       {% if rss_links %}
-      <ul class="footer-link-list footer-feeds">
+      <ul class="footer-link-list">
         {% for feed in rss_links %}
         <li><a href="{{ feed.url | relative_url }}">{{ feed.label }}</a></li>
         {% endfor %}
