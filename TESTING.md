@@ -27,4 +27,8 @@ npm install
 - Functions: 75%
 - Lines: 80%
 
-Current coverage: **80.72%** (644 passing tests).
+Current coverage: **~93%** (850 passing tests).
+
+## Quarterly Coverage Review
+
+Coverage is reviewed each quarter following the [coverage review process](docs/coverage-review-process.md). Past reviews are in [docs/coverage-history/](docs/coverage-history/).
