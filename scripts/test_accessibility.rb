@@ -5,47 +5,31 @@ root = File.join(__dir__, "..")
 layout_path = File.join(root, "_layouts", "default.html")
 html = File.read(layout_path)
 
-unless html.include?("aria-describedby=\"math-status\"")
-  raise "Default layout missing math status announcement binding"
-end
+raise "Default layout missing math status announcement binding" unless html.include?("aria-describedby=\"math-status\"")
 
-unless html.include?("aria-live=\"polite\"")
-  raise "Math live region missing polite announcements"
-end
+raise "Math live region missing polite announcements" unless html.include?("aria-live=\"polite\"")
 
-unless html.include?("<main")
-  raise "No <main> landmark found"
-end
+raise "No <main> landmark found" unless html.include?("<main")
 
-unless html =~ /<main[^>]*role\s*=\s*"main"/i
-  raise "Main landmark missing role=main"
-end
+raise "Main landmark missing role=main" unless html =~ /<main[^>]*role\s*=\s*"main"/i
 
 skip_include = File.read(File.join(root, "_includes", "skip-link.html"))
 
-unless html.include?("include skip-link") && skip_include.include?("skip-link")
-  raise "Skip link missing"
-end
+raise "Skip link missing" unless html.include?("include skip-link") && skip_include.include?("skip-link")
 
 header = File.read(File.join(root, "_includes", "header.html"))
 footer = File.read(File.join(root, "_includes", "footer.html"))
 math_bundle = File.read(File.join(root, "assets", "js", "math.js"))
 post_layout = File.read(File.join(root, "_layouts", "post.html"))
 
-unless header =~ /aria-label=/i || footer =~ /aria-label=/i
-  raise "Expected aria-label landmarks"
-end
+raise "Expected aria-label landmarks" unless header =~ /aria-label=/i || footer =~ /aria-label=/i
 
 unless header.include?("aria-live") && header.include?("aria-hidden")
   raise "Header missing accessible progress indicators"
 end
 
-unless math_bundle.include?("aria-live")
-  raise "Math toolkit missing aria-live messaging"
-end
+raise "Math toolkit missing aria-live messaging" unless math_bundle.include?("aria-live")
 
-unless post_layout.include?("Copy code to clipboard")
-  raise "Code copy buttons missing accessible labels"
-end
+raise "Code copy buttons missing accessible labels" unless post_layout.include?("Copy code to clipboard")
 
 puts "Accessibility landmarks verified in #{layout_path}"

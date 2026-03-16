@@ -38,7 +38,7 @@ class PerformanceBundlesTest < Minitest::Test
     loader_source = File.read(bundle_path(loader))
     assert_match(/import\(/, loader_source, "Loader should use dynamic imports")
     manifest.fetch("features", {}).each_key do |feature|
-      pattern = %r{import\s+[^\n]*#{Regexp.escape(feature)}}
+      pattern = /import\s+[^\n]*#{Regexp.escape(feature)}/
       refute_match(pattern, loader_source, "Loader eagerly imports #{feature}")
     end
   end
@@ -57,6 +57,7 @@ class PerformanceBundlesTest < Minitest::Test
 
     duplicated_bytes = usage.values.sum do |entries|
       next 0 if entries.size <= 1
+
       entries.sort_by { |entry| -entry[:bytes] }[1..]&.sum { |entry| entry[:bytes] } || 0
     end
 

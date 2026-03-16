@@ -41,7 +41,7 @@ if visualizations_bundle
   bundle = bundle_path.read
   required_tokens = %w[Plotly d3 Observable Bokeh Shiny]
   missing_tokens = required_tokens.reject { |token| bundle.include?(token) }
-  raise "Visualization bundle missing integrations: #{missing_tokens.join(", ")}" unless missing_tokens.empty?
+  raise "Visualization bundle missing integrations: #{missing_tokens.join(', ')}" unless missing_tokens.empty?
   raise "Visualization bundle missing IntersectionObserver lazy loading" unless bundle.include?("IntersectionObserver")
 end
 

@@ -16,15 +16,20 @@
     "test:visual": "playwright test --grep @visual",
     "test:visual:auto": "node ./scripts/run_playwright_suite.js --grep @visual",
     "test:visual:percy": "percy exec -- node ./scripts/run_playwright_suite.js --grep @visual",
+    "lint": "eslint assets/js/ scripts/ tests/",
+    "lint:fix": "eslint --fix assets/js/ scripts/ tests/",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@percy/cli": "^1.31.4",
     "@percy/playwright": "^1.0.10",
     "@playwright/test": "^1.58.2",
     "@vitest/coverage-v8": "^4.1.0",
     "critical": "^7.2.1",
     "esbuild": "^0.27.4",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
     "http-server": "^14.1.1",
     "husky": "^9.1.7",
     "jsdom": "^29.0.0",
@@ -35,7 +40,7 @@
   },
   "lint-staged": {
     "*.{js,mjs}": [
-      "echo '✓ Checked JavaScript file:'"
+      "eslint --fix"
     ],
     "*.{json,yml,yaml}": [
       "echo '✓ Checked config file:'"

@@ -38,12 +38,11 @@ module MathPreprocessor
     end
 
     def process
-      return @content unless @content && @content.match?(/\$|\\\(|\\\[|\\begin\{/)
+      return @content unless @content&.match?(/\$|\\\(|\\\[|\\begin\{/)
 
       processed = @content.dup
       processed = apply_patterns(processed, DISPLAY_PATTERNS, display: true)
-      processed = apply_patterns(processed, INLINE_PATTERNS, display: false)
-      processed
+      apply_patterns(processed, INLINE_PATTERNS, display: false)
     end
 
     private
@@ -62,7 +61,7 @@ module MathPreprocessor
       end
     end
 
-    def wrapper_for(original, latex, open, close, tag, display: false)
+    def wrapper_for(_original, latex, open, close, tag, display: false)
       alt_text = derive_alt_text(latex)
       cleaned_source = cleanup_source(latex)
       record_expression(cleaned_source, alt_text)
@@ -165,10 +164,10 @@ module MathPreprocessor
 
   def apply(document)
     return unless document.respond_to?(:content)
-    return unless document.respond_to?(:output_ext) && document.output_ext == '.html'
+    return unless document.respond_to?(:output_ext) && document.output_ext == ".html"
 
     content = document.content
-    return unless content && content.match?(/\$|\\\(|\\\[|\\begin\{/)
+    return unless content&.match?(/\$|\\\(|\\\[|\\begin\{/)
 
     processor = Processor.new(content)
     updated_content = processor.process

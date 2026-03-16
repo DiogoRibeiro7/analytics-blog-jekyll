@@ -7,7 +7,7 @@ module Datalog
     safe true
     priority :highest
 
-    DOCUMENTATION_BASE_URL = "https://datalog-theme.github.io/docs/configuration-reference".freeze
+    DOCUMENTATION_BASE_URL = "https://datalog-theme.github.io/docs/configuration-reference"
 
     SCHEMA = {
       title: { type: :string, required: true },
@@ -104,7 +104,7 @@ module Datalog
           key_path = path + [key.to_s]
           present, value = fetch_value(data, key)
 
-          if !present
+          unless present
             errors << build_missing_error(key_path) if rules[:required]
             next
           end
@@ -165,7 +165,7 @@ module Datalog
         when :integer
           value.is_a?(Integer)
         when :boolean
-          value == true || value == false
+          [true, false].include?(value)
         when :array
           value.is_a?(Array)
         when :hash
@@ -256,7 +256,7 @@ module Datalog
         lines << ""
         lines << "  #{error[:suggestion]}" if error[:suggestion]
         lines << "  Documentation: #{error[:doc_url]}"
-        lines.reject!(&:nil?)
+        lines.compact!
         lines.join("\n")
       end
 

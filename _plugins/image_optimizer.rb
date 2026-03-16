@@ -63,9 +63,7 @@ module Jekyll
 
         if picture_entry
           fallback_variants = picture_entry.dig("fallback", "variants") || []
-          unless img["srcset"]
-            img["srcset"] = build_srcset(fallback_variants)
-          end
+          img["srcset"] = build_srcset(fallback_variants) unless img["srcset"]
           img["sizes"] ||= image_config.fetch("default_sizes", "100vw")
           img["width"] ||= picture_entry["width"].to_s if picture_entry["width"]
           img["height"] ||= picture_entry["height"].to_s if picture_entry["height"]
@@ -82,8 +80,8 @@ module Jekyll
           img["height"] ||= height.to_s
         end
         optimized = true
-      rescue StandardError => error
-        Jekyll.logger.debug "ImageOptimizer", "Skipping #{img["src"]}: #{error.message}"
+      rescue StandardError => e
+        Jekyll.logger.debug "ImageOptimizer", "Skipping #{img['src']}: #{e.message}"
       end
 
       return unless optimized
@@ -116,7 +114,7 @@ module Jekyll
     end
 
     def responsive_candidates(site)
-      return [] unless site&.respond_to?(:static_files)
+      return [] unless site.respond_to?(:static_files)
 
       site.static_files.select do |static_file|
         path = static_file.path
@@ -151,13 +149,16 @@ module Jekyll
         end
 
         %w[avif webp].each do |format|
-          variant = build_variant(site, static_file, target_width, target_height, format, config, fallback_format, width)
+          variant = build_variant(site, static_file, target_width, target_height, format, config, fallback_format,
+                                  width)
           source_variants[format] << variant if variant
         end
       end
 
       fallback_variants.sort_by! { |variant| variant["width"] }
-      fallback_variants << original_variant(normalized_src, width, height) unless fallback_variants.any? { |variant| variant["width"] >= width }
+      fallback_variants << original_variant(normalized_src, width, height) unless fallback_variants.any? do |variant|
+        variant["width"] >= width
+      end
 
       sources = %w[avif webp].map do |format|
         variants = source_variants[format].compact.sort_by { |variant| variant["width"] }
@@ -181,14 +182,17 @@ module Jekyll
 
     def build_variant(site, static_file, target_width, target_height, format, config, original_format, original_width)
       return unless format
+
       if MiniMagick.nil?
         if original_format != format
-          Jekyll.logger.debug "ImageOptimizer", "Skipping #{format} variant for #{static_file.relative_path} because MiniMagick is unavailable"
+          Jekyll.logger.debug "ImageOptimizer",
+                              "Skipping #{format} variant for #{static_file.relative_path} because MiniMagick is unavailable"
           return
         end
 
         if original_width && target_width < original_width
-          Jekyll.logger.debug "ImageOptimizer", "Skipping #{format} #{target_width}w variant for #{static_file.relative_path} because MiniMagick is unavailable"
+          Jekyll.logger.debug "ImageOptimizer",
+                              "Skipping #{format} #{target_width}w variant for #{static_file.relative_path} because MiniMagick is unavailable"
           return
         end
 
@@ -199,7 +203,8 @@ module Jekyll
       quality = quality_map[format] || quality_map[format&.downcase] || quality_map[format&.upcase]
       encoder_path = avif_encoder
       if format == "avif" && encoder_path.nil?
-        Jekyll.logger.debug "ImageOptimizer", "Skipping AVIF variant for #{static_file.relative_path} because avifenc is unavailable"
+        Jekyll.logger.debug "ImageOptimizer",
+                            "Skipping AVIF variant for #{static_file.relative_path} because avifenc is unavailable"
         return
       end
 
@@ -232,8 +237,9 @@ module Jekyll
         "height" => target_height,
         "format" => format
       }
-    rescue StandardError => error
-      Jekyll.logger.debug "ImageOptimizer", "Unable to generate variant for #{static_file.relative_path}: #{error.message}"
+    rescue StandardError => e
+      Jekyll.logger.debug "ImageOptimizer",
+                          "Unable to generate variant for #{static_file.relative_path}: #{e.message}"
       nil
     end
 
@@ -353,8 +359,8 @@ class Jekyll::ResponsiveImageStaticFile < Jekyll::StaticFile
     FileUtils.mkdir_p(File.dirname(dest_path))
     generate_variant(dest_path)
     true
-  rescue StandardError => error
-    Jekyll.logger.warn "ImageOptimizer", "Failed to generate #{relative_path}: #{error.message}"
+  rescue StandardError => e
+    Jekyll.logger.warn "ImageOptimizer", "Failed to generate #{relative_path}: #{e.message}"
     false
   end
 
@@ -385,9 +391,7 @@ class Jekyll::ResponsiveImageStaticFile < Jekyll::StaticFile
   def generate_with_mini_magick(dest_path, format)
     image = MiniMagick::Image.open(@original_path)
     image.auto_orient
-    if @target_width.positive? && @target_width < image.width
-      image.resize "#{@target_width}x#{@target_height}>"
-    end
+    image.resize "#{@target_width}x#{@target_height}>" if @target_width.positive? && @target_width < image.width
     image.strip
     image.format(format)
     image.quality(@quality.to_i) if @quality

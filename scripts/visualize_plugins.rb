@@ -4,7 +4,7 @@
 require_relative "../lib/datalog/plugin_system"
 
 begin
-  Dir[File.expand_path("../lib/datalog/plugins/**/*.rb", __dir__)].sort.each do |plugin_file|
+  Dir[File.expand_path("../lib/datalog/plugins/**/*.rb", __dir__)].each do |plugin_file|
     require plugin_file
   end
 

@@ -8,7 +8,7 @@ export function createAnalyticsManager({ panel, list, empty, onSelect }) {
     };
   }
 
-  let analytics = loadAnalytics();
+  const analytics = loadAnalytics();
   let lastQuery = "";
 
   function loadAnalytics() {

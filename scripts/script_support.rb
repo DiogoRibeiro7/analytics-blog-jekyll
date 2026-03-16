@@ -1,15 +1,15 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'fileutils'
-require 'time'
+require "fileutils"
+require "time"
 
 module ScriptSupport
   class ProgressBar
     DEFAULT_WIDTH = 30
 
-    def initialize(total:, label: 'Progress', width: DEFAULT_WIDTH)
-      raise ArgumentError, 'total must be positive' unless total && total.positive?
+    def initialize(total:, label: "Progress", width: DEFAULT_WIDTH)
+      raise ArgumentError, "total must be positive" unless total&.positive?
 
       @total = total
       @label = label
@@ -38,13 +38,13 @@ module ScriptSupport
 
     def render(message: nil)
       filled_length = (percentage / 100 * @width).round
-      bar = "#" * filled_length + "-" * (@width - filled_length)
+      bar = ("#" * filled_length) + ("-" * (@width - filled_length))
       elapsed = Time.now - @start_time
       eta = if @current.zero?
-              'eta --'
+              "eta --"
             else
               remaining = elapsed / @current * (@total - @current)
-              format('eta %<time>.1fs', time: remaining)
+              format("eta %<time>.1fs", time: remaining)
             end
       output = format("\r%-20s [%s] %5.1f%% (%d/%d) %s",
                       @label,
@@ -53,7 +53,7 @@ module ScriptSupport
                       @current,
                       @total,
                       eta)
-      output = format('%s %s', output, message) if message
+      output = format("%s %s", output, message) if message
       print output
       $stdout.flush
     end
@@ -77,7 +77,7 @@ module ScriptSupport
   def sanitize_filename(filename)
     filename.to_s
             .downcase
-            .gsub(/[^a-z0-9\-]+/, '-').gsub(/-+/, '-').gsub(/^-|-$/, '')
+            .gsub(/[^a-z0-9-]+/, "-").gsub(/-+/, "-").gsub(/^-|-$/, "")
   end
 
   def command_available?(cmd)
@@ -88,7 +88,7 @@ module ScriptSupport
     success = system(command)
     return if success
 
-    raise(RuntimeError, error_message || "Command failed: #{command}")
+    raise(error_message || "Command failed: #{command}")
   end
 
   def handle_errors
@@ -98,7 +98,7 @@ module ScriptSupport
     exit 1
   rescue StandardError => e
     warn "\nError: #{e.message}"
-    warn e.backtrace.join("\n") if ENV['DEBUG']
+    warn e.backtrace.join("\n") if ENV["DEBUG"]
     exit 1
   end
 end

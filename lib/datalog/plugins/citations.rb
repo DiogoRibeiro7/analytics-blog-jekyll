@@ -53,9 +53,9 @@ module Datalog
         document.data["datalog_citations"] = citations
         document.data["datalog_bibliography"] = citations.values
         document.data["datalog_citation_state"] = state[:key]
-        if config["bibliography_title"]
-          document.data["datalog_bibliography_title"] = config["bibliography_title"]
-        end
+        return unless config["bibliography_title"]
+
+        document.data["datalog_bibliography_title"] = config["bibliography_title"]
       end
 
       def custom_liquid_tags
@@ -180,4 +180,3 @@ module Datalog
     end
   end
 end
-

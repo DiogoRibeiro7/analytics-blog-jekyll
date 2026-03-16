@@ -24,7 +24,7 @@ class NotebookConversionTest < Minitest::Test
   def test_notebook_renders_code_cells
     assert_includes @notebook_html, "<code class=\"language-python\">import pandas as pd",
                     "Converted notebook should include code cell content"
-    assert_match(/class=\"notebook-cell notebook-cell--input\"/, @notebook_html,
+    assert_match(/class="notebook-cell notebook-cell--input"/, @notebook_html,
                  "Notebook cells should include structural classes")
   end
 

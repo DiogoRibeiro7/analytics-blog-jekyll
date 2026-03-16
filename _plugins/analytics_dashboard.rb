@@ -27,9 +27,7 @@ module Datalog
     def fetch(site)
       cache_path = cache_path_for(site)
       cached = read_cache(cache_path)
-      if fresh?(cached)
-        return cached
-      end
+      return cached if fresh?(cached)
 
       data = query_analytics(site)
       data["fetched_at"] = Time.now.utc.iso8601
@@ -80,7 +78,8 @@ module Datalog
       end
 
       unless credentials_json
-        return fallback_payload("missing_credentials", "Provide GA4 service account credentials to query the Analytics API.")
+        return fallback_payload("missing_credentials",
+                                "Provide GA4 service account credentials to query the Analytics API.")
       end
 
       token = fetch_access_token(credentials_json)
@@ -102,13 +101,11 @@ module Datalog
     end
 
     def credentials_payload(config)
-      json = ENV["GA4_CREDENTIALS_JSON"]
+      json = ENV.fetch("GA4_CREDENTIALS_JSON", nil)
       return json unless json.to_s.strip.empty?
 
       path = ENV["GA4_CREDENTIALS_PATH"] || config["ga4_credentials_path"]
-      if path && File.exist?(path)
-        return File.read(path)
-      end
+      return File.read(path) if path && File.exist?(path)
 
       config_json = config["ga4_credentials_json"]
       return config_json unless config_json.to_s.strip.empty?
@@ -175,7 +172,7 @@ module Datalog
             "filter" => {
               "inListFilter" => {
                 "dimensionName" => "eventName",
-                "values" => ["notebook_download", "demo_launch"]
+                "values" => %w[notebook_download demo_launch]
               }
             }
           },
@@ -195,9 +192,7 @@ module Datalog
 
       response = perform_http_request(uri) { |http| http.request(request) }
 
-      unless response.is_a?(Net::HTTPSuccess)
-        raise "GA4 API error: #{response.code} #{response.body}"
-      end
+      raise "GA4 API error: #{response.code} #{response.body}" unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
     end
@@ -303,9 +298,9 @@ module Datalog
     def apply_timeouts(http)
       http.open_timeout = HTTP_TIMEOUTS[:open]
       http.read_timeout = HTTP_TIMEOUTS[:read]
-      if http.respond_to?(:write_timeout=) && HTTP_TIMEOUTS[:write]
-        http.write_timeout = HTTP_TIMEOUTS[:write]
-      end
+      return unless http.respond_to?(:write_timeout=) && HTTP_TIMEOUTS[:write]
+
+      http.write_timeout = HTTP_TIMEOUTS[:write]
     end
   end
 

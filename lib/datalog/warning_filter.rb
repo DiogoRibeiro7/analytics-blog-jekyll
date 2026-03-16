@@ -15,12 +15,10 @@ module Datalog
   end
 end
 
-if defined?(Warning)
-  Warning.singleton_class.prepend(Datalog::WarningFilter)
-end
+Warning.singleton_class.prepend(Datalog::WarningFilter) if defined?(Warning)
 
 module Kernel
-  alias_method :__datalog_warn, :warn
+  alias __datalog_warn warn
 
   def warn(message = nil, *args)
     return if message && Datalog::WarningFilter::FILTERS.any? { |pattern| pattern.match?(message) }

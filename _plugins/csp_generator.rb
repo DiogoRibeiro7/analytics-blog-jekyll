@@ -43,7 +43,7 @@ module Datalog
         document.data["csp_hashes"] ||= []
 
         registry_site = site || (document.respond_to?(:site) ? document.site : nil)
-        if registry_site && registry_site.respond_to?(:data)
+        if registry_site.respond_to?(:data)
           registry_site.data["csp"] ||= {}
           registry_site.data["csp"]["nonces"] ||= {}
           key = document_key(document)
@@ -78,7 +78,7 @@ module Datalog
         document.output = output
 
         hashes = []
-        output.scan(/<script(?![^>]*\bsrc=)[^>]*>(.*?)<\/script>/m) do |match|
+        output.scan(%r{<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>}m) do |match|
           content = match.first
           next if content.nil? || content.empty?
 
@@ -88,7 +88,7 @@ module Datalog
         hashes.uniq!
         document.data["csp_hashes"] = hashes
 
-        return unless site && site.respond_to?(:data)
+        return unless site.respond_to?(:data)
 
         site.data["csp"] ||= {}
         site.data["csp"]["hashes"] ||= {}
@@ -101,7 +101,7 @@ module Datalog
   end
 end
 
-[:pages, :documents].each do |target|
+%i[pages documents].each do |target|
   Jekyll::Hooks.register target, :pre_render do |document|
     Datalog::Security::CspGenerator.assign_nonce(document.respond_to?(:site) ? document.site : nil, document)
   end

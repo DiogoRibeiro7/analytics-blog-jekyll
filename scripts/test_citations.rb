@@ -9,12 +9,10 @@ citation_path = File.join(root, "CITATION.cff")
 component_path = File.join(root, "_includes", "components", "citation-tools.html")
 head_include_path = File.join(root, "_includes", "head.html")
 
-citation_data = YAML.safe_load(File.read(citation_path), aliases: true, permitted_classes: [Date])
+citation_data = YAML.safe_load_file(citation_path, aliases: true, permitted_classes: [Date])
 raise "Citation file missing authors" unless citation_data["authors"]&.any?
 
-unless citation_data["authors"].any? { |author| author["orcid"] }
-  raise "Citation metadata missing ORCID identifiers"
-end
+raise "Citation metadata missing ORCID identifiers" unless citation_data["authors"].any? { |author| author["orcid"] }
 
 unless citation_data["identifiers"]&.any? { |identifier| identifier["type"] == "url" }
   raise "Citation metadata missing repository URL identifier"
@@ -25,9 +23,7 @@ component = File.read(component_path)
   raise "Citation component missing #{token}" unless component.include?(token)
 end
 
-unless component.include?("aria-label=\"BibTeX entry\"")
-  raise "Citation component missing accessible textarea labels"
-end
+raise "Citation component missing accessible textarea labels" unless component.include?("aria-label=\"BibTeX entry\"")
 
 head_template = File.read(head_include_path)
 %w[citation_orcid citation_doi citation_pdf].each do |meta_key|

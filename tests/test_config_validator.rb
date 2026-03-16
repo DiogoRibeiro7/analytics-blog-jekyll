@@ -60,7 +60,7 @@ class ConfigValidatorTest < Minitest::Test
     assert_empty validator.errors
     assert_equal "katex", config.dig("theme_options", "math", "engine")
     refute config.key?("math_engine"), "deprecated key should be removed after migration"
-    assert validator.warnings.any? { |warning| warning.include?("math_engine") }
+    assert(validator.warnings.any? { |warning| warning.include?("math_engine") })
   end
 
   private

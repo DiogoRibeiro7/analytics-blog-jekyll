@@ -32,6 +32,6 @@ class TestI18n < Minitest::Test
     html = SiteBuilder.read("ar/index.html")
 
     assert_includes html, "dir=\"rtl\""
-    assert_match(/class=\"[^\"]*rtl[^\"]*\"/, html)
+    assert_match(/class="[^"]*rtl[^"]*"/, html)
   end
 end

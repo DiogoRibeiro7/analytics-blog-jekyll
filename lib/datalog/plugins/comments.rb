@@ -97,9 +97,9 @@ module Datalog
         unless missing.empty?
           logger.warn(
             "datalog comments",
-            %(Missing required settings for #{provider.inspect}: #{missing.join(", ")})
+            %(Missing required settings for #{provider.inspect}: #{missing.join(', ')})
           )
-          return %(<p class="datalog-comments-missing">Comments provider "#{provider}" missing required settings: #{missing.join(", ")}. Check your front matter or datalog configuration.</p>)
+          return %(<p class="datalog-comments-missing">Comments provider "#{provider}" missing required settings: #{missing.join(', ')}. Check your front matter or datalog configuration.</p>)
         end
 
         case provider
@@ -181,4 +181,3 @@ module Datalog
     end
   end
 end
-
