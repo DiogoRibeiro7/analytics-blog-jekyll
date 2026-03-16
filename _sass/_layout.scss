@@ -486,6 +486,58 @@ body.dark-mode .research-area-card {
 }
 
 // ---------------------------------------------------------------------------
+// Year chart (citations by year)
+// ---------------------------------------------------------------------------
+.year-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: map.get($spacing, 2);
+  height: 10rem;
+  padding: map.get($spacing, 3) 0;
+}
+
+.year-chart__bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: map.get($spacing, 1);
+}
+
+.year-chart__value {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 700;
+  font-family: $font-family-mono;
+  color: $color-ink-700;
+}
+
+body.dark-mode .year-chart__value {
+  color: $dark-ink-700;
+}
+
+.year-chart__fill {
+  width: 100%;
+  max-width: 3rem;
+  height: var(--bar-height, 10%);
+  min-height: 4px;
+  background: linear-gradient(to top, $color-accent-primary, $color-accent-secondary);
+  border-radius: map.get($radius, sm) map.get($radius, sm) 0 0;
+  transition: height 0.3s ease;
+}
+
+.year-chart__label {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+body.dark-mode .year-chart__label {
+  color: $dark-ink-500;
+}
+
+// ---------------------------------------------------------------------------
 // Project cards
 // ---------------------------------------------------------------------------
 .project-card {
