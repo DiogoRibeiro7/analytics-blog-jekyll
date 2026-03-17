@@ -80,9 +80,7 @@ jobs:
         run: bundler-audit update
 
       - name: Run bundler-audit
-        continue-on-error: true
-        run: |
-          bundler-audit check --no-quiet || true
+        run: bundler-audit check
 
   python-audit:
     name: Python Security Audit

@@ -16,6 +16,8 @@ jobs:
     name: Unit Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -43,7 +45,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
-        if: matrix.node == '20' && github.event_name == 'push'
+        if: matrix.node == '20' && github.event_name == 'push' && env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
@@ -65,6 +67,12 @@ jobs:
         with:
           ruby-version: '3.2'
           bundler-cache: true
+
+      - name: Run bundler-audit
+        run: |
+          gem install bundler-audit
+          bundler-audit update
+          bundler-audit check
 
       - name: Cache system dependencies
         uses: actions/cache@v4

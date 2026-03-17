@@ -105,6 +105,8 @@ bundle audit
 npm audit
 ```
 
+For the full npm audit severity policy, exception process, and CI behavior, see [docs/npm-audit-policy.md](docs/npm-audit-policy.md).
+
 ### Input Validation
 
 When adding custom plugins or modifications:

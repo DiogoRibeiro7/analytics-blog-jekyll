@@ -19,6 +19,8 @@ npm install
 | `npm run test:visual` | Visual regression tests |
 | `npm run test:visual:percy` | Visual tests with Percy snapshots |
 | `bundle exec rake ci:verify` | Full Ruby verification suite |
+| `bundler-audit check` | Ruby dependency vulnerability scan |
+| `npm audit --omit=dev` | Node.js dependency vulnerability scan |
 
 ## Coverage Requirements
 
