@@ -20,6 +20,45 @@ module Datalog
           email: { type: :string, format: :email }
         }
       },
+      markdown: { type: :string, enum: %w[kramdown commonmark] },
+      highlighter: { type: :string, enum: %w[rouge pygments] },
+      permalink: { type: :string },
+      paginate: { type: :integer },
+      timezone: { type: :string },
+      collections: { type: :hash },
+      plugins: { type: :array },
+      features: {
+        type: :hash,
+        schema: {
+          mathjax: { type: :boolean },
+          search: { type: :boolean },
+          dark_mode_toggle: { type: :boolean },
+          notebook_support: { type: :boolean },
+          portfolio: { type: :boolean },
+          datasets: { type: :boolean }
+        }
+      },
+      notebooks: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean },
+          source: { type: :string },
+          output_dir: { type: :string }
+        }
+      },
+      seo: {
+        type: :hash,
+        schema: {
+          type: { type: :string },
+          name: { type: :string }
+        }
+      },
+      sass: {
+        type: :hash,
+        schema: {
+          style: { type: :string, enum: %w[compressed expanded] }
+        }
+      },
       theme_options: {
         type: :hash,
         schema: {
@@ -28,6 +67,12 @@ module Datalog
             schema: {
               engine: { type: :string, enum: %w[mathjax katex] },
               enabled: { type: :boolean }
+            }
+          },
+          syntax_highlighting: {
+            type: :hash,
+            schema: {
+              cdn: { type: :string }
             }
           }
         }
