@@ -10,20 +10,41 @@ const COVERAGE_FILE = path.resolve('coverage/coverage-final.json');
  */
 const CRITICAL_MODULES = [
   {
-    label: 'Search module',
+    label: 'Search orchestrator',
     relative: path.join('assets', 'js', 'search.js'),
-    minStatementCoverage: 70
+    minStatementCoverage: 78
+  },
+  {
+    label: 'Search engine',
+    relative: path.join('assets', 'js', 'search', 'engine.js'),
+    minStatementCoverage: 93
   },
   {
     label: 'Math module',
     relative: path.join('assets', 'js', 'math.js'),
-    minStatementCoverage: 80
+    minStatementCoverage: 90
+  },
+  {
+    label: 'Navigation',
+    relative: path.join('assets', 'js', 'core', 'navigation.js'),
+    minStatementCoverage: 93
   },
   {
     label: 'Core modules (average)',
     relative: path.join('assets', 'js', 'core'),
-    minStatementCoverage: 75,
+    minStatementCoverage: 90,
     isDirectory: true
+  },
+  {
+    label: 'Search modules (average)',
+    relative: path.join('assets', 'js', 'search'),
+    minStatementCoverage: 85,
+    isDirectory: true
+  },
+  {
+    label: 'Visualizations',
+    relative: path.join('assets', 'js', 'visualizations.js'),
+    minStatementCoverage: 78
   }
 ];
 

@@ -1,0 +1,82 @@
+name: Sync Priority Labels to Project
+
+on:
+  issues:
+    types: [labeled, unlabeled, opened]
+
+permissions:
+  issues: read
+  repository-projects: write
+
+jobs:
+  sync-priority:
+    runs-on: ubuntu-latest
+    if: github.event.issue
+    steps:
+      - name: Determine priority from labels
+        id: priority
+        run: |
+          LABELS='${{ toJson(github.event.issue.labels.*.name) }}'
+          PRIORITY=""
+          if echo "$LABELS" | grep -q '"priority:P0"'; then
+            PRIORITY="P0"
+          elif echo "$LABELS" | grep -q '"priority:P1"'; then
+            PRIORITY="P1"
+          elif echo "$LABELS" | grep -q '"priority:P2"'; then
+            PRIORITY="P2"
+          elif echo "$LABELS" | grep -q '"priority:P3"'; then
+            PRIORITY="P3"
+          fi
+          echo "priority=$PRIORITY" >> "$GITHUB_OUTPUT"
+          echo "Detected priority: ${PRIORITY:-none}"
+
+      - name: Update project priority field
+        if: steps.priority.outputs.priority != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PRIORITY: ${{ steps.priority.outputs.priority }}
+        run: |
+          echo "Would set project Priority field to $PRIORITY for issue #$ISSUE_NUMBER"
+          echo "Note: Full project field updates require a PAT with project scope."
+          echo "Configure PROJECT_TOKEN secret and uncomment the gh api calls below."
+          #
+          # To enable full automation, create a PAT with project:read and project:write
+          # scopes, add it as a repository secret named PROJECT_TOKEN, and replace
+          # GH_TOKEN above. Then uncomment and configure the following:
+          #
+          # PROJECT_NUMBER=<your-project-number>
+          # ORG_OR_USER="DiogoRibeiro7"
+          #
+          # # Get project ID
+          # PROJECT_ID=$(gh api graphql -f query='
+          #   query { user(login: "'$ORG_OR_USER'") {
+          #     projectV2(number: '$PROJECT_NUMBER') { id }
+          #   }}' --jq '.data.user.projectV2.id')
+          #
+          # # Get issue project item ID
+          # ITEM_ID=$(gh api graphql -f query='
+          #   query { repository(owner: "'$ORG_OR_USER'", name: "'${{ github.event.repository.name }}'") {
+          #     issue(number: '$ISSUE_NUMBER') {
+          #       projectItems(first: 10) { nodes { id project { id } } }
+          #     }
+          #   }}' --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id == \"$PROJECT_ID\") | .id")
+          #
+          # # Get Priority field ID and option ID
+          # FIELD_DATA=$(gh api graphql -f query='
+          #   query { node(id: "'$PROJECT_ID'") {
+          #     ... on ProjectV2 { field(name: "Priority") {
+          #       ... on ProjectV2SingleSelectField { id options { id name } }
+          #     }}
+          #   }}')
+          # FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.field.id')
+          # OPTION_ID=$(echo "$FIELD_DATA" | jq -r ".data.node.field.options[] | select(.name == \"$PRIORITY\") | .id")
+          #
+          # # Update the field
+          # gh api graphql -f query='
+          #   mutation { updateProjectV2ItemFieldValue(input: {
+          #     projectId: "'$PROJECT_ID'"
+          #     itemId: "'$ITEM_ID'"
+          #     fieldId: "'$FIELD_ID'"
+          #     value: { singleSelectOptionId: "'$OPTION_ID'" }
+          #   }) { projectV2Item { id } }}'

@@ -24,12 +24,14 @@ npm install
 
 ## Coverage Requirements
 
-- Statements: 80%
-- Branches: 70%
-- Functions: 75%
-- Lines: 80%
+| Metric | Gate | Current |
+|--------|------|---------|
+| Statements | 88% | 91% |
+| Branches | 78% | 82% |
+| Functions | 83% | 86% |
+| Lines | 88% | 91% |
 
-Current coverage: **~93%** (850 passing tests).
+Current: **859 passing tests**. Gates are set ~3-5 points below baseline to catch regressions.
 
 ## Quarterly Coverage Review
 
