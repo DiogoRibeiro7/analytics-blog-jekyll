@@ -107,6 +107,8 @@ npm audit
 
 For the full npm audit severity policy, exception process, and CI behavior, see [docs/npm-audit-policy.md](docs/npm-audit-policy.md).
 
+A **monthly security audit** is tracked via GitHub issue template. Create one each month using the [Monthly Security Audit template](.github/ISSUE_TEMPLATE/security-audit.yml).
+
 ### Input Validation
 
 When adding custom plugins or modifications:

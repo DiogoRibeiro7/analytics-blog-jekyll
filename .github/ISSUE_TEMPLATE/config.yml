@@ -9,3 +9,6 @@ contact_links:
   - name: Documentation
     url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll#readme
     about: Read the complete documentation and guides
+  - name: Issue SLA & Priority Policy
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/develop/CONTRIBUTING.md#issue-priority-and-sla
+    about: Response and resolution expectations by priority level

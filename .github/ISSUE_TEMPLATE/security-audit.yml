@@ -1,0 +1,69 @@
+name: Monthly Security Audit
+description: Recurring monthly security review checklist
+title: "security: monthly audit — [MONTH YEAR]"
+labels: ["security", "maintenance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Monthly Security Audit
+        Complete this checklist following [docs/npm-audit-policy.md](../../docs/npm-audit-policy.md).
+
+  - type: checkboxes
+    id: npm
+    attributes:
+      label: npm Dependencies
+      options:
+        - label: "Ran `npm audit` — no high/critical in production deps"
+        - label: "Ran `npm audit fix` for safe updates"
+        - label: "Reviewed remaining advisories and updated exceptions table"
+
+  - type: checkboxes
+    id: ruby
+    attributes:
+      label: Ruby Dependencies
+      options:
+        - label: "Ran `bundler-audit check` — no actionable advisories"
+        - label: "Ran `bundle update` for patch-level updates"
+
+  - type: checkboxes
+    id: actions
+    attributes:
+      label: GitHub Actions
+      options:
+        - label: "Checked for new releases of pinned actions"
+        - label: "Updated SHAs if new security-relevant releases exist"
+        - label: "Reviewed Dependabot alerts (if enabled)"
+
+  - type: checkboxes
+    id: codeql
+    attributes:
+      label: CodeQL & SAST
+      options:
+        - label: "Reviewed CodeQL findings in Security tab"
+        - label: "No unresolved high-severity findings"
+
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Secrets & Credentials
+      options:
+        - label: "No secrets committed to repository"
+        - label: "Reviewed GitHub Actions secrets — removed unused"
+        - label: "Rotated credentials if due"
+
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings & Actions Taken
+      placeholder: |
+        - Updated axios 1.13.4 → 1.14.0 (CVE-xxxx)
+        - Added exception for yauzl (no upstream fix)
+
+  - type: textarea
+    id: next
+    attributes:
+      label: Items for Next Month
+      placeholder: |
+        - Monitor @percy/core for yauzl fix
+        - Check esbuild release cadence
