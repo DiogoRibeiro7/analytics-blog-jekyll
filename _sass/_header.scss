@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use 'sass:color';
 
 @use 'variables' as *;
 @use 'mixins' as *;
@@ -318,7 +319,7 @@ body.dark-mode .nav-link {
     font-weight: 600;
     cursor: pointer;
     transition: background-color $transition-base;
-    &:hover { background: darken($color-accent-primary, 8%); }
+    &:hover { background: color.adjust($color-accent-primary, $lightness: -8%); }
     &:focus-visible { @include focus-ring($color-accent-secondary); }
   }
 }
