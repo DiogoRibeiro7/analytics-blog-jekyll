@@ -788,3 +788,530 @@ body.dark-mode .pagination {
 body.dark-mode .pagination__info {
   color: $dark-ink-500;
 }
+
+// ---------------------------------------------------------------------------
+// Blog post layout
+// ---------------------------------------------------------------------------
+.post-wrapper {
+  display: grid;
+  gap: map.get($spacing, 5);
+}
+
+// Post metadata (published, author, reading time, difficulty)
+.post-meta-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 3) map.get($spacing, 5);
+  margin: 0;
+  padding: map.get($spacing, 4) 0;
+  border-bottom: 1px solid rgba($color-neutral-200, 0.5);
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: map.get($spacing, 2);
+  }
+}
+
+body.dark-mode .post-meta-list {
+  border-bottom-color: rgba($dark-ink-500, 0.12);
+}
+
+.post-meta-term {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $color-ink-500;
+}
+
+body.dark-mode .post-meta-term {
+  color: $dark-ink-500;
+}
+
+.post-meta-definition {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-700;
+  margin: 0;
+}
+
+body.dark-mode .post-meta-definition {
+  color: $dark-ink-700;
+}
+
+.post-author-affiliation {
+  display: block;
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+body.dark-mode .post-author-affiliation {
+  color: $dark-ink-500;
+}
+
+.post-notebook-link {
+  font-weight: 500;
+}
+
+// Tags & categories
+.post-taxonomy {
+  padding: map.get($spacing, 3) 0;
+}
+
+.post-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.post-tag {
+  display: inline-block;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 500;
+  text-decoration: none;
+  background: rgba($color-accent-tertiary, 0.08);
+  color: $color-accent-tertiary;
+  transition: background $transition-base;
+
+  &:hover {
+    background: rgba($color-accent-tertiary, 0.15);
+  }
+}
+
+body.dark-mode .post-tag {
+  background: rgba($dark-accent-tertiary, 0.12);
+  color: $dark-accent-tertiary;
+
+  &:hover { background: rgba($dark-accent-tertiary, 0.2); }
+}
+
+.post-category {
+  background: rgba($color-accent-secondary, 0.08);
+  color: $color-accent-secondary;
+
+  &:hover { background: rgba($color-accent-secondary, 0.15); }
+}
+
+body.dark-mode .post-category {
+  background: rgba($dark-accent-secondary, 0.12);
+  color: $dark-accent-secondary;
+}
+
+// Post body + TOC sidebar
+.post-body-wrapper {
+  display: grid;
+  gap: map.get($spacing, 5);
+
+  @include respond-to(lg) {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+}
+
+.post-content {
+  min-width: 0;
+
+  h2 { margin-top: map.get($spacing, 6); }
+  h3 { margin-top: map.get($spacing, 5); }
+
+  img {
+    border-radius: map.get($radius, md);
+    margin: map.get($spacing, 4) 0;
+  }
+
+  blockquote {
+    border-left: 3px solid $color-accent-primary;
+    padding-left: map.get($spacing, 4);
+    margin-left: 0;
+    color: $color-ink-700;
+    font-style: italic;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: map.get($font-size-scale, sm);
+    margin: map.get($spacing, 4) 0;
+
+    th, td {
+      padding: map.get($spacing, 2) map.get($spacing, 3);
+      border: 1px solid rgba($color-neutral-200, 0.6);
+      text-align: left;
+    }
+
+    th {
+      background: rgba($color-neutral-100, 0.5);
+      font-weight: 600;
+    }
+  }
+}
+
+body.dark-mode .post-content {
+  blockquote {
+    border-left-color: $dark-accent-primary;
+    color: $dark-ink-700;
+  }
+
+  table {
+    th, td { border-color: rgba($dark-ink-500, 0.15); }
+    th { background: rgba($dark-surface-300, 0.5); }
+  }
+}
+
+// Code blocks
+.code-block-wrapper {
+  border: 1px solid rgba($color-neutral-200, 0.5);
+  border-radius: map.get($radius, lg);
+  overflow: hidden;
+  margin: map.get($spacing, 4) 0;
+}
+
+body.dark-mode .code-block-wrapper {
+  border-color: rgba($dark-ink-500, 0.15);
+}
+
+.code-block-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  background: rgba($color-neutral-100, 0.5);
+  border-bottom: 1px solid rgba($color-neutral-200, 0.3);
+  font-size: map.get($font-size-scale, xs);
+}
+
+body.dark-mode .code-block-meta {
+  background: rgba($dark-surface-300, 0.5);
+  border-bottom-color: rgba($dark-ink-500, 0.1);
+}
+
+.code-language {
+  font-family: $font-family-mono;
+  font-weight: 600;
+  color: $color-accent-secondary;
+  letter-spacing: 0.03em;
+}
+
+body.dark-mode .code-language {
+  color: $dark-accent-secondary;
+}
+
+.code-copy {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba($color-neutral-200, 0.5);
+  border-radius: map.get($radius, sm);
+  background: transparent;
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 500;
+  cursor: pointer;
+  color: $color-ink-500;
+  transition: background $transition-base, color $transition-base;
+
+  &:hover {
+    background: rgba($color-accent-primary, 0.06);
+    color: $color-accent-primary;
+  }
+
+  &.is-copied {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+    border-color: rgba($color-success, 0.3);
+  }
+}
+
+body.dark-mode .code-copy {
+  border-color: rgba($dark-ink-500, 0.2);
+  color: $dark-ink-500;
+
+  &:hover {
+    background: rgba($dark-accent-primary, 0.1);
+    color: $dark-accent-primary;
+  }
+}
+
+// Interactive section
+.post-interactive {
+  padding: map.get($spacing, 4) 0;
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+body.dark-mode .post-interactive {
+  color: $dark-ink-500;
+}
+
+// Related posts
+.post-related {
+  padding-top: map.get($spacing, 5);
+  border-top: 1px solid rgba($color-neutral-200, 0.5);
+}
+
+body.dark-mode .post-related {
+  border-top-color: rgba($dark-ink-500, 0.12);
+}
+
+.post-related-list {
+  display: grid;
+  gap: map.get($spacing, 3);
+  list-style: none;
+  margin: map.get($spacing, 3) 0 0;
+  padding: 0;
+
+  @include respond-to(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  li a {
+    display: block;
+    padding: map.get($spacing, 3);
+    border: 1px solid rgba($color-neutral-200, 0.5);
+    border-radius: map.get($radius, md);
+    text-decoration: none;
+    color: $color-ink-900;
+    transition: border-color $transition-base, box-shadow $transition-base;
+
+    &:hover {
+      border-color: rgba($color-accent-primary, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+  }
+}
+
+body.dark-mode .post-related-list li a {
+  border-color: rgba($dark-ink-500, 0.12);
+  color: $dark-ink-900;
+
+  &:hover {
+    border-color: rgba($dark-accent-primary, 0.3);
+  }
+}
+
+// Post pagination (prev/next)
+.post-pagination {
+  display: grid;
+  gap: map.get($spacing, 4);
+  padding-top: map.get($spacing, 5);
+  border-top: 1px solid rgba($color-neutral-200, 0.5);
+
+  @include respond-to(md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+body.dark-mode .post-pagination {
+  border-top-color: rgba($dark-ink-500, 0.12);
+}
+
+.post-prev,
+.post-next {
+  display: grid;
+  gap: map.get($spacing, 1);
+
+  a {
+    font-weight: 600;
+    font-size: map.get($font-size-scale, base);
+    color: $color-ink-900;
+    text-decoration: none;
+
+    &:hover { color: $color-accent-primary; }
+  }
+}
+
+body.dark-mode .post-prev a,
+body.dark-mode .post-next a {
+  color: $dark-ink-900;
+  &:hover { color: $dark-accent-primary; }
+}
+
+.post-next {
+  @include respond-to(md) {
+    text-align: right;
+  }
+}
+
+.post-pagination-label {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $color-ink-500;
+}
+
+body.dark-mode .post-pagination-label {
+  color: $dark-ink-500;
+}
+
+.post-pagination-context {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+  margin: 0;
+}
+
+body.dark-mode .post-pagination-context {
+  color: $dark-ink-500;
+}
+
+// Author bio card
+.author-bio {
+  padding: map.get($spacing, 5);
+  border: 1px solid rgba($color-neutral-200, 0.5);
+  border-radius: map.get($radius, lg);
+  margin-top: map.get($spacing, 5);
+}
+
+body.dark-mode .author-bio {
+  border-color: rgba($dark-ink-500, 0.12);
+}
+
+.author-bio__inner {
+  display: flex;
+  gap: map.get($spacing, 4);
+  align-items: flex-start;
+
+  @media (max-width: 30rem) {
+    flex-direction: column;
+  }
+}
+
+.author-bio__avatar {
+  flex-shrink: 0;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.author-bio__avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba($color-accent-primary, 0.15), rgba($color-accent-secondary, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $color-accent-primary;
+}
+
+.author-bio__content {
+  display: grid;
+  gap: map.get($spacing, 2);
+}
+
+.author-bio__name {
+  font-size: map.get($font-size-scale, md);
+  font-weight: 700;
+  margin: 0;
+}
+
+.author-bio__affiliation {
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+body.dark-mode .author-bio__affiliation {
+  color: $dark-ink-500;
+}
+
+.author-bio__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+  margin-top: map.get($spacing, 1);
+}
+
+.author-bio__social-link {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 500;
+  color: $color-accent-primary;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+body.dark-mode .author-bio__social-link {
+  color: $dark-accent-primary;
+}
+
+// Citation tools
+.citation-tools {
+  border: 1px solid rgba($color-neutral-200, 0.5);
+  border-radius: map.get($radius, lg);
+  padding: map.get($spacing, 4);
+  margin-top: map.get($spacing, 4);
+}
+
+body.dark-mode .citation-tools {
+  border-color: rgba($dark-ink-500, 0.12);
+}
+
+.citation-tools__header {
+  font-size: map.get($font-size-scale, sm);
+  font-weight: 600;
+  margin: 0 0 map.get($spacing, 3);
+}
+
+.citation-tools__summary {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  margin: 0 0 map.get($spacing, 3);
+}
+
+body.dark-mode .citation-tools__summary {
+  color: $dark-ink-500;
+}
+
+.citation-tools__exports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+.citation-tools__format {
+  font-size: map.get($font-size-scale, xs);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba($color-neutral-200, 0.5);
+  border-radius: map.get($radius, sm);
+  background: transparent;
+  cursor: pointer;
+  color: $color-ink-700;
+  transition: background $transition-base;
+
+  &:hover { background: rgba($color-accent-primary, 0.06); }
+}
+
+body.dark-mode .citation-tools__format {
+  border-color: rgba($dark-ink-500, 0.15);
+  color: $dark-ink-700;
+}
+
+.citation-tools__citation {
+  margin-top: map.get($spacing, 3);
+  padding: map.get($spacing, 3);
+  background: rgba($color-neutral-100, 0.5);
+  border-radius: map.get($radius, md);
+  font-size: map.get($font-size-scale, sm);
+  font-family: $font-family-mono;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+body.dark-mode .citation-tools__citation {
+  background: rgba($dark-surface-300, 0.5);
+}
+
+// Bibliography & slides
+.post-bibliography,
+.post-slides {
+  padding-top: map.get($spacing, 5);
+  border-top: 1px solid rgba($color-neutral-200, 0.5);
+}
+
+body.dark-mode .post-bibliography,
+body.dark-mode .post-slides {
+  border-top-color: rgba($dark-ink-500, 0.12);
+}
