@@ -1,125 +1,69 @@
 ---
 layout: page
-title: Data Science Projects
+title: Projects
 permalink: /portfolio/
-hero: true
-intro: Explore research-backed data science initiatives with live demos, GitHub repositories, and reproducible assets.
+subtitle: Research-backed data science projects with reproducible code and live demos
 ---
 
-<section class="portfolio-hero">
-  <div class="container">
-    <h1>Interactive Project Portfolio</h1>
-    <p>Browse predictive models, exploratory studies, and experimentation platforms built by Diogo Ribeiro. Each case study features live demos, GitHub integration, and reproducible documentation.</p>
-  </div>
-</section>
+{% assign showcase = site.data.projects.showcase %}
+{% assign portfolio_items = site.portfolio | sort: 'title' %}
 
-{% assign configured_projects = site.data.projects.showcase %}
-{% if configured_projects %}
-<section class="portfolio-configured" aria-label="Configured project showcases">
-  <div class="container portfolio-grid__container">
-    <h2>DataLog configuration showcases</h2>
-    <p class="portfolio-configured__intro">The following highlights are driven by the <code>_data/projects.yml</code> configuration file so you can manage feature projects without editing templates.</p>
-    <div class="portfolio-configured__grid">
-      {% for project in configured_projects %}
-      <article class="portfolio-card" data-github-owner="{{ project.github.owner }}" data-github-repo="{{ project.github.repo }}">
-        <header class="portfolio-card__header">
-          <h3>{{ project.title }}</h3>
-          <p class="portfolio-card__description">{{ project.summary }}</p>
-        </header>
-        <ul class="portfolio-card__meta">
-          {% if project.tags %}
-          <li>
-            <strong>Focus:</strong>
-            {{ project.tags | join: ', ' }}
-          </li>
-          {% endif %}
-          <li>
-            <strong>Repository:</strong>
-            <a href="https://github.com/{{ project.github.owner }}/{{ project.github.repo }}" target="_blank" rel="noopener">{{ project.github.owner }}/{{ project.github.repo }}</a>
-          </li>
-          {% if project.demo_url %}
-          <li>
-            <strong>Demo:</strong>
-            <a href="{{ project.demo_url }}" target="_blank" rel="noopener">Launch interactive demo</a>
-          </li>
-          {% endif %}
-        </ul>
-        <dl class="portfolio-card__github-stats" aria-label="GitHub repository metrics">
-          <div>
-            <dt>Stars</dt>
-            <dd data-github-stat="stargazers_count">—</dd>
-          </div>
-          <div>
-            <dt>Forks</dt>
-            <dd data-github-stat="forks_count">—</dd>
-          </div>
-          <div>
-            <dt>Issues</dt>
-            <dd data-github-stat="open_issues_count">—</dd>
-          </div>
-        </dl>
-        {% if project.featured_metrics %}
-        <dl class="portfolio-card__metrics" aria-label="Key performance metrics">
-          {% for metric in project.featured_metrics %}
-          <div>
-            <dt>{{ metric.label }}</dt>
-            <dd>{{ metric.value }}</dd>
-          </div>
-          {% endfor %}
-        </dl>
-        {% endif %}
-        <footer class="portfolio-card__footer">
-          {% if project.demo_url %}
-          <a class="button" href="{{ project.demo_url }}" target="_blank" rel="noopener">View live experience</a>
-          {% else %}
-          <a class="button" href="https://github.com/{{ project.github.owner }}/{{ project.github.repo }}" target="_blank" rel="noopener">View repository</a>
-          {% endif %}
-        </footer>
-      </article>
+{% if showcase and showcase.size > 0 %}
+## Featured Projects
+
+<div class="card-grid">
+{% for project in showcase %}
+  <article class="card project-card">
+    <p class="card-meta">
+      {% for tag in project.tags limit: 3 %}
+        <span class="post-meta__badge">{{ tag }}</span>
+      {% endfor %}
+    </p>
+    <h3>{{ project.title }}</h3>
+    <p>{{ project.summary }}</p>
+    {% if project.featured_metrics %}
+    <div class="project-metrics">
+      {% for metric in project.featured_metrics %}
+      <div class="project-metric">
+        <span class="project-metric__value">{{ metric.value }}</span>
+        <span class="project-metric__label">{{ metric.label }}</span>
+      </div>
       {% endfor %}
     </div>
-  </div>
-</section>
+    {% endif %}
+    <div class="project-links">
+      <a class="btn btn-primary" href="https://github.com/{{ project.github.owner }}/{{ project.github.repo }}" target="_blank" rel="noopener">GitHub</a>
+      {% if project.demo_url %}
+        <a class="btn btn-secondary" href="{{ project.demo_url }}" target="_blank" rel="noopener">Live demo</a>
+      {% endif %}
+    </div>
+  </article>
+{% endfor %}
+</div>
 {% endif %}
 
-<section class="portfolio-grid" aria-label="Project gallery">
-  <div class="container portfolio-grid__container">
-    {% assign sorted_projects = site.portfolio | sort: 'title' %}
-    {% for item in sorted_projects %}
-      <article class="portfolio-card" data-tech="{{ item.key_technologies | map: 'name' | join: ' ' | downcase }}">
-        <header class="portfolio-card__header">
-          <h2><a href="{{ item.url | relative_url }}">{{ item.title }}</a></h2>
-          {% if item.description %}<p class="portfolio-card__description">{{ item.description }}</p>{% endif %}
-        </header>
-        {% if item.visualization_embed %}
-          <div class="portfolio-card__embed">
-            {{ item.visualization_embed }}
-          </div>
-        {% endif %}
-        <ul class="portfolio-card__meta">
-          {% if item.key_technologies %}
-            <li>
-              <strong>Stack:</strong>
-              {{ item.key_technologies | map: 'name' | join: ', ' }}
-            </li>
-          {% endif %}
-          {% if item.github %}
-            <li>
-              <strong>GitHub:</strong>
-              <a href="https://github.com/{{ item.github.owner }}/{{ item.github.repo }}">{{ item.github.owner }}/{{ item.github.repo }}</a>
-            </li>
-          {% endif %}
-          {% if item.demo_url %}
-            <li>
-              <strong>Demo:</strong>
-              <a href="{{ item.demo_url }}" rel="noopener" target="_blank">Launch interactive experience</a>
-            </li>
-          {% endif %}
-        </ul>
-        <footer class="portfolio-card__footer">
-          <a class="button" href="{{ item.url | relative_url }}">Read the full case study</a>
-        </footer>
-      </article>
-    {% endfor %}
-  </div>
-</section>
+{% if portfolio_items and portfolio_items.size > 0 %}
+## Case Studies
+
+<div class="card-grid">
+{% for item in portfolio_items %}
+  <article class="card project-card">
+    <p class="card-meta">
+      {% if item.key_technologies %}
+        {% for tech in item.key_technologies limit: 3 %}
+          <span class="post-meta__badge">{{ tech.name }}</span>
+        {% endfor %}
+      {% endif %}
+    </p>
+    <h3><a href="{{ item.url | relative_url }}">{{ item.title }}</a></h3>
+    <p>{{ item.description }}</p>
+    {% if item.github %}
+    <p class="card-meta">
+      <a href="https://github.com/{{ item.github.owner }}/{{ item.github.repo }}" target="_blank" rel="noopener">{{ item.github.owner }}/{{ item.github.repo }}</a>
+    </p>
+    {% endif %}
+    <a class="card-link" href="{{ item.url | relative_url }}">Read case study</a>
+  </article>
+{% endfor %}
+</div>
+{% endif %}

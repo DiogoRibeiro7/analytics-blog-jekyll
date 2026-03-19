@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ develop ]
   workflow_dispatch:
 
 concurrency:
@@ -16,6 +16,8 @@ jobs:
     name: Unit Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -24,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
@@ -43,8 +45,8 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
-        if: matrix.node == '20' && github.event_name == 'push'
-        uses: codecov/codecov-action@v4
+        if: matrix.node == '20' && github.event_name == 'push' && env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           files: ./coverage/lcov.info
           flags: unit
@@ -58,16 +60,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@c984c1a20bb35a1cbda04477c816cea024418be9 # v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
 
+      - name: Run bundler-audit
+        run: |
+          gem install bundler-audit
+          bundler-audit update
+          bundler-audit check
+
       - name: Cache system dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             /var/cache/apt
@@ -80,7 +88,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libvips
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -89,13 +97,13 @@ jobs:
         run: npm ci
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Cache Python dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
@@ -108,7 +116,7 @@ jobs:
           python -m pip install nbformat jupyter
 
       - name: Cache Jekyll build
-        uses: actions/cache@v4
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             .jekyll-cache
@@ -130,7 +138,7 @@ jobs:
 
       - name: Upload build artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: jekyll-build-artifacts
           path: _site

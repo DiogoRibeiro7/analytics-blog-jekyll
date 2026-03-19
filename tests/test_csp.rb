@@ -38,11 +38,11 @@ class ContentSecurityPolicyTest < Minitest::Test
     assert cdn_pattern.match?(homepage), "Expected CDN scripts to include SRI integrity attributes"
 
     mathjax_page = mathjax_document
-    if mathjax_page
-      output = read_output(mathjax_page)
-      assert_match(/<script[^>]+id="mathjax-script"[^>]+integrity="sha384-[^"]+"/, output,
-                   "MathJax script should include an integrity hash")
-    end
+    return unless mathjax_page
+
+    output = read_output(mathjax_page)
+    assert_match(/<script[^>]+id="mathjax-script"[^>]+integrity="sha384-[^"]+"/, output,
+                 "MathJax script should include an integrity hash")
   end
 
   def test_katex_scripts_have_integrity
@@ -80,7 +80,7 @@ class ContentSecurityPolicyTest < Minitest::Test
       docs = @site.pages + @site.collections.values.flat_map(&:docs)
       docs.uniq.select do |doc|
         destination = doc_destination(doc)
-        destination && destination.end_with?(".html")
+        destination&.end_with?(".html")
       end
     end
   end

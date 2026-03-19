@@ -217,7 +217,8 @@
     }
     template = document.createElement('template');
     template.id = TABLE_TEMPLATE_ID;
-    template.innerHTML =
+    const templateContent = document.createElement('div');
+    templateContent.insertAdjacentHTML('afterbegin',
       '<div class="viz-table-container" data-viz-table-container>' +
       '<button type="button" class="viz-table-toggle" data-viz-table-toggle aria-expanded="false">Show data table</button>' +
       '<div class="viz-table-wrapper" data-viz-table-wrapper hidden>' +
@@ -225,7 +226,8 @@
       '<caption data-viz-table-caption></caption>' +
       '<thead data-viz-table-head></thead>' +
       '<tbody data-viz-table-body></tbody>' +
-      '</table></div></div>';
+      '</table></div></div>');
+    template.content.appendChild(templateContent.firstElementChild);
     document.body.appendChild(template);
     return template;
   };
@@ -533,7 +535,7 @@
       .then((d3) => {
         const code = scriptNode.textContent || '';
         const canvas = element.querySelector('[data-viz-canvas]') || element;
-        canvas.innerHTML = '';
+        canvas.replaceChildren();
         const captured = [];
         const captureData = (payload) => {
           if (typeof payload !== 'undefined') {
@@ -554,7 +556,7 @@
           }
           setStatus(element, 'Interactive');
         } catch (error) {
-          canvas.innerHTML = '';
+          canvas.replaceChildren();
           setStatus(element, 'D3 rendering error', 'error');
         }
       })
@@ -617,7 +619,7 @@
 
         if (scriptNode) {
           const code = scriptNode.textContent || '';
-          canvas.innerHTML = '';
+          canvas.replaceChildren();
           try {
             const runner = new Function('Bokeh', 'element', code);
             runner(Bokeh, canvas);
@@ -673,7 +675,7 @@
     }
 
     const canvas = element.querySelector('[data-viz-canvas]') || element;
-    canvas.innerHTML = '';
+    canvas.replaceChildren();
 
     return ensureWidgetManager()
       .then((widgets) => {

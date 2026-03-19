@@ -328,7 +328,7 @@ npm run test:visual
 Tests run automatically in GitHub Actions:
 
 - **Unit tests**: Always run
-- **Integration tests**: Run on main branch
+- **Integration tests**: Run on develop branch
 - **Visual tests**: Run on PRs (if Percy configured)
 
 ## Security Best Practices

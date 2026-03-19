@@ -1,89 +1,95 @@
 ---
 layout: page
-title: Data Sources & Curated Datasets
+title: Datasets
 permalink: /datasets/
-subtitle: Open data to power reproducible research and technical storytelling.
+subtitle: Open data to power reproducible research and technical storytelling
 ---
 
-<section class="dataset-hero">
-  <div class="container">
-    <h1>Curated datasets for data scientists</h1>
-    <p>Explore open data packages maintained by Diogo Ribeiro alongside recommended external resources for machine learning, statistical analysis, and visualization projects.</p>
-  </div>
-</section>
+## Original Datasets
 
-<section class="dataset-curated" aria-label="Original datasets">
-  <div class="container">
-    <h2>Original datasets</h2>
-    <p>These datasets are published with detailed documentation, version history, and reproducible notebooks.</p>
-    <div class="dataset-grid">
-      {% for dataset in site.datasets %}
-        <article class="dataset-card">
-          <header>
-            <h3><a href="{{ dataset.url | relative_url }}">{{ dataset.title }}</a></h3>
-            {% if dataset.updated %}<p class="dataset-meta">Updated {{ dataset.updated | date: '%B %-d, %Y' }}</p>{% endif %}
-          </header>
-          <p>{{ dataset.summary | default: dataset.excerpt }}</p>
-          {% if dataset.license %}<p><strong>License:</strong> {{ dataset.license }}</p>{% endif %}
-          {% if dataset.download_url %}
-            <p><a class="button" href="{{ dataset.download_url }}">Download dataset</a></p>
-          {% endif %}
-        </article>
-      {% endfor %}
-    </div>
-  </div>
-</section>
+Documented, versioned, and published with reproducible notebooks.
 
-{% assign configured_datasets = site.data.datasets.collections %}
-{% if configured_datasets %}
-<section class="dataset-config" aria-label="Configured dataset listings">
-  <div class="container">
-    <h2>Configured dataset catalog</h2>
-    <p>{{ site.data.datasets.preferences.availability_statement | default: site.theme_options.datasets.availability_statement }}</p>
-    <div class="dataset-grid">
-      {% for dataset in configured_datasets %}
-      <article class="dataset-card" data-license="{{ dataset.license }}">
-        <header>
-          <h3>{{ dataset.title }}</h3>
-          {% if dataset.update_frequency %}<p class="dataset-meta">Updated {{ dataset.update_frequency | capitalize }}</p>{% endif %}
-        </header>
-        <p>{{ dataset.description }}</p>
-        <ul class="dataset-meta-list">
-          <li><strong>License:</strong> {{ dataset.license | default: site.theme_options.datasets.default_license }}</li>
-          {% if dataset.tags %}
-          <li><strong>Tags:</strong> {{ dataset.tags | join: ', ' }}</li>
-          {% endif %}
-        </ul>
-        <div class="dataset-actions">
-          {% if dataset.source_url %}
-          <a class="button" href="{{ dataset.source_url }}" target="_blank" rel="noopener">Source</a>
-          {% endif %}
-          {% if dataset.documentation %}
-          <a class="button button--ghost" href="{{ dataset.documentation | relative_url }}">Documentation</a>
-          {% endif %}
-        </div>
-      </article>
-      {% endfor %}
+<div class="card-grid">
+{% for dataset in site.datasets %}
+  <article class="card">
+    <p class="card-meta">
+      {% if dataset.license %}<span class="post-meta__badge">{{ dataset.license }}</span>{% endif %}
+      {% if dataset.updated %}<time datetime="{{ dataset.updated | date_to_xmlschema }}">Updated {{ dataset.updated | date: '%B %Y' }}</time>{% endif %}
+    </p>
+    <h3><a href="{{ dataset.url | relative_url }}">{{ dataset.title }}</a></h3>
+    <p>{{ dataset.summary | default: dataset.excerpt | strip_html | truncate: 140 }}</p>
+    {% if dataset.schema %}
+    <p class="card-meta">{{ dataset.schema.size }} fields</p>
+    {% endif %}
+    <div class="project-links">
+      <a class="btn btn-primary" href="{{ dataset.url | relative_url }}">View schema</a>
+      {% if dataset.download_url %}
+        <a class="btn btn-secondary" href="{{ dataset.download_url }}" target="_blank" rel="noopener">Download</a>
+      {% endif %}
     </div>
-  </div>
-</section>
+  </article>
+{% endfor %}
+</div>
+
+{% assign catalog = site.data.datasets.collections %}
+{% if catalog and catalog.size > 0 %}
+
+## Dataset Catalog
+
+{{ site.data.datasets.preferences.availability_statement }}
+
+<div class="card-grid">
+{% for dataset in catalog %}
+  <article class="card">
+    <p class="card-meta">
+      <span class="post-meta__badge">{{ dataset.license }}</span>
+      {% if dataset.update_frequency %}
+        <span>{{ dataset.update_frequency | capitalize }}</span>
+      {% endif %}
+    </p>
+    <h3>{{ dataset.title }}</h3>
+    <p>{{ dataset.description }}</p>
+    {% if dataset.tags %}
+    <ul class="post-list-item__tags">
+      {% for tag in dataset.tags %}
+        <li>{{ tag }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="project-links">
+      {% if dataset.source_url %}
+        <a class="btn btn-primary" href="{{ dataset.source_url }}" target="_blank" rel="noopener">Source</a>
+      {% endif %}
+      {% if dataset.documentation %}
+        <a class="btn btn-secondary" href="{{ dataset.documentation | relative_url }}">Docs</a>
+      {% endif %}
+    </div>
+  </article>
+{% endfor %}
+</div>
 {% endif %}
 
-<section class="dataset-external" aria-label="External resources">
-  <div class="container">
-    <h2>Recommended external sources</h2>
-    <ul class="dataset-resources">
-      <li><a href="https://data.gov.pt" target="_blank" rel="noopener">Portuguese Open Data Portal</a> — national statistics, energy, and transportation datasets.</li>
-      <li><a href="https://registry.opendata.aws/" target="_blank" rel="noopener">AWS Open Data Registry</a> — petabyte-scale climate and satellite imagery.</li>
-      <li><a href="https://zenodo.org/communities/openscience/" target="_blank" rel="noopener">Zenodo Open Science Community</a> — curated research datasets with DOIs.</li>
-      <li><a href="https://ourworldindata.org/" target="_blank" rel="noopener">Our World in Data</a> — global socio-economic indicators with reproducible charts.</li>
-    </ul>
-  </div>
-</section>
+## External Resources
 
-<section class="dataset-cta" aria-label="Contribute datasets">
-  <div class="container">
-    <h2>Share your dataset</h2>
-    <p>Submit new resources or collaborate on data documentation. Email <a href="mailto:dfr@esmad.ipp.pt">dfr@esmad.ipp.pt</a> with context and licensing details.</p>
-  </div>
-</section>
+<div class="card-grid">
+  <a href="https://data.gov.pt" target="_blank" rel="noopener" class="card research-area-card">
+    <h3>Portuguese Open Data Portal</h3>
+    <p>National statistics, energy, and transportation datasets.</p>
+  </a>
+  <a href="https://registry.opendata.aws/" target="_blank" rel="noopener" class="card research-area-card">
+    <h3>AWS Open Data Registry</h3>
+    <p>Petabyte-scale climate and satellite imagery.</p>
+  </a>
+  <a href="https://zenodo.org/communities/openscience/" target="_blank" rel="noopener" class="card research-area-card">
+    <h3>Zenodo Open Science</h3>
+    <p>Curated research datasets with DOIs.</p>
+  </a>
+  <a href="https://ourworldindata.org/" target="_blank" rel="noopener" class="card research-area-card">
+    <h3>Our World in Data</h3>
+    <p>Global socio-economic indicators with reproducible charts.</p>
+  </a>
+</div>
+
+## Contribute
+
+Have a dataset to share? Email [dfr@esmad.ipp.pt](mailto:dfr@esmad.ipp.pt) with context and licensing details.

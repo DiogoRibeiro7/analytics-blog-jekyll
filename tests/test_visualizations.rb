@@ -17,13 +17,13 @@ class VisualizationsTest < Minitest::Test
 
   def test_visualization_blocks_cover_supported_engines
     %w[plotly d3 observable bokeh shiny ipywidgets].each do |engine|
-      assert_match(/data-viz-type=\"#{engine}\"/, @page_html,
+      assert_match(/data-viz-type="#{engine}"/, @page_html,
                    "Expected #{engine} block to be present")
     end
   end
 
   def test_visualization_runtime_assets_are_linked
-    manifest_json = @page_html[/<script id="datalog-js-manifest"[^>]*type="application\/json"[^>]*>(.+?)<\/script>/m, 1]
+    manifest_json = @page_html[%r{<script id="datalog-js-manifest"[^>]*type="application/json"[^>]*>(.+?)</script>}m, 1]
     assert manifest_json, "Loader manifest should be embedded for dynamic feature loading"
 
     manifest = JSON.parse(manifest_json)

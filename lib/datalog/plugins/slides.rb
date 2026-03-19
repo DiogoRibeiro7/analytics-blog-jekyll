@@ -67,13 +67,13 @@ module Datalog
 
       def normalize_deck(deck)
         attributes = case deck
-                      when String
-                        { "src" => deck }
-                      when Hash
-                        deck.transform_keys(&:to_s)
-                      else
-                        {}
-                      end
+                     when String
+                       { "src" => deck }
+                     when Hash
+                       deck.transform_keys(&:to_s)
+                     else
+                       {}
+                     end
 
         return nil if attributes.empty?
 
@@ -119,4 +119,3 @@ module Datalog
     end
   end
 end
-

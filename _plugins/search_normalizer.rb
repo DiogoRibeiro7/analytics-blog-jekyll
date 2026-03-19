@@ -28,7 +28,9 @@ module Datalog
     end
 
     def transliterate(value)
-      value.encode("ASCII", fallback: ->(char) { approximate_character(char) }, invalid: :replace, undef: :replace, replace: "")
+      value.encode("ASCII", fallback: lambda { |char|
+        approximate_character(char)
+      }, invalid: :replace, undef: :replace, replace: "")
     rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
       value
     end

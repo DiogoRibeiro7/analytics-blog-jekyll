@@ -26,7 +26,7 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.2.0
+theme_version: 0.3.0
 
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
@@ -162,7 +162,7 @@ social:
   linkedin: diogoribeiro
   default_image: /assets/img/social-card.png
 
-google_analytics: ""
+google_analytics: "" # Set to your GA4 measurement ID (e.g. "G-XXXXXXXXXX") to enable tracking
 
 # -----------------------------------------------------------------------------
 # Feature Flags (reference _data/config/features.yml for full options)
@@ -282,7 +282,7 @@ exclude:
   - node_modules
   - scripts
   - lib
-  - docs/site
+  - docs
   - Gemfile
   - node_modules/
   - vendor/

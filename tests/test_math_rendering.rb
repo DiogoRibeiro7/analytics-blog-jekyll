@@ -10,7 +10,7 @@ class MathRenderingTest < Minitest::Test
   end
 
   def test_mathjax_script_is_loaded
-    assert_match(/id=\"mathjax-script\"/, @page_html,
+    assert_match(/id="mathjax-script"/, @page_html,
                  "MathJax script tag should be present for LaTeX rendering")
     assert_match(%r{https://cdn\.jsdelivr\.net/npm/mathjax@3/}, @page_html,
                  "MathJax CDN should be referenced")

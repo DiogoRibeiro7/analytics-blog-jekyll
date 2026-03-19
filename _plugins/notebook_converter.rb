@@ -20,8 +20,8 @@ module Datalog
         div span
       ],
       attributes: {
-        "a" => ["href", "title"],
-        "img" => ["src", "alt", "title", "width", "height"],
+        "a" => %w[href title],
+        "img" => %w[src alt title width height],
         "code" => ["class"],
         "pre" => ["class"],
         "div" => ["class"]
@@ -34,9 +34,9 @@ module Datalog
 
     MAX_DATA_URI_BYTES = 256_000
     SAFE_IFRAME_ATTRIBUTES = %w[src title width height loading sandbox allow allowfullscreen referrerpolicy].freeze
-    SAFE_DATA_ATTRIBUTE_PATTERN = /\Adata-[a-z0-9\-]+\z/i
-    SAFE_CLASS_TOKEN_PATTERN = /\A[a-z0-9_\-]+\z/i
-    MATH_DELIMITERS = ["\(", "\)", "\[", "\]", "$$"].freeze
+    SAFE_DATA_ATTRIBUTE_PATTERN = /\Adata-[a-z0-9-]+\z/i
+    SAFE_CLASS_TOKEN_PATTERN = /\A[a-z0-9_-]+\z/i
+    MATH_DELIMITERS = ["(", ")", "[", "]", "$$"].freeze
     VIZ_DATA_ATTRIBUTE_MAX_LENGTH = 4_096
 
     def sanitization_metrics
@@ -54,7 +54,6 @@ module Datalog
       sanitization_metrics.transform_values(&:dup)
     end
 
-
     def render(notebook, metadata: {}, site: nil)
       cells = Array(notebook["cells"])
       return if cells.empty?
@@ -68,8 +67,6 @@ module Datalog
           render_markdown(source, site, cell_index: index, metadata: metadata)
         when "code"
           render_code(cell, source, metadata, site, index)
-        else
-          nil
         end
       end
 
@@ -93,7 +90,8 @@ module Datalog
              end
 
       meta = metadata.respond_to?(:merge) ? metadata.merge(kind: :markdown) : { kind: :markdown }
-      sanitized = sanitize_html(html, context: :markdown, site: site, metadata: build_sanitization_metadata(meta, cell_index: cell_index))
+      sanitized = sanitize_html(html, context: :markdown, site: site,
+                                      metadata: build_sanitization_metadata(meta, cell_index: cell_index))
       return if sanitized.to_s.strip.empty?
 
       %(<section class="notebook-cell notebook-cell--markdown">\n#{sanitized}\n</section>)
@@ -119,7 +117,6 @@ module Datalog
     rescue StandardError
       ""
     end
-
 
     def render_output(output, site:, cell_index:, output_index:, metadata:)
       context = build_sanitization_metadata(metadata, cell_index: cell_index, output_index: output_index)
@@ -182,7 +179,6 @@ module Datalog
       end
     end
 
-
     def sanitize_visualization_html(html, site:, metadata:)
       sanitized = sanitize_html(html, context: :visualization, site: site, metadata: metadata)
       enforce_visualization_rules(sanitized, metadata, site: site)
@@ -235,7 +231,7 @@ module Datalog
       removed_attributes = 0
       removed_nodes = 0
 
-      fragment.css('[class]').each do |node|
+      fragment.css("[class]").each do |node|
         next unless viz_element?(node)
 
         node.attribute_nodes.each do |attr|
@@ -249,16 +245,14 @@ module Datalog
             next
           end
 
-          if node.name == "iframe" && SAFE_IFRAME_ATTRIBUTES.include?(attr.name)
-            next
-          end
+          next if node.name == "iframe" && SAFE_IFRAME_ATTRIBUTES.include?(attr.name)
 
           attr.remove
           removed_attributes += 1
         end
       end
 
-      fragment.css('iframe').each do |iframe|
+      fragment.css("iframe").each do |iframe|
         unless iframe_has_valid_src?(iframe)
           iframe.remove
           removed_nodes += 1
@@ -271,7 +265,8 @@ module Datalog
       sanitized = fragment.to_html
 
       if removed_attributes.positive? || removed_nodes.positive?
-        record_sanitization(:visualization, nodes_removed: removed_nodes, attrs_removed: removed_attributes, increment_fragment: false)
+        record_sanitization(:visualization, nodes_removed: removed_nodes, attrs_removed: removed_attributes,
+                                            increment_fragment: false)
         log_sanitization(:visualization, metadata, removed_nodes, removed_attributes, site)
       end
 
@@ -358,9 +353,7 @@ module Datalog
           next
         end
 
-        if allow_data_attribute?(node, name, value)
-          next
-        end
+        next if allow_data_attribute?(node, name, value)
 
         attr.remove
         removed += 1
@@ -369,7 +362,7 @@ module Datalog
       removed
     end
 
-    def sanitize_iframe_attribute(node, attr)
+    def sanitize_iframe_attribute(_node, attr)
       name = attr.name
       value = attr.value.to_s
 
@@ -408,7 +401,7 @@ module Datalog
 
     def sanitize_allow_value(value)
       requested = value.to_s.split(/;\s*/)
-      safe = requested.select { |token| token =~ /\A[a-z0-9:-]+\z/i }
+      safe = requested.grep(/\A[a-z0-9:-]+\z/i)
       safe.join("; ")
     end
 
@@ -422,14 +415,15 @@ module Datalog
 
     def sanitize_referrer_policy(value)
       token = value.to_s.strip.downcase
-      return token if %w[no-referrer origin same-origin strict-origin strict-origin-when-cross-origin origin-when-cross-origin unsafe-url].include?(token)
+      return token if %w[no-referrer origin same-origin strict-origin strict-origin-when-cross-origin
+                         origin-when-cross-origin unsafe-url].include?(token)
 
       "no-referrer"
     end
 
     def sanitize_class_attribute(attr)
       tokens = attr.value.to_s.split(/\s+/).map(&:strip).reject(&:empty?)
-      safe = tokens.select { |token| SAFE_CLASS_TOKEN_PATTERN.match?(token) }
+      safe = tokens.grep(SAFE_CLASS_TOKEN_PATTERN)
       if safe.empty?
         attr.remove
         return 1
@@ -461,7 +455,7 @@ module Datalog
     end
 
     def valid_data_uri?(uri)
-      match = uri.match(/\Adata:([a-z0-9\-\.+\/]+);base64,(.*)\z/i)
+      match = uri.match(%r{\Adata:([a-z0-9\-.+/]+);base64,(.*)\z}i)
       return false unless match
 
       data = match[2]
@@ -538,6 +532,7 @@ module Datalog
 
     def log_sanitization(context, metadata, nodes_removed, attrs_removed, site)
       return if nodes_removed.zero? && attrs_removed.zero?
+
       logger = sanitizer_logger
       return unless logger
 
@@ -740,7 +735,7 @@ module Jekyll
 
     def notebook_files
       glob = File.join(site.source, config["source"], "**", "*.ipynb")
-      Dir.glob(glob).sort
+      Dir.glob(glob)
     end
 
     def process_notebook(path, index_entries)
@@ -802,7 +797,7 @@ module Jekyll
     def extract_body(html)
       return unless html
 
-      body = html.sub(/\A.*?<body[^>]*>/m, "").sub(/<\/body>.*\z/m, "").strip
+      body = html.sub(/\A.*?<body[^>]*>/m, "").sub(%r{</body>.*\z}m, "").strip
       body.empty? ? html : body
     end
 
@@ -865,8 +860,6 @@ module Jekyll
           entry.strip
         when Hash
           entry["name"] || entry["full_name"] || entry["email"]
-        else
-          nil
         end
       end.compact.reject(&:empty?)
     end
@@ -926,8 +919,6 @@ module Jekyll
         Time.at(value)
       when String
         Time.parse(value)
-      else
-        nil
       end
     rescue ArgumentError
       nil
@@ -1044,20 +1035,22 @@ module Jekyll
       # Only attach to collection if collection output is enabled to avoid conflicts
       return unless collection.metadata["output"]
 
-      unless collection.docs.include?(page)
-        collection.docs << page
-        collection.docs.sort_by! do |doc|
-          (doc.respond_to?(:date) ? doc.date : doc.data["date"]) || Time.at(0)
-        end
-        collection.docs.reverse!
+      return if collection.docs.include?(page)
+
+      collection.docs << page
+      collection.docs.sort_by! do |doc|
+        (doc.respond_to?(:date) ? doc.date : doc.data["date"]) || Time.at(0)
       end
+      collection.docs.reverse!
     end
 
     def register_download(source_path, metadata)
       dir = config["download_dir"].sub(%r{^/}, "")
       download = NotebookDownload.new(site, source_path, dir, metadata[:slug])
 
-      unless site.static_files.any? { |static| static.is_a?(NotebookDownload) && static.name == download.name && static.dir == download.dir }
+      unless site.static_files.any? do |static|
+        static.is_a?(NotebookDownload) && static.name == download.name && static.dir == download.dir
+      end
         site.static_files << download
       end
     end
@@ -1107,7 +1100,7 @@ module Jekyll
       @site = site
       @base = site.source
       @source_path = source_path
-      relative_dir = File.dirname(source_path.sub(%r!^#{Regexp.escape(site.source)}/!, ""))
+      relative_dir = File.dirname(source_path.sub(%r{^#{Regexp.escape(site.source)}/}, ""))
       relative_name = File.basename(source_path)
       super(site, site.source, relative_dir, relative_name)
       @dir = download_dir

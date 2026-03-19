@@ -26,10 +26,10 @@ module Datalog
       def base_metadata(document)
         # Get collection label safely - only Jekyll::Document has the collection method
         collection_label = if document.respond_to?(:collection) && document.collection
-                            document.collection.label
-                          else
-                            document.data["collection"]
-                          end
+                             document.collection.label
+                           else
+                             document.data["collection"]
+                           end
 
         data = {
           "id" => document.data["id"] || document.data["permalink"] || document.url,

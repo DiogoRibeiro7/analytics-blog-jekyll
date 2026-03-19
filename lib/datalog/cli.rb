@@ -170,7 +170,7 @@ module Datalog
         date = parse_date(date_input)
         slug = slugify(title)
         summary = ask_with_default("One-sentence summary", "Describe what readers will learn.")
-        tags = options[:tags] || ask("Tags (comma separated)?").split(",").map { |tag| tag.strip }.reject(&:empty?)
+        tags = options[:tags] || ask("Tags (comma separated)?").split(",").map(&:strip).reject(&:empty?)
         difficulty = (options[:difficulty] || ask_with_default("Difficulty", "Intermediate")).capitalize
         author = ask_with_default("Author", ENV.fetch("GIT_AUTHOR_NAME", "DataLog Team"))
 
@@ -193,7 +193,7 @@ module Datalog
           title: "#{title}"
           description: "#{summary}"
           author: "#{author}"
-          date: #{date.strftime("%Y-%m-%d")}
+          date: #{date.strftime('%Y-%m-%d')}
           tags:#{tags_yaml}
           difficulty: "#{difficulty}"
           hero:
@@ -233,7 +233,7 @@ module Datalog
       method_option :title, type: :string, aliases: "-t", desc: "Title for the notebook"
       method_option :language, type: :string, aliases: "-l", default: "python", desc: "Primary notebook language"
       def notebook
-        root = site_root
+        site_root
         title = options[:title] || ask("Title?")
         language = options[:language]&.strip&.downcase || "python"
         slug = slugify(title)
@@ -307,7 +307,7 @@ module Datalog
       desc "project", "Scaffold a portfolio project entry"
       method_option :title, type: :string, aliases: "-t", desc: "Title for the project"
       def project
-        root = site_root
+        site_root
         title = options[:title] || ask("Title?")
         slug = slugify(title)
         summary = ask_with_default("Summary", "Explain the project's impact and results.")
@@ -420,7 +420,8 @@ module Datalog
     end
 
     def ensure_inside_git_repository!
-      return if command_available?("git") && system("git", "rev-parse", "--is-inside-work-tree", out: File::NULL, err: File::NULL, chdir: site_root)
+      return if command_available?("git") && system("git", "rev-parse", "--is-inside-work-tree", out: File::NULL,
+                                                                                                 err: File::NULL, chdir: site_root)
 
       say_error "The publish command must be run inside a git repository."
       exit 1
@@ -475,7 +476,7 @@ module Datalog
     end
 
     def load_config(path)
-      YAML.safe_load(File.read(path), permitted_classes: [Date, Time]) || {}
+      YAML.safe_load_file(path, permitted_classes: [Date, Time]) || {}
     end
 
     def summarize_checks(critical, warnings)
@@ -501,7 +502,8 @@ module Datalog
     end
 
     def remote_branch?(root, branch)
-      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL, chdir: root)
+      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL,
+                                                                                  chdir: root)
     end
 
     def prepare_worktree(root, branch, worktree_path)
@@ -515,15 +517,17 @@ module Datalog
       end
 
       say_status :git, "git worktree add --force #{worktree_path} #{branch}", :blue
-      unless system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
-        say_error "Unable to create git worktree for #{branch}."
-        exit 1
-      end
+      return if system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
+
+      say_error "Unable to create git worktree for #{branch}."
+      exit 1
     end
 
     def copy_site_output(root, worktree_path)
       say_status :sync, "Copying _site to #{worktree_path}", :blue
-      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"), File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."), File.join(worktree_path, ".git")])
+      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"),
+                               File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."),
+                                                      File.join(worktree_path, ".git")])
       Dir.glob(File.join(root, "_site", "*"), File::FNM_DOTMATCH).each do |entry|
         next if [".", ".."].include?(File.basename(entry))
 

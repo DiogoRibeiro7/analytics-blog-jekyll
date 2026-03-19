@@ -407,7 +407,7 @@ We're working towards:
 ### GitHub Actions
 
 Tests run automatically on:
-- **Push to main**: Full test suite
+- **Push to develop**: Full test suite
 - **Pull requests**: Full test suite + visual regression
 - **Scheduled**: Security audits daily
 

@@ -1,0 +1,70 @@
+AllCops:
+  TargetRubyVersion: 3.0
+  NewCops: enable
+  SuggestExtensions: false
+  Include:
+    - "_plugins/**/*.rb"
+    - "lib/**/*.rb"
+    - "tests/**/*.rb"
+    - "scripts/**/*.rb"
+    - "Rakefile"
+  Exclude:
+    - "vendor/**/*"
+    - "_site/**/*"
+    - ".bundle/**/*"
+    - "node_modules/**/*"
+
+# Relax line length for templates and test assertions
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - "^\\s*#"
+    - "https?://"
+
+# Jekyll plugins register with Liquid, method length can be higher
+Metrics/MethodLength:
+  Max: 35
+
+Metrics/AbcSize:
+  Max: 50
+
+Metrics/ClassLength:
+  Max: 250
+
+Metrics/CyclomaticComplexity:
+  Max: 15
+
+Metrics/PerceivedComplexity:
+  Max: 15
+
+Metrics/BlockLength:
+  Max: 40
+  Exclude:
+    - "tests/**/*.rb"
+    - "Rakefile"
+
+Metrics/ModuleLength:
+  Max: 250
+
+Metrics/ParameterLists:
+  Max: 6
+
+Style/FormatStringToken:
+  Enabled: false
+
+Style/OneClassPerFile:
+  Enabled: false
+
+# String literals — single quotes preferred but don't enforce
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Style/Documentation:
+  Enabled: false
+
+# Allow compact module/class definitions common in Jekyll plugins
+Style/ClassAndModuleChildren:
+  Enabled: false

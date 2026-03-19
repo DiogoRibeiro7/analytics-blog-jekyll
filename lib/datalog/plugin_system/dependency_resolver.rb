@@ -40,7 +40,7 @@ module Datalog
 
         @graph.each_key do |identifier|
           klass = @plugin_map[identifier]
-          priority_label = klass&.respond_to?(:priority) ? klass.priority.to_s : "normal"
+          priority_label = klass&.respond_to?(:priority) ? klass.priority.to_s : "normal" # rubocop:disable Style/SafeNavigation
           lines << %(  "#{identifier}" [label="#{identifier}\\npriority: #{priority_label}"];)
         end
 
@@ -76,7 +76,7 @@ module Datalog
           deps.each do |dep|
             dep_id = dep.to_s
             @graph[identifier][:dependencies] << dep_id
-            (@graph[dep_id] ||= { dependencies: Set.new, dependents: Set.new })
+            @graph[dep_id] ||= { dependencies: Set.new, dependents: Set.new }
             @graph[dep_id][:dependents] << identifier
           end
         end
@@ -170,6 +170,7 @@ module Datalog
       def explore_cycle(node, visited, stack, remaining)
         state = visited[node]
         return nil if state == :done
+
         if state == :active
           cycle_start = stack.index(node) || 0
           return stack[cycle_start..] + [node]
@@ -198,9 +199,7 @@ module Datalog
         nodes.each_cons(2) do |from, to|
           edges << "#{from} → #{to}"
         end
-        if nodes.length > 1
-          edges << "#{nodes.last} → #{nodes.first}"
-        end
+        edges << "#{nodes.last} → #{nodes.first}" if nodes.length > 1
         edges
       end
 

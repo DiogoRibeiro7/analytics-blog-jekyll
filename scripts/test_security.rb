@@ -7,14 +7,10 @@ visualizations = File.read(File.join(root, "assets", "js", "visualizations.js"))
 post_layout = File.read(File.join(root, "_layouts", "post.html"))
 research_layout = File.read(File.join(root, "_layouts", "research.html"))
 
-unless head.include?("Content-Security-Policy")
-  raise "Head include missing CSP declaration"
-end
+raise "Head include missing CSP declaration" unless head.include?("Content-Security-Policy")
 
 %w[sandbox allow-scripts allow-same-origin].each do |token|
-  unless visualizations.include?(token)
-    raise "Visualization embeds missing #{token} enforcement"
-  end
+  raise "Visualization embeds missing #{token} enforcement" unless visualizations.include?(token)
 end
 
 unless post_layout.include?("rel=\"noopener noreferrer\"") && research_layout.include?("rel=\"noopener noreferrer\"")

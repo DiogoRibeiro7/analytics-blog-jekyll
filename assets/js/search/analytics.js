@@ -8,7 +8,7 @@ export function createAnalyticsManager({ panel, list, empty, onSelect }) {
     };
   }
 
-  let analytics = loadAnalytics();
+  const analytics = loadAnalytics();
   let lastQuery = "";
 
   function loadAnalytics() {
@@ -51,7 +51,7 @@ export function createAnalyticsManager({ panel, list, empty, onSelect }) {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    list.innerHTML = "";
+    list.replaceChildren();
     if (entries.length === 0) {
       empty.hidden = false;
       return;

@@ -4,14 +4,12 @@ module Jekyll
   module SriFilter
     def add_sri(url)
       site = @context.registers[:site]
-      integrity_map = site.data['cdn-integrity'] || {}
+      integrity_map = site.data["cdn-integrity"] || {}
       entry = integrity_map[url]
       return url unless entry
 
-      attributes = "#{url}\" integrity=\"#{entry['integrity']}\""
-      if entry['crossorigin']
-        attributes += " crossorigin=\"#{entry['crossorigin']}\""
-      end
+      attributes = "#{url}\" integrity=\"#{entry['integrity']}"
+      attributes += "\" crossorigin=\"#{entry['crossorigin']}" if entry["crossorigin"]
       attributes
     end
   end

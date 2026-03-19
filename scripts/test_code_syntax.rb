@@ -14,12 +14,12 @@ post_layout = File.read(File.join(root, "_layouts", "post.html"))
 languages = %w[python r sql julia javascript]
 components = config.dig("theme_options", "syntax_highlighting", "components") || []
 missing_components = languages.reject { |language| components.include?(language) }
-raise "Missing Prism components for: #{missing_components.join(", ")}" unless missing_components.empty?
+raise "Missing Prism components for: #{missing_components.join(', ')}" unless missing_components.empty?
 
 missing_languages = languages.reject do |language|
   syntax_styles.include?("language-#{language}") || config_content.include?("- #{language}") || layout.include?(language)
 end
-raise "Missing syntax highlighting styles for: #{missing_languages.join(", ")}" unless missing_languages.empty?
+raise "Missing syntax highlighting styles for: #{missing_languages.join(', ')}" unless missing_languages.empty?
 
 unless syntax_styles.include?("code[class*='language-']") && syntax_styles.include?("pre[class*='language-']")
   raise "Base code block styles missing"
@@ -33,4 +33,4 @@ unless layout.include?("prism_cdn") && head_include.include?("prism_line_numbers
   raise "Prism assets not referenced in default layout/head"
 end
 
-puts "Syntax highlighting configuration covers #{languages.join(", ")}"
+puts "Syntax highlighting configuration covers #{languages.join(', ')}"

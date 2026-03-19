@@ -39,4 +39,3 @@ class PluginLoaderTest < Minitest::Test
     @search_index["documents"].find { |doc| doc["title"] == title }
   end
 end
-

@@ -4,7 +4,7 @@ require "jekyll/utils"
 
 require_relative "../lib/datalog/plugin_system"
 
-Dir[File.expand_path("../lib/datalog/plugins/**/*.rb", __dir__)].sort.each do |plugin_file|
+Dir[File.expand_path("../lib/datalog/plugins/**/*.rb", __dir__)].each do |plugin_file|
   require plugin_file
 end
 
@@ -136,7 +136,7 @@ module Datalog
       graph_summary = graph.map do |plugin_id, dependencies|
         deps = Array(dependencies).map(&:to_s).sort
         deps.empty? ? "#{plugin_id}: []" : "#{plugin_id}: [#{deps.join(', ')}]"
-      end.join('; ')
+      end.join("; ")
 
       logger.debug("datalog plugin", "dependency graph: #{graph_summary}")
     end
@@ -183,4 +183,3 @@ module Datalog
 end
 
 Datalog::PluginLoaderHooks.register!
-

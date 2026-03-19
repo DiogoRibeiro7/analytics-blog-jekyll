@@ -3,6 +3,7 @@
 // ReadTheDocs / R Documentation inspired styling
 // ============================================================================
 
+@use 'sass:color';
 @use 'mixins' as *;
 
 // Color scheme - ReadTheDocs inspired
@@ -22,10 +23,10 @@ $pkg-border: #e1e4e5;
   min-height: 100vh;
 
   &__header {
-    background: linear-gradient(135deg, $pkg-primary 0%, darken($pkg-primary, 10%) 100%);
+    background: linear-gradient(135deg, $pkg-primary 0%, color.adjust($pkg-primary, $lightness: -10%) 100%);
     color: white;
     padding: 2rem 0;
-    border-bottom: 3px solid darken($pkg-primary, 15%);
+    border-bottom: 3px solid color.adjust($pkg-primary, $lightness: -15%);
   }
 
   &__header-content {

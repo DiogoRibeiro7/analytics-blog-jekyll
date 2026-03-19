@@ -26,6 +26,19 @@ services:
     networks:
       - datalog-network
 
+  # Production build served by nginx
+  production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: datalog-prod
+    ports:
+      - "8080:80"
+    profiles:
+      - production
+    networks:
+      - datalog-network
+
   # Optional: Run tests in a separate container
   test:
     build:

@@ -20,7 +20,7 @@ required_tokens = [
 ]
 
 missing = required_tokens.reject { |token| math_bundle.include?(token) }
-raise "Math rendering bundle missing: #{missing.join(", ")}" unless missing.empty?
+raise "Math rendering bundle missing: #{missing.join(', ')}" unless missing.empty?
 
 unless head_include.include?("tex-chtml.js") && scripts_include.include?("/assets/js/math.js")
   raise "Theme does not reference MathJax CDN and math enhancement bundle"
@@ -29,9 +29,7 @@ end
 math_engine = config[/math_engine:\s*(\w+)/, 1]
 raise "Math engine configuration missing" unless math_engine
 
-unless head_include.include?("katex.min.css")
-  raise "KaTeX fallback styles missing for math engine"
-end
+raise "KaTeX fallback styles missing for math engine" unless head_include.include?("katex.min.css")
 
 unless config =~ /output:\s*chtml/ && config =~ /accessibility:\s*true/
   raise "Math configuration must enforce chtml output with accessibility enabled"

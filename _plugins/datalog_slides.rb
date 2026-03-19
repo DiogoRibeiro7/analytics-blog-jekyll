@@ -4,8 +4,8 @@ module Jekyll
   class DatalogSlidesTag < Liquid::Tag
     def render(context)
       page = context.registers[:page]
-      slides_data = page['datalog_slides']
-      return '' unless slides_data
+      slides_data = page["datalog_slides"]
+      return "" unless slides_data
 
       # Render a simple placeholder or embed
       <<~HTML
@@ -17,4 +17,4 @@ module Jekyll
   end
 end
 
-Liquid::Template.register_tag('datalog_slides', Jekyll::DatalogSlidesTag)
+Liquid::Template.register_tag("datalog_slides", Jekyll::DatalogSlidesTag)

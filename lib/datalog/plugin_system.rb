@@ -24,7 +24,7 @@ module Datalog
 
       def self.missing(plugin_id:, missing:, chain:, available: [])
         missing_list = Array(missing)
-        message = String.new("Cannot load '#{plugin_id}'\n")
+        message = "Cannot load '#{plugin_id}'\n"
         descriptor = missing_list.size > 1 ? "Missing dependencies" : "Missing dependency"
         message << "  #{descriptor}: #{missing_list.map { |id| "'#{id}'" }.join(', ')}\n"
 
@@ -35,9 +35,7 @@ module Datalog
           end
         end
 
-        if Array(available).any?
-          message << "\n  Available plugins: #{Array(available).map(&:to_s).sort.join(', ')}\n"
-        end
+        message << "\n  Available plugins: #{Array(available).map(&:to_s).sort.join(', ')}\n" if Array(available).any?
 
         fix_line = if missing_list.size == 1
                      "  To fix: Add '#{missing_list.first}' to enabled plugins in _config.yml"
@@ -59,9 +57,7 @@ module Datalog
           end
         end
 
-        if Array(available).any?
-          message << "\n  Available plugins: #{Array(available).map(&:to_s).sort.join(', ')}"
-        end
+        message << "\n  Available plugins: #{Array(available).map(&:to_s).sort.join(', ')}" if Array(available).any?
 
         new(message)
       end
@@ -174,9 +170,7 @@ module Datalog
             registry = Datalog::PluginSystem.available_plugins
             previous_id = @identifier || default_identifier
 
-            if previous_id && registry[previous_id] == self
-              registry.delete(previous_id)
-            end
+            registry.delete(previous_id) if previous_id && registry[previous_id] == self
 
             @identifier = new_id
             registry[new_id] = self
@@ -241,4 +235,3 @@ module Datalog
 end
 
 require_relative "plugin_system/dependency_resolver"
-

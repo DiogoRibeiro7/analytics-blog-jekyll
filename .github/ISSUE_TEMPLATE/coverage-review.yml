@@ -1,0 +1,65 @@
+name: Quarterly Coverage Review
+description: Scheduled review of test coverage trends and gaps
+title: "test: Q[N] [YEAR] coverage review"
+labels: ["testing"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Quarterly Coverage Review
+        Complete this checklist following [docs/coverage-review-process.md](../../docs/coverage-review-process.md).
+
+  - type: checkboxes
+    id: preparation
+    attributes:
+      label: Preparation
+      options:
+        - label: Ran `npm run test:coverage` and saved output
+        - label: Ran Ruby test suite and confirmed all pass
+        - label: Checked for new modules/plugins added since last review
+
+  - type: textarea
+    id: js-coverage
+    attributes:
+      label: JavaScript Coverage Summary
+      description: Paste the coverage table from vitest output
+      placeholder: |
+        | Module | Stmts | Branch | Funcs | Lines | Trend |
+        |--------|-------|--------|-------|-------|-------|
+        | ...    | ...   | ...    | ...   | ...   | ...   |
+
+  - type: textarea
+    id: ruby-coverage
+    attributes:
+      label: Ruby Test Summary
+      description: Number of tests, assertions, failures
+      placeholder: "X runs, Y assertions, Z failures"
+
+  - type: checkboxes
+    id: trend-check
+    attributes:
+      label: Trend Analysis
+      options:
+        - label: No module dropped below previous quarter coverage
+        - label: No module below project minimums (80% stmts, 70% branches)
+        - label: All new modules have test files
+        - label: Critical paths (navigation, search, math) at 95%+
+
+  - type: textarea
+    id: gaps
+    attributes:
+      label: Top 3 Priority Gaps
+      description: Modules with lowest coverage or most changes
+      placeholder: |
+        1. module.js — X% branches, changed Y times
+        2. ...
+        3. ...
+
+  - type: textarea
+    id: actions
+    attributes:
+      label: Action Items
+      description: Issues to create from this review
+      placeholder: |
+        - [ ] #123 — improve X coverage to Y%
+        - [ ] #124 — add tests for new plugin Z

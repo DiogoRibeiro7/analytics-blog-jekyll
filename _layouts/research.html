@@ -110,7 +110,7 @@ schema_type: ScholarlyArticle
       {% endif %}
       {% if page.issn or page.isbn %}
         <div>
-          <dt>{{ page.issn and 'ISSN' or 'ISBN' }}</dt>
+          <dt>{% if page.issn %}ISSN{% else %}ISBN{% endif %}</dt>
           <dd>{{ page.issn | default: page.isbn }}</dd>
         </div>
       {% endif %}
@@ -128,7 +128,9 @@ schema_type: ScholarlyArticle
       {% endif %}
     </dl>
 
-    {% if (keywords_list and keywords_list.size > 0) or (subject_list and subject_list.size > 0) %}
+    {% assign has_keywords = false %}{% if keywords_list and keywords_list.size > 0 %}{% assign has_keywords = true %}{% endif %}
+    {% assign has_subjects = false %}{% if subject_list and subject_list.size > 0 %}{% assign has_subjects = true %}{% endif %}
+    {% if has_keywords or has_subjects %}
       <section class="research-topics" aria-label="Keywords and classification">
         {% if keywords_list and keywords_list.size > 0 %}
           <div class="research-keywords">
@@ -275,7 +277,8 @@ ER  -
     {{ content }}
   </section>
 
-  {% if data_availability or (dataset_array and dataset_array.size > 0) %}
+  {% assign has_datasets = false %}{% if dataset_array and dataset_array.size > 0 %}{% assign has_datasets = true %}{% endif %}
+  {% if data_availability or has_datasets %}
     <section class="research-data" aria-labelledby="data-availability-heading">
       <h2 id="data-availability-heading">Data availability</h2>
       {% if data_availability %}
@@ -297,7 +300,8 @@ ER  -
     </section>
   {% endif %}
 
-  {% if (repository_array and repository_array.size > 0) or reproducibility %}
+  {% assign has_repos = false %}{% if repository_array and repository_array.size > 0 %}{% assign has_repos = true %}{% endif %}
+  {% if has_repos or reproducibility %}
     <section class="research-reproducibility" aria-labelledby="reproducibility-heading">
       <h2 id="reproducibility-heading">Code and reproducibility</h2>
       {% if repository_array and repository_array.size > 0 %}

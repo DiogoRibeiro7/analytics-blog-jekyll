@@ -58,7 +58,13 @@ export function formatNumber(value, options) {
 export function ensurePlaceholder(container, message, columns) {
   if (!container) return;
   const colSpan = columns || container.closest("table")?.querySelectorAll("th").length || 1;
-  container.innerHTML = `<tr class="placeholder"><td colspan="${colSpan}">${message}</td></tr>`;
+  const tr = document.createElement("tr");
+  tr.className = "placeholder";
+  const td = document.createElement("td");
+  td.setAttribute("colspan", colSpan);
+  td.textContent = message;
+  tr.appendChild(td);
+  container.replaceChildren(tr);
 }
 
 /**
@@ -75,7 +81,7 @@ export function renderTopPosts() {
     return;
   }
 
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
   rows.forEach((row) => {
     const dimensions = row.dimensionValues || [];
     const metrics = row.metricValues || [];
@@ -113,7 +119,7 @@ export function renderSearchTerms() {
     return;
   }
 
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
   rows.forEach((row) => {
     const dimensions = row.dimensionValues || [];
     const metrics = row.metricValues || [];
@@ -254,16 +260,22 @@ export function renderKeyEvents() {
   if (!container) return;
   const rows = parseRows(getAnalyticsData().key_events);
   if (!rows.length) {
-    container.innerHTML = "<li class=\"placeholder\">No tracked events in the selected window.</li>";
+    const li = document.createElement("li");
+    li.className = "placeholder";
+    li.textContent = "No tracked events in the selected window.";
+    container.replaceChildren(li);
     return;
   }
 
-  container.innerHTML = "";
+  container.replaceChildren();
   rows.forEach((row) => {
     const name = row.dimensionValues?.[0]?.value || "event";
     const count = Number(row.metricValues?.[0]?.value || 0);
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${formatNumber(count)}</strong> ${name.replace(/_/g, " ")}`;
+    const strong = document.createElement("strong");
+    strong.textContent = formatNumber(count);
+    li.appendChild(strong);
+    li.appendChild(document.createTextNode(` ${name.replace(/_/g, " ")}`));
     container.appendChild(li);
   });
 }
@@ -316,7 +328,7 @@ export function renderMonthlyReports() {
     return;
   }
 
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
   reports.forEach((report) => {
     const tr = document.createElement("tr");
     const month = document.createElement("td");
@@ -345,7 +357,10 @@ export function render() {
     });
     const events = document.getElementById("analytics-key-events");
     if (events) {
-      events.innerHTML = `<li class="placeholder">${getAnalyticsData().message || "Analytics data unavailable."}</li>`;
+      const li = document.createElement("li");
+      li.className = "placeholder";
+      li.textContent = getAnalyticsData().message || "Analytics data unavailable.";
+      events.replaceChildren(li);
     }
     renderScholar();
     return;

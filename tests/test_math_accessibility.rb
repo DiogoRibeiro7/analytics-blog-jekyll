@@ -12,7 +12,7 @@ class MathAccessibilityTest < Minitest::Test
   end
 
   def test_math_elements_have_aria_labels
-    nodes = @document.css('[data-math-alt]')
+    nodes = @document.css("[data-math-alt]")
     refute_empty nodes, "Expected math nodes with data-math-alt attributes"
 
     nodes.each do |node|
@@ -28,19 +28,19 @@ class MathAccessibilityTest < Minitest::Test
   end
 
   def test_auto_alt_text_generation_for_integrals
-    inline = @document.css('[data-math-alt]').find { |node| node["data-math-alt"].include?("integral from a to b") }
+    inline = @document.css("[data-math-alt]").find { |node| node["data-math-alt"].include?("integral from a to b") }
     refute_nil inline, "Inline integral should generate descriptive alt text"
     assert_includes inline["data-math-alt"], "integral from a to b"
   end
 
   def test_noscript_fallback_contains_sources
-    noscript = @document.css('noscript.math-noscript').first
+    noscript = @document.css("noscript.math-noscript").first
     refute_nil noscript, "Expected a noscript fallback block for math content"
 
-    message = noscript.at_css('p.math-noscript__message')
+    message = noscript.at_css("p.math-noscript__message")
     assert_equal "Enable JavaScript to render equations.", message&.text&.strip
 
-    sources = noscript.css('pre.math-noscript__code')
+    sources = noscript.css("pre.math-noscript__code")
     refute_empty sources, "Noscript block should list LaTeX sources"
     assert sources.any? { |pre| pre.text.include?("\\int_a^b f(x) g(x)") },
            "Noscript block should expose the original LaTeX expression"

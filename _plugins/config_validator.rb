@@ -7,7 +7,7 @@ module Datalog
     safe true
     priority :highest
 
-    DOCUMENTATION_BASE_URL = "https://datalog-theme.github.io/docs/configuration-reference".freeze
+    DOCUMENTATION_BASE_URL = "https://datalog-theme.github.io/docs/configuration-reference"
 
     SCHEMA = {
       title: { type: :string, required: true },
@@ -20,6 +20,45 @@ module Datalog
           email: { type: :string, format: :email }
         }
       },
+      markdown: { type: :string, enum: %w[kramdown commonmark] },
+      highlighter: { type: :string, enum: %w[rouge pygments] },
+      permalink: { type: :string },
+      paginate: { type: :integer },
+      timezone: { type: :string },
+      collections: { type: :hash },
+      plugins: { type: :array },
+      features: {
+        type: :hash,
+        schema: {
+          mathjax: { type: :boolean },
+          search: { type: :boolean },
+          dark_mode_toggle: { type: :boolean },
+          notebook_support: { type: :boolean },
+          portfolio: { type: :boolean },
+          datasets: { type: :boolean }
+        }
+      },
+      notebooks: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean },
+          source: { type: :string },
+          output_dir: { type: :string }
+        }
+      },
+      seo: {
+        type: :hash,
+        schema: {
+          type: { type: :string },
+          name: { type: :string }
+        }
+      },
+      sass: {
+        type: :hash,
+        schema: {
+          style: { type: :string, enum: %w[compressed expanded] }
+        }
+      },
       theme_options: {
         type: :hash,
         schema: {
@@ -28,6 +67,12 @@ module Datalog
             schema: {
               engine: { type: :string, enum: %w[mathjax katex] },
               enabled: { type: :boolean }
+            }
+          },
+          syntax_highlighting: {
+            type: :hash,
+            schema: {
+              cdn: { type: :string }
             }
           }
         }
@@ -104,7 +149,7 @@ module Datalog
           key_path = path + [key.to_s]
           present, value = fetch_value(data, key)
 
-          if !present
+          unless present
             errors << build_missing_error(key_path) if rules[:required]
             next
           end
@@ -165,7 +210,7 @@ module Datalog
         when :integer
           value.is_a?(Integer)
         when :boolean
-          value == true || value == false
+          [true, false].include?(value)
         when :array
           value.is_a?(Array)
         when :hash
@@ -256,7 +301,7 @@ module Datalog
         lines << ""
         lines << "  #{error[:suggestion]}" if error[:suggestion]
         lines << "  Documentation: #{error[:doc_url]}"
-        lines.reject!(&:nil?)
+        lines.compact!
         lines.join("\n")
       end
 

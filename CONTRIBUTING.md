@@ -143,8 +143,8 @@ git remote add upstream https://github.com/DiogoRibeiro7/analytics-blog-jekyll.g
 ```bash
 # Update your fork
 git fetch upstream
-git checkout main
-git merge upstream/main
+git checkout develop
+git merge upstream/develop
 
 # Create feature branch
 git checkout -b feature/your-feature-name
@@ -201,6 +201,22 @@ We encourage contributions in the following areas:
 ## Citation & Licensing
 
 By contributing, you agree to release your work under the MIT License and to respect academic citation practices. Include attribution for datasets, algorithms, and borrowed design patterns.
+
+## Issue Priority and SLA
+
+Issues are triaged by priority. The table below sets expectations for response and resolution times.
+
+| Priority | Response | Resolution Target | Examples |
+|----------|----------|-------------------|----------|
+| **P0** — Critical | < 24 hours | 3 business days | Security vulnerability, site build broken, data loss |
+| **P1** — High | < 3 days | 2 weeks | CI failures, broken features, accessibility regressions |
+| **P2** — Normal | < 1 week | Next quarter | Documentation gaps, minor UI issues, test coverage |
+| **P3** — Low | Best effort | Backlog | Nice-to-have improvements, cosmetic tweaks |
+
+- **Response** means the issue is acknowledged, labelled, and assigned.
+- **Resolution** means a fix is merged or the issue is closed with explanation.
+- Times are best-effort targets, not guarantees. Open-source contributions are welcome to accelerate any priority level.
+- Stale issues without activity for 60 days are automatically labelled; 90 days without activity leads to closure (see [stale automation](.github/workflows/stale.yml) when configured).
 
 ## Reporting Issues
 

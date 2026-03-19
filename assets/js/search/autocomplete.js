@@ -44,11 +44,12 @@ export function createAutocomplete({ panel, limit = 8, onSelect }) {
       option.dataset.autocompleteOption = "";
       option.dataset.value = item;
       option.setAttribute("aria-selected", index === suggestionIndex ? "true" : "false");
-      option.innerHTML = highlightText(item, value);
+      option.replaceChildren();
+      option.insertAdjacentHTML("beforeend", highlightText(item, value));
       fragment.appendChild(option);
     });
 
-    panel.innerHTML = "";
+    panel.replaceChildren();
     panel.appendChild(fragment);
     panel.hidden = false;
   }
@@ -94,7 +95,7 @@ export function createAutocomplete({ panel, limit = 8, onSelect }) {
   }
 
   function clear() {
-    panel.innerHTML = "";
+    panel.replaceChildren();
     panel.hidden = true;
     suggestionIndex = -1;
   }

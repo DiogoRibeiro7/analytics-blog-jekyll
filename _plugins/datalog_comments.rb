@@ -4,7 +4,7 @@ module Jekyll
   class DatalogCommentsTag < Liquid::Tag
     def render(context)
       page = context.registers[:page]
-      return '' unless page['datalog_comments']
+      return "" unless page["datalog_comments"]
 
       <<~HTML
         <div class="datalog-comments-placeholder">
@@ -15,4 +15,4 @@ module Jekyll
   end
 end
 
-Liquid::Template.register_tag('datalog_comments', Jekyll::DatalogCommentsTag)
+Liquid::Template.register_tag("datalog_comments", Jekyll::DatalogCommentsTag)
