@@ -2,26 +2,40 @@
 title: About
 permalink: /about/
 layout: page
-subtitle: Data science researcher focused on reproducible analytics
+subtitle: Data Scientist, Researcher, Open Science Advocate
 ---
 
 {% assign author = site.data.config.author %}
 {% assign academic = site.data.academic %}
 {% assign citations = academic.citations %}
 
-<div class="about-header">
-  <div class="about-header__info">
-    <h2 class="about-header__name">{{ author.name }}</h2>
-    <p class="about-header__affiliation">{{ author.affiliation }}</p>
-    <p class="about-header__bio">{{ author.biography }}</p>
-    <div class="research-profiles">
-      <a href="https://github.com/{{ author.profiles.github }}" target="_blank" rel="noopener" class="btn btn-secondary">GitHub</a>
-      <a href="{{ author.profiles.orcid }}" target="_blank" rel="noopener" class="btn btn-secondary">ORCID</a>
-      <a href="mailto:{{ author.email }}" class="btn btn-primary">Contact</a>
+<section class="author-profile">
+  <div class="author-profile__hero">
+    <div class="author-profile__photo">
+      {% if author.photo %}
+        <img src="{{ author.photo | relative_url }}" alt="{{ author.name }}" class="author-profile__img" />
+      {% else %}
+        <div class="author-profile__placeholder">
+          {{ author.name | slice: 0 }}
+        </div>
+      {% endif %}
+    </div>
+    <div class="author-profile__intro">
+      <h2 class="author-profile__name">{{ author.name }}</h2>
+      <p class="author-profile__title">{{ author.title }}</p>
+      <p class="author-profile__affiliation">{{ author.affiliation }}{% if author.location %} · {{ author.location }}{% endif %}</p>
+      <p class="author-profile__bio">{{ author.biography }}</p>
+      <div class="research-profiles">
+        <a href="mailto:{{ author.email }}" class="btn btn-primary">Contact</a>
+        <a href="https://github.com/{{ author.profiles.github }}" target="_blank" rel="noopener" class="btn btn-secondary">GitHub</a>
+        <a href="https://www.linkedin.com/in/{{ author.profiles.linkedin }}" target="_blank" rel="noopener" class="btn btn-secondary">LinkedIn</a>
+        <a href="{{ author.profiles.orcid }}" target="_blank" rel="noopener" class="btn btn-secondary">ORCID</a>
+      </div>
     </div>
   </div>
+
   {% if citations.metrics %}
-  <div class="research-metrics research-metrics--compact">
+  <div class="research-metrics">
     <div class="card">
       <span class="stat__value">{{ citations.metrics.total }}</span>
       <span class="stat__label">Citations</span>
@@ -36,9 +50,78 @@ subtitle: Data science researcher focused on reproducible analytics
     </div>
   </div>
   {% endif %}
+</section>
+
+## About Me
+
+{{ author.bio_extended }}
+
+## Skills & Expertise
+
+<div class="skills-grid">
+  <div class="card">
+    <h3>Languages</h3>
+    <div class="skills-tags">
+      {% for lang in author.skills.languages %}
+      <span class="skill-tag skill-tag--lang">{{ lang }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <h3>Frameworks & Libraries</h3>
+    <div class="skills-tags">
+      {% for fw in author.skills.frameworks %}
+      <span class="skill-tag skill-tag--framework">{{ fw }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <h3>Tools & Platforms</h3>
+    <div class="skills-tags">
+      {% for tool in author.skills.tools %}
+      <span class="skill-tag skill-tag--tool">{{ tool }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <h3>Domains</h3>
+    <div class="skills-tags">
+      {% for domain in author.skills.domains %}
+      <span class="skill-tag skill-tag--domain">{{ domain }}</span>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
-## Research Interests
+## Experience
+
+<div class="timeline">
+{% for job in author.experience %}
+  <div class="timeline__item">
+    <div class="timeline__marker"></div>
+    <div class="timeline__content card">
+      <p class="card-meta">{{ job.period }}</p>
+      <h3>{{ job.role }}</h3>
+      <p class="timeline__org">{{ job.organization }}</p>
+      <p>{{ job.description }}</p>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+## Education
+
+<div class="card-grid">
+{% for edu in author.education %}
+  <div class="card">
+    <p class="card-meta">{{ edu.year }}</p>
+    <h3>{{ edu.degree }}</h3>
+    <p>{{ edu.institution }}</p>
+  </div>
+{% endfor %}
+</div>
+
+## Research Areas
 
 <div class="card-grid">
 {% for area in author.research_areas %}
@@ -47,17 +130,6 @@ subtitle: Data science researcher focused on reproducible analytics
   </a>
 {% endfor %}
 </div>
-
-- Probabilistic forecasting for critical infrastructure and climate resilience
-- Reproducible machine learning and MLOps for regulated industries
-- Statistical methodology for experimental design and causal inference
-- Interactive storytelling that bridges quantitative insights with decision making
-
-## Academic Credentials
-
-- **MSc in Data Science**, ESMAD - Instituto Politécnico do Porto (2020)
-- **BSc in Multimedia Technology**, ESMAD - Instituto Politécnico do Porto (2018)
-- Visiting researcher, Centre for Applied AI, 2022 -- present
 
 ## Publications
 
@@ -81,26 +153,9 @@ subtitle: Data science researcher focused on reproducible analytics
 
 Full list on [Google Scholar](https://scholar.google.com/citations?user=example) and [ResearchGate](https://www.researchgate.net/profile/Diogo-Ribeiro).
 
-## Community & Teaching
-
-<div class="card-grid">
-  <div class="card">
-    <h3>DataLog Academy</h3>
-    <p>Instructor for Python and R bootcamps focused on reproducible data workflows.</p>
-  </div>
-  <div class="card">
-    <h3>Porto Data Viz Meetup</h3>
-    <p>Co-organizer of the local data visualization community with monthly events.</p>
-  </div>
-  <div class="card">
-    <h3>Open Source</h3>
-    <p>Contributor to DuckDB extensions, Jupyter widgets, and the DataLog Jekyll theme.</p>
-  </div>
-</div>
-
 ## Get in Touch
 
-I welcome collaborations on research, consulting, and teaching initiatives.
+I welcome collaborations on research, consulting, and teaching. Whether you're interested in data science projects, speaking engagements, or open-source contributions, feel free to reach out.
 
 <div class="research-profiles">
   <a href="mailto:{{ author.email }}" class="btn btn-primary">Email</a>
@@ -108,4 +163,5 @@ I welcome collaborations on research, consulting, and teaching initiatives.
   <a href="https://www.linkedin.com/in/{{ author.profiles.linkedin }}" target="_blank" rel="noopener" class="btn btn-secondary">LinkedIn</a>
   <a href="{{ author.profiles.orcid }}" target="_blank" rel="noopener" class="btn btn-secondary">ORCID</a>
   <a href="{{ author.profiles.researchgate }}" target="_blank" rel="noopener" class="btn btn-secondary">ResearchGate</a>
+  <a href="https://www.kaggle.com/{{ author.profiles.kaggle }}" target="_blank" rel="noopener" class="btn btn-secondary">Kaggle</a>
 </div>
