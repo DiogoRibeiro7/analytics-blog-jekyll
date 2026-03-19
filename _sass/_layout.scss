@@ -1315,3 +1315,123 @@ body.dark-mode .post-bibliography,
 body.dark-mode .post-slides {
   border-top-color: rgba($dark-ink-500, 0.12);
 }
+
+// ---------------------------------------------------------------------------
+// 404 page
+// ---------------------------------------------------------------------------
+.error-404 {
+  text-align: center;
+  padding: clamp(3rem, 8vw, 6rem) 0;
+
+  h1 {
+    font-size: map.get($font-size-scale, display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 map.get($spacing, 3);
+  }
+
+  > .container > p {
+    font-size: map.get($font-size-scale, md);
+    color: $color-ink-500;
+    max-width: 48ch;
+    margin: 0 auto map.get($spacing, 6);
+    line-height: $line-height-loose;
+  }
+}
+
+body.dark-mode .error-404 > .container > p {
+  color: $dark-ink-500;
+}
+
+.error-search {
+  max-width: 28rem;
+  margin: 0 auto map.get($spacing, 6);
+  display: flex;
+  gap: map.get($spacing, 2);
+
+  label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  input[type="search"] {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    border: 2px solid rgba($color-neutral-200, 0.8);
+    border-radius: map.get($radius, lg);
+    font-size: map.get($font-size-scale, base);
+    font-family: $font-family-sans;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+      box-shadow: 0 0 0 3px rgba($color-accent-primary, 0.12);
+    }
+  }
+
+  button {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: map.get($radius, lg);
+    background: $color-accent-primary;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { background: color.adjust($color-accent-primary, $lightness: -6%); }
+  }
+}
+
+body.dark-mode .error-search input[type="search"] {
+  background: $dark-surface-300;
+  border-color: rgba($dark-ink-500, 0.2);
+  color: $dark-ink-900;
+}
+
+.error-links {
+  display: grid;
+  gap: map.get($spacing, 5);
+  text-align: left;
+  max-width: 36rem;
+  margin: 0 auto;
+
+  @include respond-to(sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  h2 {
+    font-size: map.get($font-size-scale, sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 map.get($spacing, 2);
+    color: $color-ink-500;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: map.get($spacing, 1);
+  }
+
+  a {
+    font-size: map.get($font-size-scale, sm);
+    color: $color-accent-primary;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+body.dark-mode .error-links {
+  h2 { color: $dark-ink-500; }
+  a { color: $dark-accent-primary; }
+}
