@@ -24,7 +24,7 @@ body:
       description: What type of documentation needs improvement?
       options:
         - README.md
-        - INSTALL.md
+        - Installation Guide (docs/install.md)
         - CONTRIBUTING.md
         - User Guide (docs/user-guide.md)
         - Configuration Reference (docs/configuration-reference.md)

@@ -43,7 +43,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # Install Python dependencies for Jupyter notebook support
-RUN pip3 install --no-cache-dir --break-system-packages nbformat
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy source
 COPY . .

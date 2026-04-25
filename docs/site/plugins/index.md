@@ -43,6 +43,6 @@ permalink: /plugins/
 
 ## Build your own extension
 
-Follow the [plugin development guide](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/PLUGIN_DEVELOPMENT.md) to learn how hooks work, how to register custom Liquid tags, and how to publish your work to the community directory.
+Follow the [plugin development guide](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/plugin-development.md) to learn how hooks work, how to register custom Liquid tags, and how to publish your work to the community directory.
 
 Have an extension to share? [Open an issue](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues/new?template=plugin-proposal.md) with details and we will review it for inclusion.

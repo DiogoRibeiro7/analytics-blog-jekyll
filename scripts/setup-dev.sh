@@ -180,8 +180,8 @@ fi
 # Install Python dependencies (if Python is available)
 if check_command python3; then
     print_header "Installing Python Dependencies"
-    print_info "Running: pip install nbformat jupyter"
-    if python3 -m pip install --upgrade pip nbformat jupyter --quiet; then
+    print_info "Running: pip install -r requirements.txt"
+    if python3 -m pip install --upgrade pip --quiet && python3 -m pip install -r requirements.txt --quiet; then
         print_success "Python dependencies installed"
     else
         print_warning "Failed to install Python dependencies (non-critical)"

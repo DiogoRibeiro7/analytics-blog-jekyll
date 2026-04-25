@@ -2,6 +2,6 @@
 
 module Datalog
   module Theme
-    VERSION = "0.3.0" unless const_defined?(:VERSION)
+    VERSION = "0.4.0" unless const_defined?(:VERSION)
   end
 end
