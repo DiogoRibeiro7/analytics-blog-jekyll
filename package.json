@@ -27,7 +27,7 @@
     "@playwright/test": "^1.58.2",
     "@vitest/coverage-v8": "^4.1.2",
     "critical": "^7.2.1",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.2",
     "eslint": "^10.1.0",
     "globals": "^17.4.0",
     "http-server": "^14.1.1",
