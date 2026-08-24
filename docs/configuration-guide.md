@@ -12,8 +12,10 @@ Configuration has been split into modular files for easier maintenance:
 | `_data/config/site.yml` | Brand, contact, SEO, analytics |
 | `_data/config/author.yml` | Author profile and academic info |
 | `_data/config/theme.yml` | Visual settings, math, syntax, images |
-| `_data/config/integrations.yml` | External service connections |
 | `_data/config/features.yml` | Feature flags organized by phase |
+
+External service connections (GitHub, Binder, Colab, Giscus) live in `_config.yml`
+under `integrations:` and `datalog_plugins:` (exposed to templates as `site.integrations`).
 
 ## Quick Start
 
@@ -142,28 +144,20 @@ syntax_highlighting:
     dark: prism-tomorrow
 ```
 
-### _data/config/integrations.yml
+### Integrations (in `_config.yml`)
 
-External service connections:
+External service connections live directly in `_config.yml` so they are exposed as
+`site.integrations` to templates (e.g. `_includes/meta/scripts-loader.html`):
 
 ```yaml
-github:
-  enabled: true
-  owner: yourusername
-
-binder:
-  enabled: true
-
-colab:
-  enabled: true
-
-scholar:
-  enabled: false  # Enable when configured
-  profile_id: ""
-
-orcid:
-  enabled: true
-  profile: https://orcid.org/...
+integrations:
+  github:
+    enabled: true
+    owner: yourusername
+  binder:
+    enabled: true
+  colab:
+    enabled: true
 ```
 
 ### _data/config/features.yml

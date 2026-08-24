@@ -27,7 +27,21 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
 - **Academic citation tooling** via `CITATION.cff`, BibTeX, RIS, and EndNote exports
 - **Analytics operations hub** with a GA4-powered `/admin/analytics/` dashboard for top content, search trends, events, and Scholar metrics cached for 24 hours
 
-## Directory Structure
+## Repository Layout
+
+This repository serves a dual purpose: it ships the **`datalog-theme` gem**
+*and* runs as a working **demo site** that previews every feature. When you
+consume DataLog as a theme, only the gem-side files are installed into your
+site; the rest is reference content you can copy from.
+
+| Role | Paths |
+| --- | --- |
+| Theme (shipped in the gem) | `lib/datalog/`, `_layouts/`, `_includes/`, `_sass/`, `assets/`, `_plugins/`, `datalog-theme.gemspec` |
+| Demo content (this site only) | `_posts/`, `_notebooks/`, `_portfolio/`, `_datasets/`, `_packages/`, `_pages/`, `index.md`, `404.html` |
+| Starter scaffold | `template/` — minimal seed for the [GitHub template repository](docs/template-repository.md); excluded from this site's build |
+| Configuration | `_config.yml`, `_data/`, `Gemfile`, `package.json`, `requirements.txt` |
+| Tests & tooling | `tests/`, `scripts/`, `Rakefile`, `vitest.config.js`, `playwright.config.js`, `pa11yci.json`, `lighthouserc.json`, `percy.config.yml` |
+| Docs | `docs/`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `TESTING.md` |
 
 ```
 .
@@ -51,9 +65,9 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
 │   ├── css/main.scss          # Compiled stylesheet entry point
 │   ├── img/                   # Images and cover art
 │   └── js/main.js             # Progressive enhancement scripts
+├── lib/datalog/               # Theme gem source (published as `datalog-theme`)
 ├── Gemfile                    # Ruby dependencies (GitHub Pages compatible)
 ├── .gitignore                 # Ignore build artifacts and notebook outputs
-├── PLUGIN_DEVELOPMENT.md      # Build custom plugins with lifecycle hooks
 └── README.md                  # Theme documentation (this file)
 ```
 
@@ -65,7 +79,8 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
 - [Scripts Reference](docs/scripts-reference.md) — complete reference for all build, test, import/export, and utility scripts.
 - [Changelog](CHANGELOG.md) — release highlights and upgrade guidance for each published version of the DataLog theme.
 - [Template Repository Guide](docs/template-repository.md) — instructions for publishing a GitHub template with starter content, configuration, and automated deployments.
-- [Plugin Development Guide](PLUGIN_DEVELOPMENT.md) — understand the hook system and learn how to package extensions for reuse.
+- [Installation Guide](docs/install.md) — prerequisites, GitHub Pages, local, and Docker setup paths.
+- [Plugin Development Guide](docs/plugin-development.md) — understand the hook system and learn how to package extensions for reuse.
 - [Security Policy](SECURITY.md) — report security vulnerabilities and learn about security best practices.
 - [Contributing Guidelines](CONTRIBUTING.md) — contribution workflow, code standards, and community guidelines.
 
@@ -76,7 +91,15 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
    bundle install
    ```
 
-2. **Run the development server**
+2. **Configure environment** (optional)
+
+   Copy [`.env.example`](.env.example) to `.env` and fill in any keys you
+   need — GA4 credentials, Percy/Codecov tokens, Playwright base URL, etc.
+   All values are optional; the site runs without them, and features that
+   require credentials will skip cleanly. See
+   [docs/environment-setup.md](docs/environment-setup.md) for the full reference.
+
+3. **Run the development server**
    ```bash
    bundle exec jekyll serve
    ```
@@ -89,7 +112,7 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
    npm run build:js
    ```
 
-3. **Create content**
+4. **Create content**
    - Add Markdown posts to `_posts/`
    - Place Jupyter notebooks in `_notebooks/` and they will automatically publish as rich blog posts
    - Document datasets in `_datasets/`

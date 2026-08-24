@@ -165,6 +165,28 @@ body.dark-mode .site-tagline {
 
 .header-control__label { white-space: nowrap; }
 
+// Theme toggle (sun/moon icons)
+.header-control--theme {
+  padding: 0.375rem;
+}
+
+.theme-icon {
+  display: block;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.theme-icon--dark {
+  display: none;
+}
+
+body.dark-mode .theme-icon--light {
+  display: none;
+}
+
+body.dark-mode .theme-icon--dark {
+  display: block;
+}
+
 .nav-toggle {
   @include respond-to(md) { display: none; }
 }

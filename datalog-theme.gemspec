@@ -28,10 +28,20 @@ Gem::Specification.new do |spec|
   spec.bindir = "bin"
   spec.executables = ["datalog"]
 
+  # Ship only theme infrastructure — not demo content (_posts, _pages, _portfolio,
+  # _datasets, _packages, _notebooks, tests, docs, scripts, CI configs, frontend
+  # tooling, Dockerfiles, etc.). Theme consumers get layouts/includes/sass/assets/
+  # plugins/data/lib/bin and the licensing/changelog metadata.
   spec.files = Dir.chdir(__dir__) do
-    `git ls-files -z`.split("\x0").reject do |f|
-      (f.start_with?(".github/", "demo/", "vendor/", "tmp/", "script/") && !f.start_with?(".github/workflows/")) ||
-        f.end_with?(".gem")
+    `git ls-files -z`.split("\x0").select do |f|
+      f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) ||
+        %w[
+          LICENSE
+          README.md
+          CHANGELOG.md
+          CITATION.cff
+          datalog-theme.gemspec
+        ].include?(f)
     end
   end
 

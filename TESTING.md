@@ -22,6 +22,47 @@ npm install
 | `bundler-audit check` | Ruby dependency vulnerability scan |
 | `npm audit --omit=dev` | Node.js dependency vulnerability scan |
 
+## What's required vs optional
+
+The CI matrix is broad. Use this map to know which checks gate a merge and
+which run in the background.
+
+### Per-PR (must pass to merge into `develop`)
+
+| Workflow | Config files | Purpose |
+| --- | --- | --- |
+| `test.yml` | `vitest.config.js`, `Rakefile`, `eslint.config.js`, `.rubocop.yml` | JS + Ruby unit tests, lint |
+| `theme-stability.yml` | — | Theme builds clean against demo content |
+| `accessibility.yml` | `pa11yci.json` | Pa11y a11y audit |
+| `lighthouse.yml` | `lighthouserc.json` | Performance budgets |
+| `percy.yml` | `percy.config.yml`, `playwright.config.js` | Visual regression snapshots |
+| `codeql.yml` | — | Static security analysis |
+| `dependency-review.yml` | — | New-deps vulnerability check |
+
+### Scheduled (run on cron, do not block merges)
+
+| Workflow | Cadence | Purpose |
+| --- | --- | --- |
+| `broken-links.yml` | Mondays 06:00 UTC | Crawl site for 4xx links |
+| `dependency-review.yml` | Daily 02:00 UTC | Re-scan tracked deps |
+| `codeql.yml` | Mondays 06:00 UTC | Re-scan code |
+| `update-citations.yml` | Mondays 05:00 UTC | Refresh `_data/academic.yml` from Scholar |
+| `stale.yml` | Mondays 09:00 UTC | Mark inactive issues/PRs |
+
+### Release / event-driven
+
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| `deploy.yml` | Push to `develop` | Build + publish GitHub Pages |
+| `gem-release.yml` | Push tag `v*` | Publish theme gem |
+| `release.yml` | `workflow_dispatch` | Cut a release branch |
+| `project-sync.yml` | Issue labeled/opened | Mirror to GitHub Project |
+
+### Local-only / not wired to CI
+
+`bundler-audit check` and `npm audit` are useful locally but are exercised
+inside `test.yml` rather than as standalone workflows.
+
 ## Coverage Requirements
 
 | Metric | Gate | Current |

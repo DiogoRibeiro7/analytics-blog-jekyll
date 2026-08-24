@@ -38,6 +38,7 @@ RUN npm install -g npm@latest
 # Copy dependency files
 COPY Gemfile* ./
 COPY package*.json ./
+COPY requirements.txt ./
 
 # Install Ruby dependencies
 RUN bundle install
@@ -46,9 +47,7 @@ RUN bundle install
 RUN npm ci
 
 # Install Python dependencies for Jupyter support
-RUN pip3 install --no-cache-dir --break-system-packages \
-    nbformat \
-    jupyter
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy application files
 COPY . .

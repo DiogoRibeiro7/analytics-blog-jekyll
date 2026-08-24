@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+APP_ROOT = File.expand_path("..", __dir__)
+$LOAD_PATH.unshift(File.join(APP_ROOT, "lib")) unless $LOAD_PATH.include?(File.join(APP_ROOT, "lib"))
+
+if File.exist?(File.join(APP_ROOT, "Gemfile"))
+  begin
+    require "bundler/setup"
+  rescue SystemExit
+    warn "Bundler exited while loading dependencies. Continue at your own risk."
+  rescue LoadError => e
+    warn e.message
+    warn "Bundler is not installed. Install bundler or skip dependency checks by running the CLI after setting up Ruby gems."
+  rescue StandardError => e
+    if defined?(Bundler::GemNotFound) && e.is_a?(Bundler::GemNotFound)
+      warn e.message
+      warn "Run `bundle install` to install missing gems before using the CLI."
+    else
+      warn e.message
+    end
+  end
+end
+require "datalog/cli"
+
+Datalog::CLI.start(ARGV)
