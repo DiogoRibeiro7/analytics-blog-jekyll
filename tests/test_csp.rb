@@ -25,7 +25,7 @@ class ContentSecurityPolicyTest < Minitest::Test
       output = read_output(doc)
       next unless output
 
-      output.scan(/<script(?![^>]*\bsrc=)([^>]*)>/m).each do |match|
+      output.scan(/<script(?![^>]*\bsrc=)([^>]*)>/mi).each do |match|
         attributes = match.first
         assert_includes attributes, "nonce=", "Missing nonce for inline script in #{document_identifier(doc)}"
       end

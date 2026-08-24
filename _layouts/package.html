@@ -129,7 +129,7 @@ layout: default
         {% if page.versions %}
           <div class="package-nav__section package-nav__section--versions">
             <h3 class="package-nav__section-title">Versions</h3>
-            <select class="package-nav__version-select" onchange="window.location.href=this.value">
+            <select class="package-nav__version-select" data-navigate-on-change>
               {% for v in page.versions %}
                 <option value="{{ v.url }}" {% if v.version == page.version %}selected{% endif %}>
                   v{{ v.version }} {% if v.status %}({{ v.status }}){% endif %}

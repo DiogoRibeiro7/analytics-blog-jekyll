@@ -4,9 +4,9 @@ import os from 'os';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import YAML from 'yaml';
-import critical from 'critical';
-
-const { generate } = critical;
+// `critical` is pure ESM and exposes only named exports, so a default import
+// resolves to undefined and the module fails to link.
+import { generate } from 'critical';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
