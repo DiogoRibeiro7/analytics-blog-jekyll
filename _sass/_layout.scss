@@ -72,7 +72,9 @@ aside {
 // ---------------------------------------------------------------------------
 .hero {
   position: relative;
-  background: var(--hero-bg) center / cover no-repeat;
+  // Solid base under the image: keeps the white text legible if the image
+  // fails to load, and gives contrast checkers a real colour to measure.
+  background: $color-surface-900 var(--hero-bg) center / cover no-repeat;
   color: #fff;
   padding: clamp(4rem, 10vw, 8rem) 0;
   text-align: center;
@@ -82,7 +84,15 @@ aside {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba($color-surface-900, 0.82) 0%, rgba($color-accent-primary, 0.55) 100%);
+  // The accent end used to be rgba($color-accent-primary, 0.55). Over a light
+  // hero image that composites to #87a9f4, where the white hero text measures
+  // 2.33:1 -- below AA. Blending toward the navy and raising the alpha puts the
+  // worst case at 5.17:1 regardless of how bright the image is.
+  background: linear-gradient(
+    160deg,
+    rgba($color-surface-900, 0.82) 0%,
+    rgba(color.mix($color-accent-primary, $color-surface-900, 60%), 0.8) 100%
+  );
   pointer-events: none;
 }
 
