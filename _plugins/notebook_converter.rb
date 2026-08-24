@@ -806,7 +806,11 @@ module Jekyll
       cells = Array(notebook["cells"])
 
       title = meta["title"] || meta.dig("datalog", "title") || first_heading_from(cells)
-      slug_source = title || File.basename(absolute_path, ".ipynb")
+      # An explicit slug wins so a notebook's URL can stay stable when its title
+      # changes, and so it can follow the file name the collection permalink
+      # (/notebooks/:name/) advertises.
+      explicit_slug = meta["slug"] || meta.dig("datalog", "slug")
+      slug_source = explicit_slug || title || File.basename(absolute_path, ".ipynb")
       slug = Jekyll::Utils.slugify(slug_source)
       title ||= slug_source.split(/[-_]/).map(&:capitalize).join(" ")
 

@@ -4,7 +4,7 @@ require_relative "test_helper"
 
 class AnalyticsDashboardTest < Minitest::Test
   def setup
-    @setup ||= SiteBuilder.read("admin/analytics/index.html")
+    @html = SiteBuilder.read("admin/analytics/index.html")
   end
 
   def test_page_renders_dashboard_container

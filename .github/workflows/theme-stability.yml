@@ -27,5 +27,17 @@ jobs:
       - name: Install Jupyter toolchain
         run: pip install jupyter
 
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Build JS bundles
+        run: npm run build:js
+
       - name: Run stability test suite
         run: bundle exec ruby -Itests -e "Dir['tests/test_*.rb'].sort.each { |file| require_relative file }"
