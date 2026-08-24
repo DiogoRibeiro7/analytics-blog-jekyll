@@ -61,10 +61,3 @@ jobs:
           upload: true
           output: sarif-results
           add-snippets: true
-
-      - name: Upload SARIF results
-        if: always()
-        uses: github/codeql-action/upload-sarif@38697555549f1db7851b81482ff19f1fa5c4fedc # v3
-        with:
-          sarif_file: sarif-results/${{ matrix.language }}.sarif
-          category: ${{ matrix.language }}
