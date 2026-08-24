@@ -66,13 +66,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build JS bundles
+        run: npm run build:js
+
       - name: Run tests
         run: npm run test:coverage
 
       - name: Build site
-        run: |
-          npm run build:js
-          bundle exec jekyll build --trace
+        run: bundle exec jekyll build --trace
 
       - name: Run bundler-audit
         run: |
