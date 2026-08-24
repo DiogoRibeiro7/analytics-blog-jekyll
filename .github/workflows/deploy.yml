@@ -79,6 +79,10 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --trace
 
+      - name: Install Playwright browsers
+        if: github.ref == 'refs/heads/develop'
+        run: npx playwright install --with-deps chromium
+
       - name: Run Playwright test suites
         if: github.ref == 'refs/heads/develop'
         run: npm run test:integration

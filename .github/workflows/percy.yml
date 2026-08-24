@@ -62,6 +62,10 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --trace
 
+      - name: Install Playwright browsers
+        if: env.PERCY_ENABLED == 'true'
+        run: npx playwright install --with-deps chromium
+
       - name: Run Percy visual tests
         if: env.PERCY_ENABLED == 'true'
         env:
