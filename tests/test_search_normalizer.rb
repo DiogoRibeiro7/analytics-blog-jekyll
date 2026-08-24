@@ -4,12 +4,15 @@ require_relative "test_helper"
 
 class SearchNormalizerIntegrationTest < Minitest::Test
   SEARCH_PATTERNS = %w[_plugins/**/*.rb lib/**/*.rb scripts/**/*.rb tests/**/*.rb].freeze
+  # These snippets appear verbatim below, so this file always matches its own
+  # scan and is skipped explicitly.
   TARGET_SNIPPETS = ["require 'search_normalizer'", 'require "search_normalizer"'].freeze
 
   def test_search_normalizer_not_manually_required
     offenders = SEARCH_PATTERNS.flat_map do |pattern|
       Dir.glob(File.join(SiteBuilder.root, pattern))
          .select { |path| File.file?(path) }
+         .reject { |path| File.identical?(path, __FILE__) }
          .select { |path| contains_disallowed_require?(path) }
     end
 
