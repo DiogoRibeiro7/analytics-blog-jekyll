@@ -37,6 +37,9 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
+      - name: Build JS bundles
+        run: npm run build:js
+
       - name: Run unit tests
         env:
           NODE_ENV: test
