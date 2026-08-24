@@ -72,7 +72,9 @@ aside {
 // ---------------------------------------------------------------------------
 .hero {
   position: relative;
-  background: var(--hero-bg) center / cover no-repeat;
+  // Solid base under the image: keeps the white text legible if the image
+  // fails to load, and gives contrast checkers a real colour to measure.
+  background: $color-surface-900 var(--hero-bg) center / cover no-repeat;
   color: #fff;
   padding: clamp(4rem, 10vw, 8rem) 0;
   text-align: center;
