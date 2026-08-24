@@ -133,7 +133,9 @@ async function extractCriticalForTarget({ baseDir, src, targetName, dimensions, 
     src,
     inline: false,
     dimensions,
-    minify: true,
+    // No `minify` key: critical removed it, and the option is redundant anyway
+    // because generate() always runs the result through clean-css. Passing it
+    // is rejected outright with `ConfigError: "minify" is not allowed`.
     extract: false,
     penthouse: penthouseOptions,
     rebase: false
