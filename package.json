@@ -26,7 +26,7 @@
     "@percy/playwright": "^1.1.2",
     "@playwright/test": "^1.62.1",
     "@vitest/coverage-v8": "^4.1.11",
-    "critical": "^7.2.1",
+    "critical": "^8.0.0",
     "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
     "globals": "^17.11.0",
