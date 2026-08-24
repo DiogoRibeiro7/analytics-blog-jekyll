@@ -43,10 +43,15 @@
       "eslint --fix"
     ],
     "*.{json,yml,yaml}": [
-      "echo '✓ Checked config file:'"
+      "echo '\u2713 Checked config file:'"
     ],
     "*.md": [
-      "echo '✓ Checked documentation file:'"
+      "echo '\u2713 Checked documentation file:'"
     ]
+  },
+  "overrides": {
+    "fast-xml-parser": "^5.7.0",
+    "uuid": "^11.1.1",
+    "snyk-nodejs-lockfile-parser": "^2.10.4"
   }
 }
