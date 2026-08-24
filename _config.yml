@@ -7,10 +7,11 @@
 #   _data/config/site.yml         - Brand, contact, SEO, analytics
 #   _data/config/author.yml       - Author profile and academic info
 #   _data/config/theme.yml        - Visual settings, math, syntax, images
-#   _data/config/integrations.yml - External service connections
 #   _data/config/features.yml     - Feature flags organized by phase
 #
 # Access these in templates via: site.data.config.site, site.data.config.author, etc.
+# Integration settings (GitHub, Binder, Colab, Giscus) live in this file under
+# `integrations:` and `datalog_plugins:` and are exposed as `site.integrations`.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -26,7 +27,7 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.3.0
+theme_version: 0.4.0
 
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
@@ -225,7 +226,7 @@ theme_options:
         url: /
 
 # -----------------------------------------------------------------------------
-# Integrations (reference _data/config/integrations.yml for full options)
+# Integrations
 # -----------------------------------------------------------------------------
 integrations:
   github:
@@ -259,9 +260,9 @@ datalog_plugins:
     datalog-comments:
       provider: giscus
       repo: DiogoRibeiro7/analytics-blog-jekyll
-      repo_id: GISCUS_REPO_ID
+      repo_id: ""        # Get from https://giscus.app
       category: General
-      category_id: GISCUS_CATEGORY_ID
+      category_id: ""    # Get from https://giscus.app
       mapping: pathname
       theme: light
 

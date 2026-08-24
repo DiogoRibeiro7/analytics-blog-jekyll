@@ -9,12 +9,78 @@
 
 # Basic information
 name: Diogo Ribeiro
+title: Data Scientist
 affiliation: ESMAD - Instituto Politécnico do Porto
+location: Porto, Portugal
 email: dfr@esmad.ipp.pt
 professional_email: dfr@esmad.ipp.pt
+photo: /assets/img/author-photo.jpg # Replace with your actual photo
 
-# Biography (displayed in author cards)
-biography: Data-driven researcher focused on reproducible analytics and thoughtful storytelling.
+# Biography
+biography: >
+  Data Scientist and researcher specializing in predictive modeling,
+  statistical analysis, and reproducible analytics. Passionate about
+  turning complex data into actionable insights and building open-source
+  tools for the data science community.
+
+# Extended bio for the author page
+bio_extended: >
+  With a background in data science and multimedia technology, I work at the
+  intersection of statistical modeling, machine learning, and data storytelling.
+  My research focuses on building reproducible analytics pipelines, probabilistic
+  forecasting for critical infrastructure, and accessible visualization systems
+  that bridge the gap between quantitative insights and decision-making.
+
+# Skills & expertise
+skills:
+  languages:
+    - Python
+    - R
+    - SQL
+    - Julia
+    - JavaScript
+  frameworks:
+    - scikit-learn
+    - TensorFlow
+    - PyTorch
+    - pandas
+    - tidyverse
+    - Plotly
+    - D3.js
+  tools:
+    - Jupyter
+    - Docker
+    - Git
+    - MLflow
+    - DuckDB
+    - PostgreSQL
+  domains:
+    - Predictive Modeling
+    - Time Series Forecasting
+    - Experimental Design
+    - Bayesian Statistics
+    - Natural Language Processing
+    - Data Visualization
+
+# Education
+education:
+  - degree: MSc in Data Science
+    institution: ESMAD - Instituto Politécnico do Porto
+    year: 2020
+  - degree: BSc in Multimedia Technology
+    institution: ESMAD - Instituto Politécnico do Porto
+    year: 2018
+
+# Experience highlights
+experience:
+  - role: Data Scientist & Researcher
+    organization: ESMAD - Instituto Politécnico do Porto
+    period: 2020 — present
+    description: Leading research in predictive analytics, energy demand forecasting, and open science methodologies.
+  - role: Visiting Researcher
+    organization: Centre for Applied AI
+    period: 2022 — present
+    description: Collaborative research on accessible visualization platforms and reproducible ML pipelines.
 
 # Academic/Professional profiles
 profiles:

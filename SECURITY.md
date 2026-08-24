@@ -122,7 +122,7 @@ When adding custom plugins or modifications:
 
 If developing custom plugins:
 
-- Review [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md) for security guidelines
+- Review [docs/plugin-development.md](docs/plugin-development.md) for security guidelines
 - Avoid executing arbitrary code from user input
 - Validate and sanitize all external data
 - Use Jekyll's built-in filters for escaping (e.g., `escape`, `xml_escape`)

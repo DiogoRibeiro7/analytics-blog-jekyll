@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-25
+
+### Added
+
+- Full author profile on the about page: photo placeholder, skills grid, experience timeline, education cards, and expanded `_data/config/author.yml` with skills/education/experience/bio fields.
+- Sun/moon SVG icons for the dark mode toggle.
+- Consolidated `requirements.txt` for Python dependencies, replacing duplicated `pip install nbformat jupyter` invocations across 7 workflows, both Dockerfiles, and `scripts/setup-dev.sh`.
+- Test-tier matrix in `TESTING.md` documenting which workflows gate merges versus run on cron or release events.
+- Repository layout table in `README.md` clarifying which paths ship in the gem versus which are demo content.
+- Top-level link to `.env.example` from `README.md`.
+- `bin/datalog` CLI executable is now tracked in git so the `datalog-theme` gem actually ships its declared executable.
+
+### Changed
+
+- Dependabot now targets the `develop` branch across all four ecosystems.
+- `INSTALL.md` and `PLUGIN_DEVELOPMENT.md` moved under `docs/` (`docs/install.md`, `docs/plugin-development.md`).
+- `GISCUS_REPO_ID` and `GISCUS_CATEGORY_ID` placeholder strings in `_config.yml` are now empty defaults pointing to <https://giscus.app>.
+- `datalog-theme.gemspec` `spec.files` switched from a permissive deny-list to an allow-list. The packaged gem now ships only theme infrastructure (`_layouts/`, `_includes/`, `_sass/`, `_plugins/`, `_data/`, `assets/`, `lib/`, `bin/`) plus `LICENSE`, `README.md`, `CHANGELOG.md`, and `CITATION.cff` — down from ~440 files to ~175. Demo content (`_posts/`, `_pages/`, `_portfolio/`, `_datasets/`, `_packages/`, `_notebooks/`), tests, docs, scripts, CI configs, and frontend tooling no longer ship to RubyGems consumers.
+
+### Removed
+
+- Stale auto-generated `REPOSITORY_ANALYSIS.md` and `ANALYSIS_EXECUTIVE_SUMMARY.md` snapshots.
+- Tracked CSP test artifact `csp-report.html` (now gitignored).
+- Dead duplicate `_data/config/integrations.yml` (the live source is `site.integrations` in `_config.yml`).
+- Redundant `demo/` stub directory (its README only restated that the repo root is the demo site).
+
 ## [0.3.0] - 2026-03-18
 
 ### Added

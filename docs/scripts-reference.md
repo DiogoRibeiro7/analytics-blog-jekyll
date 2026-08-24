@@ -875,7 +875,7 @@ bundle exec jekyll build
 
 - [Environment Setup Guide](environment-setup.md) - Configure environment variables
 - [User Guide](user-guide.md) - General usage instructions
-- [Plugin Development Guide](../PLUGIN_DEVELOPMENT.md) - Creating custom plugins
+- [Plugin Development Guide](plugin-development.md) - Creating custom plugins
 - [Contributing Guidelines](../CONTRIBUTING.md) - Contribution workflow
 
 ## Questions?
