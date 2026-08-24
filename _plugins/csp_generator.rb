@@ -70,7 +70,10 @@ module Datalog
         site = document.respond_to?(:site) ? document.site : nil
         nonce = assign_nonce(site, document)
 
-        output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/) do
+        # Case-insensitive: HTML tag names are, so <SCRIPT> in author content
+        # must be matched too. Without /i such a tag received no nonce and was
+        # then blocked by the policy, which fails closed but silently.
+        output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/i) do
           attributes = Regexp.last_match(1)
           "<script nonce=\"#{nonce}\"#{attributes}>"
         end
@@ -78,7 +81,7 @@ module Datalog
         document.output = output
 
         hashes = []
-        output.scan(%r{<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>}m) do |match|
+        output.scan(%r{<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>}mi) do |match|
           content = match.first
           next if content.nil? || content.empty?
 
