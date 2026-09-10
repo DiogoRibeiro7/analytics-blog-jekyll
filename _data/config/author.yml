@@ -14,7 +14,7 @@ affiliation: ESMAD - Instituto Politécnico do Porto
 location: Porto, Portugal
 email: dfr@esmad.ipp.pt
 professional_email: dfr@esmad.ipp.pt
-photo: /assets/img/author-photo.jpg # Replace with your actual photo
+photo: # e.g. /assets/img/author-photo.jpg once the file exists; leave unset for the initial-letter placeholder
 
 # Biography
 biography: >
@@ -97,25 +97,25 @@ profiles:
 research_areas:
   - id: machine-learning
     title: Machine Learning
-    url: /tags/machine-learning/
+    url: /tags/#machine-learning
   - id: statistics
     title: Statistics
-    url: /tags/statistics/
+    url: /tags/#statistics
   - id: visualization
     title: Data Visualization
-    url: /tags/visualization/
+    url: /tags/#visualization
   - id: reproducibility
     title: Reproducible Research
-    url: /tags/reproducibility/
+    url: /tags/#reproducibility
 
 # Methodologies you use (displayed in author cards)
 methodologies:
   - id: experimental-design
     title: Experimental Design
-    url: /tags/experimental-design/
+    url: /tags/#experimental-design
   - id: bayesian
     title: Bayesian Modeling
-    url: /tags/bayesian/
+    url: /tags/#bayesian
   - id: eda
     title: Exploratory Data Analysis
-    url: /tags/eda/
+    url: /tags/#eda

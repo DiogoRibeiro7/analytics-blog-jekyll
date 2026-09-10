@@ -50,11 +50,6 @@ versions:
   - version: 1.0.0
     url: /packages/statflow/v1.0.0/
 
-related_packages:
-  - name: DataViz
-    url: /packages/dataviz/
-  - name: MLToolkit
-    url: /packages/mltoolkit/
 ---
 
 ## Installation {#installation}
@@ -583,7 +578,7 @@ ema = sf.exponential_smoothing(signal, alpha=0.3)
 
 <div class="admonition note">
   <p class="admonition-title">Note</p>
-  <p>For more advanced time series modeling including ARIMA, SARIMA, and state space models, see the <a href="/packages/timeserieskit/">TimeSeriesKit</a> package.</p>
+  <p>For more advanced time series modeling including ARIMA, SARIMA, and state space models, see a dedicated time series package.</p>
 </div>
 
 ## Changelog
