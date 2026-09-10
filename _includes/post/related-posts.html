@@ -41,6 +41,9 @@ Falls back to a friendly message when no related content is available.
           {%- assign rendered_count = rendered_count | plus: 1 -%}
           <li>
             <article class="related-post">
+              {%- if candidate.teaser -%}
+              <a class="related-post__media" href="{{ candidate.url | relative_url }}" tabindex="-1" aria-hidden="true"><img src="{{ candidate.teaser | relative_url }}" alt="" loading="lazy" decoding="async" /></a>
+              {%- endif -%}
               <h3><a href="{{ candidate.url | relative_url }}">{{ candidate.title }}</a></h3>
               <p class="related-post-meta">
                 {% include helpers/date-format.html date=candidate.date format=include.date_format %} · {{ candidate.excerpt | strip_html | default: '' | truncate: 140 }}

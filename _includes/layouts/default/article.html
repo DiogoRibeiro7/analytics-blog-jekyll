@@ -9,11 +9,23 @@ optional:
 Renders the standard article scaffold used by the default layout.
 {%- endcomment -%}
 {%- assign article_page = include.page -%}
+{%- assign hero_overlay_title = false -%}
+{%- if article_page.post_hero.image and article_page.post_hero.overlay -%}
+  {%- assign hero_overlay_title = true -%}
+{%- endif -%}
 <article class="content-block" itemscope itemtype="https://schema.org/ScholarlyArticle">
+  {%- if article_page.post_hero.image -%}
+    {% include components/post-hero.html page=article_page %}
+  {%- endif -%}
   <header class="article-header">
-    {%- if article_page.title -%}
-      <h1 class="article-title" itemprop="headline">{{ article_page.title }}</h1>
-    {%- endif -%}
+    {%- unless hero_overlay_title -%}
+      {%- if article_page.title -%}
+        <h1 class="article-title" itemprop="headline">{{ article_page.title }}</h1>
+      {%- endif -%}
+      {%- if article_page.subtitle -%}
+        <p class="article-subtitle">{{ article_page.subtitle }}</p>
+      {%- endif -%}
+    {%- endunless -%}
     {%- if article_page.excerpt -%}
       <p class="article-summary" itemprop="abstract">{{ article_page.excerpt | strip_html }}</p>
     {%- endif -%}

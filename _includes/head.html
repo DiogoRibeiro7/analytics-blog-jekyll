@@ -1,5 +1,5 @@
-{% assign page_title = page.title | default: site.title %}
-{% assign page_description = page.excerpt | default: page.description | default: site.description %}
+{% assign page_title = page.seo_title | default: page.title | default: site.title %}
+{% assign page_description = page.seo_description | default: page.description | default: page.excerpt | default: site.description %}
 {% assign canonical_url = page.url | default: page.permalink | default: '/' | absolute_url %}
 {% assign raw_keywords = page.keywords | default: page.tags | default: site.keywords %}
 {% assign localization_config = site.theme_options.localization %}
@@ -94,7 +94,12 @@
 <meta name="msapplication-TileColor" content="#0b1d3d" />
 <meta name="msapplication-config" content="{{ '/assets/img/favicons/browserconfig.xml' | relative_url }}" />
 
+{% if page.seo_title %}
+<title>{{ page.seo_title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
+{% seo title=false %}
+{% else %}
 {% seo %}
+{% endif %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
