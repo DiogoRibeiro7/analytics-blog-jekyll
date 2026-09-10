@@ -97,12 +97,15 @@ module Datalog
       %(<section class="notebook-cell notebook-cell--markdown">\n#{sanitized}\n</section>)
     end
 
+    # Class names mirror the theme stylesheet (`.notebook-cell--input`,
+    # `.notebook-cell__code` and `.notebook-cell__outputs` in _sass/_components.scss).
     def render_code(cell, source, metadata, site, cell_index)
       language = cell.dig("metadata", "language") || metadata[:language] || "text"
-      code_html = %(<pre><code class="language-#{language}">#{CGI.escapeHTML(source)}</code></pre>)
+      code_html = %(<pre class="notebook-cell__code"><code class="language-#{language}">#{CGI.escapeHTML(source)}</code></pre>)
       base_metadata = metadata.respond_to?(:merge) ? metadata.merge(language: language) : { language: language }
       outputs_html = render_outputs(Array(cell["outputs"]), site: site, cell_index: cell_index, metadata: base_metadata)
-      %(<section class="notebook-cell notebook-cell--code">\n#{code_html}#{outputs_html}\n</section>)
+      outputs_html = %(\n<div class="notebook-cell__outputs">\n#{outputs_html}\n</div>) unless outputs_html.empty?
+      %(<section class="notebook-cell notebook-cell--input">\n#{code_html}#{outputs_html}\n</section>)
     end
 
     def render_outputs(outputs, site:, cell_index:, metadata:)
@@ -668,10 +671,7 @@ module Jekyll
         return
       end
 
-      unless ensure_dependency
-        logger.warn("notebook converter", "`jekyll-jupyter-notebook` gem unavailable; skipping notebooks")
-        return
-      end
+      ensure_dependency
 
       files = notebook_files
       logger.debug("notebook converter", "located #{files.size} notebooks")
@@ -722,6 +722,10 @@ module Jekyll
       value.sub(%r{/+$}, "")
     end
 
+    # Notebook pages do not need the gem (see #convert_notebook). When it is
+    # present, its converter is given the same renderer as a fallback so the
+    # gem's own `.ipynb` handling and `{% jupyter_notebook %}` tag keep working
+    # on machines without a `jupyter` executable.
     def ensure_dependency
       return true if defined?(JekyllJupyterNotebook::Converter)
 
@@ -729,7 +733,7 @@ module Jekyll
       Datalog::NotebookRenderer.patch_jupyter_converter!
       true
     rescue LoadError => e
-      logger.warn("notebook converter", "could not load jekyll-jupyter-notebook: #{e.message}")
+      logger.debug("notebook converter", "jekyll-jupyter-notebook not loaded: #{e.message}")
       false
     end
 
@@ -744,7 +748,7 @@ module Jekyll
       notebook = JSON.parse(raw)
 
       metadata = extract_metadata(notebook, path, relative_path)
-      html = convert_notebook(notebook, raw, metadata, relative_path)
+      html = convert_notebook(notebook, metadata, relative_path)
       html ||= Datalog::NotebookRenderer.summary_html(metadata[:summary])
       return unless html
 
@@ -764,41 +768,17 @@ module Jekyll
       debug_backtrace(e)
     end
 
-    def convert_notebook(notebook, raw, metadata, relative_path)
-      converter = converter_instance
-      if converter
-        begin
-          html = converter.convert(raw)
-          return extract_body(html)
-        rescue StandardError => e
-          logger.warn("notebook converter", "primary conversion failed for #{relative_path}: #{e.message}")
-          debug_backtrace(e)
-        end
-      end
-
-      logger.warn("notebook converter", "using fallback renderer for #{relative_path}")
+    # Pages are rendered by Datalog::NotebookRenderer rather than by
+    # `jupyter nbconvert`. Its output is sanitized (tests/test_notebook_sanitization.rb),
+    # carries no inline scripts or styles for the CSP to block, uses the
+    # `.notebook-cell` markup the stylesheet styles, and does not change shape
+    # between nbconvert releases.
+    def convert_notebook(notebook, metadata, relative_path)
       Datalog::NotebookRenderer.render(notebook, metadata: metadata, site: site)
     rescue StandardError => e
       logger.error("notebook converter", "conversion failed for #{relative_path}: #{e.message}")
       debug_backtrace(e)
       nil
-    end
-
-    def converter_instance
-      return nil if defined?(@converter_instance) && @converter_instance == false
-
-      @converter_instance ||= site.find_converter_instance(JekyllJupyterNotebook::Converter)
-    rescue StandardError => e
-      logger.warn("notebook converter", "unable to initialize converter: #{e.message}")
-      debug_backtrace(e)
-      @converter_instance = false
-    end
-
-    def extract_body(html)
-      return unless html
-
-      body = html.sub(/\A.*?<body[^>]*>/m, "").sub(%r{</body>.*\z}m, "").strip
-      body.empty? ? html : body
     end
 
     def extract_metadata(notebook, absolute_path, relative_path)
