@@ -50,16 +50,6 @@ export default [
       "prefer-const": "warn",
     },
   },
-  // Node.js scripts using CommonJS (require)
-  {
-    files: ["scripts/test_search.js", "scripts/verify_interactive_elements.js"],
-    languageOptions: {
-      sourceType: "commonjs",
-      globals: {
-        ...globals.node,
-      },
-    },
-  },
   // Test files
   {
     files: ["tests/**/*.{js,mjs}"],
