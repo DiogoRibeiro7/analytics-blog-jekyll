@@ -58,7 +58,7 @@ pytest tests/statistics --maxfail=1
 ## Dissemination
 
 1. Publish preprints on arXiv and deposit supplementary code in GitHub releases.
-2. Submit replication packages to the [DataLog datasets hub](/datasets/).
+2. Submit replication packages to the [DataLog datasets hub]({{ '/datasets/' | relative_url }}).
 3. Track citations and altmetrics through ORCID, Google Scholar, and ResearchGate.
 
 Adopt the reproducibility checklist to ensure each milestone—data, code,

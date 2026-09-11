@@ -36,13 +36,16 @@ https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/normalize-whitespace/prism-n
   integrity: sha384-1Q1Kn1ruXt6wc5JfXB25OWRaEVBJ5OQ0gfL/pneNkXoVmWmhkBacvG9Rls1+yB2h
 https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js:
   crossorigin: anonymous
-  integrity: sha384-ZM8fDxYm+GXOWeJcxDetoRImNnEAS7XwVFH5kv0pT6RXNy92Nemw/Sj7NfciXpqg
+  integrity: sha384-BGaNxfftg+9+TtC098wxawPFVEUpKYvaiCgbB0iqAMjK/4jDdmUY+oGxrPNvnXEf
 https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.css:
   crossorigin: anonymous
   integrity: sha384-/HnXSmP1Tv+9YA13kJX5sL1eVi3XeI57BUEGl+PiVlv6pPcxsbVrHaiw+OepvnSd
 https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css:
   crossorigin: anonymous
   integrity: sha384-RCpAEDK2BSI4uVvV9kefzLdwlNUNZkCZJdOE2LkEa3jtLRcv2YrEVSbM4vwbCCW2
-https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&family=Source+Code+Pro:wght@400;500;700&display=swap:
+https://giscus.app/client.js:
   crossorigin: anonymous
-  integrity: sha384-lzjooGotnppGl8/uyRUakdHjUhx94Y3YKKklg332gDdrZYf5+MbVqD2jvazs/vHn
+  integrity: sha384-UwLZGbJGvkTzz0719+xEzUm/idqwzs0yZN8aB9Se5vUXHbyRyDWw9yqZTIsOsJ7x
+https://utteranc.es/client.js:
+  crossorigin: anonymous
+  integrity: sha384-fu37qCdzTFjEWsnuik0ASdJij1SVwzCpeltZfuSulYExo7P5sTcD0aG6ECQHQR62

@@ -17,7 +17,7 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
 - **Advanced MathJax tooling** with accessible numbering, cross-references, equation editor, and LaTeX copy helpers
 - **Optimized syntax highlighting** for Python, R, SQL, and Julia code blocks
 - **Responsive and accessible UI** that meets WCAG 2.1 AA guidelines
-- **SEO friendly** metadata with `jekyll-seo-tag` and sitemap generation
+- **SEO friendly** metadata (Open Graph, Twitter cards, canonical links, JSON-LD) and sitemap generation
 - **Interactive visualization hub** with lazy-loaded Plotly, D3.js, Bokeh, Observable, R Shiny, and Jupyter widget support plus export tooling
 - **Portfolio section** for highlighting research projects, experiments, and case studies
 - **Dataset collection** for sharing curated datasets with download links

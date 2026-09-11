@@ -441,13 +441,12 @@ Parameters:
 
     applyTheme() {
       const { theme } = this.preferences;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = theme === 'auto' ? prefersDark : theme === 'dark';
 
-      if (theme === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.body.classList.toggle('dark-mode', prefersDark);
-      } else {
-        document.body.classList.toggle('dark-mode', theme === 'dark');
-      }
+      document.body.classList.toggle('dark-mode', isDark);
+      document.body.dataset.theme = isDark ? 'dark' : 'light';
+      document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
     }
 
     updateThemeButtons() {

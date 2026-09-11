@@ -2,6 +2,7 @@
 title: Privacy Policy
 permalink: /privacy/
 layout: page
+show_author: false
 ---
 
 This site collects minimal analytics to understand aggregate usage. When analytics are enabled, IP anonymization is enforced to respect user privacy. Interactive embeds and notebook outputs may load third-party resources; review their privacy policies before enabling.

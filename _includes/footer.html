@@ -22,13 +22,21 @@
 
     <nav class="footer-navigation">
       <h3>Explore</h3>
+      {%- comment -%} `footer:` in _data/navigation.yml drives this column; the demo's sections are the fallback. {%- endcomment -%}
+      {% assign footer_links = navigation_data.footer %}
       <ul class="footer-link-list">
+        {% if footer_links and footer_links.size > 0 %}
+        {% for item in footer_links %}
+        <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+        {% endfor %}
+        {% else %}
         <li><a href="{{ '/blog/' | relative_url }}">Blog</a></li>
         <li><a href="{{ '/research/' | relative_url }}">Research</a></li>
         <li><a href="{{ '/portfolio/' | relative_url }}">Projects</a></li>
         <li><a href="{{ '/datasets/' | relative_url }}">Datasets</a></li>
         <li><a href="{{ '/visualizations/' | relative_url }}">Visualizations</a></li>
         <li><a href="{{ '/about/' | relative_url }}">About</a></li>
+        {% endif %}
       </ul>
     </nav>
 

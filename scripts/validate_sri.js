@@ -45,10 +45,24 @@ function extractExternalAssets(content) {
   return results;
 }
 
+// Google Fonts CSS is browser-specific and cannot carry a stable hash.
+const SRI_EXEMPT_HOSTS = ['https://fonts.googleapis.com', 'https://www.googletagmanager.com'];
+
+// Documents written by nbconvert (the jekyll-jupyter-notebook iframe pages)
+// embed their own CDN scripts; the theme does not control that markup.
+const EXEMPT_PATH_SEGMENTS = [`${path.sep}_notebooks${path.sep}`];
+
 function validateIntegrity(records, filePath) {
   const problems = [];
 
+  if (EXEMPT_PATH_SEGMENTS.some((segment) => filePath.includes(segment))) {
+    return null;
+  }
+
   for (const record of records) {
+    if (SRI_EXEMPT_HOSTS.some((host) => record.url.startsWith(host))) {
+      continue;
+    }
     if (!record.tag.includes('integrity=')) {
       problems.push(`${record.type.toUpperCase()} missing integrity for ${record.url}`);
       continue;

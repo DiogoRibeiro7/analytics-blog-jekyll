@@ -155,7 +155,7 @@ schema_type: TechnicalArticle
           <li>
             <strong>{{ demo.title }}</strong>
             {% if demo.description %}<p>{{ demo.description }}</p>{% endif %}
-            {% if demo.url %}<p><a href="{{ demo.url }}" target="_blank" rel="noopener noreferrer">{% t 'post.interactive.launch' %}</a></p>{% endif %}
+            {% if demo.url %}<p><a href="{{ demo.url | relative_url }}" target="_blank" rel="noopener noreferrer">{% t 'post.interactive.launch' %}</a></p>{% endif %}
           </li>
         {% endfor %}
       </ul>

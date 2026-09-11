@@ -11,7 +11,7 @@
     "validate-sri": "node scripts/validate_sri.js",
     "test": "vitest --run",
     "test:coverage": "vitest --coverage --run && node scripts/check_coverage.js",
-    "test:integration": "node ./scripts/run_playwright_suite.js",
+    "test:integration": "node ./scripts/run_playwright_suite.js --grep-invert @visual",
     "test:integration:direct": "playwright test",
     "test:visual": "playwright test --grep @visual",
     "test:visual:auto": "node ./scripts/run_playwright_suite.js --grep @visual",

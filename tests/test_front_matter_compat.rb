@@ -73,7 +73,9 @@ class FrontMatterCompatTest < Minitest::Test
   def test_demo_post_renders_the_overlay_hero_with_the_title_inside
     html = demo_post_html
     assert_includes html, 'class="post-hero post-hero--overlay"'
-    assert_includes html, "20220607123041_detail.001.png"
+    assert_match(%r!<style nonce="[^"]*">\s*#post-hero-\S+ \{[^}]*20220607123041_detail\.001\.png!, html,
+                 "the hero background must come from a nonce-carrying style element, since the CSP blocks style attributes")
+    refute_match(/post-hero--overlay" style=/, html)
     assert_match(%r{post-hero__title[^>]*>#{Regexp.escape(POST_TITLE)}<}, html)
     refute_match(/<h1 class="article-title" itemprop/, html, "the article header must not repeat the title")
     assert_includes html, "The compatibility layer in action"

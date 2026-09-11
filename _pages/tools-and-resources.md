@@ -34,8 +34,8 @@ description: Curated software, libraries, and learning materials that power the 
 
 ## Learning pathways
 
-1. [Getting started guide](/getting-started/) for new practitioners.
-2. [Visualization Hub](/visualizations/) to explore interactive patterns.
-3. [Research layout documentation](/research/) describing scholarly publishing workflows.
+1. [Getting started guide]({{ '/getting-started/' | relative_url }}) for new practitioners.
+2. [Visualization Hub]({{ '/visualizations/' | relative_url }}) to explore interactive patterns.
+3. [Research layout documentation]({{ '/research/' | relative_url }}) describing scholarly publishing workflows.
 
 Have a recommendation? Email <a href="mailto:dfr@esmad.ipp.pt">dfr@esmad.ipp.pt</a> or open a GitHub issue.

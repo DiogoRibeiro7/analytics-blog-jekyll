@@ -69,7 +69,7 @@ tidy(robust)
 
 1. Roll out treatment to 45% of traffic while monitoring device-specific effects.
 2. Launch follow-up experiment measuring lifetime value after 90 days.
-3. Share raw data and analysis scripts in the [open science workspace](/datasets/).
+3. Share raw data and analysis scripts in the [open science workspace]({{ '/datasets/' | relative_url }}).
 
 Download the power analysis workbook above to adapt these calculations for
 your experimentation roadmap.
