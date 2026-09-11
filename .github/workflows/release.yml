@@ -1,56 +1,89 @@
 name: Release — Promote develop to main
 
+# Two halves of one flow:
+#
+#   1. "Run workflow" with a version: bumps the version on develop and opens
+#      (or refreshes) the pull request from develop into main.
+#   2. When that PR is merged (any push to main), tags main with the version
+#      it carries, publishes the GitHub release and starts the gem publish.
+#
+# The bump is pushed to develop directly by the workflow, which needs the
+# GitHub Actions app in the "bypass pull request requirements" list of the
+# develop branch rule. main keeps its review requirement: the release PR is
+# the human gate.
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 0.3.0)'
+        description: 'Release version, e.g. 0.6.2'
         required: true
         type: string
       dry_run:
-        description: 'Dry run (validate only, do not merge)'
+        description: 'Validate and show the bump without pushing or opening a PR'
         required: false
         type: boolean
         default: false
+  push:
+    branches: [ main ]
 
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  validate:
-    name: Validate Release
+  prepare:
+    name: Bump develop and open the release PR
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout develop
+      - name: Check out develop
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: develop
           fetch-depth: 0
 
-      - name: Verify version in changelog
+      - name: Validate the version
         run: |
-          VERSION="${{ inputs.version }}"
-          if ! grep -q "\[$VERSION\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md does not contain an entry for version $VERSION"
-            echo "Add a ## [$VERSION] section to CHANGELOG.md before releasing."
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$VERSION' is not a MAJOR.MINOR.PATCH version"
             exit 1
           fi
-          echo "Changelog entry found for $VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null 2>&1; then
+            echo "::error::tag v$VERSION already exists"
+            exit 1
+          fi
+          CURRENT=$(sed -n 's/.*VERSION = "\([0-9.]*\)".*/\1/p' lib/datalog/theme/version.rb)
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "::error::develop is already at $VERSION"
+            exit 1
+          fi
+          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [Unreleased]' section to release"
+            exit 1
+          fi
+          if ! awk '/^## \[Unreleased\]/{f=1; next} f && /^## \[/{exit} f && /^- /{found=1} END{exit !found}' CHANGELOG.md; then
+            echo "::error::the [Unreleased] section of CHANGELOG.md has no entries"
+            exit 1
+          fi
+          echo "Releasing $VERSION (develop is at $CURRENT)"
 
-      - name: Verify version in gemspec
+      - name: Bump the version
         run: |
-          VERSION="${{ inputs.version }}"
-          GEMSPEC_VERSION=$(grep -oP 'VERSION = "\K[^"]+' lib/datalog/theme/version.rb || echo "")
-          if [ "$GEMSPEC_VERSION" != "$VERSION" ]; then
-            echo "::error::lib/datalog/theme/version.rb has VERSION=$GEMSPEC_VERSION, expected $VERSION"
-            exit 1
-          fi
-          echo "Version matches: $VERSION"
+          DATE=$(date -u +%Y-%m-%d)
+          sed -i "s/^## \[Unreleased\]$/## [$VERSION] - $DATE/" CHANGELOG.md
+          sed -i "s/VERSION = \"[0-9.]*\"/VERSION = \"$VERSION\"/" lib/datalog/theme/version.rb
+          sed -i "s/^version: .*/version: $VERSION/; s/^date-released: .*/date-released: $DATE/" CITATION.cff
+          sed -i "s/^theme_version: .*/theme_version: $VERSION/" _config.yml
+          git --no-pager diff --stat
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
@@ -58,77 +91,95 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build JS bundles
-        run: npm run build:js
-
-      - name: Run tests
-        run: npm run test:coverage
-
-      - name: Build site
-        run: bundle exec jekyll build --trace
-
-      - name: Run bundler-audit
+      - name: Verify the bump builds
         run: |
-          gem install bundler-audit
-          bundler-audit update
-          bundler-audit check
+          ruby -e 'load "lib/datalog/theme/version.rb"; abort "version.rb reads #{Datalog::Theme::VERSION}" unless Datalog::Theme::VERSION == ENV["VERSION"]'
+          gem build datalog-theme.gemspec
+          grep -q "^## \[$VERSION\]" CHANGELOG.md
 
-  promote:
-    name: Promote to main
-    needs: validate
-    if: ${{ !inputs.dry_run }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          ref: develop
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release notes
+        run: |
+          awk "/^## \[$VERSION\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md | sed '/./,$!d' > /tmp/notes.md
+          echo "## Release notes for v$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/notes.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Configure git
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run: nothing pushed, no PR opened." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push the bump to develop
+        if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml
+          git commit -m "chore(release): bump version to $VERSION"
+          git push origin HEAD:develop
 
-      - name: Merge develop into main
+      - name: Open or refresh the release PR
+        if: ${{ !inputs.dry_run }}
         run: |
-          git fetch origin main
-          git checkout main
-          git merge --no-ff develop -m "release: v${{ inputs.version }}
+          {
+            echo "Promotes develop to main as **v$VERSION**. Merge with **Create a merge commit**; on merge, main is tagged and the gem publish starts (it waits for approval in the rubygems environment)."
+            echo
+            cat /tmp/notes.md
+          } > /tmp/body.md
+          EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --title "release: v$VERSION" --body-file /tmp/body.md
+            echo "Updated PR #$EXISTING" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            gh pr create --base main --head develop --title "release: v$VERSION" --body-file /tmp/body.md
+            echo "Opened the release PR" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
-          Promote develop to main for release v${{ inputs.version }}.
-          See CHANGELOG.md for details."
-          git push origin main
+  tag:
+    name: Tag main and publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+          fetch-depth: 0
 
-      - name: Create release tag
+      - name: Decide whether main carries a new version
+        id: version
         run: |
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
-          git push origin "v${{ inputs.version }}"
+          VERSION=$(sed -n 's/.*VERSION = "\([0-9.]*\)".*/\1/p' lib/datalog/theme/version.rb)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null 2>&1; then
+            echo "::notice::v$VERSION is already tagged; nothing to release"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          elif ! grep -q "^## \[$VERSION\]" CHANGELOG.md; then
+            echo "::error::main is at $VERSION but CHANGELOG.md has no [$VERSION] section"
+            exit 1
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Create GitHub release
+      - name: Tag and create the GitHub release
+        if: steps.version.outputs.new == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ inputs.version }}"
-          # Extract changelog section for this version
-          NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
-          gh release create "v$VERSION" --title "v$VERSION" --notes "$NOTES"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+          awk "/^## \[$VERSION\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md | sed '/./,$!d' > /tmp/notes.md
+          gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes-file /tmp/notes.md
 
-      - name: Summary
+      # A tag pushed with the workflow token does not trigger other workflows,
+      # so start the publish explicitly. It still waits for the environment approval.
+      - name: Start the gem publish
+        if: steps.version.outputs.new == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "## Release v${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Merged develop into main" >> $GITHUB_STEP_SUMMARY
-          echo "- Created tag v${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- GitHub release published" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The gem-release workflow will automatically publish to RubyGems." >> $GITHUB_STEP_SUMMARY
+          gh workflow run gem-release.yml --ref "v$VERSION"
+          echo "Tagged v$VERSION, published the GitHub release and started gem-release.yml (approve it in the rubygems environment)." | tee -a "$GITHUB_STEP_SUMMARY"
