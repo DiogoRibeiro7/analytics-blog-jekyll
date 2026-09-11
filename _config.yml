@@ -27,7 +27,7 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.5.0
+theme_version: 0.6.0
 
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
