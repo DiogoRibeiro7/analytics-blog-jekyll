@@ -33,9 +33,20 @@ class ContentSecurityPolicyTest < Minitest::Test
   end
 
   def test_external_scripts_use_sri
-    homepage = SiteBuilder.read("index.html")
-    cdn_pattern = /<script[^>]+cdn\.jsdelivr[^>]+integrity="sha384-[^"]+"[^>]+crossorigin="anonymous"/
-    assert cdn_pattern.match?(homepage), "Expected CDN scripts to include SRI integrity attributes"
+    cdn_scripts = 0
+    html_documents.each do |doc|
+      output = read_output(doc)
+      next unless output
+
+      output.scan(/<script[^>]+\bsrc="https:\/\/cdn\.jsdelivr\.net[^"]*"[^>]*>/i).each do |tag|
+        cdn_scripts += 1
+        assert_match(/integrity="sha384-[^"]+"/, tag,
+                     "CDN script without an integrity hash in #{document_identifier(doc)}: #{tag}")
+        assert_match(/crossorigin="anonymous"/, tag,
+                     "CDN script without crossorigin in #{document_identifier(doc)}: #{tag}")
+      end
+    end
+    assert cdn_scripts.positive?, "Expected at least one CDN script in the built site"
 
     mathjax_page = mathjax_document
     return unless mathjax_page
@@ -112,7 +123,7 @@ class ContentSecurityPolicyTest < Minitest::Test
 
   def mathjax_document
     html_documents.find do |doc|
-      effective_math_engine(doc) == "mathjax"
+      effective_math_engine(doc) == "mathjax" && read_output(doc)&.include?('id="mathjax-script"')
     end
   end
 

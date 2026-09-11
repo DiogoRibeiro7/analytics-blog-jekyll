@@ -12,7 +12,8 @@ Pass location="head" or location="body" to control which block renders.
 {%- assign prism_cdn = syntax.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' -%}
 {%- assign default_components = 'python|r|sql|julia|javascript' | split: '|' -%}
 {%- assign prism_components = syntax.components | default: default_components -%}
-{%- if include.location == 'head' -%}
+{%- include meta/syntax-config.html -%}
+{%- if include.location == 'head' and prism_enabled -%}
   <script defer src="{{ (prism_cdn | append: '/prism.min.js') | add_sri }}"></script>
   {%- for component in prism_components -%}
     {%- unless component == 'core' -%}

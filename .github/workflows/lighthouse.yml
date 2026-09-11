@@ -30,6 +30,15 @@ jobs:
       - name: Build JS bundles
         run: npm run build:js
 
+      # The deploy inlines critical CSS and loads the stylesheet asynchronously;
+      # measure that configuration rather than the plain build.
+      - name: Generate critical CSS
+        env:
+          JEKYLL_ENV: production
+          NODE_ENV: production
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
+        run: npm run build:critical
+
       - name: Build site
         env:
           JEKYLL_ENV: production

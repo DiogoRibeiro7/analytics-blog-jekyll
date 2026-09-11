@@ -165,6 +165,9 @@ module MathPreprocessor
   def apply(document)
     return unless document.respond_to?(:content)
     return unless document.respond_to?(:output_ext) && document.output_ext == ".html"
+    # A page that opts out of math rendering (`math: false` or `mathjax: false`)
+    # keeps its dollar signs and TeX-looking text verbatim.
+    return if document.respond_to?(:data) && (document.data["math"] == false || document.data["mathjax"] == false)
 
     content = document.content
     return unless content&.match?(/\$|\\\(|\\\[|\\begin\{/)

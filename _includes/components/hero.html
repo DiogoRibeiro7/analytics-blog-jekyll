@@ -1,6 +1,24 @@
 {% assign hero_bg = page.hero_image | default: '/assets/img/hero-detail.webp' %}
+{% assign hero_bg_small = page.hero_image_small %}
+{% if page.hero_image == nil and hero_bg_small == nil %}
+  {% assign hero_bg_small = '/assets/img/hero-detail-640.webp' %}
+{% endif %}
+{%- comment -%}
+  The hero is the largest paint on the page. A CSS background is only requested
+  once the stylesheet applies, so preload it; small screens get a 640 px
+  variant (page.hero_image_small when a page brings its own hero_image).
+{%- endcomment -%}
+{% if hero_bg_small %}
+<link rel="preload" as="image" href="{{ hero_bg_small | relative_url }}" media="(max-width: 640px)" fetchpriority="high" />
+<link rel="preload" as="image" href="{{ hero_bg | relative_url }}" media="(min-width: 641px)" fetchpriority="high" />
+{% else %}
+<link rel="preload" as="image" href="{{ hero_bg | relative_url }}" fetchpriority="high" />
+{% endif %}
 <style nonce="{{ page.csp_nonce }}">
   .hero { --hero-bg: url('{{ hero_bg | relative_url }}'); }
+{% if hero_bg_small %}
+  @media (max-width: 640px) { .hero { --hero-bg: url('{{ hero_bg_small | relative_url }}'); } }
+{% endif %}
 </style>
 <section class="hero">
   <div class="hero-overlay"></div>
