@@ -77,19 +77,6 @@ jobs:
           bundler-audit update
           bundler-audit check
 
-      - name: Cache system dependencies
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            /var/cache/apt
-            /var/lib/apt
-          key: apt-${{ runner.os }}-libvips
-          restore-keys: |
-            apt-${{ runner.os }}-
-
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libvips
-
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -108,28 +95,10 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Cache Python dependencies
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-
-      - name: Cache Jekyll build
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            .jekyll-cache
-            _site
-          key: jekyll-${{ runner.os }}-${{ hashFiles('**/*.{rb,md,html,yml}') }}
-          restore-keys: |
-            jekyll-${{ runner.os }}-
 
       - name: Build site
         env:
