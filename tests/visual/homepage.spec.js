@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -47,7 +47,7 @@ test.describe('Homepage visual scenarios', () => {
         const ctaCount = await ctas.count();
         expect(ctaCount).toBeGreaterThanOrEqual(1);
 
-        await capturePercySnapshot(page, `Homepage hero (${viewport.name})`, {
+        await captureSnapshot(page, `Homepage hero (${viewport.name})`, {
           scope: 'section.hero'
         });
       });
@@ -70,7 +70,7 @@ test.describe('Homepage visual scenarios', () => {
           expect(cardLinkHref).toMatch(/\S/);
         }
 
-        await capturePercySnapshot(page, `Homepage featured posts (${viewport.name})`, {
+        await captureSnapshot(page, `Homepage featured posts (${viewport.name})`, {
           scope: '.section-highlight .card-grid'
         });
       });

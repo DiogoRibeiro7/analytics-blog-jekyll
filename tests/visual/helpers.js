@@ -4,44 +4,13 @@ export const viewports = [
   { width: 1920, height: 1080, name: 'desktop' }
 ];
 
-let cachedPercySnapshot;
-
-async function loadPercyModule() {
-  if (cachedPercySnapshot !== undefined) {
-    return cachedPercySnapshot;
-  }
-
-  if (!process.env.PERCY_TOKEN) {
-    cachedPercySnapshot = null;
-    return cachedPercySnapshot;
-  }
-
-  try {
-    const module = await import('@percy/playwright');
-    cachedPercySnapshot = module.default ?? module.percySnapshot ?? null;
-  } catch (error) {
-    console.warn('Percy integration unavailable in visual tests', error);
-    cachedPercySnapshot = null;
-  }
-
-  return cachedPercySnapshot;
-}
-
-export async function capturePercySnapshot(page, name, options = {}) {
-  const percySnapshot = await loadPercyModule();
-
-  if (!percySnapshot) {
-    return;
-  }
-
-  const viewport = page.viewportSize?.() ?? { width: 1280 };
-  const widths = options.widths ?? (viewport?.width ? [viewport.width] : undefined);
-
-  await percySnapshot(page, name, {
-    widths,
-    enableJavaScript: true,
-    ...options
-  });
+/**
+ * Placeholder for a snapshot service. The visual specs assert page structure
+ * with Playwright; no image comparison is wired up. Hook a service in here if
+ * one is adopted again.
+ */
+export async function captureSnapshot(_page, _name, _options = {}) {
+  return;
 }
 
 export async function waitForFonts(page) {

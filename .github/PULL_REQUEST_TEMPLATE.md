@@ -69,7 +69,7 @@ Related to #
 - [ ] Tested dark mode (if applicable)
 - [ ] Ran unit tests: `npm run test`
 - [ ] Ran integration tests: `npm run test:integration`
-- [ ] Ran visual tests (if Percy configured): `npm run test:visual`
+- [ ] Ran visual tests: `npm run test:visual`
 
 ### Manual Testing
 

@@ -23,7 +23,6 @@ The repository default branch is **`develop`**. All CI workflows trigger on push
 | accessibility.yml | - | yes | - | - |
 | lighthouse.yml | - | yes | - | - |
 | gem-release.yml | - | - | - | v* |
-| percy.yml | - | yes | - | - |
 | broken-links.yml | - | - | weekly | - |
 
 ## Guidelines

@@ -16,8 +16,7 @@ npm install
 | `npm test` | JavaScript unit tests (Vitest) |
 | `npm run test:coverage` | Unit tests with coverage report |
 | `npm run test:integration` | Playwright integration tests |
-| `npm run test:visual` | Visual regression tests |
-| `npm run test:visual:percy` | Visual tests with Percy snapshots |
+| `npm run test:visual` | Playwright visual-structure specs |
 | `bundle exec rake ci:verify` | Full Ruby verification suite |
 | `bundler-audit check` | Ruby dependency vulnerability scan |
 | `npm audit --omit=dev` | Node.js dependency vulnerability scan |
@@ -34,7 +33,6 @@ which run in the background.
 | `test.yml` | `vitest.config.js`, `Rakefile`, `eslint.config.js`, `.rubocop.yml` | JS + Ruby unit tests, lint |
 | `accessibility.yml` | `pa11yci.json` | Pa11y a11y audit |
 | `lighthouse.yml` | `lighthouserc.json` | Performance budgets |
-| `percy.yml` | `percy.config.yml`, `playwright.config.js` | Visual regression snapshots |
 | `codeql.yml` | — | Static security analysis |
 | `dependency-review.yml` | — | New-deps vulnerability check |
 

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -56,7 +56,7 @@ test.describe('Visualization gallery scenarios', () => {
             expect(describedBy.split(/\s+/)).toContain(toggleTarget);
           }
 
-          await capturePercySnapshot(page, `${viz.type} visualization (${viewport.name})`, {
+          await captureSnapshot(page, `${viz.type} visualization (${viewport.name})`, {
             scope: `[data-viz-type="${viz.type}"]`
           });
         });

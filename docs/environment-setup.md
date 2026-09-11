@@ -47,7 +47,6 @@ This guide explains how to configure environment variables and secrets for DataL
 | `GA4_CREDENTIALS_JSON` | GA4 service account credentials | Analytics dashboard | - |
 | `GA4_CREDENTIALS_PATH` | Path to GA4 credentials file | Analytics dashboard | - |
 | `PLAYWRIGHT_BASE_URL` | Base URL for tests | Integration/visual tests | `http://127.0.0.1:4173` |
-| `PERCY_TOKEN` | Percy project token | Visual regression testing | - |
 | `CODECOV_TOKEN` | Codecov project token | Coverage reporting | - |
 | `JEKYLL_ENV` | Jekyll environment | Production builds | `development` |
 | `NODE_ENV` | Node environment | Build optimization | `development` |
@@ -137,20 +136,6 @@ PLAYWRIGHT_BASE_URL=http://localhost:4000
 npm run test:integration  # Automatically starts server and sets URL
 ```
 
-For Percy visual regression testing:
-
-```bash
-# 1. Sign up at https://percy.io
-# 2. Create a new project
-# 3. Copy project token
-
-# In .env file
-PERCY_TOKEN=your_percy_token_here
-
-# Run visual tests
-npm run test:visual:percy
-```
-
 ## GitHub Actions Setup
 
 ### Required Secrets
@@ -159,7 +144,6 @@ No secrets are required for basic CI/CD. The following are optional:
 
 | Secret Name | Purpose | How to Get | Required? |
 |-------------|---------|------------|-----------|
-| `PERCY_TOKEN` | Visual regression | [Percy.io](https://percy.io) project settings | No |
 | `CODECOV_TOKEN` | Coverage reporting | [Codecov.io](https://codecov.io) after linking repo | No |
 
 ### Adding Secrets to GitHub
@@ -171,30 +155,13 @@ No secrets are required for basic CI/CD. The following are optional:
 
 2. **Add New Secret:**
    - Click "New repository secret"
-   - Enter secret name (e.g., `PERCY_TOKEN`)
+   - Enter secret name (e.g., `CODECOV_TOKEN`)
    - Paste secret value
    - Click "Add secret"
 
 3. **Verify in Workflow:**
    - Secrets are automatically available in workflows
    - Access via `${{ secrets.SECRET_NAME }}`
-
-### Percy Setup
-
-```bash
-# 1. Install Percy CLI (optional, for local testing)
-npm install --save-dev @percy/cli @percy/playwright
-
-# 2. Sign up at https://percy.io
-# 3. Create new project: "DataLog Theme"
-# 4. Copy project token from project settings
-
-# 5. Add to GitHub Secrets:
-#    Name: PERCY_TOKEN
-#    Value: <your_percy_token>
-
-# 6. Percy will automatically run on PRs
-```
 
 ### Codecov Setup
 
@@ -311,15 +278,13 @@ npx http-server _site -p 4173 &
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 npx playwright test
 ```
 
-### Visual Regression Tests
-
-Percy tests require `PERCY_TOKEN`:
+### Visual Tests
 
 ```bash
-# With token
-PERCY_TOKEN=your_token npm run test:visual:percy
+# Builds, serves and runs the visual-structure specs
+npm run test:visual:auto
 
-# Without token (local snapshots only)
+# Against an already running server (PLAYWRIGHT_BASE_URL)
 npm run test:visual
 ```
 
@@ -329,7 +294,7 @@ Tests run automatically in GitHub Actions:
 
 - **Unit tests**: Always run
 - **Integration tests**: Run on develop branch
-- **Visual tests**: Run on PRs (if Percy configured)
+- **Visual tests**: Run locally; the integration specs also gate every deploy
 
 ## Security Best Practices
 
@@ -439,25 +404,14 @@ grep -r "service_account" --include="*.yml" --include="*.rb" .
   ```
 - In CI, it's set automatically in workflow files
 
-### Percy Tests Skipped
-
-**Problem**: Visual tests skip with "Percy token not configured"
-
-**Expected Behavior**: This is normal if `PERCY_TOKEN` is not set. Tests will run but won't upload to Percy.
-
-**To Enable**:
-- Sign up at [percy.io](https://percy.io)
-- Add `PERCY_TOKEN` secret to GitHub repository
-- Tests will automatically upload on next PR
-
 ### GitHub Actions Failing
 
 **Problem**: Workflows fail with "Secret not found" or permission errors
 
 **Solutions**:
 1. **Check secret names match**:
-   - Workflow uses: `${{ secrets.PERCY_TOKEN }}`
-   - Secret name must be exactly: `PERCY_TOKEN`
+   - Workflow uses: `${{ secrets.CODECOV_TOKEN }}`
+   - Secret name must be exactly: `CODECOV_TOKEN`
 
 2. **Verify secret is set**:
    - Go to Settings → Secrets and variables → Actions
@@ -468,7 +422,7 @@ grep -r "service_account" --include="*.yml" --include="*.rb" .
    - Verify in workflow file
 
 4. **Optional secrets**:
-   - `PERCY_TOKEN` and `CODECOV_TOKEN` are optional
+   - `CODECOV_TOKEN` is optional
    - Workflows handle missing secrets gracefully
 
 ## Advanced Configuration
@@ -527,7 +481,7 @@ export $(cat .env.test | xargs) && npm run test:integration
    ```bash
    # .envrc (same as .env, but auto-loads)
    export GA4_PROPERTY_ID=123456789
-   export PERCY_TOKEN=your_token
+   export CODECOV_TOKEN=your_token
    ```
 
 4. **Allow directory:**
@@ -545,13 +499,13 @@ Use GitHub CLI to manage secrets:
 # Install gh CLI: https://cli.github.com/
 
 # Set secret
-gh secret set PERCY_TOKEN
+gh secret set CODECOV_TOKEN
 
 # List secrets
 gh secret list
 
 # Remove secret
-gh secret remove PERCY_TOKEN
+gh secret remove CODECOV_TOKEN
 ```
 
 ## Summary

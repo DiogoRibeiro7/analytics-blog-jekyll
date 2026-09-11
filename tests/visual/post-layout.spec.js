@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -28,7 +28,7 @@ test.describe('Post layout visual scenarios', () => {
         const readingTime = await postHeader.locator('[data-reading-time]').textContent();
         expect((readingTime ?? '').toLowerCase()).toContain('read');
 
-        await capturePercySnapshot(page, `Post metadata (${viewport.name})`, {
+        await captureSnapshot(page, `Post metadata (${viewport.name})`, {
           scope: '.post-meta'
         });
       });
@@ -54,7 +54,7 @@ test.describe('Post layout visual scenarios', () => {
         expect(codeStyles.fontFamily.toLowerCase()).toContain('monospace');
         expect(codeStyles.overflow === 'auto' || codeStyles.overflow === 'scroll').toBeTruthy();
 
-        await capturePercySnapshot(page, `Post code block (${viewport.name})`, {
+        await captureSnapshot(page, `Post code block (${viewport.name})`, {
           scope: '.post-content pre'
         });
       });
@@ -78,7 +78,7 @@ test.describe('Post layout visual scenarios', () => {
         expect(mathStyles.display).not.toBe('none');
         expect(mathStyles.textAlign).toMatch(/center|left|right|start|end/);
 
-        await capturePercySnapshot(page, `Post math rendering (${viewport.name})`, {
+        await captureSnapshot(page, `Post math rendering (${viewport.name})`, {
           scope: '.post-content .mjx-container'
         });
       });

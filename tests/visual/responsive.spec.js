@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -54,7 +54,7 @@ test.describe('Responsive homepage layouts', () => {
           expect(layoutShape.uniqueTopCount).toBeLessThan(layoutShape.cardSample);
         }
 
-        await capturePercySnapshot(page, `Responsive homepage (${viewport.name})`, {
+        await captureSnapshot(page, `Responsive homepage (${viewport.name})`, {
           fullPage: true
         });
       });

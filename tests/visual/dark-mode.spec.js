@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -57,7 +57,7 @@ test.describe('Dark mode visual coverage', () => {
           expect(colorTokens.bodyBackground).not.toBe('rgba(0, 0, 0, 0)');
           expect(colorTokens.bodyColor).not.toBe('rgb(0, 0, 0)');
 
-          await capturePercySnapshot(page, `${entry.name} dark mode (${viewport.name})`, {
+          await captureSnapshot(page, `${entry.name} dark mode (${viewport.name})`, {
             fullPage: true
           });
         });

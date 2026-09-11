@@ -322,7 +322,6 @@ exclude:
   - playwright.config.js
   - lighthouserc.json
   - pa11yci.json
-  - percy.config.yml
   - package.json
   - package-lock.json
   - requirements.txt

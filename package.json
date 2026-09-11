@@ -15,15 +15,12 @@
     "test:integration:direct": "playwright test",
     "test:visual": "playwright test --grep @visual",
     "test:visual:auto": "node ./scripts/run_playwright_suite.js --grep @visual",
-    "test:visual:percy": "percy exec -- node ./scripts/run_playwright_suite.js --grep @visual",
     "lint": "eslint assets/js/ scripts/ tests/",
     "lint:fix": "eslint --fix assets/js/ scripts/ tests/",
     "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@percy/cli": "^1.32.7",
-    "@percy/playwright": "^1.1.2",
     "@playwright/test": "^1.62.1",
     "@vitest/coverage-v8": "^4.1.11",
     "critical": "^8.0.0",
@@ -48,10 +45,5 @@
     "*.md": [
       "echo '✓ Checked documentation file:'"
     ]
-  },
-  "overrides": {
-    "fast-xml-parser": "^5.7.0",
-    "uuid": "^11.1.1",
-    "snyk-nodejs-lockfile-parser": "^2.10.4"
   }
 }

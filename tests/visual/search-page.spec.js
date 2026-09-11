@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capturePercySnapshot, stabilizePage, viewports } from './helpers.js';
+import { captureSnapshot, stabilizePage, viewports } from './helpers.js';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
@@ -31,7 +31,7 @@ test.describe('Search page visual scenarios', () => {
         const shortcuts = await searchPanel.locator('[data-search-shortcuts]').textContent();
         expect((shortcuts ?? '').includes('Keyboard shortcuts')).toBeTruthy();
 
-        await capturePercySnapshot(page, `Search interface (${viewport.name})`, {
+        await captureSnapshot(page, `Search interface (${viewport.name})`, {
           scope: '.search-app__panel'
         });
       });
@@ -49,7 +49,7 @@ test.describe('Search page visual scenarios', () => {
         const tagGroup = filters.locator('[data-filter-tags]');
         expect(await tagGroup.getAttribute('role')).toBe('group');
 
-        await capturePercySnapshot(page, `Search filters (${viewport.name})`, {
+        await captureSnapshot(page, `Search filters (${viewport.name})`, {
           scope: '.search-app__filters'
         });
       });
@@ -74,7 +74,7 @@ test.describe('Search page visual scenarios', () => {
         const detailLink = await firstResult.locator('[data-result-link]').getAttribute('href');
         expect(detailLink).toBeTruthy();
 
-        await capturePercySnapshot(page, `Search results (${viewport.name})`, {
+        await captureSnapshot(page, `Search results (${viewport.name})`, {
           scope: '.search-app__results'
         });
       });

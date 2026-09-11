@@ -160,12 +160,10 @@ When you're ready to publish a new version of DataLog or announce major updates:
 3. Follow the detailed checklist in [`docs/distribution.md`](distribution.md) to release the gem, submit to the Jekyll theme directory, and coordinate outreach with academic communities.
 4. Share the preferred citation (from `CITATION.cff`) in announcements and research communications.
 
-## 16. Visual Regression & Percy Workflows
+## 16. Visual Checks
 
-- **Playwright assertions**: The browser specs verify semantic structure—hero content, navigation behavior, search live regions, visualization fallbacks, and dark-mode tokens—without committing binary screenshots. Run them with the helper (`npm run test:visual:auto`) or point them at an existing preview via `npm run test:visual`.
-- **Percy snapshots**: Pull requests trigger the "Visual regression (Percy)" workflow, which builds the site and executes `npm run test:visual:percy` against a preview server. Set `PERCY_TOKEN` in repository secrets to enable uploads.
-- **Approvals**: Percy will pause merges until visual diffs are reviewed. Approve intended design updates in Percy’s UI so the check passes.
-- **Stability tips**: The shared visual helper waits for fonts, math rendering, and visualization hydration and freezes animations for deterministic snapshots. Update `tests/visual/helpers.js` when new UI surfaces need additional stabilizers.
+- **Playwright assertions**: The browser specs under `tests/visual/` verify semantic structure at three viewports, covering hero content, navigation behavior, search live regions, visualization fallbacks, and dark-mode tokens, without committing binary snapshots. Run them with `npm run test:visual:auto` (builds and serves the site) or `npm run test:visual` against an existing `PLAYWRIGHT_BASE_URL`.
+- **Stability tips**: The shared helper in `tests/visual/helpers.js` waits for fonts, math rendering, and visualization hydration and freezes animations before assertions. Extend it when new asynchronous UI lands.
 
 For support or collaboration inquiries, reach out to **Diogo Ribeiro** (<dfr@esmad.ipp.pt>) or open a GitHub issue at [`DiogoRibeiro7/analytics-blog-jekyll`](https://github.com/DiogoRibeiro7/analytics-blog-jekyll).
 
