@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
-- Percy: it never ran without a token and carried the last open npm advisory and about 150 packages. The Playwright specs under `tests/visual/` stay as structure checks. `npm audit` is clean.
+- Percy and its visual suite (`tests/visual/`): Percy never ran without a token and carried the last open npm advisory and about 150 packages, and the suite failed 34 of its 58 specs on CDN waits and strict locators, locally and in CI. The integration specs under `tests/integration/` remain the browser checks and gate every deploy. `npm audit` is clean.
 - The `jekyll-jupyter-notebook` gem and the Jupyter toolchain. Notebook pages are rendered by the theme; only `nbformat` remains, for the notebook validation script.
 - `_data/config/site.yml`, `theme.yml` and `features.yml`, which nothing read.
 

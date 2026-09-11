@@ -707,7 +707,6 @@ console.log('TOC links:', document.querySelectorAll('[data-toc-enhanced] a'));
 - **SCSS Linter**: [stylelint](https://stylelint.io/)
 - **Accessibility**: [axe DevTools](https://www.deque.com/axe/devtools/)
 - **Performance**: [Lighthouse](https://developers.google.com/web/tools/lighthouse)
-- **Visual Testing**: [Playwright](https://playwright.dev/docs/test-snapshots)
 
 ### Documentation
 

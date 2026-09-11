@@ -278,23 +278,12 @@ npx http-server _site -p 4173 &
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 npx playwright test
 ```
 
-### Visual Tests
-
-```bash
-# Builds, serves and runs the visual-structure specs
-npm run test:visual:auto
-
-# Against an already running server (PLAYWRIGHT_BASE_URL)
-npm run test:visual
-```
-
 ### Continuous Integration
 
 Tests run automatically in GitHub Actions:
 
 - **Unit tests**: Always run
 - **Integration tests**: Run on develop branch
-- **Visual tests**: Run locally; the integration specs also gate every deploy
 
 ## Security Best Practices
 

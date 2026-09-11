@@ -160,10 +160,10 @@ When you're ready to publish a new version of DataLog or announce major updates:
 3. Follow the detailed checklist in [`docs/distribution.md`](distribution.md) to release the gem, submit to the Jekyll theme directory, and coordinate outreach with academic communities.
 4. Share the preferred citation (from `CITATION.cff`) in announcements and research communications.
 
-## 16. Visual Checks
+## 16. Browser Checks
 
-- **Playwright assertions**: The browser specs under `tests/visual/` verify semantic structure at three viewports, covering hero content, navigation behavior, search live regions, visualization fallbacks, and dark-mode tokens, without committing binary snapshots. Run them with `npm run test:visual:auto` (builds and serves the site) or `npm run test:visual` against an existing `PLAYWRIGHT_BASE_URL`.
-- **Stability tips**: The shared helper in `tests/visual/helpers.js` waits for fonts, math rendering, and visualization hydration and freezes animations before assertions. Extend it when new asynchronous UI lands.
+- **Playwright integration specs**: `tests/integration/` verifies the rendered site in a real browser: landmarks and keyboard access, the dark-mode toggle, responsive layout without horizontal overflow, blog navigation and reading progress, search, and visualization loading with accessible data tables. Run them with `npm run test:integration` (builds and serves the site for you) or `npm run test:integration:direct` against an existing `PLAYWRIGHT_BASE_URL`.
+- **Where they run**: the deploy workflow runs the same specs against the freshly built site before publishing, so a regression there blocks the deploy rather than the site.
 
 For support or collaboration inquiries, reach out to **Diogo Ribeiro** (<dfr@esmad.ipp.pt>) or open a GitHub issue at [`DiogoRibeiro7/analytics-blog-jekyll`](https://github.com/DiogoRibeiro7/analytics-blog-jekyll).
 

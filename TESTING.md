@@ -16,7 +16,6 @@ npm install
 | `npm test` | JavaScript unit tests (Vitest) |
 | `npm run test:coverage` | Unit tests with coverage report |
 | `npm run test:integration` | Playwright integration tests |
-| `npm run test:visual` | Playwright visual-structure specs |
 | `bundle exec rake ci:verify` | Full Ruby verification suite |
 | `bundler-audit check` | Ruby dependency vulnerability scan |
 | `npm audit --omit=dev` | Node.js dependency vulnerability scan |
