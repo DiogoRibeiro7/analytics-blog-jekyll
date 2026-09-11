@@ -53,26 +53,27 @@ jobs:
           echo "Version matches: $VERSION"
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@c984c1a20bb35a1cbda04477c816cea024418be9 # v1
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
           ruby-version: '3.2'
           bundler-cache: true
 
       - name: Set up Node.js
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build JS bundles
+        run: npm run build:js
 
       - name: Run tests
         run: npm run test:coverage
 
       - name: Build site
-        run: |
-          npm run build:js
-          bundle exec jekyll build --trace
+        run: bundle exec jekyll build --trace
 
       - name: Run bundler-audit
         run: |

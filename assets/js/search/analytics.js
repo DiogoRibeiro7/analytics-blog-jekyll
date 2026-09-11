@@ -12,18 +12,29 @@ export function createAnalyticsManager({ panel, list, empty, onSelect }) {
   let lastQuery = "";
 
   function loadAnalytics() {
+    // Search queries become keys on this object, so it is built with a null
+    // prototype and filled by explicit own-key copy. A visitor searching for
+    // "__proto__" or "constructor" then records a plain entry instead of
+    // reaching Object.prototype.
+    const counts = Object.create(null);
+
     try {
       const stored = window.localStorage.getItem(ANALYTICS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === "object") {
-          return parsed;
+          Object.entries(parsed).forEach(([query, count]) => {
+            if (typeof count === "number" && Number.isFinite(count)) {
+              counts[query] = count;
+            }
+          });
         }
       }
     } catch (error) {
       console.warn("Unable to load stored analytics", error);
     }
-    return {};
+
+    return counts;
   }
 
   function saveAnalytics() {

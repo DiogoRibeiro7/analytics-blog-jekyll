@@ -14,21 +14,25 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@c984c1a20bb35a1cbda04477c816cea024418be9 # v1
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
           ruby-version: '3.2'
           bundler-cache: true
 
       - name: Set up Node.js
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Node.js dependencies
         run: npm ci
 
+      # assets/js/dist is gitignored; the pages link to these bundles.
+      - name: Build JS bundles
+        run: npm run build:js
+
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
 
@@ -43,6 +47,15 @@ jobs:
         run: bundle exec jekyll build --trace
 
       - name: Run lychee link checker
-        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: --verbose --no-progress --offline _site
+          # Offline mode needs --root-dir (an absolute path) to resolve the
+          # root-relative links (/blog/, /assets/...) the site emits; without it
+          # lychee reports every one of them as an error.
+          args: >-
+            --verbose
+            --no-progress
+            --offline
+            --root-dir "${{ github.workspace }}/_site"
+            --index-files index.html
+            _site

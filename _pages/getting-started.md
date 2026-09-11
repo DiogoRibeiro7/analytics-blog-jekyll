@@ -13,9 +13,9 @@ description: A roadmap for new data scientists joining the DataLog community.
 
 ## Step 2. Explore learning paths
 
-- **Foundational tutorials**: Start with [Python Data Wrangling Foundations](/blog/python-data-wrangling-foundations/).
-- **Statistical rigor**: Review [Statistical Analysis Blueprint for Experimental Design](/blog/statistical-analysis-blueprint-experimental-design/).
-- **Visualization excellence**: Dive into the [Data Visualization Showcase](/blog/data-visualization-showcase-communicating-ensemble-forecasts/).
+- **Foundational tutorials**: Start with [Python Data Wrangling Foundations]({% post_url 2024-02-01-python-data-wrangling-foundations %}).
+- **Statistical rigor**: Review [Statistical Analysis Blueprint for Experimental Design]({% post_url 2024-02-20-statistical-analysis-experimental-design %}).
+- **Visualization excellence**: Dive into the [Data Visualization Showcase]({% post_url 2024-02-25-data-visualization-showcase-ensemble %}).
 
 ## Step 3. Run interactive assets
 

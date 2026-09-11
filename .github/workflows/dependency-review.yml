@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: moderate
           deny-licenses: GPL-2.0, GPL-3.0
@@ -39,22 +39,42 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
+      # Thresholds follow docs/npm-audit-policy.md: high and critical advisories
+      # in production dependencies block; everything else is reported.
+      - name: Audit production dependencies (blocking)
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Audit all dependencies (advisory)
         run: |
           npm audit --audit-level=moderate --json > npm-audit.json || true
-          npm audit --audit-level=moderate
+          node -e '
+            const v = require("./npm-audit.json").metadata.vulnerabilities;
+            const total = v.moderate + v.high + v.critical;
+            const msg = "npm audit: " + total + " moderate-or-higher advisories across all dependencies"
+              + " (moderate " + v.moderate + ", high " + v.high + ", critical " + v.critical + ")."
+              + " Known exceptions are listed in docs/npm-audit-policy.md.";
+            console.log(msg);
+            if (total > 0) console.log("::warning::" + msg);
+          '
+          {
+            echo "## npm audit (all dependencies, moderate and above)"
+            echo
+            echo '```'
+            npm audit --audit-level=moderate || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload npm audit results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: npm-audit-results
           path: npm-audit.json
@@ -68,7 +88,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@c984c1a20bb35a1cbda04477c816cea024418be9 # v1
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
           ruby-version: '3.2'
           bundler-cache: true
@@ -90,7 +110,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
 

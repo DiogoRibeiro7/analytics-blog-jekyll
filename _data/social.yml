@@ -57,8 +57,10 @@ contact:
 rss:
   - label: Main feed
     url: /feed.xml
-  - label: Research & tutorials
-    url: /blog/feed.xml
+  - label: Research
+    url: /feed/research.xml
+  - label: Tutorials
+    url: /feed/tutorials.xml
   - label: Datasets
     url: /datasets/feed.xml
 

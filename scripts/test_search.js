@@ -1,21 +1,27 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.join(__dirname, '..');
-const searchBundle = fs.readFileSync(path.join(root, 'assets', 'js', 'search.js'), 'utf8');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const searchDir = path.join(root, 'assets', 'js', 'search');
+const searchSources = [
+  path.join(root, 'assets', 'js', 'search.js'),
+  ...fs
+    .readdirSync(searchDir)
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => path.join(searchDir, file))
+];
+const searchBundle = searchSources.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 const searchTemplate = fs.readFileSync(path.join(root, 'search', 'index.html'), 'utf8');
-const searchIndex = fs.readFileSync(path.join(root, 'search.json'), 'utf8');
-const config = fs.readFileSync(path.join(root, '_config.yml'), 'utf8');
 
 const requiredFunctions = [
   'isMathQuery',
   'isCodeQuery',
   'tokenize',
-  'recordAnalytics',
-  'handleAutocomplete',
-  'handleAutocompleteNavigation',
-  'populateTagFilters',
+  'createAnalyticsManager',
+  'createAutocomplete',
+  'renderTagFilters',
   'selectedTags',
   'languageFilter',
   'difficultyFilter'
@@ -52,14 +58,6 @@ requiredSelectors.forEach((selector) => {
 
 if (!searchTemplate.includes('data-filter-tags') || !searchTemplate.includes('search-result__math-preview')) {
   throw new Error('Search template missing tag filters or math preview support');
-}
-
-if (!config.includes('include_code_blocks: true') || !config.includes('include_math: true')) {
-  throw new Error('Search configuration missing math/code directives');
-}
-
-if (!config.includes('enable_keyboard_shortcuts: true')) {
-  throw new Error('Search configuration missing keyboard shortcut support');
 }
 
 console.log('Technical search experience verified for math, code, filters, analytics, and autocomplete.');

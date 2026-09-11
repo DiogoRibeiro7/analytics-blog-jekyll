@@ -47,7 +47,9 @@ class SearchIndexTest < Minitest::Test
   end
 
   def test_index_captures_notebook_content
-    notebook_entry = @index["documents"].find { |doc| doc["url"].include?("/notebooks/") }
+    # Require a path segment after /notebooks/ so this selects a converted
+    # notebook rather than the collection listing page at /notebooks/.
+    notebook_entry = @index["documents"].find { |doc| doc["url"].match?(%r{/notebooks/.+}) }
     refute_nil notebook_entry, "Search index should include converted notebooks"
     assert_match(/Exploratory Data Snapshot/, notebook_entry["title"])
     assert_includes notebook_entry["content"], "DataLog renders .ipynb files",

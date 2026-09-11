@@ -9,19 +9,13 @@ File.read(File.join(root, "_config.yml"))
 academic_text = File.read(File.join(root, "_data", "academic.yml"))
 
 integrations = config.fetch("integrations", {})
-required_integrations = %w[github binder colab kaggle observable zenodo scholar orcid researchgate academia]
+# Only the integrations the theme actually reads (site.integrations.*).
+required_integrations = %w[github binder colab]
 missing_integrations = required_integrations.reject do |key|
   settings = integrations[key]
   settings && settings["enabled"]
 end
 raise "Integrations missing enablement: #{missing_integrations.join(', ')}" unless missing_integrations.empty?
-
-academic_integrations = config.dig("theme_options", "academic_integrations") || {}
-missing_segments = %w[google_scholar orcid researchgate academia submissions calendar badges
-                      collaboration].reject do |segment|
-  academic_integrations.key?(segment)
-end
-raise "Academic integration settings missing #{missing_segments.join(', ')}" unless missing_segments.empty?
 
 raise "Academic data missing Google Scholar profile" unless academic_text.match?(/google_scholar:\s*\n\s+label:/)
 

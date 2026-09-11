@@ -13,7 +13,7 @@ DataLog is a modern, academic-inspired Jekyll theme tailored for data scientists
 ## Features
 
 - **Research-ready layouts** for posts, pages, datasets, and portfolio case studies
-- **Jupyter Notebook integration** via [`jekyll-jupyter-notebook`](https://github.com/aarongraham/jekyll-jupyter-notebook)
+- **Jupyter Notebook integration**: `.ipynb` files in `_notebooks/` become sanitized, CSP-safe pages via the theme's notebook converter
 - **Advanced MathJax tooling** with accessible numbering, cross-references, equation editor, and LaTeX copy helpers
 - **Optimized syntax highlighting** for Python, R, SQL, and Julia code blocks
 - **Responsive and accessible UI** that meets WCAG 2.1 AA guidelines
@@ -55,7 +55,7 @@ site; the rest is reference content you can copy from.
 ├── _datasets/                 # Collection for dataset descriptions
 ├── _includes/                 # Reusable components (head, footer, analytics, etc.)
 ├── _layouts/                  # Page layouts (default, post, notebook, portfolio, dataset)
-├── _notebooks/                # Source notebooks rendered with jekyll-jupyter-notebook
+├── _notebooks/                # Source notebooks rendered by _plugins/notebook_converter.rb
 ├── _pages/                    # Standalone pages (About, Contact, etc.)
 ├── _plugins/                  # Custom helpers (accessibility, filters, etc.)
 ├── _portfolio/                # Portfolio items for data science projects
@@ -80,6 +80,7 @@ site; the rest is reference content you can copy from.
 - [Changelog](CHANGELOG.md) — release highlights and upgrade guidance for each published version of the DataLog theme.
 - [Template Repository Guide](docs/template-repository.md) — instructions for publishing a GitHub template with starter content, configuration, and automated deployments.
 - [Installation Guide](docs/install.md) — prerequisites, GitHub Pages, local, and Docker setup paths.
+- [Migrating from Minimal Mistakes](docs/migrating-from-minimal-mistakes.md) — the front-matter fields DataLog reads natively (hero and teaser images, SEO title and description, `classes: wide`, `redirect_from`) and the settings that keep existing URLs.
 - [Plugin Development Guide](docs/plugin-development.md) — understand the hook system and learn how to package extensions for reuse.
 - [Security Policy](SECURITY.md) — report security vulnerabilities and learn about security best practices.
 - [Contributing Guidelines](CONTRIBUTING.md) — contribution workflow, code standards, and community guidelines.

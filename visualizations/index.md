@@ -93,6 +93,68 @@ svg.append('g').attr('transform', `translate(${margin.left}, 0)`).call(d3.axisLe
   <div class="viz-canvas" data-viz-canvas></div>
 </div>
 
+### Bokeh — Pipeline Latency
+
+<div class="viz-block" data-viz-type="bokeh" data-viz-slug="bokeh-latency-example">
+  <div class="viz-canvas" data-viz-canvas>
+    <script nonce="{{ page.csp_nonce }}" type="text/plain" data-bokeh-script>
+const plot = Bokeh.Plotting.figure({
+  title: 'Ingest latency percentiles',
+  height: 280,
+  sizing_mode: 'stretch_width',
+  x_axis_label: 'Batch',
+  y_axis_label: 'Milliseconds'
+});
+
+plot.line([1, 2, 3, 4, 5, 6], [128, 135, 129, 142, 131, 126], {
+  legend_label: 'p95',
+  line_width: 2,
+  line_color: '#0d9488'
+});
+
+plot.line([1, 2, 3, 4, 5, 6], [86, 91, 88, 94, 89, 85], {
+  legend_label: 'p50',
+  line_width: 2,
+  line_color: '#6366f1'
+});
+
+Bokeh.Plotting.show(plot, element);
+    </script>
+  </div>
+</div>
+
+### R Shiny — Retail Demand Forecaster
+
+<div class="viz-block" data-viz-type="shiny" data-viz-slug="shiny-demand-example"
+     data-viz-title="Retail demand forecaster"
+     data-shiny-src="https://shiny.posit.co/r/gallery/">
+  <div class="viz-canvas" data-viz-canvas></div>
+</div>
+
+### Jupyter Widgets — Feature Importance Inspector
+
+<div class="viz-block" data-viz-type="ipywidgets" data-viz-slug="ipywidgets-slider-example">
+  <div class="viz-canvas" data-viz-canvas>
+    <script nonce="{{ page.csp_nonce }}" type="application/vnd.jupyter.widget-state+json">
+{
+  "version_major": 2,
+  "version_minor": 0,
+  "state": {
+    "datalog-feature-slider": {
+      "model_name": "IntSliderModel",
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "state": {"value": 12, "min": 1, "max": 40, "description": "Top features"}
+    }
+  }
+}
+    </script>
+    <script nonce="{{ page.csp_nonce }}" type="application/vnd.jupyter.widget-view+json">
+{"version_major": 2, "version_minor": 0, "model_id": "datalog-feature-slider"}
+    </script>
+  </div>
+</div>
+
 ## Integration Guide
 
 Every visualization block stores version and update metadata for change tracking. Libraries are lazy-loaded only when they enter the viewport, keeping long pages performant.

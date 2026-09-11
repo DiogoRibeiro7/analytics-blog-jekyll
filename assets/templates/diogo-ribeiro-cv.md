@@ -1,10 +1,8 @@
----
-name: Diogo Ribeiro
-affiliation: ESMAD - Instituto Politécnico do Porto
-email: dfr@esmad.ipp.pt
-orcid: https://orcid.org/0009-0001-2022-7072
-summary: Data scientist focused on reproducible analytics, experimental design, and interactive storytelling.
----
+# Diogo Ribeiro
+
+ESMAD - Instituto Politécnico do Porto · dfr@esmad.ipp.pt · [ORCID](https://orcid.org/0009-0001-2022-7072)
+
+Data scientist focused on reproducible analytics, experimental design, and interactive storytelling.
 
 ## Research Interests
 - Probabilistic forecasting and decision intelligence

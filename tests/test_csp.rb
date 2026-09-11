@@ -25,7 +25,7 @@ class ContentSecurityPolicyTest < Minitest::Test
       output = read_output(doc)
       next unless output
 
-      output.scan(/<script(?![^>]*\bsrc=)([^>]*)>/m).each do |match|
+      output.scan(/<script(?![^>]*\bsrc=)([^>]*)>/mi).each do |match|
         attributes = match.first
         assert_includes attributes, "nonce=", "Missing nonce for inline script in #{document_identifier(doc)}"
       end
@@ -41,7 +41,11 @@ class ContentSecurityPolicyTest < Minitest::Test
     return unless mathjax_page
 
     output = read_output(mathjax_page)
-    assert_match(/<script[^>]+id="mathjax-script"[^>]+integrity="sha384-[^"]+"/, output,
+    # Match the tag first, then its attributes, so the assertion does not depend
+    # on the order the renderer happens to emit them in.
+    mathjax_tag = output[/<script[^>]*\bid="mathjax-script"[^>]*>/]
+    assert mathjax_tag, "MathJax script tag should be present"
+    assert_match(/integrity="sha384-[^"]+"/, mathjax_tag,
                  "MathJax script should include an integrity hash")
   end
 

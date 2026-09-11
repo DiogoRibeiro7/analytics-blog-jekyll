@@ -1,12 +1,11 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
-import os from 'os';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import YAML from 'yaml';
-import critical from 'critical';
-
-const { generate } = critical;
+// `critical` is pure ESM and exposes only named exports, so a default import
+// resolves to undefined and the module fails to link.
+import { generate } from 'critical';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,37 +81,39 @@ async function buildSite(destination) {
 }
 
 async function locateSamplePost(buildDir) {
-  const blogDir = path.resolve(buildDir, 'blog');
-  try {
-    const stat = await fs.stat(blogDir);
-    if (!stat.isDirectory()) {
-      throw new Error('Blog directory is not a directory');
-    }
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      throw new Error('Blog directory not found in generated site');
-    }
-    throw error;
-  }
+  // Posts do not live under /blog/. With `permalink: pretty` they render at
+  // /YYYY/MM/DD/slug/, and blog/ only holds the listing plus its pagination, so
+  // walking blog/ could only ever return a pagination page -- which is why the
+  // post target used to extract the same CSS as the default one.
+  // The body class carries the layout regardless of permalink style, so match
+  // on that instead. Entries are sorted so the chosen post is stable run to run.
+  const stack = [buildDir];
 
-  const stack = [blogDir];
   while (stack.length > 0) {
     const current = stack.pop();
     const entries = await fs.readdir(current, { withFileTypes: true });
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+
     for (const entry of entries) {
       const entryPath = path.resolve(current, entry.name);
+
       if (entry.isDirectory()) {
         stack.push(entryPath);
-      } else if (entry.isFile() && entry.name === 'index.html') {
-        const relative = path.relative(buildDir, entryPath).replace(/\\/g, '/');
-        if (relative.toLowerCase() !== 'blog/index.html') {
-          return relative;
-        }
+        continue;
+      }
+
+      if (entry.name !== 'index.html') {
+        continue;
+      }
+
+      const html = await fs.readFile(entryPath, 'utf8');
+      if (/<body[^>]*\blayout-post\b/.test(html)) {
+        return path.relative(buildDir, entryPath).split(path.sep).join('/');
       }
     }
   }
 
-  throw new Error('Unable to locate a generated blog post to extract critical CSS');
+  throw new Error('Unable to locate a generated post to extract critical CSS');
 }
 
 async function ensureIncludesDirectory() {
@@ -130,10 +131,17 @@ async function extractCriticalForTarget({ baseDir, src, targetName, dimensions, 
   console.log(`Generating critical CSS for ${targetName} from ${src}`);
   const { css } = await generate({
     base: baseDir,
-    src,
+    // Absolute src. critical resolves a root-anchored href like
+    // /assets/css/main.css against the document's own directory, so a relative
+    // src that sits in a subdirectory (blog/index.html, or any post) finds no
+    // stylesheet and returns empty CSS without raising -- only the site root
+    // happened to work, because there the document dir and base coincide.
+    src: path.resolve(baseDir, src),
     inline: false,
     dimensions,
-    minify: true,
+    // No `minify` key: critical removed it, and the option is redundant anyway
+    // because generate() always runs the result through clean-css. Passing it
+    // is rejected outright with `ConfigError: "minify" is not allowed`.
     extract: false,
     penthouse: penthouseOptions,
     rebase: false
@@ -157,7 +165,14 @@ async function extractCriticalCSS() {
 
   await ensureIncludesDirectory();
 
-  const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'jekyll-critical-'));
+  // Build inside the repo, not os.tmpdir(). The generated pages link the
+  // stylesheet as an absolute href (/assets/css/main.css), and critical only
+  // resolves those against paths at or under the working directory -- with a
+  // base outside it the search list collapses to cwd and the lookup fails with
+  // `File not found: /assets/css/main.css`. tmp/ is already gitignored.
+  const scratchDir = path.join(rootDir, 'tmp');
+  await fs.mkdir(scratchDir, { recursive: true });
+  const tmpRoot = await fs.mkdtemp(path.join(scratchDir, 'critical-'));
   try {
     await buildSite(tmpRoot);
 

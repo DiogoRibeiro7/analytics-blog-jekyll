@@ -10,6 +10,9 @@ layout: default
       {% assign posts_limit = site.posts | slice: 0, 6 %}
       {% for post in posts_limit %}
         <article class="card">
+          {% if post.teaser %}
+          <a class="card-media" href="{{ post.url | relative_url }}" tabindex="-1" aria-hidden="true"><img src="{{ post.teaser | relative_url }}" alt="" loading="lazy" decoding="async" /></a>
+          {% endif %}
           <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
           {% assign home_date_format = localization_config.date_format | default: 'long' %}
           {% assign reading_minutes = post.reading_time | default: post.content | number_of_words | divided_by: 180 | ceil %}

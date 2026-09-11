@@ -132,6 +132,8 @@ $$
 
 ## 13. Migration Guide
 
+Coming from Minimal Mistakes? Its `header` images, `seo_title`, `seo_description`, `classes: wide` and `redirect_from` fields are read natively; see [docs/migrating-from-minimal-mistakes.md](migrating-from-minimal-mistakes.md) for the field table and the permalink settings that preserve URLs.
+
 1. **Back up your existing theme** and export content.
 2. **Copy Markdown posts, datasets, and projects** into the respective DataLog collections.
 3. **Map configuration**: merge your existing `_config.yml` values into DataLog's configuration, paying special attention to `collections`, `theme_options`, and `integrations` blocks.

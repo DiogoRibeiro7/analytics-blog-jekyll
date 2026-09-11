@@ -29,8 +29,11 @@ unless post_layout.include?("code-copy") && post_layout.include?("code-language"
   raise "Post layout missing code copy buttons or language indicators"
 end
 
-unless layout.include?("prism_cdn") && head_include.include?("prism_line_numbers_url")
-  raise "Prism assets not referenced in default layout/head"
+# Prism scripts are emitted by _includes/meta/scripts-loader.html; the
+# stylesheets by _includes/head.html.
+scripts_loader = File.read(File.join(root, "_includes", "meta", "scripts-loader.html"))
+unless scripts_loader.include?("prism_cdn") && head_include.include?("prism_line_numbers_url")
+  raise "Prism assets not referenced in scripts loader/head"
 end
 
 puts "Syntax highlighting configuration covers #{languages.join(', ')}"

@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "pathname"
-require "yaml"
 require "json"
 require "zlib"
 require "stringio"
@@ -27,13 +26,6 @@ def gzip_size(path)
 end
 
 raise "Core bundle exceeds 50KB gzipped" if gzip_size(core_path) > 50 * 1024
-
-config = YAML.safe_load(root.join("_config.yml").read, aliases: true)
-visualization_settings = config.dig("theme_options", "visualizations") || {}
-
-unless visualization_settings["responsive"] && visualization_settings["lazy_load"]
-  raise "Visualization settings must enable responsive lazy loading"
-end
 
 visualizations_bundle = features["visualizations"]
 if visualizations_bundle

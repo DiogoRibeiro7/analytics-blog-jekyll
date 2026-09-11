@@ -72,7 +72,9 @@ aside {
 // ---------------------------------------------------------------------------
 .hero {
   position: relative;
-  background: var(--hero-bg) center / cover no-repeat;
+  // Solid base under the image: keeps the white text legible if the image
+  // fails to load, and gives contrast checkers a real colour to measure.
+  background: $color-surface-900 var(--hero-bg) center / cover no-repeat;
   color: #fff;
   padding: clamp(4rem, 10vw, 8rem) 0;
   text-align: center;
@@ -82,7 +84,15 @@ aside {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba($color-surface-900, 0.82) 0%, rgba($color-accent-primary, 0.55) 100%);
+  // The accent end used to be rgba($color-accent-primary, 0.55). Over a light
+  // hero image that composites to #87a9f4, where the white hero text measures
+  // 2.33:1 -- below AA. Blending toward the navy and raising the alpha puts the
+  // worst case at 5.17:1 regardless of how bright the image is.
+  background: linear-gradient(
+    160deg,
+    rgba($color-surface-900, 0.82) 0%,
+    rgba(color.mix($color-accent-primary, $color-surface-900, 60%), 0.8) 100%
+  );
   pointer-events: none;
 }
 
@@ -1598,4 +1608,146 @@ body.dark-mode .error-search input[type="search"] {
 body.dark-mode .error-links {
   h2 { color: $dark-ink-500; }
   a { color: $dark-accent-primary; }
+}
+
+// ---------------------------------------------------------------------------
+// Minimal Mistakes compatibility: post heroes, teaser thumbnails, wide posts
+// and the editorial provenance note. See docs/migrating-from-minimal-mistakes.md.
+// ---------------------------------------------------------------------------
+.post-hero {
+  margin: 0 0 map.get($spacing, 5);
+  border-radius: map.get($radius, lg);
+  overflow: hidden;
+}
+
+.post-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.post-hero__caption {
+  padding: map.get($spacing, 2) 0 0;
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+body.dark-mode .post-hero__caption {
+  color: $dark-ink-500;
+}
+
+.post-hero--overlay {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 16rem;
+  padding: map.get($spacing, 6) map.get($spacing, 5);
+  background-color: $color-ink-900;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+
+  @include respond-to(md) {
+    min-height: 22rem;
+    padding: map.get($spacing, 7) map.get($spacing, 6);
+  }
+}
+
+.post-hero__inner {
+  max-width: $max-width-reading;
+}
+
+.post-hero__title {
+  margin: 0;
+  color: inherit;
+}
+
+.post-hero__subtitle {
+  margin: map.get($spacing, 2) 0 0;
+  font-size: map.get($font-size-scale, lg);
+  color: inherit;
+}
+
+.article-subtitle {
+  margin: map.get($spacing, 1) 0 0;
+  font-size: map.get($font-size-scale, lg);
+  color: $color-ink-700;
+}
+
+body.dark-mode .article-subtitle {
+  color: $dark-ink-700;
+}
+
+// Teaser thumbnails on home cards and related-post cards.
+.card-media {
+  display: block;
+  margin: -#{map.get($spacing, 5)} -#{map.get($spacing, 5)} 0;
+  overflow: hidden;
+  border-radius: 0.75rem 0.75rem 0 0;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+
+.related-post__media {
+  display: block;
+  margin: 0 0 map.get($spacing, 2);
+  overflow: hidden;
+  border-radius: map.get($radius, md);
+
+  img {
+    display: block;
+    width: 100%;
+    max-width: 20rem;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+
+// `classes: wide` lifts the reading measure inside the article, as the
+// Minimal Mistakes wide layout does.
+body.wide .article-body,
+body.wide .post-content {
+  p,
+  li,
+  blockquote,
+  .lead {
+    max-width: none;
+  }
+}
+
+// Editorial provenance note (why_this_exists, evidence, methodology, reviewed_at).
+.content-provenance {
+  @include callout($color-accent-secondary);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.content-provenance__heading {
+  margin: 0 0 map.get($spacing, 2);
+  font-size: map.get($font-size-scale, base);
+}
+
+.content-provenance__list {
+  display: grid;
+  gap: map.get($spacing, 2);
+  margin: 0;
+
+  > div {
+    display: grid;
+    gap: map.get($spacing, 1);
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    max-width: $max-width-reading;
+  }
 }

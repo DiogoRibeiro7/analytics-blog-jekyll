@@ -84,7 +84,7 @@ This layout provides an alternative post presentation with a sidebar containing:
             {% if has_tags %}
               {% for tag in post_tags %}
                 {% assign tag_slug = tag | slugify %}
-                <a class="post-sidebar-layout__tag" href="{{ '/tags/#' | append: tag_slug | relative_url }}">{{ tag }}</a>
+                <a class="post-sidebar-layout__tag" href="{{ site.tag_archive.path | default: '/tags/' | append: '#' | append: tag_slug | relative_url }}">{{ tag }}</a>
               {% endfor %}
             {% endif %}
           </div>

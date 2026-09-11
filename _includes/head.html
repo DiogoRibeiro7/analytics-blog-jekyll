@@ -1,5 +1,5 @@
-{% assign page_title = page.title | default: site.title %}
-{% assign page_description = page.excerpt | default: page.description | default: site.description %}
+{% assign page_title = page.seo_title | default: page.title | default: site.title %}
+{% assign page_description = page.seo_description | default: page.description | default: page.excerpt | default: site.description %}
 {% assign canonical_url = page.url | default: page.permalink | default: '/' | absolute_url %}
 {% assign raw_keywords = page.keywords | default: page.tags | default: site.keywords %}
 {% assign localization_config = site.theme_options.localization %}
@@ -89,17 +89,21 @@
 <link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/img/favicons/favicon-32x32.png' | relative_url }}" />
 <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/img/favicons/favicon-16x16.png' | relative_url }}" />
 <link rel="manifest" href="{{ '/assets/img/favicons/site.webmanifest' | relative_url }}" />
-<link rel="mask-icon" href="{{ '/assets/img/favicons/safari-pinned-tab.svg' | relative_url }}" color="#0b1d3d" />
 <link rel="shortcut icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" />
 <meta name="msapplication-TileColor" content="#0b1d3d" />
 <meta name="msapplication-config" content="{{ '/assets/img/favicons/browserconfig.xml' | relative_url }}" />
 
+{% if page.seo_title %}
+<title>{{ page.seo_title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
+{% seo title=false %}
+{% else %}
 {% seo %}
+{% endif %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preload" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" as="style" />
-<link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" media="print" onload="this.media='all'" />
+<link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" media="print" data-async-style />
 <noscript>
   <link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" />
 </noscript>
@@ -137,13 +141,34 @@
 {% endif %}
 {% if trimmed_critical != '' %}
 <link rel="preload" href="{{ main_stylesheet }}" as="style" />
-<link rel="stylesheet" href="{{ main_stylesheet }}" media="print" onload="this.media='all'" />
+<link rel="stylesheet" href="{{ main_stylesheet }}" media="print" data-async-style />
 <noscript>
   <link rel="stylesheet" href="{{ main_stylesheet }}" />
 </noscript>
 {% else %}
 <link rel="stylesheet" href="{{ main_stylesheet }}" />
 {% endif %}
+
+{%- comment -%}
+  Async CSS promoter. The stylesheets above ship as media="print" so they do not
+  block first paint, then switch to media="all" once loaded. This has to run
+  from a nonced script: the CSP sets no 'unsafe-inline' in script-src, so the
+  inline onload="this.media='all'" handlers this replaces never fired, leaving
+  the main stylesheet stuck on print whenever critical CSS was inlined.
+{%- endcomment -%}
+<script nonce="{{ page.csp_nonce }}">
+  (function () {
+    var links = document.querySelectorAll('link[data-async-style]');
+    Array.prototype.forEach.call(links, function (link) {
+      var promote = function () { link.media = 'all'; };
+      if (link.sheet) {
+        promote();
+      } else {
+        link.addEventListener('load', promote, { once: true });
+      }
+    });
+  })();
+</script>
 
 {% if math_enabled %}
   {% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
