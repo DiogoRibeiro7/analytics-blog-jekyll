@@ -63,7 +63,7 @@
     {% if page.layout %}{% assign page_contexts = page_contexts | push: page.layout %}{% endif %}
     {% if page.collection %}{% assign page_contexts = page_contexts | push: page.collection %}{% endif %}
     {% if page.type %}{% assign page_contexts = page_contexts | push: page.type %}{% endif %}
-    <nav id="site-nav" class="site-nav" role="navigation" aria-label="Primary navigation" data-open="true">
+    <nav id="site-nav" class="site-nav" role="navigation" aria-label="Primary navigation" data-open="false">
       {% include header/navigation.html items=nav_items page=page contexts=page_contexts %}
     </nav>
   </div>

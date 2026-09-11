@@ -7,6 +7,7 @@
 
 // Each partial below MUST import its own tokens if it references them.
 // `@use` here does NOT leak variables into those files' scopes.
+@use 'font-fallbacks';
 @use 'base';
 @use 'typography';
 @use 'layout';

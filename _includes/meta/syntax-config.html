@@ -1,0 +1,19 @@
+{%- comment -%}
+Decides whether the Prism assets are needed on this page. Exposes prism_enabled.
+
+Resolution order: the page's `syntax_highlighting` front matter, then
+`theme_options.syntax_highlighting.load`: `auto` (the default) loads Prism only
+when the rendered page contains a code block; `always` loads it on every page.
+{%- endcomment -%}
+{%- assign syntax_settings = site.theme_options.syntax_highlighting | default: {} -%}
+{%- assign syntax_load = syntax_settings.load | default: 'auto' -%}
+{%- if page.syntax_highlighting != nil -%}
+  {%- assign prism_enabled = page.syntax_highlighting -%}
+{%- elsif syntax_load == 'auto' -%}
+  {%- assign prism_enabled = false -%}
+  {%- if content contains '<pre' or content contains 'class="language-' or content contains 'class="highlight' -%}
+    {%- assign prism_enabled = true -%}
+  {%- endif -%}
+{%- else -%}
+  {%- assign prism_enabled = true -%}
+{%- endif -%}

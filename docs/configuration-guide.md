@@ -62,9 +62,17 @@ theme_options:
     engine: mathjax      # or katex
     output: chtml
     accessibility: true
+    render_on_load: auto # auto | true | false
   syntax_highlighting:
+    load: auto           # auto | always
     components: [core, python, r, sql, julia, javascript]
 ```
+
+MathJax and Prism are loaded from a CDN and together weigh several hundred kilobytes, so by default they are only loaded where they are needed:
+
+- `math.render_on_load: auto` loads the math engine on pages whose rendered content contains math (`$`, `\(`, `\[` or kramdown math blocks) or that declare `math_expressions`. `true` loads it on every page; `false` only on pages that opt in.
+- `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
+- A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 
 ### 4. Integrations
 

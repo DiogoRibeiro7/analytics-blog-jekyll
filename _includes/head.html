@@ -10,21 +10,14 @@
 {% elsif raw_keywords %}
   {% assign keyword_list = raw_keywords | replace: ';', ',' | split: ',' %}
 {% endif %}
-{% assign math_settings = site.theme_options.math %}
-{% assign math_engine = page.math_engine | default: math_settings.engine | default: 'mathjax' %}
-{% assign math_enabled = page.mathjax %}
-{% if math_enabled == nil %}
-  {% assign math_enabled = page.math %}
-{% endif %}
-{% if math_enabled == nil %}
-  {% assign math_enabled = math_settings.render_on_load | default: site.features.mathjax %}
-{% endif %}
+{% include meta/math-config.html page=page %}
 {% assign js_manifest = site.data.js_manifest %}
 {% assign syntax_config = site.theme_options.syntax_highlighting %}
 {% assign prism_cdn = syntax_config.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' %}
 {% assign prism_theme = syntax_config.themes.dark | default: syntax_config.themes.light | default: 'prism-tomorrow' %}
 {% assign prism_theme_url = prism_cdn | append: '/themes/' | append: prism_theme | append: '.css' %}
 {% assign prism_line_numbers_url = prism_cdn | append: '/plugins/line-numbers/prism-line-numbers.min.css' %}
+{% include meta/syntax-config.html %}
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 {% include csp-meta.html %}
@@ -109,8 +102,10 @@
 </noscript>
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+{% if prism_enabled %}
 <link rel="stylesheet" href="{{ prism_theme_url | add_sri }}" />
 <link rel="stylesheet" href="{{ prism_line_numbers_url | add_sri }}" />
+{% endif %}
 {% assign critical_config = site.critical_css | default: {} %}
 {% assign critical_enabled = critical_config.enabled | default: false %}
 {% assign main_stylesheet = '/assets/css/main.css' | relative_url %}
