@@ -38,7 +38,13 @@ Policy does not allow inline style attributes.
   {%- endif -%}
 {%- endif -%}
 {%- if hero.overlay -%}
-{%- assign hero_id = include.page.url | default: 'page' | slugify | prepend: 'post-hero-' -%}
+{%- comment -%} The home page's url slugifies to nothing (and Jekyll warns), so it gets a fixed id. {%- endcomment -%}
+{%- assign hero_url = include.page.url | default: '' -%}
+{%- if hero_url == '/' or hero_url == '' -%}
+  {%- assign hero_id = 'post-hero-home' -%}
+{%- else -%}
+  {%- assign hero_id = hero_url | slugify | prepend: 'post-hero-' -%}
+{%- endif -%}
 <style nonce="{{ page.csp_nonce }}">
   #{{ hero_id }} { {% if hero.overlay_color %}background-color: {{ hero.overlay_color }}; {% endif %}background-image: {% if overlay_filter != '' %}{{ overlay_filter }}, {% endif %}url('{{ hero_src }}'); }
 </style>
