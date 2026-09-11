@@ -22,11 +22,11 @@ The workflow validates the version (format, not already tagged, `[Unreleased]` h
 
 4. Review the PR and merge it with **Create a merge commit**. Squash or rebase merges detach `main` from `develop`'s history and make the next promotion conflict.
 
-On that merge the same workflow tags `main` with `vX.Y.Z`, publishes the GitHub release with the changelog section, and starts `gem-release.yml`, which pauses in the `rubygems` environment until a reviewer approves it, then pushes the gem to RubyGems.
+On that merge the same workflow tags `main` with `vX.Y.Z` and publishes the GitHub release with the changelog section. The tag push starts `gem-release.yml`, which pauses in the `rubygems` environment until a reviewer approves it, then pushes the gem to RubyGems.
 
 Requirements this flow relies on:
 
-- The GitHub Actions app is allowed to bypass the pull-request requirement on `develop` (branch protection → "Allow specified actors to bypass required pull requests"), so the workflow can push the bump commit.
+- `RELEASE_TOKEN`: a repository secret holding a fine-grained personal access token of a repository admin, scoped to this repository with **Contents: read and write** and **Pull requests: read and write**. The workflow pushes the bump and the tag and opens the PR with it. The built-in token cannot do this on a personal repository: it may not push past the branch rules, pull requests it opens do not trigger the checks, and tags it pushes do not start the publish.
 - `RUBYGEMS_API_KEY` exists as a secret of the `rubygems` environment.
 
 ### Manual (fallback)

@@ -5,12 +5,14 @@ name: Release — Promote develop to main
 #   1. "Run workflow" with a version: bumps the version on develop and opens
 #      (or refreshes) the pull request from develop into main.
 #   2. When that PR is merged (any push to main), tags main with the version
-#      it carries, publishes the GitHub release and starts the gem publish.
+#      it carries and publishes the GitHub release. The tag push starts
+#      gem-release.yml, which pauses in the rubygems environment for approval.
 #
-# The bump is pushed to develop directly by the workflow, which needs the
-# GitHub Actions app in the "bypass pull request requirements" list of the
-# develop branch rule. main keeps its review requirement: the release PR is
-# the human gate.
+# Both halves authenticate with the RELEASE_TOKEN secret: a fine-grained
+# personal access token of a repository admin with Contents and Pull requests
+# read/write. The built-in GITHUB_TOKEN cannot do this job on a personal
+# repository: it may not push to a protected branch, pull requests it opens do
+# not trigger workflows, and tags it pushes do not start the publish.
 
 on:
   workflow_dispatch:
@@ -28,9 +30,7 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 concurrency:
   group: release
@@ -43,13 +43,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
+      - name: Require the release token
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::RELEASE_TOKEN secret is not configured. Create a fine-grained personal access token (this repository, Contents: read and write, Pull requests: read and write) and add it as a repository secret named RELEASE_TOKEN."
+            exit 1
+          fi
+
       - name: Check out develop
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: develop
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Validate the version
         run: |
@@ -111,8 +120,8 @@ jobs:
       - name: Commit and push the bump to develop
         if: ${{ !inputs.dry_run }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml
           git commit -m "chore(release): bump version to $VERSION"
           git push origin HEAD:develop
@@ -135,17 +144,18 @@ jobs:
           fi
 
   tag:
-    name: Tag main and publish
+    name: Tag main and publish the GitHub release
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
       - name: Check out main
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Decide whether main carries a new version
         id: version
@@ -162,24 +172,25 @@ jobs:
             echo "new=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Require the release token
+        if: steps.version.outputs.new == 'true'
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::RELEASE_TOKEN secret is not configured; tag v${{ steps.version.outputs.version }} by hand (see docs/release-process.md)."
+            exit 1
+          fi
+
+      # Pushing the tag with the release token triggers gem-release.yml, which
+      # then waits for approval in the rubygems environment.
       - name: Tag and create the GitHub release
         if: steps.version.outputs.new == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin "v$VERSION"
           awk "/^## \[$VERSION\]/{f=1; next} f && /^## \[/{exit} f{print}" CHANGELOG.md | sed '/./,$!d' > /tmp/notes.md
           gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes-file /tmp/notes.md
-
-      # A tag pushed with the workflow token does not trigger other workflows,
-      # so start the publish explicitly. It still waits for the environment approval.
-      - name: Start the gem publish
-        if: steps.version.outputs.new == 'true'
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          gh workflow run gem-release.yml --ref "v$VERSION"
-          echo "Tagged v$VERSION, published the GitHub release and started gem-release.yml (approve it in the rubygems environment)." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "Tagged v$VERSION and published the GitHub release; gem-release.yml is waiting for approval in the rubygems environment." | tee -a "$GITHUB_STEP_SUMMARY"
