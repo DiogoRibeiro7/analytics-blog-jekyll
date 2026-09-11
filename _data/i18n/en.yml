@@ -157,6 +157,12 @@ article:
     updated: Updated
     author: Author
 post:
+  provenance:
+    heading: Author and editorial note
+    why: Why this exists
+    evidence: Evidence used
+    method: Method
+    reviewed: Reviewed
   article_information: Article information
   meta:
     published: Published

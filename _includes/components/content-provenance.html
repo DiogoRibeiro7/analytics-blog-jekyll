@@ -1,0 +1,43 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - date_format
+---
+Editorial provenance note built from the `why_this_exists`, `evidence`,
+`methodology` and `reviewed_at` front-matter fields. Renders nothing when
+none of them is set.
+{%- endcomment -%}
+{%- assign prov = include.page -%}
+{%- if prov.why_this_exists or prov.evidence or prov.methodology or prov.reviewed_at -%}
+<aside class="content-provenance" aria-labelledby="content-provenance-heading">
+  <h2 id="content-provenance-heading" class="content-provenance__heading">{% t 'post.provenance.heading' %}</h2>
+  <dl class="content-provenance__list">
+    {%- if prov.why_this_exists -%}
+    <div>
+      <dt>{% t 'post.provenance.why' %}</dt>
+      <dd>{{ prov.why_this_exists | strip_newlines }}</dd>
+    </div>
+    {%- endif -%}
+    {%- if prov.evidence -%}
+    <div>
+      <dt>{% t 'post.provenance.evidence' %}</dt>
+      <dd>{{ prov.evidence | strip_newlines }}</dd>
+    </div>
+    {%- endif -%}
+    {%- if prov.methodology -%}
+    <div>
+      <dt>{% t 'post.provenance.method' %}</dt>
+      <dd>{{ prov.methodology | strip_newlines }}</dd>
+    </div>
+    {%- endif -%}
+    {%- if prov.reviewed_at -%}
+    <div>
+      <dt>{% t 'post.provenance.reviewed' %}</dt>
+      <dd>{% include helpers/date-format.html date=prov.reviewed_at format=include.date_format %}</dd>
+    </div>
+    {%- endif -%}
+  </dl>
+</aside>
+{%- endif -%}

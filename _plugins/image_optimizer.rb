@@ -38,7 +38,8 @@ module Jekyll
       return unless document.output_ext == ".html"
       return if document.output.nil? || document.output.empty?
 
-      fragment = Nokogiri::HTML::DocumentFragment.parse(document.output)
+      full_document = document.output.lstrip.match?(/\A(?:<!DOCTYPE|<html)/i)
+      fragment = full_document ? Nokogiri::HTML5::Document.parse(document.output) : Nokogiri::HTML::DocumentFragment.parse(document.output)
       return if fragment.nil?
 
       site = document.respond_to?(:site) ? document.site : nil

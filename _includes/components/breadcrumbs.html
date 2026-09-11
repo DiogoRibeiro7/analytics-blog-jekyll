@@ -66,7 +66,7 @@ Parameters:
       {%- assign category_slug = main_category | slugify -%}
       {%- unless position -%}{%- assign position = 2 -%}{%- endunless -%}
       <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="{{ '/categories/#' | append: category_slug | relative_url }}" class="breadcrumbs__link" itemprop="item">
+        <a href="{{ site.category_archive.path | default: '/categories/' | append: '#' | append: category_slug | relative_url }}" class="breadcrumbs__link" itemprop="item">
           <span itemprop="name">{{ main_category }}</span>
         </a>
         <meta itemprop="position" content="{{ position }}" />

@@ -157,6 +157,12 @@ article:
     updated: Atualizado
     author: Autor
 post:
+  provenance:
+    heading: Nota do autor e editorial
+    why: Porque existe
+    evidence: Evidência utilizada
+    method: Método
+    reviewed: Revisto
   article_information: Informações do artigo
   meta:
     published: Publicado

@@ -1,0 +1,54 @@
+{%- comment -%}
+---
+required:
+  - page
+---
+Renders a post hero from the `post_hero` hash, which the Minimal Mistakes
+compatibility hook (_plugins/front_matter_compat.rb) builds from `header.*`
+fields and which can also be written directly:
+
+  post_hero:
+    image: /assets/images/hero.jpg
+    overlay: true          # title over the image, as Minimal Mistakes does
+    overlay_filter: 0.35   # number, rgba(...) or a gradient
+    overlay_color: "#123"
+    alt: Description of the image (figure variant)
+    caption: Caption under the image (figure variant)
+{%- endcomment -%}
+{%- assign hero = include.page.post_hero -%}
+{%- assign hero_src = hero.image -%}
+{%- unless hero_src contains '://' -%}
+  {%- assign hero_src = hero_src | relative_url -%}
+{%- endunless -%}
+{%- assign hero_alt = hero.alt | default: include.page.title | default: '' | strip_html | strip_newlines -%}
+{%- assign overlay_filter = '' -%}
+{%- if hero.overlay_filter -%}
+  {%- assign filter_value = hero.overlay_filter | append: '' -%}
+  {%- if filter_value contains 'gradient' -%}
+    {%- assign overlay_filter = filter_value -%}
+  {%- elsif filter_value contains 'rgba' -%}
+    {%- assign overlay_filter = 'linear-gradient(' | append: filter_value | append: ', ' | append: filter_value | append: ')' -%}
+  {%- else -%}
+    {%- assign rgba = 'rgba(0, 0, 0, ' | append: filter_value | append: ')' -%}
+    {%- assign overlay_filter = 'linear-gradient(' | append: rgba | append: ', ' | append: rgba | append: ')' -%}
+  {%- endif -%}
+{%- endif -%}
+{%- if hero.overlay -%}
+<div class="post-hero post-hero--overlay" style="{% if hero.overlay_color %}background-color: {{ hero.overlay_color }}; {% endif %}background-image: {% if overlay_filter != '' %}{{ overlay_filter }}, {% endif %}url('{{ hero_src }}');">
+  <div class="post-hero__inner">
+    {%- if include.page.title -%}
+    <h1 class="article-title post-hero__title" itemprop="headline">{{ include.page.title }}</h1>
+    {%- endif -%}
+    {%- if include.page.subtitle -%}
+    <p class="post-hero__subtitle">{{ include.page.subtitle }}</p>
+    {%- endif -%}
+  </div>
+</div>
+{%- else -%}
+<figure class="post-hero">
+  <img class="post-hero__image" src="{{ hero_src }}" alt="{{ hero_alt | escape_once }}" loading="eager" decoding="async" />
+  {%- if hero.caption -%}
+  <figcaption class="post-hero__caption">{{ hero.caption | markdownify | strip_html | strip_newlines }}</figcaption>
+  {%- endif -%}
+</figure>
+{%- endif -%}

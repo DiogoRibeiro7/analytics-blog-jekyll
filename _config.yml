@@ -100,6 +100,7 @@ plugins:
   - jekyll-paginate
   - jekyll-jupyter-notebook
   - jekyll-include-cache
+  - jekyll-redirect-from
 
 # jekyll-feed: the footer (_data/social.yml) links to these feeds in addition
 # to the default /feed.xml.

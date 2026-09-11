@@ -80,6 +80,7 @@ site; the rest is reference content you can copy from.
 - [Changelog](CHANGELOG.md) — release highlights and upgrade guidance for each published version of the DataLog theme.
 - [Template Repository Guide](docs/template-repository.md) — instructions for publishing a GitHub template with starter content, configuration, and automated deployments.
 - [Installation Guide](docs/install.md) — prerequisites, GitHub Pages, local, and Docker setup paths.
+- [Migrating from Minimal Mistakes](docs/migrating-from-minimal-mistakes.md) — the front-matter fields DataLog reads natively (hero and teaser images, SEO title and description, `classes: wide`, `redirect_from`) and the settings that keep existing URLs.
 - [Plugin Development Guide](docs/plugin-development.md) — understand the hook system and learn how to package extensions for reuse.
 - [Security Policy](SECURITY.md) — report security vulnerabilities and learn about security best practices.
 - [Contributing Guidelines](CONTRIBUTING.md) — contribution workflow, code standards, and community guidelines.

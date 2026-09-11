@@ -118,18 +118,21 @@ schema_type: TechnicalArticle
         {% if has_tags %}
           {% for tag in post_tags %}
             {% assign tag_slug = tag | slugify %}
-            <li><a class="post-tag" href="{{ '/tags/#' | append: tag_slug | relative_url }}">{{ tag }}</a></li>
+            <li><a class="post-tag" href="{{ site.tag_archive.path | default: '/tags/' | append: '#' | append: tag_slug | relative_url }}">{{ tag }}</a></li>
           {% endfor %}
         {% endif %}
         {% if has_categories %}
           {% for category in page.categories %}
             {% assign cat_slug = category | slugify %}
-            <li><a class="post-tag post-category" href="{{ '/categories/#' | append: cat_slug | relative_url }}">{{ category }}</a></li>
+            <li><a class="post-tag post-category" href="{{ site.category_archive.path | default: '/categories/' | append: '#' | append: cat_slug | relative_url }}">{{ category }}</a></li>
           {% endfor %}
         {% endif %}
       </ul>
     </section>
   {% endif %}
+
+  {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at) {%- endcomment -%}
+  {% include components/content-provenance.html page=page date_format=date_format %}
 
   {%- comment -%} Enhanced social sharing {%- endcomment -%}
   {% include components/social-share.html url=canonical_url title=page.title description=page.excerpt %}
