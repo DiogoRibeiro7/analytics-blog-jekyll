@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. The format 
 - Footer text and links, and the skip link in dark mode, meet the 4.5:1 contrast ratio; the blog listing uses second-level headings for its cards.
 - The Tests workflow runs for pull requests into `main` as well as `develop`; the duplicate theme-stability workflow is gone.
 - The configuration guide documents where settings actually live (`_config.yml` plus `_data/config/author.yml`).
+- The gem publish can authenticate with RubyGems trusted publishing (OpenID Connect) instead of a stored API key; the `RUBYGEMS_TRUSTED_PUBLISHING` repository variable selects it.
 
 ### Removed
 

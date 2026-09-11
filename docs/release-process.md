@@ -27,7 +27,9 @@ On that merge the same workflow tags `main` with `vX.Y.Z` and publishes the GitH
 Requirements this flow relies on:
 
 - `RELEASE_TOKEN`: a repository secret holding a fine-grained personal access token of a repository admin, scoped to this repository with **Contents: read and write** and **Pull requests: read and write**. The workflow pushes the bump and the tag and opens the PR with it. The built-in token cannot do this on a personal repository: it may not push past the branch rules, pull requests it opens do not trigger the checks, and tags it pushes do not start the publish.
-- `RUBYGEMS_API_KEY` exists as a secret of the `rubygems` environment.
+- RubyGems credentials, in one of two modes:
+  - **Trusted publishing** (recommended, no long-lived secret): on rubygems.org open the gem → *Trusted publishers* → *Create* with repository owner `DiogoRibeiro7`, repository name `analytics-blog-jekyll`, workflow filename `gem-release.yml`, environment `rubygems`; then set the repository variable `RUBYGEMS_TRUSTED_PUBLISHING` to `true` (`gh variable set RUBYGEMS_TRUSTED_PUBLISHING --body true`). The job then authenticates with an OpenID Connect token and the API key can be deleted.
+  - **API key**: `RUBYGEMS_API_KEY` as a secret of the `rubygems` environment, used whenever the variable is not `true`.
 
 ### Manual (fallback)
 
