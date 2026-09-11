@@ -30,6 +30,17 @@ export default [
       "prefer-const": "warn",
     },
   },
+  // Root tooling configuration files (Node)
+  {
+    files: ["*.config.js", "*.config.mjs"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   // Node.js scripts
   {
     files: ["scripts/**/*.{js,mjs}"],

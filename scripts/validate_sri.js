@@ -48,9 +48,8 @@ function extractExternalAssets(content) {
 // Google Fonts CSS is browser-specific and cannot carry a stable hash.
 const SRI_EXEMPT_HOSTS = ['https://fonts.googleapis.com', 'https://www.googletagmanager.com'];
 
-// Documents written by nbconvert (the jekyll-jupyter-notebook iframe pages)
-// embed their own CDN scripts; the theme does not control that markup.
-const EXEMPT_PATH_SEGMENTS = [`${path.sep}_notebooks${path.sep}`];
+// Reserved for generated documents whose markup the theme does not control.
+const EXEMPT_PATH_SEGMENTS = [];
 
 function validateIntegrity(records, filePath) {
   const problems = [];

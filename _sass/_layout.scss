@@ -278,6 +278,12 @@ body.dark-mode .footer {
     }
   }
 
+  // body.dark-mode a outranks the rule above; on the navy footer the dark
+  // accent needs the lighter shade to reach 4.5:1 through the muted paragraphs.
+  body.dark-mode & a {
+    color: #93c5fd;
+  }
+
   p {
     margin: 0 0 map.get($spacing, 2);
   }
@@ -359,7 +365,7 @@ body.dark-mode .footer {
 
 .footer-privacy-note {
   font-size: map.get($font-size-scale, xs);
-  opacity: 0.5;
+  opacity: 0.8;
   margin-top: map.get($spacing, 1);
 }
 
@@ -369,7 +375,7 @@ body.dark-mode .footer {
 
 .footer-affiliation {
   display: block;
-  opacity: 0.65;
+  opacity: 0.85;
   font-size: map.get($font-size-scale, xs);
 }
 
@@ -377,12 +383,12 @@ body.dark-mode .footer {
 .footer-orcid,
 .footer-contact {
   font-size: map.get($font-size-scale, xs);
-  opacity: 0.65;
+  opacity: 0.85;
 }
 
 .footer-tagline {
   font-style: italic;
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .footer-feeds {
@@ -395,7 +401,7 @@ body.dark-mode .footer {
   border-top: 1px solid rgba(#fff, 0.1);
   text-align: center;
   font-size: map.get($font-size-scale, xs);
-  opacity: 0.5;
+  opacity: 0.8;
 
   p { margin: 0; }
 }

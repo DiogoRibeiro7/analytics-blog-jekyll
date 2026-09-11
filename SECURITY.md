@@ -84,7 +84,6 @@ DataLog includes automated CSP generation. To enable:
 
 **Required secrets:**
 - `GA4_CREDENTIALS_JSON` - Google Analytics service account
-- `PERCY_TOKEN` - Visual regression testing
 - `CODECOV_TOKEN` - Code coverage reporting
 
 See `.env.example` for complete configuration guide.

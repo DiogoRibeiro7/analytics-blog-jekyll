@@ -694,8 +694,6 @@ npm run test
 # Integration tests (builds site + runs Playwright)
 npm run test:integration
 
-# Visual regression (requires PERCY_TOKEN)
-npm run test:visual:percy
 
 # Ruby test scripts
 ./scripts/test_security.rb

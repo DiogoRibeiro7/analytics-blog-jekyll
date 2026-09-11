@@ -40,7 +40,7 @@ Choose the workflow that matches how you plan to host and work with DataLog.
      python3 -m venv .venv
      source .venv/bin/activate
      ```
-   Both setups benefit from installing notebook helpers: `pip install jupyter nbconvert`.【F:docs/user-guide.md†L12-L31】
+   Notebook pages are rendered by the theme itself; Python is only needed for `scripts/notebook_validation.py` (`pip install -r requirements.txt`).【F:docs/user-guide.md†L12-L31】
 3. **Install Ruby dependencies** with Bundler: `bundle install`.【F:README.md†L66-L74】
 4. **Run the development server** with live reload to preview changes:
    ```bash

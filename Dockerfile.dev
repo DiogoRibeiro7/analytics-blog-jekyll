@@ -46,7 +46,7 @@ RUN bundle install
 # Install Node.js dependencies
 RUN npm ci
 
-# Install Python dependencies for Jupyter support
+# Install Python dependencies (notebook metadata validation)
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy application files

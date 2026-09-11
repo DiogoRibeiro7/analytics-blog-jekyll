@@ -95,29 +95,7 @@ test.describe('Site Navigation', () => {
 });
 ```
 
-### 3. Visual Regression Tests (Percy)
-
-**Location**: `tests/visual/*.spec.js`
-
-**What They Test**:
-- Layout consistency
-- Dark mode variations
-- Responsive breakpoints
-- Component rendering
-
-**Example**:
-```javascript
-// tests/visual/homepage.spec.js
-import { test } from '@playwright/test';
-import { percySnapshot } from '@percy/playwright';
-
-test('homepage appears correctly', async ({ page }) => {
-  await page.goto(process.env.PLAYWRIGHT_BASE_URL);
-  await percySnapshot(page, 'Homepage');
-});
-```
-
-### 4. Ruby Tests (Minitest)
+### 3. Ruby Tests (Minitest)
 
 **Location**: `tests/test_*.rb`
 
@@ -157,8 +135,6 @@ npm run test:coverage
 # Run integration tests
 npm run test:integration
 
-# Run visual tests (requires Percy token)
-npm run test:visual:percy
 ```
 
 ### Detailed Commands
@@ -208,16 +184,6 @@ PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --debug
 
 # Headed mode (see browser)
 PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --headed
-```
-
-#### Visual Tests
-
-```bash
-# With Percy (uploads to cloud)
-PERCY_TOKEN=your_token npm run test:visual:percy
-
-# Local only (no uploads)
-npm run test:visual
 ```
 
 #### Ruby Tests
@@ -328,36 +294,6 @@ bundle exec rake ci:verify
    await page.waitForTimeout(1000); // Arbitrary wait
    ```
 
-### Visual Test Best Practices
-
-1. **Name snapshots descriptively**:
-   ```javascript
-   await percySnapshot(page, 'Homepage - Desktop - Light Mode');
-   await percySnapshot(page, 'Search Results - Mobile - Dark Mode');
-   ```
-
-2. **Test critical breakpoints**:
-   ```javascript
-   const viewports = [
-     { width: 375, name: 'Mobile' },
-     { width: 768, name: 'Tablet' },
-     { width: 1920, name: 'Desktop' }
-   ];
-
-   for (const viewport of viewports) {
-     await page.setViewportSize(viewport);
-     await percySnapshot(page, `Homepage - ${viewport.name}`);
-   }
-   ```
-
-3. **Wait for dynamic content**:
-   ```javascript
-   await page.goto(url);
-   await page.waitForLoadState('networkidle');
-   await page.waitForSelector('[data-ready]');
-   await percySnapshot(page, 'Page Name');
-   ```
-
 ## Coverage Requirements
 
 ### Current Thresholds
@@ -423,7 +359,6 @@ Unit tests run on multiple Node.js versions:
 - `.github/workflows/test.yml` - Main test suite
 - `.github/workflows/dependency-review.yml` - Security audits
 - `.github/workflows/codeql.yml` - Code security scanning
-- `.github/workflows/percy.yml` - Visual regression
 
 ### Required Status Checks
 
@@ -485,20 +420,6 @@ PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test
 1. Check coverage report: `open coverage/index.html`
 2. Write tests for uncovered code
 3. Or adjust thresholds temporarily in `vitest.config.js`
-
-#### Percy tests skip
-
-**Problem**: "Percy token not configured"
-
-**Expected**: Visual tests skip without token (this is normal).
-
-**To enable**:
-```bash
-# Sign up at percy.io
-# Get project token
-export PERCY_TOKEN=your_token
-npm run test:visual:percy
-```
 
 ### Debug Mode
 

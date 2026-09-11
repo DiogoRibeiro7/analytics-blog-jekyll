@@ -15,7 +15,7 @@ subtitle: Open-source tools for data science and statistical analysis
       {% if package.version %}<span class="post-meta__badge">v{{ package.version }}</span>{% endif %}
       {% if package.license %}<span>{{ package.license }}</span>{% endif %}
     </p>
-    <h3><a href="{{ package.url | relative_url }}">{% if package.icon %}{{ package.icon }} {% endif %}{{ package.title }}</a></h3>
+    <h2><a href="{{ package.url | relative_url }}">{% if package.icon %}{{ package.icon }} {% endif %}{{ package.title }}</a></h2>
     {% if package.tagline %}<p><strong>{{ package.tagline }}</strong></p>{% endif %}
     {% if package.description %}<p>{{ package.description }}</p>{% endif %}
     <div class="project-links">
@@ -34,7 +34,7 @@ subtitle: Open-source tools for data science and statistical analysis
 {% else %}
 
 <div class="packages-empty">
-  <h3>No packages yet</h3>
+  <h2>No packages yet</h2>
   <p>Package documentation will appear here once packages are added to the <code>_packages</code> collection.</p>
 </div>
 
