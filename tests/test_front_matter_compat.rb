@@ -85,7 +85,7 @@ class FrontMatterCompatTest < Minitest::Test
     html = demo_post_html
     assert_includes html, "<title>Migrating Minimal Mistakes Front Matter to DataLog | "
     assert_includes html, 'name="description" content="How DataLog reads Minimal Mistakes'
-    assert_includes html, 'property="og:image" content="https://diogoribeiro7.github.io/assets/img/20220607123041_detail.001.png"'
+    assert_includes html, 'property="og:image" content="https://diogoribeiro7.github.io/assets/img/social-card.png"'
   end
 
   def test_demo_post_body_carries_the_wide_class
