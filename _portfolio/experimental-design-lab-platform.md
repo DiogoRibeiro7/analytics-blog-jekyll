@@ -51,7 +51,7 @@ collaboration: |-
   External labs can request sandbox access through the [collaboration form](mailto:dfr@esmad.ipp.pt?subject=Experimental%20Design%20Collaboration).
 related_projects:
   - title: Statistical Analysis Blueprint for Experimental Design
-    url: /blog/statistical-analysis-blueprint-experimental-design/
+    url: /statistics/2024/02/20/statistical-analysis-experimental-design/
     description: Companion article describing the statistical methodology that powers the platform.
 ---
 

@@ -19,11 +19,21 @@ unless citation_data["identifiers"]&.any? { |identifier| identifier["type"] == "
 end
 
 component = File.read(component_path)
-%w[BibTeX RIS EndNote data-citation-format data-copy-citation].each do |token|
+%w[data-citation-format="bibtex" data-citation-format="ris" data-citation-format="endnote" data-copy-citation].each do |token|
   raise "Citation component missing #{token}" unless component.include?(token)
 end
 
-raise "Citation component missing accessible textarea labels" unless component.include?("aria-label=\"BibTeX entry\"")
+# Labels are translated through the i18n plugin; check the English strings.
+locale = YAML.safe_load_file(File.join(root, "_data", "i18n", "en.yml"), aliases: true)
+format_labels = (locale.dig("citation_tools", "formats") || {}).values
+%w[BibTeX RIS EndNote].each do |label|
+  raise "Citation labels missing #{label}" unless format_labels.include?(label)
+end
+
+unless component.include?("aria-label=\"{% t 'citation_tools.aria.bibtex' %}\"") &&
+       locale.dig("citation_tools", "aria", "bibtex") == "BibTeX entry"
+  raise "Citation component missing accessible textarea labels"
+end
 
 head_template = File.read(head_include_path)
 %w[citation_orcid citation_doi citation_pdf].each do |meta_key|

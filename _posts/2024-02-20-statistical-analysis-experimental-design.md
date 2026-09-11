@@ -18,10 +18,6 @@ keywords:
   - statistical analysis
   - power analysis
   - experimental design
-interactive_components:
-  - title: Download the power analysis worksheet
-    url: /assets/templates/power-analysis.xlsx
-    description: Customize sample size calculations for your upcoming experiments.
 ---
 
 ## Planning experiments

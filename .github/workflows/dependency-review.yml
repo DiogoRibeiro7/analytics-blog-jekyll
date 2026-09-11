@@ -47,10 +47,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
+      # Thresholds follow docs/npm-audit-policy.md: high and critical advisories
+      # in production dependencies block; everything else is reported.
+      - name: Audit production dependencies (blocking)
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Audit all dependencies (advisory)
         run: |
           npm audit --audit-level=moderate --json > npm-audit.json || true
-          npm audit --audit-level=moderate
+          node -e '
+            const v = require("./npm-audit.json").metadata.vulnerabilities;
+            const total = v.moderate + v.high + v.critical;
+            const msg = "npm audit: " + total + " moderate-or-higher advisories across all dependencies"
+              + " (moderate " + v.moderate + ", high " + v.high + ", critical " + v.critical + ")."
+              + " Known exceptions are listed in docs/npm-audit-policy.md.";
+            console.log(msg);
+            if (total > 0) console.log("::warning::" + msg);
+          '
+          {
+            echo "## npm audit (all dependencies, moderate and above)"
+            echo
+            echo '```'
+            npm audit --audit-level=moderate || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload npm audit results
         if: always()

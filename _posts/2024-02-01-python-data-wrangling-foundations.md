@@ -107,5 +107,4 @@ Automated data tests catch regressions when upstream schemas drift.
 - Version notebooks alongside unit tests to guard scientific integrity.
 - Document design decisions inline so collaborators understand trade-offs.
 
-Download the [full notebook](notebooks/python-wrangling.ipynb) or open it
-through Binder to explore the exercises hands-on.
+Open the companion notebook through Binder to explore the exercises hands-on.

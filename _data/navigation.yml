@@ -77,7 +77,7 @@ footer:
     url: /tutorials/
   - title: Archive by topic
     title_key: navigation.footer.archive
-    url: /archive/topics/
+    url: /archives/topics/
   - title: Contact
     title_key: navigation.footer.contact
     url: mailto:dfr@esmad.ipp.pt
@@ -91,38 +91,38 @@ content_overview:
         label_key: navigation.content.research_areas.machine_learning.label
         description: Supervised, unsupervised, and deep learning case studies
         description_key: navigation.content.research_areas.machine_learning.description
-        url: /tags/machine-learning/
+        url: /tags/#machine-learning
       - label: Statistics
         label_key: navigation.content.research_areas.statistics.label
         description: Experimental design, inference, and hypothesis testing
         description_key: navigation.content.research_areas.statistics.description
-        url: /tags/statistics/
+        url: /tags/#statistics
       - label: Data Visualization
         label_key: navigation.content.research_areas.visualization.label
         description: Storytelling dashboards and narrative graphics
         description_key: navigation.content.research_areas.visualization.description
-        url: /tags/visualization/
+        url: /tags/#visualization
       - label: Reproducibility
         label_key: navigation.content.research_areas.reproducibility.label
         description: Open science workflows and methodology best practices
         description_key: navigation.content.research_areas.reproducibility.description
-        url: /tags/reproducibility/
+        url: /tags/#reproducibility
   methodologies:
     title: Methodologies
     title_key: navigation.content.methodologies.title
     items:
       - label: Experimental design
         label_key: navigation.content.methodologies.experimental_design
-        url: /tags/experimental-design/
+        url: /tags/#experimental-design
       - label: Bayesian modeling
         label_key: navigation.content.methodologies.bayesian
-        url: /tags/bayesian/
+        url: /tags/#bayesian
       - label: Exploratory data analysis
         label_key: navigation.content.methodologies.eda
-        url: /tags/eda/
+        url: /tags/#eda
       - label: Causal inference
         label_key: navigation.content.methodologies.causal_inference
-        url: /tags/causal-inference/
+        url: /tags/#causal-inference
 
 languages:
   title: Programming Languages
@@ -130,16 +130,16 @@ languages:
   items:
     - label: Python
       label_key: navigation.languages.items.python
-      url: /tags/python/
+      url: /tags/#python
     - label: R
       label_key: navigation.languages.items.r
-      url: /tags/r/
+      url: /tags/#r
     - label: SQL
       label_key: navigation.languages.items.sql
-      url: /tags/sql/
+      url: /tags/#sql
     - label: Julia
       label_key: navigation.languages.items.julia
-      url: /tags/julia/
+      url: /tags/#julia
     - label: JavaScript
       label_key: navigation.languages.items.javascript
-      url: /tags/javascript/
+      url: /tags/#javascript
