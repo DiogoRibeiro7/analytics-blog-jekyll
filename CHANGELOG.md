@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- CI jobs install only what they use: the Jekyll test job no longer installs libvips (the image plugin uses MiniMagick, which the runners already provide) or keeps redundant pip and `_site` caches, and the accessibility, Lighthouse and deploy workflows no longer set up Python, which only the Rake verification task needs.
 - The hero background is served as a 46 KB WebP instead of a 1.27 MB PNG.
 - Footer text and links, and the skip link in dark mode, meet the 4.5:1 contrast ratio; the blog listing uses second-level headings for its cards.
 - The Tests workflow runs for pull requests into `main` as well as `develop`; the duplicate theme-stability workflow is gone.
