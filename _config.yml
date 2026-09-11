@@ -98,7 +98,6 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
   - jekyll-paginate
-  - jekyll-jupyter-notebook
   - jekyll-include-cache
   - jekyll-redirect-from
 

@@ -53,7 +53,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "sass-embedded", ">= 1.71"
   spec.add_runtime_dependency "jekyll-paginate", ">= 1.1"
   spec.add_runtime_dependency "jekyll-include-cache", ">= 0.2"
-  spec.add_runtime_dependency "jekyll-jupyter-notebook", "~> 0.0.6"
   spec.add_runtime_dependency "jekyll-archives", ">= 2.2"
   spec.add_runtime_dependency "jekyll-remote-theme", ">= 0.4"
   spec.add_runtime_dependency "jekyll-redirect-from", ">= 0.16"

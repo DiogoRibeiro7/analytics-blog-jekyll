@@ -629,29 +629,7 @@ module Datalog
       nil
     end
 
-    def patch_jupyter_converter!
-      return unless defined?(JekyllJupyterNotebook::Converter)
-      return if @converter_fallback_applied
-
-      fallback = Module.new do
-        def convert(content)
-          super
-        rescue Errno::ENOENT, StandardError => e
-          Jekyll.logger.warn("notebook converter", "primary conversion failed: #{e.message}; using fallback renderer")
-          Datalog::NotebookRenderer.render_from_raw(content) || ""
-        end
-      end
-
-      JekyllJupyterNotebook::Converter.prepend(fallback)
-      @converter_fallback_applied = true
-    rescue StandardError => e
-      Jekyll.logger.warn("notebook converter", "failed to apply converter fallback: #{e.message}")
-    end
   end
-end
-
-Jekyll::Hooks.register :site, :after_init do |_site|
-  Datalog::NotebookRenderer.patch_jupyter_converter!
 end
 
 module Jekyll
@@ -670,8 +648,6 @@ module Jekyll
         logger.debug("notebook converter", "disabled via configuration")
         return
       end
-
-      ensure_dependency
 
       files = notebook_files
       logger.debug("notebook converter", "located #{files.size} notebooks")
@@ -720,21 +696,6 @@ module Jekyll
       value = "/notebooks" if value.empty?
       value = "/#{value}" unless value.start_with?("/")
       value.sub(%r{/+$}, "")
-    end
-
-    # Notebook pages do not need the gem (see #convert_notebook). When it is
-    # present, its converter is given the same renderer as a fallback so the
-    # gem's own `.ipynb` handling and `{% jupyter_notebook %}` tag keep working
-    # on machines without a `jupyter` executable.
-    def ensure_dependency
-      return true if defined?(JekyllJupyterNotebook::Converter)
-
-      require "jekyll-jupyter-notebook"
-      Datalog::NotebookRenderer.patch_jupyter_converter!
-      true
-    rescue LoadError => e
-      logger.debug("notebook converter", "jekyll-jupyter-notebook not loaded: #{e.message}")
-      false
     end
 
     def notebook_files
