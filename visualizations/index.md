@@ -39,7 +39,7 @@ The following live examples demonstrate how DataLog renders interactive visualiz
     <p class="viz-meta" data-viz-meta>Monthly F1 score for the deployed model and its shadow challenger</p>
     <span class="viz-status" data-viz-status aria-live="polite">Loading…</span>
   </div>
-  <div class="viz-toolbar" aria-label="Plotly controls">
+  <div class="viz-toolbar" role="group" aria-label="Plotly controls">
     <div data-viz-export></div>
   </div>
   <div class="viz-canvas" data-viz-canvas>
