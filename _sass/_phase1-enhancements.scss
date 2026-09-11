@@ -545,6 +545,51 @@
   }
 }
 
+// Dark mode previously darkened only the badge background, leaving the level
+// colours (dark blue, dark green, dark red) on a near-black pill: the
+// intermediate badge measured 1.93:1. These invert the pairing instead.
+body.dark-mode .difficulty-badge {
+  &--beginner {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.4);
+
+    &:hover {
+      background-color: rgba(16, 185, 129, 0.25);
+    }
+  }
+
+  &--intermediate {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.4);
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.25);
+    }
+  }
+
+  &--advanced {
+    background-color: rgba(249, 115, 22, 0.15);
+    color: #fdba74;
+    border-color: rgba(249, 115, 22, 0.4);
+
+    &:hover {
+      background-color: rgba(249, 115, 22, 0.25);
+    }
+  }
+
+  &--expert {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.4);
+
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.25);
+    }
+  }
+}
+
 // ============================================================================
 // Print Styles
 // ============================================================================
