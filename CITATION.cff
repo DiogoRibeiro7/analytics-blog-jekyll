@@ -16,7 +16,7 @@ abstract: >-
   It offers integrated notebook publishing, advanced math rendering, interactive
   visualization workflows, and reproducibility tooling optimised for open science communities.
 license: MIT
-version: 0.5.0
+version: 0.5.1
 date-released: 2026-09-11
 keywords:
   - data-science
