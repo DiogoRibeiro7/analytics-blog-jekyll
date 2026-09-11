@@ -32,7 +32,7 @@ Interactive dashboards help executives interrogate results without leaving the p
     <p class="viz-meta" data-viz-meta>ARR segmented by region and channel</p>
     <span class="viz-status" data-viz-status aria-live="polite">Loading…</span>
   </div>
-  <div class="viz-toolbar" aria-label="Plotly controls">
+  <div class="viz-toolbar" role="group" aria-label="Plotly controls">
     <div data-viz-export></div>
     <a class="viz-toolbar__button" href="https://plotly.com/javascript/">Plotly docs</a>
   </div>

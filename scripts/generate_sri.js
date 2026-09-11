@@ -14,7 +14,22 @@ const ROOT = path.resolve(__dirname, '..');
 const DATA_FILE = path.join(ROOT, '_data', 'cdn-integrity.yml');
 const execFileAsync = promisify(execFile);
 
-const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', '_site', '.jekyll-cache', '.sass-cache']);
+const IGNORED_DIRECTORIES = new Set([
+  '.git',
+  'node_modules',
+  '_site',
+  '.jekyll-cache',
+  '.sass-cache',
+  'tmp',
+  'coverage',
+  'test-results',
+  'playwright-report'
+]);
+
+// Google Fonts tailors the CSS it serves to the requesting browser, so a hash
+// computed here never matches what the browser receives and integrity checks
+// would block the stylesheet. Leave those resources without SRI.
+const SRI_EXEMPT_HOSTS = ['https://fonts.googleapis.com', 'https://www.googletagmanager.com'];
 const HTML_EXTENSIONS = new Set(['.html', '.liquid']);
 
 const KNOWN_CDN_HINTS = [
@@ -62,11 +77,11 @@ function shouldTrackResource(url) {
     return false;
   }
 
-  if (url.includes('.js') || url.includes('.css')) {
-    return true;
+  if (SRI_EXEMPT_HOSTS.some((host) => url.startsWith(host))) {
+    return false;
   }
 
-  if (url.includes('fonts.googleapis.com/css')) {
+  if (url.includes('.js') || url.includes('.css')) {
     return true;
   }
 

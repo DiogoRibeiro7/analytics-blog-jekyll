@@ -93,10 +93,11 @@ test.describe('Accessibility - Keyboard Navigation', () => {
   test('escape key closes modals/dropdowns', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    // Look for dropdown or modal triggers
-    const trigger = page.locator(
-      '[aria-haspopup], [aria-expanded], .dropdown-toggle, [class*="dropdown"]'
-    );
+    // Look for dropdown or modal triggers that can actually be clicked at this
+    // viewport (the mobile navigation toggle is hidden on desktop widths).
+    const trigger = page
+      .locator('[aria-haspopup], [aria-expanded], .dropdown-toggle, [class*="dropdown"]')
+      .filter({ visible: true });
 
     if ((await trigger.count()) > 0) {
       // Open the dropdown
@@ -189,6 +190,8 @@ test.describe('Accessibility - Forms', () => {
       const ariaLabel = await input.getAttribute('aria-label');
       const ariaLabelledBy = await input.getAttribute('aria-labelledby');
       const placeholder = await input.getAttribute('placeholder');
+      // A control nested inside <label> is labelled implicitly.
+      const wrappedInLabel = await input.evaluate((el) => Boolean(el.closest('label')));
 
       // Should have some form of label
       if (id) {
@@ -196,10 +199,10 @@ test.describe('Accessibility - Forms', () => {
         const hasLabel = (await label.count()) > 0;
         const hasAriaLabel = ariaLabel || ariaLabelledBy;
 
-        expect(hasLabel || hasAriaLabel || placeholder).toBeTruthy();
+        expect(hasLabel || hasAriaLabel || placeholder || wrappedInLabel).toBeTruthy();
       } else {
-        // Without id, should have aria-label or placeholder
-        expect(ariaLabel || ariaLabelledBy || placeholder).toBeTruthy();
+        // Without id, should have aria-label, placeholder or a wrapping label
+        expect(ariaLabel || ariaLabelledBy || placeholder || wrappedInLabel).toBeTruthy();
       }
     }
   });

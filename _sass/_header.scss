@@ -434,16 +434,23 @@ body.dark-mode .header-utilities {
 // Responsive
 // ---------------------------------------------------------------------------
 @media (max-width: 48rem) {
+  .header-primary {
+    flex-wrap: wrap;
+  }
+
   .header-secondary {
-    width: 100%;
+    flex: 1 1 100%;
+    min-width: 0;
     padding-bottom: map.get($spacing, 2);
   }
 
   .site-search {
     flex: 1;
+    min-width: 0;
 
     input[type='search'] {
       width: 100%;
+      min-width: 0;
 
       &:focus { width: 100%; }
     }

@@ -23,6 +23,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      # Enables Pages for the repository on first use and computes the base
+      # path the site is served under (/<repo> for a project site).
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+        with:
+          enablement: true
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
@@ -89,6 +97,13 @@ jobs:
 
       - name: Validate CDN SRI coverage
         run: npm run validate-sri
+
+      # The build above is served from / for the test suites; the published
+      # site lives under the Pages base path, so build it again with that.
+      - name: Build site for GitHub Pages
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --trace --baseurl "${{ steps.pages.outputs.base_path }}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0

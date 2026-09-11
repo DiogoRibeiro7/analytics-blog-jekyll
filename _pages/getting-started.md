@@ -19,8 +19,8 @@ description: A roadmap for new data scientists joining the DataLog community.
 
 ## Step 3. Run interactive assets
 
-- Launch Plotly, D3, and Observable demos on the [Visualization Hub](/visualizations/).
-- Use the Notebook Gallery at [/notebooks/](/notebooks/) to download reproducible analyses.
+- Launch Plotly, D3, and Observable demos on the [Visualization Hub]({{ '/visualizations/' | relative_url }}).
+- Use the Notebook Gallery at [/notebooks/]({{ '/notebooks/' | relative_url }}) to download reproducible analyses.
 - Start Binder or Colab sessions from notebook posts to experiment without local setup.
 
 ## Step 4. Contribute content
