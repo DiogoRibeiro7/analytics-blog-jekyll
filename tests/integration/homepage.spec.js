@@ -10,8 +10,8 @@ test.describe('Homepage', () => {
   });
 
   test('renders core page elements', async ({ page }) => {
-    // Header elements
-    await expect(page.locator('header')).toBeVisible();
+    // Header elements (the site header; article headers are also <header>)
+    await expect(page.locator('header').first()).toBeVisible();
     await expect(page.locator('.site-title, .brand-title, [class*="title"]').first()).toBeVisible();
 
     // Navigation

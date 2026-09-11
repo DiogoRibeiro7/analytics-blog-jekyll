@@ -177,10 +177,13 @@ test.describe('Blog Post Reading Experience', () => {
     await postLink.click();
     await page.waitForLoadState('domcontentloaded');
 
-    // Look for reading progress indicator
-    const progressBar = page.locator(
-      '[class*="progress"], [class*="reading-progress"], [role="progressbar"]'
-    );
+    // Look for reading progress indicator: prefer the actual progress element
+    // over the wrappers that share its class prefix.
+    const nativeProgress = page.locator('progress, [role="progressbar"]');
+    const progressBar =
+      (await nativeProgress.count()) > 0
+        ? nativeProgress
+        : page.locator('[class*="reading-progress"], [class*="progress"]');
 
     if ((await progressBar.count()) > 0) {
       // Scroll down the page
@@ -191,9 +194,10 @@ test.describe('Blog Post Reading Experience', () => {
       const progressElement = progressBar.first();
       const style = await progressElement.getAttribute('style');
       const ariaValue = await progressElement.getAttribute('aria-valuenow');
+      const value = Number(await progressElement.getAttribute('value'));
 
       // Should have some progress indication
-      expect(style || ariaValue).toBeTruthy();
+      expect(style || ariaValue || value > 0).toBeTruthy();
     }
   });
 

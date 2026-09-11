@@ -43,6 +43,7 @@ async function startServer() {
   const server = spawn(serverBin, [siteDir, '-p', String(port), '--silent'], {
     stdio: 'inherit',
     env: process.env,
+    shell: process.platform === 'win32',
   });
 
   try {
