@@ -135,7 +135,7 @@ layout: default
         {% for dataset in page.datasets %}
         <li>
           {% if dataset.url %}
-          <a href="{{ dataset.url }}" target="_blank" rel="noopener">{{ dataset.name | default: dataset }}</a>
+          <a href="{{ dataset.url | relative_url }}" target="_blank" rel="noopener">{{ dataset.name | default: dataset }}</a>
           {% else %}
           <span>{{ dataset.name | default: dataset }}</span>
           {% endif %}
@@ -191,7 +191,7 @@ layout: default
       <ul class="project-case__related">
         {% for project in page.related_projects %}
         <li>
-          {% if project.url %}<a href="{{ project.url }}">{{ project.title | default: project }}</a>{% else %}<span>{{ project.title | default: project }}</span>{% endif %}
+          {% if project.url %}<a href="{{ project.url | relative_url }}">{{ project.title | default: project }}</a>{% else %}<span>{{ project.title | default: project }}</span>{% endif %}
           {% if project.description %}<p>{{ project.description }}</p>{% endif %}
         </li>
         {% endfor %}

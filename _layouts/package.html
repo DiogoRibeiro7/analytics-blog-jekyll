@@ -146,7 +146,7 @@ layout: default
             <ul class="package-nav__list">
               {% for pkg in page.related_packages %}
                 <li class="package-nav__item">
-                  <a href="{{ pkg.url }}" class="package-nav__link">{{ pkg.name }}</a>
+                  <a href="{{ pkg.url | relative_url }}" class="package-nav__link">{{ pkg.name }}</a>
                 </li>
               {% endfor %}
             </ul>
@@ -164,7 +164,7 @@ layout: default
       {%- comment -%} Footer Navigation {%- endcomment -%}
       <nav class="package-docs__footer-nav">
         {% if page.previous_page %}
-          <a href="{{ page.previous_page.url }}" class="package-docs__footer-nav-link package-docs__footer-nav-link--prev">
+          <a href="{{ page.previous_page.url | relative_url }}" class="package-docs__footer-nav-link package-docs__footer-nav-link--prev">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
@@ -176,7 +176,7 @@ layout: default
         {% endif %}
 
         {% if page.next_page %}
-          <a href="{{ page.next_page.url }}" class="package-docs__footer-nav-link package-docs__footer-nav-link--next">
+          <a href="{{ page.next_page.url | relative_url }}" class="package-docs__footer-nav-link package-docs__footer-nav-link--next">
             <div>
               <span class="package-docs__footer-nav-label">Next</span>
               <span class="package-docs__footer-nav-title">{{ page.next_page.title }}</span>

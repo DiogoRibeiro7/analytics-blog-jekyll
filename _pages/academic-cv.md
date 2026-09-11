@@ -13,8 +13,8 @@ description: Download a LaTeX and Markdown CV template tailored for data scienti
 <section class="cv-downloads" aria-label="Download templates">
   <h2>Download</h2>
   <ul>
-    <li><a href="/assets/templates/diogo-ribeiro-cv.tex" download>LaTeX CV template</a></li>
-    <li><a href="/assets/templates/diogo-ribeiro-cv.md" download>Markdown CV template</a></li>
+    <li><a href="{{ '/assets/templates/diogo-ribeiro-cv.tex' | relative_url }}" download>LaTeX CV template</a></li>
+    <li><a href="{{ '/assets/templates/diogo-ribeiro-cv.md' | relative_url }}" download>Markdown CV template</a></li>
   </ul>
 </section>
 
