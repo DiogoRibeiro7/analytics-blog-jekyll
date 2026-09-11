@@ -18,10 +18,10 @@ keywords:
 classes: wide
 author_profile: false
 header:
-  image: /assets/img/20220607123041_detail.001.png
-  overlay_image: /assets/img/20220607123041_detail.001.png
+  image: /assets/img/hero-detail.webp
+  overlay_image: /assets/img/hero-detail.webp
   overlay_filter: 0.35
-  teaser: /assets/img/20220607123041_detail.001.png
+  teaser: /assets/img/hero-detail.webp
   og_image: /assets/img/20220607123041_detail.001.png
   twitter_image: /assets/img/20220607123041_detail.001.png
 why_this_exists: "Shows every Minimal Mistakes field the compatibility layer understands, on a real rendered page, so a migration can be checked against it."
