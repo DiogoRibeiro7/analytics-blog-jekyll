@@ -5,9 +5,13 @@ require "json"
 
 math_bundle = File.read(File.join(__dir__, "..", "assets", "js", "math.js"))
 head_include = File.read(File.join(__dir__, "..", "_includes", "head.html"))
-scripts_include = File.read(File.join(__dir__, "..", "_includes", "scripts.html"))
 config_path = File.join(__dir__, "..", "_config.yml")
 config = File.read(config_path)
+manifest_path = File.join(__dir__, "..", "_data", "js_manifest.json")
+
+abort("JavaScript manifest missing. Run npm run build:js first.") unless File.exist?(manifest_path)
+
+manifest = JSON.parse(File.read(manifest_path))
 
 required_tokens = [
   "MathToolkit",
@@ -22,7 +26,10 @@ required_tokens = [
 missing = required_tokens.reject { |token| math_bundle.include?(token) }
 raise "Math rendering bundle missing: #{missing.join(', ')}" unless missing.empty?
 
-unless head_include.include?("tex-chtml.js") && scripts_include.include?("/assets/js/math.js")
+# The math bundle is built by scripts/build_js.mjs and referenced through the
+# manifest (see _includes/head.html), not by a fixed /assets/js/math.js path.
+math_bundle_path = manifest.dig("features", "math")
+unless head_include.include?("tex-chtml.js") && math_bundle_path && head_include.include?("js_manifest.features.math")
   raise "Theme does not reference MathJax CDN and math enhancement bundle"
 end
 

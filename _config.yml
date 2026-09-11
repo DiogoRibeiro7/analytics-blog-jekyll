@@ -102,6 +102,16 @@ plugins:
   - jekyll-include-cache
   - jekyll-redirect-from
 
+# jekyll-feed: the footer (_data/social.yml) links to these feeds in addition
+# to the default /feed.xml.
+feed:
+  categories:
+    - research
+    - tutorials
+  collections:
+    datasets:
+      path: "/datasets/feed.xml"
+
 # -----------------------------------------------------------------------------
 # Notebook Integration
 # -----------------------------------------------------------------------------
@@ -296,6 +306,26 @@ exclude:
   - script/
   - tmp/
   - template/
+  - tests/
+  - CHANGELOG.md
+  - CITATION.cff
+  - CONTRIBUTING.md
+  - SECURITY.md
+  - TESTING.md
+  - LICENSE
+  - Dockerfile
+  - Dockerfile.dev
+  - docker-compose.yml
+  - Rakefile
+  - eslint.config.js
+  - vitest.config.js
+  - playwright.config.js
+  - lighthouserc.json
+  - pa11yci.json
+  - percy.config.yml
+  - package.json
+  - package-lock.json
+  - requirements.txt
 
 # -----------------------------------------------------------------------------
 # Development

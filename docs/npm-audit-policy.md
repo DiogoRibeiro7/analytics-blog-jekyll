@@ -8,7 +8,7 @@ Defines which npm audit findings block CI and when exceptions are permitted.
 |---------|------------------|-------|
 | **Pre-commit hook** | high, critical | Production deps only (`--omit=dev`) |
 | **CI (test/deploy)** | high, critical | Production deps only |
-| **Dependency review workflow** | moderate+ | All deps (advisory only, non-blocking) |
+| **Dependency review workflow** | high, critical | Production deps only (`--omit=dev`); moderate+ across all deps is reported, not blocking |
 | **Manual review** | low, moderate | Dev deps — reviewed quarterly |
 
 ### Rationale
@@ -29,7 +29,10 @@ Blocks commit if high/critical production vulnerabilities exist.
 
 ### Dependency review workflow (`.github/workflows/dependency-review.yml`)
 
-Runs `npm audit --audit-level=moderate` on push/PR. Reports findings but uses `fail_ci_if_error: false` for moderate-only issues.
+Two steps in the `npm-audit` job, on push, PR and the nightly schedule:
+
+1. `npm audit --audit-level=high --omit=dev` — blocking. Same gate as the pre-commit hook.
+2. `npm audit --audit-level=moderate` — advisory. The full report goes to the job summary, a `::warning::` annotation carries the counts, and the JSON is uploaded as the `npm-audit-results` artifact. This step never fails the job.
 
 ## Exception Process
 
@@ -50,8 +53,11 @@ When a vulnerability cannot be immediately fixed (e.g., waiting for upstream pat
 
 | Advisory | Package | Reason | Tracking Issue | Expires |
 |----------|---------|--------|----------------|---------|
-| GHSA-vpq2-c234-7xj6 | @tootallnate/once (via critical) | Transitive dev dep, no fix without breaking change | N/A | Next `critical` major release |
-| GHSA-gmq8-994r-jv83 | yauzl (via @percy/core) | No upstream fix available | N/A | Next @percy/core release |
+| GHSA-vwc7-r8mq-g2x9 | adm-zip (via @percy/core) | Every published release from 0.5.9 to the latest 0.6.0 is affected, so there is no version to move to. Dev-only: the Percy CLI, which does not run in CI without a `PERCY_TOKEN`. `npm audit` also lists the ten `@percy/*` packages that depend on it under this one advisory. | N/A | First adm-zip release after 0.6.0 |
+
+Resolved exceptions (kept for the record): `@tootallnate/once` via `critical` (gone with `critical` 8), `yauzl` via `@percy/core` (no longer reported).
+
+Transitive pins in `package.json` `overrides` (`fast-xml-parser`, `uuid`, `snyk-nodejs-lockfile-parser`) exist only because `@percy/cli` pins older versions of them; drop the overrides once Percy updates its own dependencies.
 
 ## Updating This Policy
 

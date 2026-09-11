@@ -5,7 +5,7 @@ root = File.join(__dir__, "..")
 contributing = File.read(File.join(root, "CONTRIBUTING.md"))
 user_guide = File.read(File.join(root, "docs", "user-guide.md"))
 
-%w[Fork the repository feature branch bundle exec rake ci:verify open science].each do |phrase|
+["Fork", "feature branch", "bundle exec rake ci:verify", "Pull Request"].each do |phrase|
   raise "Contributing guide missing required workflow phrase: #{phrase}" unless contributing.include?(phrase)
 end
 

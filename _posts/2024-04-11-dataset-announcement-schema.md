@@ -12,7 +12,7 @@ Today we are releasing the **Retail Demand Benchmark** dataset to help analytics
 
 ## Download options
 
-- [`retail-demand-benchmark.csv`](../datasets/retail-demand-benchmark/)
+- `retail-demand-benchmark.csv` via the dataset page
 - Parquet export via `_datasets/retail-demand-benchmark.md`
 - Companion notebook: `_notebooks/batch-anomaly-detection.ipynb`
 

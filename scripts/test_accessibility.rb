@@ -5,7 +5,11 @@ root = File.join(__dir__, "..")
 layout_path = File.join(root, "_layouts", "default.html")
 html = File.read(layout_path)
 
-raise "Default layout missing math status announcement binding" unless html.include?("aria-describedby=\"math-status\"")
+# The id is computed by _includes/meta/math-config.html and bound in the layout.
+math_config = File.read(File.join(root, "_includes", "meta", "math-config.html"))
+unless html.include?("aria-describedby=\"{{ math_status_id }}\"") && math_config.include?("'math-status'")
+  raise "Default layout missing math status announcement binding"
+end
 
 raise "Math live region missing polite announcements" unless html.include?("aria-live=\"polite\"")
 

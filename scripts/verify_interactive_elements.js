@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const visualizations = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'visualizations.js'), 'utf8');
-const notebookBundle = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'notebook.js'), 'utf8');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const visualizations = fs.readFileSync(path.join(root, 'assets', 'js', 'visualizations.js'), 'utf8');
+const notebookBundle = fs.readFileSync(path.join(root, 'assets', 'js', 'notebook.js'), 'utf8');
 
 const requiredHooks = [
   'renderPlotly',
