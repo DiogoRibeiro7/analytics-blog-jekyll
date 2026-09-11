@@ -8,6 +8,8 @@ nav_order: 12
 
 ## Overview
 
+> **Status:** the section layout below describes `_config.yml` as it is today. The companion data files this plan once proposed (`_data/config/site.yml`, `theme.yml`, `features.yml`) were never read by the theme and have been removed; only `_data/config/author.yml` exists, for the author profile. Treat any mention of those three files below as historical.
+
 The DataLog theme configuration has been reorganized into **11 clear sections** to improve maintainability and ease of use. This guide explains the new structure and how to migrate.
 
 ## New Structure

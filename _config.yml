@@ -1,15 +1,9 @@
 # =============================================================================
 # DataLog Jekyll Theme Configuration
 # =============================================================================
-# This is the core Jekyll configuration file. For easier customization,
-# additional settings have been organized into modular files:
-#
-#   _data/config/site.yml         - Brand, contact, SEO, analytics
-#   _data/config/author.yml       - Author profile and academic info
-#   _data/config/theme.yml        - Visual settings, math, syntax, images
-#   _data/config/features.yml     - Feature flags organized by phase
-#
-# Access these in templates via: site.data.config.site, site.data.config.author, etc.
+# This is the core Jekyll configuration file. Everything the theme reads lives
+# here, except the author profile used by the about and research pages, which
+# is in _data/config/author.yml (exposed to templates as site.data.config.author).
 # Integration settings (GitHub, Binder, Colab, Giscus) live in this file under
 # `integrations:` and `datalog_plugins:` and are exposed as `site.integrations`.
 # =============================================================================
