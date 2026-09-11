@@ -91,13 +91,13 @@
 <link rel="manifest" href="{{ '/assets/img/favicons/site.webmanifest' | relative_url }}" />
 <link rel="shortcut icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" />
 <meta name="msapplication-TileColor" content="#0b1d3d" />
-<meta name="msapplication-config" content="{{ '/assets/img/favicons/browserconfig.xml' | relative_url }}" />
 
 {% if page.seo_title %}
 <title>{{ page.seo_title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
-{% seo title=false %}
+{% elsif page.title and page.title != site.title %}
+<title>{{ page.title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
 {% else %}
-{% seo %}
+<title>{{ site.title }}</title>
 {% endif %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />

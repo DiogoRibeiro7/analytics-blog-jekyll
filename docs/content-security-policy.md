@@ -43,7 +43,9 @@ party integrations.
 - In non-production builds the theme installs a `securitypolicyviolation` listener that logs blocked
   resources to the browser console with helpful metadata (directive, blocked URI, line number).
 - Visit `/csp-report/` locally to submit mock violation payloads and verify your hosting provider
-  accepts the `report-uri` endpoint.
+  accepts the `report-uri` endpoint. Reporting only works when the policy is delivered as an HTTP
+  header; the `<meta>` policy the theme emits cannot carry a `report-uri` directive, so add it in
+  your hosting configuration.
 - If a violation persists, inspect the page’s source to confirm the nonce is present and that the CSP
   meta tag lists the expected domains. Adding `jekyll.environment=development` removes minification
   noise when debugging.

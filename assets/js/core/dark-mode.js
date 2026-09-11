@@ -39,7 +39,15 @@ export function initDarkModeToggle() {
     body.classList.add(DARK_CLASS);
   }
 
+  /** Mirrors the effective theme on <body data-theme> for CSS hooks and tests. */
+  const syncThemeAttribute = () => {
+    const theme = body.classList.contains(DARK_CLASS) ? "dark" : "light";
+    body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
+  };
+
   const syncButton = () => {
+    syncThemeAttribute();
     if (!toggleButton) {
       return;
     }
@@ -53,6 +61,7 @@ export function initDarkModeToggle() {
       const isDark = body.classList.toggle(DARK_CLASS);
       toggleButton.setAttribute("aria-pressed", String(isDark));
       localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
+      syncThemeAttribute();
     });
   }
 

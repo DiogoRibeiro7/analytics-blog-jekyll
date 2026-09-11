@@ -15,7 +15,7 @@ function calculateProgress(progressBar, progressValue) {
   const progress = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
 
   if (progressBar.tagName === "PROGRESS") {
-    progressBar.value = progress;
+    progressBar.setAttribute("value", String(progress));
   } else {
     progressBar.style.setProperty("--progress", `${progress}%`);
   }

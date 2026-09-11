@@ -7,7 +7,6 @@
 <html lang="{{ html_lang }}" dir="{{ html_dir }}">
   <head>
     {% include head.html %}
-    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="{{ site.author.twitter | default: site.social.twitter }}" />
     {% if page.tags and page.tags.size > 0 %}
       <meta name="keywords" content="{% include helpers/array-to-sentence.html items=page.tags conjunction='and' %}" />

@@ -33,7 +33,15 @@ The following live examples demonstrate how DataLog renders interactive visualiz
 
 ### Plotly — Model Performance Drift
 
-<div class="viz-block" data-viz-type="plotly" data-viz-slug="plotly-line-example">
+<div class="viz-block" data-viz-type="plotly" data-viz-slug="plotly-line-example" data-viz-version="1.0" data-viz-updated="2024-02-25">
+  <div class="viz-header">
+    <h4 class="viz-title">F1 score drift, production versus shadow model</h4>
+    <p class="viz-meta" data-viz-meta>Monthly F1 score for the deployed model and its shadow challenger</p>
+    <span class="viz-status" data-viz-status aria-live="polite">Loading…</span>
+  </div>
+  <div class="viz-toolbar" aria-label="Plotly controls">
+    <div data-viz-export></div>
+  </div>
   <div class="viz-canvas" data-viz-canvas>
     <script nonce="{{ page.csp_nonce }}" type="application/json">
 {
