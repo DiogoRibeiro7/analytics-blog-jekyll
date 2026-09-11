@@ -90,7 +90,8 @@ pre {
   position: fixed;
   top: 1rem;
   left: 50%;
-  transform: translate(-50%, -120%);
+  // Fully off-screen until focused: its own height plus the 1rem offset.
+  transform: translate(-50%, calc(-100% - 1.5rem));
   background: $color-accent-primary;
   color: white;
   padding: map.get($spacing, 3) map.get($spacing, 4);

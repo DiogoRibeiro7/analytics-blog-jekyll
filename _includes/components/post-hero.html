@@ -14,6 +14,10 @@ fields and which can also be written directly:
     overlay_color: "#123"
     alt: Description of the image (figure variant)
     caption: Caption under the image (figure variant)
+
+The overlay variant sets its background through a nonce-carrying <style>
+element rather than a style attribute, because the theme's Content Security
+Policy does not allow inline style attributes.
 {%- endcomment -%}
 {%- assign hero = include.page.post_hero -%}
 {%- assign hero_src = hero.image -%}
@@ -34,7 +38,11 @@ fields and which can also be written directly:
   {%- endif -%}
 {%- endif -%}
 {%- if hero.overlay -%}
-<div class="post-hero post-hero--overlay" style="{% if hero.overlay_color %}background-color: {{ hero.overlay_color }}; {% endif %}background-image: {% if overlay_filter != '' %}{{ overlay_filter }}, {% endif %}url('{{ hero_src }}');">
+{%- assign hero_id = include.page.url | default: 'page' | slugify | prepend: 'post-hero-' -%}
+<style nonce="{{ page.csp_nonce }}">
+  #{{ hero_id }} { {% if hero.overlay_color %}background-color: {{ hero.overlay_color }}; {% endif %}background-image: {% if overlay_filter != '' %}{{ overlay_filter }}, {% endif %}url('{{ hero_src }}'); }
+</style>
+<div id="{{ hero_id }}" class="post-hero post-hero--overlay">
   <div class="post-hero__inner">
     {%- if include.page.title -%}
     <h1 class="article-title post-hero__title" itemprop="headline">{{ include.page.title }}</h1>
