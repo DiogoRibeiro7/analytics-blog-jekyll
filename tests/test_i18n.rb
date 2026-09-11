@@ -42,4 +42,10 @@ class TestI18n < Minitest::Test
     assert_includes html, "Analytics overview"
     refute_includes html, "Analytics Overview"
   end
+
+  def test_quoted_keys_interpolate_their_options
+    html = SiteBuilder.read(File.join(SiteBuilder.site.posts.docs.find { |doc| doc.data["title"] == "Python Data Wrangling Foundations" }.url, "index.html"))
+    refute_includes html, "{{minutes}}", "the reading-time placeholder must be replaced"
+    assert_match(/\d+ mins? read/, html)
+  end
 end

@@ -49,7 +49,8 @@ Renders the standard article scaffold used by the default layout.
         </div>
       {%- endif -%}
       {%- assign author_name = article_page.author | default: site.author.name -%}
-      {%- if author_name -%}
+      {%- comment -%} `show_author: false` hides the byline, for pages that are site chrome rather than articles. {%- endcomment -%}
+      {%- if author_name and article_page.show_author != false -%}
         <div>
           <dt class="visually-hidden">{% t 'article.meta.author' %}</dt>
           <dd itemprop="author" itemscope itemtype="https://schema.org/Person">

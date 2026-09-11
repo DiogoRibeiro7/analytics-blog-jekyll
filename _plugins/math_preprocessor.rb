@@ -20,7 +20,7 @@ module MathPreprocessor
 
   INLINE_PATTERNS = [
     {
-      regex: /(?<!\\)(?<open>\$)(?!\$)(?<body>[^$]+?)(?<close>\$)/m,
+      regex: /(?<![\\$])(?<open>\$)(?!\$)(?<body>[^$]+?)(?<close>\$)(?!\$)/m,
       tag: "span"
     },
     {
@@ -176,7 +176,9 @@ module MathPreprocessor
   end
 end
 
-%w[documents pages posts].each do |scope|
+# Posts are documents, so registering them separately ran the preprocessor
+# twice on every post and nested each expression inside its own wrapper.
+%w[documents pages].each do |scope|
   Jekyll::Hooks.register(scope.to_sym, :pre_render) do |document|
     MathPreprocessor.apply(document)
   end

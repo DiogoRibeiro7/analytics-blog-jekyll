@@ -1679,7 +1679,13 @@ body.dark-mode .article-subtitle {
   color: $dark-ink-700;
 }
 
-// Teaser thumbnails on home cards and related-post cards.
+// Teaser thumbnails on home cards and related-post cards. Cards are grids
+// whose rows stretch to the tallest card in the row; without these two rules
+// the extra height inflates the thumbnail and pushes the text to the bottom.
+.card-grid > .card {
+  align-content: start;
+}
+
 .card-media {
   display: block;
   margin: -#{map.get($spacing, 5)} -#{map.get($spacing, 5)} 0;
@@ -1689,6 +1695,7 @@ body.dark-mode .article-subtitle {
   img {
     display: block;
     width: 100%;
+    height: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
   }
