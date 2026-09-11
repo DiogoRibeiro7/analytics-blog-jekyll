@@ -74,6 +74,8 @@ MathJax and Prism are loaded from a CDN and together weigh several hundred kilob
 - `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
 - A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 
+A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
+
 ### 4. Integrations
 
 External services live in `_config.yml` under `integrations:` and are exposed to templates as `site.integrations`:
