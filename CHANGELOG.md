@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A social card image (`assets/img/social-card.png`), so the Open Graph and Twitter image tags no longer point at a missing file.
+- The release workflow now does a release in one run plus one pull request: "Run workflow" with a version bumps `develop` and opens the PR into `main`; merging it tags `main`, publishes the GitHub release and starts the gem publish.
+
+### Changed
+
+- The hero background is served as a 46 KB WebP instead of a 1.27 MB PNG.
+- Footer text and links, and the skip link in dark mode, meet the 4.5:1 contrast ratio; the blog listing uses second-level headings for its cards.
+- The Tests workflow runs for pull requests into `main` as well as `develop`; the duplicate theme-stability workflow is gone.
+- The configuration guide documents where settings actually live (`_config.yml` plus `_data/config/author.yml`).
+
+### Removed
+
+- Percy: it never ran without a token and carried the last open npm advisory and about 150 packages. The Playwright specs under `tests/visual/` stay as structure checks. `npm audit` is clean.
+- The `jekyll-jupyter-notebook` gem and the Jupyter toolchain. Notebook pages are rendered by the theme; only `nbformat` remains, for the notebook validation script.
+- `_data/config/site.yml`, `theme.yml` and `features.yml`, which nothing read.
+
 ## [0.6.1] - 2026-09-11
 
 ### Fixed
