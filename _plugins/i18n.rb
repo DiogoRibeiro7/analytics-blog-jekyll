@@ -112,14 +112,16 @@ module Datalog
 end
 
 class TranslateTag < Liquid::Tag
-  SYNTAX = /(\w[\w.-]*)(.*)?/
+  # The key may be bare or quoted; a quoted key must not leak its closing
+  # quote into the first option name, or interpolation silently fails.
+  SYNTAX = /\A\s*(['"]?)(\w[\w.-]*)\1(.*)?\z/m
 
   def initialize(tag_name, markup, tokens)
     super
     raise Liquid::SyntaxError, "Syntax Error in 't' - Valid syntax: t key [arg: value]" unless markup.strip =~ SYNTAX
 
-    @key = Regexp.last_match(1)
-    @markup = Regexp.last_match(2)
+    @key = Regexp.last_match(2)
+    @markup = Regexp.last_match(3)
   end
 
   def render(context)

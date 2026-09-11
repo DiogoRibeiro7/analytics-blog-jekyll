@@ -97,7 +97,11 @@ Displays posts organized by year and month with filtering options
   {%- comment -%} Posts organized by year and month {%- endcomment -%}
   <div class="archive-layout__content">
     {%- for year in sorted_years -%}
-      {%- assign year_posts = site.posts | where_exp: "post", "post.date | date: '%Y' == year" -%}
+      {%- assign year_posts = "" | split: "" -%}
+      {%- for post in site.posts -%}
+        {%- assign post_year = post.date | date: '%Y' -%}
+        {%- if post_year == year -%}{%- assign year_posts = year_posts | push: post -%}{%- endif -%}
+      {%- endfor -%}
 
       <section class="archive-year" data-year="{{ year }}">
         <h2 class="archive-year__heading">
@@ -108,7 +112,11 @@ Displays posts organized by year and month with filtering options
         {%- comment -%} Group by month {%- endcomment -%}
         {%- assign months = "01,02,03,04,05,06,07,08,09,10,11,12" | split: "," -%}
         {%- for month_num in months -%}
-          {%- assign month_posts = year_posts | where_exp: "post", "post.date | date: '%m' == month_num" -%}
+          {%- assign month_posts = "" | split: "" -%}
+          {%- for post in year_posts -%}
+            {%- assign post_month = post.date | date: '%m' -%}
+            {%- if post_month == month_num -%}{%- assign month_posts = month_posts | push: post -%}{%- endif -%}
+          {%- endfor -%}
           {%- if month_posts.size > 0 -%}
             {%- assign month_name = month_num | prepend: year | append: "-01" | date: "%B" -%}
 
@@ -123,7 +131,7 @@ Displays posts organized by year and month with filtering options
                       data-month="{{ month_num }}"
                       data-categories="{{ post.categories | join: ',' | slugify }}"
                       data-tags="{{ post.tags | join: ',' | slugify }}"
-                      data-difficulty="{{ post.difficulty | default: '' | slugify }}">
+                      data-difficulty="{% if post.difficulty %}{{ post.difficulty | slugify }}{% endif %}">
 
                     <article class="archive-post__article">
                       <time class="archive-post__date" datetime="{{ post.date | date_to_xmlschema }}">
