@@ -1,5 +1,6 @@
 # DataLog — A Data Science Jekyll Theme
 
+[![Gem Version](https://img.shields.io/gem/v/datalog-theme)](https://rubygems.org/gems/datalog-theme)
 [![Tests](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/test.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/test.yml)
 [![Deploy](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/deploy.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/deploy.yml)
 [![Gem Release](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/gem-release.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/gem-release.yml)
