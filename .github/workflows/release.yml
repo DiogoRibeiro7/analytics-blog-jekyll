@@ -117,30 +117,40 @@ jobs:
         run: |
           echo "Dry run: nothing pushed, no PR opened." | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit and push the bump to develop
+      - name: Commit the bump, then publish it on develop and a release branch
         if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml
           git commit -m "chore(release): bump version to $VERSION"
+
+          # develop keeps the bump so it stays current for the next release.
           git push origin HEAD:develop
+
+          # The promotion comes from a branch named for the release rather than
+          # from develop, so the pull request and the merge commit on main both
+          # say which release they are. The force is for a retried release,
+          # where a branch from the failed attempt may still exist; a reused
+          # version is already refused by the validation step above.
+          git push --force origin "HEAD:refs/heads/release/v$VERSION"
 
       - name: Open or refresh the release PR
         if: ${{ !inputs.dry_run }}
         run: |
+          BRANCH="release/v$VERSION"
           {
-            echo "Promotes develop to main as **v$VERSION**. Merge with **Create a merge commit**; on merge, main is tagged and the gem publish starts (it waits for approval in the rubygems environment)."
+            echo "Promotes \`$BRANCH\` to main as **v$VERSION**. Merge with **Create a merge commit**; on merge, main is tagged and the gem publish starts (it waits for approval in the rubygems environment)."
             echo
             cat /tmp/notes.md
           } > /tmp/body.md
-          EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          EXISTING=$(gh pr list --base main --head "$BRANCH" --state open --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
-            gh pr edit "$EXISTING" --title "release: v$VERSION" --body-file /tmp/body.md
+            gh pr edit "$EXISTING" --title "Release v$VERSION" --body-file /tmp/body.md
             echo "Updated PR #$EXISTING" | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            gh pr create --base main --head develop --title "release: v$VERSION" --body-file /tmp/body.md
-            echo "Opened the release PR" | tee -a "$GITHUB_STEP_SUMMARY"
+            gh pr create --base main --head "$BRANCH" --title "Release v$VERSION" --body-file /tmp/body.md
+            echo "Opened the release PR from $BRANCH" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
   tag:
