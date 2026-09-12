@@ -137,7 +137,7 @@ sitemap: false
             {% endif %}
           {% endfor %}
         ],
-        "tags": {{ tags | default: '' | split: '' | uniq | jsonify }},
+        "tags": {{ tags | uniq | jsonify }},
         "languages": {{ languages | uniq | jsonify }},
         "difficulty": {{ doc.difficulty | default: doc.level | default: '' | jsonify }},
         "topics": {{ doc.topics | default: tags | uniq | jsonify }},
