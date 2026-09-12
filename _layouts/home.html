@@ -31,6 +31,11 @@ layout: default
     </div>
   </div>
 </section>
+{% comment %}
+  The portfolio collection is optional: a site that has not declared it gets
+  nil here, and sorting nil raises rather than rendering an empty section.
+{% endcomment %}
+{% if site.portfolio and site.portfolio.size > 0 %}
 <section class="section section-portfolio">
   <div class="container">
     <h2 class="section-title">{% t 'home.featured_projects' %}</h2>
@@ -46,3 +51,4 @@ layout: default
     </div>
   </div>
 </section>
+{% endif %}
