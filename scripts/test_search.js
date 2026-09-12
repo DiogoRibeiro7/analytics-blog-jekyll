@@ -13,7 +13,9 @@ const searchSources = [
     .map((file) => path.join(searchDir, file))
 ];
 const searchBundle = searchSources.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
-const searchTemplate = fs.readFileSync(path.join(root, 'search', 'index.html'), 'utf8');
+// The markup lives in an include so the gem can ship it: a theme gem cannot
+// ship pages, and sites installing the theme have the page generated for them.
+const searchTemplate = fs.readFileSync(path.join(root, '_includes', 'search', 'page.html'), 'utf8');
 
 const requiredFunctions = [
   'isMathQuery',

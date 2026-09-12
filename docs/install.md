@@ -38,6 +38,17 @@ Choose the workflow that matches how you plan to host and work with DataLog.
    `_plugins/` for a site but not for a theme gem, so without that line the tags
    the layouts use are never registered and the build fails with
    `Unknown tag 't'`.
+
+   Turning on search adds two pages your site does not have to write:
+
+   ```yaml
+   features:
+     search: true
+   ```
+
+   The theme then generates `/search/` and the `/search.json` index it reads,
+   because a theme gem can ship layouts and includes but not pages. A site that
+   defines either path itself keeps its own version.
 4. **Push to GitHub** on the `develop` branch, then enable GitHub Pages in the repository settings, selecting the `develop` branch as the source.【F:README.md†L87-L94】
 5. **Allow GitHub Pages to build** using the `github-pages` gem; the site will publish automatically after the workflow completes.【F:README.md†L109-L111】
 
