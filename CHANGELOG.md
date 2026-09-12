@@ -7,10 +7,12 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - `tests/test_gem_consumer.rb` builds a minimal site against the packaged theme and against a checkout of the repository, and fails if the build breaks or publishes anything that identifies the maintainer.
+- `tests/test_navigation_cache.rb` checks that each section still marks only its own navigation link now that the navigation is cached.
 
 ### Changed
 
 - The release workflow promotes a `release/vX.Y.Z` branch to `main` instead of promoting `develop` itself, so the pull request and the merge commit on `main` name the release rather than reading "from develop". `develop` still receives the version bump.
+- The layouts use `jekyll-include-cache`, a dependency the theme already declared but never used. The footer and skip link are rendered once per build (the skip link once per page language) and the header navigation once per distinct current section, where each was rendered on every page before: on the demo site the navigation renders 10 times instead of 53. The CSP meta tag, the script loader and the analytics snippet stay per page because each carries that page's CSP nonce. Requiring the theme now also loads `jekyll-include-cache`.
 - The installation guide covers what a site supplies itself (pages, navigation, social links), installing from a Git checkout, and publishing to GitHub Pages with GitHub Actions. It replaces instructions for the built-in Pages build, which cannot run the theme.
 
 ### Fixed

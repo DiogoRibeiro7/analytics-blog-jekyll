@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "datalog/theme/version"
+# The layouts render their page-independent includes with {% include_cached %},
+# which comes from jekyll-include-cache rather than Jekyll itself.
+require "jekyll-include-cache"
 
 module Datalog
   module Theme

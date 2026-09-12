@@ -20,6 +20,7 @@
 {% include meta/syntax-config.html %}
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+{%- comment -%} Not include_cached: the CSP nonce is different on every page. {%- endcomment -%}
 {% include csp-meta.html %}
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0b1d3d" />
@@ -329,4 +330,5 @@
   document.documentElement.classList.add('js');
 </script>
 
+{%- comment -%} Not include_cached: its inline script carries the page's CSP nonce. {%- endcomment -%}
 {% include analytics.html %}

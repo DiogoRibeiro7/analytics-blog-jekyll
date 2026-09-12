@@ -85,14 +85,14 @@ class GemPackageTest < Minitest::Test
     script = <<~RUBY
       require "jekyll"
       require #{ROOT.join('lib/datalog-theme.rb').to_s.inspect}
-      puts !Liquid::Template.tags["t"].nil?
+      puts %w[t include_cached].all? { |tag| Liquid::Template.tags[tag] }
     RUBY
 
     stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", script, chdir: ROOT.to_s)
 
     assert status.success?, "loading the gem entry point failed: #{stderr}"
     assert_equal "true", stdout.strip,
-                 "requiring the theme should register the {% t %} tag its layouts use"
+                 "requiring the theme should register the {% t %} and {% include_cached %} tags its layouts use"
   end
 
   private

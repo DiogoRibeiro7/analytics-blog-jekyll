@@ -32,6 +32,7 @@ Pass location="head" or location="body" to control which block renders.
       "yearly_totals": {{ publications.yearly_totals | jsonify }}
     };
   </script>
+  {%- comment -%} Not include_cached: scripts.html reads the page's math and notebook settings and CSP nonce. {%- endcomment -%}
   {% include scripts.html %}
   <script nonce="{{ page.csp_nonce }}">
     window.DatalogTheme = {{ site.theme_options | jsonify }};
