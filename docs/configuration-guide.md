@@ -1,25 +1,20 @@
 # Configuration Guide
 
-This document explains how the DataLog theme's configuration is organized for easy customization.
+Where the DataLog theme's settings live and how to change the common ones.
 
 ## Overview
 
-Configuration has been split into modular files for easier maintenance:
-
 | File | Purpose |
 |------|---------|
-| `_config.yml` | Core Jekyll settings (required) |
-| `_data/config/site.yml` | Brand, contact, SEO, analytics |
-| `_data/config/author.yml` | Author profile and academic info |
-| `_data/config/theme.yml` | Visual settings, math, syntax, images |
-| `_data/config/features.yml` | Feature flags organized by phase |
+| `_config.yml` | Everything the theme reads: site identity, features, `theme_options`, integrations, notebooks, plugin settings |
+| `_data/config/author.yml` | The author profile used by the about and research pages (`site.data.config.author`) |
+| `_data/navigation.yml`, `_data/social.yml`, `_data/i18n/*.yml` | Navigation menus, social and RSS links, translations |
 
-External service connections (GitHub, Binder, Colab, Giscus) live in `_config.yml`
-under `integrations:` and `datalog_plugins:` (exposed to templates as `site.integrations`).
+`_config.yml` is organised in labelled sections (Jekyll core, site identity, features, theme customization, integrations, notebooks, plugins). Search for the banner comment of the section you need.
 
 ## Quick Start
 
-### 1. Update Your Profile
+### 1. Update your profile
 
 Edit `_data/config/author.yml`:
 
@@ -27,127 +22,63 @@ Edit `_data/config/author.yml`:
 name: Your Name
 affiliation: Your Institution
 email: your@email.com
+photo:            # e.g. /assets/img/author.jpg; leave unset for the initial-letter placeholder
 
 profiles:
   orcid: https://orcid.org/YOUR-ORCID
   github: yourusername
-  twitter: yourhandle
-```
-
-### 2. Configure Site Branding
-
-Edit `_data/config/site.yml`:
-
-```yaml
-brand:
-  tagline: "Your site tagline"
-  accent_symbol: "Your symbol"
-
-contact:
-  collaboration: your@email.com
-```
-
-### 3. Enable/Disable Features
-
-Edit `_data/config/features.yml`:
-
-```yaml
-core:
-  dark_mode_toggle: true
-  search: true
-  mathjax: true
-
-comments:
-  enabled: true
-  provider: giscus
-```
-
-## File Details
-
-### _config.yml (Core Settings)
-
-This file contains settings that Jekyll requires:
-- Site title, URL, description
-- Build settings (markdown, plugins)
-- Collections and defaults
-- Exclusions
-
-**Note:** Some settings are duplicated here for Jekyll compatibility while the full config is in data files.
-
-### _data/config/site.yml
-
-Brand and site-wide settings:
-
-```yaml
-brand:
-  tagline: "Your tagline"
-  accent_symbol: "∀ data · Σ insights"
-
-contact:
-  collaboration: email@example.com
-  media: press@example.com
-
-seo:
-  type: "ResearchProject"
-  name: "Your Site"
-
-analytics:
-  ga4_property_id: ""  # Add your GA4 ID
-```
-
-### _data/config/author.yml
-
-Your professional profile:
-
-```yaml
-name: Your Name
-affiliation: Your Institution
-biography: Short bio for author cards
-
-profiles:
-  orcid: https://orcid.org/...
-  github: username
-  twitter: handle
-  linkedin: profile
-  google_scholar: ""
-  researchgate: ""
 
 research_areas:
   - id: machine-learning
     title: Machine Learning
-    url: /tags/machine-learning/
+    url: /tags/#machine-learning
 ```
 
-### _data/config/theme.yml
+### 2. Site identity
 
-Visual and behavioral settings:
+In `_config.yml`:
 
 ```yaml
-# Color scheme
-academic:
-  color_schemes:
-    light: "#0b1d3d"
-    dark: "#f5f7ff"
-    accent: "#3277f6"
-
-# Math rendering
-math:
-  engine: mathjax  # or katex
-  equation_numbering: true
-  accessibility: true
-
-# Code highlighting
-syntax_highlighting:
-  engine: prism
-  themes:
-    light: prism-coy
-    dark: prism-tomorrow
+title: Your Site
+description: One-sentence description used for meta tags
+url: https://your-domain.example
+baseurl: ""            # "/repo-name" for a GitHub Pages project site
+author:
+  name: Your Name
 ```
 
-### Integrations (in `_config.yml`)
+### 3. Features and theme options
 
-External service connections live directly in `_config.yml` so they are exposed as
-`site.integrations` to templates (e.g. `_includes/meta/scripts-loader.html`):
+In `_config.yml`:
+
+```yaml
+features:
+  search: true
+  mathjax: true
+  visualizations: true
+
+theme_options:
+  math:
+    engine: mathjax      # or katex
+    output: chtml
+    accessibility: true
+    render_on_load: auto # auto | true | false
+  syntax_highlighting:
+    load: auto           # auto | always
+    components: [core, python, r, sql, julia, javascript]
+```
+
+MathJax and Prism are loaded from a CDN and together weigh several hundred kilobytes, so by default they are only loaded where they are needed:
+
+- `math.render_on_load: auto` loads the math engine on pages whose rendered content contains math (`$`, `\(`, `\[` or kramdown math blocks) or that declare `math_expressions`. `true` loads it on every page; `false` only on pages that opt in.
+- `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
+- A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+
+A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
+
+### 4. Integrations
+
+External services live in `_config.yml` under `integrations:` and are exposed to templates as `site.integrations`:
 
 ```yaml
 integrations:
@@ -160,98 +91,30 @@ integrations:
     enabled: true
 ```
 
-### _data/config/features.yml
-
-Feature toggles organized by phase:
+### 5. Analytics and comments
 
 ```yaml
-# Core features
-core:
-  mathjax: true
-  search: true
-  dark_mode_toggle: true
+google_analytics: ""     # a GA4 measurement id enables the tag; empty disables it
 
-# Social sharing
-social_sharing:
-  enabled: true
-  platforms:
-    - twitter
-    - linkedin
-    - email
-
-# Comments
-comments:
-  enabled: true
-  provider: giscus
-  giscus:
-    repo: "owner/repo"
-    repo_id: ""  # Get from giscus.app
+datalog_plugins:
+  comments:
+    provider: giscus
+    giscus:
+      repo: owner/repo
+      repo_id: ""        # from https://giscus.app
+      category_id: ""
 ```
 
-## Accessing Configuration in Templates
-
-In Liquid templates, access configuration via:
+## Accessing configuration in templates
 
 ```liquid
-<!-- From _config.yml -->
 {{ site.title }}
-{{ site.author.name }}
-
-<!-- From data files -->
+{{ site.theme_options.math.engine }}
+{{ site.integrations.binder.enabled }}
 {{ site.data.config.author.name }}
-{{ site.data.config.theme.math.engine }}
-{{ site.data.config.features.comments.enabled }}
 ```
 
-## Migration from Previous Versions
+## Need help?
 
-If you're upgrading from a previous version:
-
-1. Your existing `_config.yml` settings will continue to work
-2. Gradually move custom settings to the appropriate data files
-3. The theme checks both locations for backward compatibility
-
-## Common Configuration Tasks
-
-### Enable Dark Mode
-
-In `_config.yml` or `_data/config/features.yml`:
-```yaml
-dark_mode_toggle: true
-```
-
-### Add Google Analytics
-
-In `_data/config/site.yml`:
-```yaml
-analytics:
-  ga4_property_id: "G-XXXXXXXXXX"
-```
-
-### Enable Comments
-
-In `_data/config/features.yml`:
-```yaml
-comments:
-  enabled: true
-  provider: giscus
-  giscus:
-    repo: "your-username/your-repo"
-    repo_id: ""  # Get from https://giscus.app
-    category_id: ""
-```
-
-### Configure Math Rendering
-
-In `_data/config/theme.yml`:
-```yaml
-math:
-  engine: mathjax  # or katex
-  equation_numbering: true
-  accessibility: true
-```
-
-## Need Help?
-
-- [Full Documentation](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/docs)
-- [Report Issues](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues)
+- [User guide](user-guide.md)
+- [Report an issue](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues)

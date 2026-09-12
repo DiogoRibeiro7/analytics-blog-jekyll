@@ -14,7 +14,7 @@ subtitle: Tutorials, research notes, and data science walkthroughs
           <span class="post-meta__badge">{{ post.difficulty }}</span>
         {% endif %}
       </p>
-      <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+      <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
       <p>{{ post.excerpt | strip_html | truncate: 140 }}</p>
       {% if post.tags and post.tags.size > 0 %}
         <ul class="post-list-item__tags">

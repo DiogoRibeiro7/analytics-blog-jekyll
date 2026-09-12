@@ -65,5 +65,4 @@ body:
     attributes:
       label: Items for Next Month
       placeholder: |
-        - Monitor @percy/core for yauzl fix
         - Check esbuild release cadence

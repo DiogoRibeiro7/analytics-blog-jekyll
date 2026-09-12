@@ -13,7 +13,7 @@ class SriFilterTest < Minitest::Test
   def test_cdn_urls_in_output_have_integrity_attributes
     html = SiteBuilder.read(SAMPLE_PAGE)
     @integrity_map.each_key do |url|
-      next unless html.include?(url)
+      next unless references?(html, url)
 
       entry = @integrity_map[url]
       assert_includes html, entry["integrity"],
@@ -36,7 +36,7 @@ class SriFilterTest < Minitest::Test
   def test_crossorigin_attribute_is_included
     html = SiteBuilder.read(SAMPLE_PAGE)
     @integrity_map.each do |url, entry|
-      next unless html.include?(url) && entry["crossorigin"]
+      next unless references?(html, url) && entry["crossorigin"]
 
       assert_includes html, %(crossorigin="#{entry['crossorigin']}"),
                       "Expected crossorigin attribute for #{url}"
@@ -64,6 +64,12 @@ class SriFilterTest < Minitest::Test
   end
 
   private
+
+  # A URL loaded by the page, as opposed to one merely mentioned in the theme
+  # options that scripts-loader.html serialises into window.DatalogTheme.
+  def references?(html, url)
+    html.match?(/\b(?:src|href)="#{Regexp.escape(url)}"/)
+  end
 
   def make_liquid_context
     registers = { site: @site }

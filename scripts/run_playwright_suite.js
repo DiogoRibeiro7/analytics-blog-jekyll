@@ -6,23 +6,19 @@ import process from 'node:process';
 import url from 'node:url';
 import waitOn from 'wait-on';
 
+import { nodeBinArgs, spawnCompat } from './spawn_compat.js';
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const siteDir = path.join(projectRoot, '_site');
 const port = Number(process.env.PLAYWRIGHT_PORT || 4173);
 const defaultBaseUrl = `http://127.0.0.1:${port}`;
 
-function resolveBin(bin) {
-  const ext = process.platform === 'win32' ? '.cmd' : '';
-  return path.join(projectRoot, 'node_modules', '.bin', `${bin}${ext}`);
-}
-
 function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawnCompat(command, args, {
       stdio: 'inherit',
       env: process.env,
-      shell: process.platform === 'win32',
       ...options,
     });
     child.on('error', reject);
@@ -39,11 +35,10 @@ function runCommand(command, args = [], options = {}) {
 
 async function startServer() {
   console.log(`➡️  Serving _site on ${defaultBaseUrl}...`);
-  const serverBin = resolveBin('http-server');
-  const server = spawn(serverBin, [siteDir, '-p', String(port), '--silent'], {
+  const [nodeBinary, httpServerCli] = nodeBinArgs('http-server');
+  const server = spawn(nodeBinary, [httpServerCli, siteDir, '-p', String(port), '--silent'], {
     stdio: 'inherit',
     env: process.env,
-    shell: process.platform === 'win32',
   });
 
   try {
@@ -90,11 +85,14 @@ async function main() {
 
   console.log(`➡️  Running Playwright with PLAYWRIGHT_BASE_URL=${env.PLAYWRIGHT_BASE_URL}`);
 
-  const playwrightBin = resolveBin('playwright');
+  const [nodeBinary, playwrightCli] = nodeBinArgs('@playwright/test', 'playwright');
   let exitCode = 0;
   try {
     exitCode = await new Promise((resolve, reject) => {
-      const child = spawn(playwrightBin, ['test', ...playwrightArgs], { stdio: 'inherit', env });
+      const child = spawn(nodeBinary, [playwrightCli, 'test', ...playwrightArgs], {
+        stdio: 'inherit',
+        env,
+      });
       child.on('error', reject);
       child.on('exit', (code, signal) => {
         if (signal) {

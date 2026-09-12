@@ -7,7 +7,7 @@ if (!baseURL) {
     [
       'Playwright configuration error: PLAYWRIGHT_BASE_URL is not set.',
       'Set PLAYWRIGHT_BASE_URL to the URL of a served _site directory before running Playwright tests.',
-      'For a fully automated workflow, run one of the npm helpers (e.g. "npm run test:integration" or "npm run test:visual") which build the site, start a server, and provide the base URL for you.'
+      'For a fully automated workflow, run one of the npm helpers (e.g. "npm run test:integration") which build the site, start a server, and provide the base URL for you.'
     ].join('\n')
   );
 }

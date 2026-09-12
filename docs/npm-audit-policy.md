@@ -51,13 +51,9 @@ When a vulnerability cannot be immediately fixed (e.g., waiting for upstream pat
 
 ## Current Known Exceptions
 
-| Advisory | Package | Reason | Tracking Issue | Expires |
-|----------|---------|--------|----------------|---------|
-| GHSA-vwc7-r8mq-g2x9 | adm-zip (via @percy/core) | Every published release from 0.5.9 to the latest 0.6.0 is affected, so there is no version to move to. Dev-only: the Percy CLI, which does not run in CI without a `PERCY_TOKEN`. `npm audit` also lists the ten `@percy/*` packages that depend on it under this one advisory. | N/A | First adm-zip release after 0.6.0 |
+None. `npm audit --audit-level=moderate` reports no advisories.
 
-Resolved exceptions (kept for the record): `@tootallnate/once` via `critical` (gone with `critical` 8), `yauzl` via `@percy/core` (no longer reported).
-
-Transitive pins in `package.json` `overrides` (`fast-xml-parser`, `uuid`, `snyk-nodejs-lockfile-parser`) exist only because `@percy/cli` pins older versions of them; drop the overrides once Percy updates its own dependencies.
+Resolved exceptions, kept for the record: `@tootallnate/once` via `critical` (gone with `critical` 8); `yauzl`, `adm-zip`, `fast-xml-parser`, `uuid` and `snyk-nodejs-lockfile-parser` via `@percy/cli` (Percy was removed in favour of plain Playwright specs, which also removed the `overrides` that pinned those packages).
 
 ## Updating This Policy
 

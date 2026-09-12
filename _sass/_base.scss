@@ -48,7 +48,7 @@ a {
 
   &:hover,
   &:focus {
-    color: $color-accent-secondary;
+    color: $color-accent-secondary-text;
   }
 }
 
@@ -99,6 +99,12 @@ pre {
   text-decoration: none;
   z-index: $z-skiplink;
   transition: transform $transition-base;
+
+  // body.dark-mode a outranks .skip-link and would paint the text light blue
+  // on the blue pill (2:1); keep it white in both modes (5.2:1).
+  body.dark-mode & {
+    color: white;
+  }
 
   &:focus {
     transform: translate(-50%, 0);

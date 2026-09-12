@@ -42,7 +42,7 @@ RUN bundle config set --local without 'development' && \
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-# Install Python dependencies for Jupyter notebook support
+# Install Python dependencies (notebook metadata validation)
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 

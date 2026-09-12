@@ -448,8 +448,26 @@ module Datalog
       false
     end
 
+    # Searches PATH directly instead of shelling out: `command -v` is a POSIX
+    # shell builtin with no executable behind it, so on Windows every lookup
+    # failed and `datalog check` reported all dependencies as missing.
     def command_available?(command)
-      system("command", "-v", command, out: File::NULL, err: File::NULL)
+      return true if File.file?(command) && File.executable?(command)
+
+      extensions = if Gem.win_platform?
+                     (ENV["PATHEXT"] || ".COM;.EXE;.BAT;.CMD").split(";")
+                   else
+                     [""]
+                   end
+
+      ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).any? do |directory|
+        next false if directory.empty?
+
+        extensions.any? do |extension|
+          candidate = File.join(directory, "#{command}#{extension}")
+          File.file?(candidate) && File.executable?(candidate)
+        end
+      end
     end
 
     def config_valid?(root)

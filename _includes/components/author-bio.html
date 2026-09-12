@@ -34,8 +34,8 @@ Parameters:
         {%- else -%}
           {%- comment -%} Fallback avatar with initials {%- endcomment -%}
           {%- assign initials = author_name | split: ' ' | map: 'first' | slice: 0, 2 | join: '' | upcase -%}
-          <div class="author-bio__avatar-placeholder" aria-label="{{ author_name }}">
-            <span>{{ initials }}</span>
+          <div class="author-bio__avatar-placeholder" role="img" aria-label="{{ author_name }}">
+            <span aria-hidden="true">{{ initials }}</span>
           </div>
         {%- endif -%}
       </div>

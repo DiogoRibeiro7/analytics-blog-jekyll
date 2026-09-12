@@ -2,6 +2,7 @@
 layout: page
 title: Visualizations
 permalink: /visualizations/
+math: false # the D3 sample's template literals are code, not LaTeX
 subtitle: Interactive dashboards, notebooks, and embeddable charts
 ---
 

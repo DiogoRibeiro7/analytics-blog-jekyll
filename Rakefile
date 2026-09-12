@@ -11,8 +11,23 @@ def node_script(path)
   sh "node #{path}"
 end
 
+# Windows has no `python3` executable: the interpreter is `python`, and the
+# `python3` name resolves to a Microsoft Store stub that only prints an error.
+PYTHON_COMMANDS = %w[python3 python py].freeze
+
+def python_command
+  @python_command ||= PYTHON_COMMANDS.find { |command| python_usable?(command) } ||
+                      abort("No Python interpreter found (tried #{PYTHON_COMMANDS.join(', ')}).")
+end
+
+def python_usable?(command)
+  system(command, "--version", out: File::NULL, err: File::NULL)
+rescue Errno::ENOENT
+  false
+end
+
 def python_script(path)
-  sh "python3 #{path}"
+  sh python_command, path
 end
 
 namespace :ci do

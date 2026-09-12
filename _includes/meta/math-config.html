@@ -7,10 +7,16 @@ optional:
 ---
 Computes math rendering settings shared by layouts.
 Exposes math_enabled, math_engine, math_status_id, and math_has_expressions variables.
+
+math_enabled resolves, in order: the page's `mathjax` or `math` front matter,
+then `theme_options.math.render_on_load` (falling back to `features.mathjax`).
+With `render_on_load: auto` the engine is only loaded when the rendered page
+contains math (`$`, `\(`, `\[` or kramdown's `math/tex` scripts) or declares
+`math_expressions`; `true` loads it on every page; `false` only on pages that
+opt in.
 {%- endcomment -%}
 {%- assign math_settings = site.theme_options.math | default: {} -%}
 {%- assign math_engine = include.page.math_engine | default: math_settings.engine | default: 'mathjax' -%}
-{%- assign math_enabled = include.page.mathjax | default: include.page.math | default: math_settings.render_on_load | default: site.features.mathjax -%}
 {%- assign math_status_id = include.status_id | default: 'math-status' -%}
 {%- assign math_expressions = include.page.math_expressions | default: '' -%}
 {%- assign math_has_expressions = false -%}
@@ -18,4 +24,20 @@ Exposes math_enabled, math_engine, math_status_id, and math_has_expressions vari
   {%- if math_expressions.size > 0 -%}
     {%- assign math_has_expressions = true -%}
   {%- endif -%}
+{%- endif -%}
+{%- assign math_load = math_settings.render_on_load -%}
+{%- if math_load == nil -%}
+  {%- assign math_load = site.features.mathjax -%}
+{%- endif -%}
+{%- if include.page.mathjax != nil -%}
+  {%- assign math_enabled = include.page.mathjax -%}
+{%- elsif include.page.math != nil -%}
+  {%- assign math_enabled = include.page.math -%}
+{%- elsif math_load == 'auto' -%}
+  {%- assign math_enabled = math_has_expressions -%}
+  {%- if content contains 'math/tex' or content contains '$' or content contains '\(' or content contains '\[' -%}
+    {%- assign math_enabled = true -%}
+  {%- endif -%}
+{%- else -%}
+  {%- assign math_enabled = math_load -%}
 {%- endif -%}

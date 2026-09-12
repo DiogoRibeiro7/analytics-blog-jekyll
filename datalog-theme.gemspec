@@ -33,7 +33,7 @@ Gem::Specification.new do |spec|
   # tooling, Dockerfiles, etc.). Theme consumers get layouts/includes/sass/assets/
   # plugins/data/lib/bin and the licensing/changelog metadata.
   spec.files = Dir.chdir(__dir__) do
-    `git ls-files -z`.split("\x0").select do |f|
+    tracked = `git ls-files -z`.split("\x0").select do |f|
       f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) ||
         %w[
           LICENSE
@@ -43,6 +43,14 @@ Gem::Specification.new do |spec|
           datalog-theme.gemspec
         ].include?(f)
     end
+
+    # The browser bundles are build output, so git does not track them, but
+    # _data/js_manifest.json points every page at them: a gem without them
+    # gives consumers a site whose scripts all 404. Run `npm run build:js`
+    # before packaging; scripts/verify_gem_package.rb checks the result.
+    built = Dir.glob("assets/js/dist/**/*").select { |f| File.file?(f) }
+
+    (tracked + built).uniq.sort
   end
 
   spec.add_runtime_dependency "jekyll", "~> 4.3"
@@ -53,13 +61,13 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "sass-embedded", ">= 1.71"
   spec.add_runtime_dependency "jekyll-paginate", ">= 1.1"
   spec.add_runtime_dependency "jekyll-include-cache", ">= 0.2"
-  spec.add_runtime_dependency "jekyll-jupyter-notebook", "~> 0.0.6"
   spec.add_runtime_dependency "jekyll-archives", ">= 2.2"
   spec.add_runtime_dependency "jekyll-remote-theme", ">= 0.4"
   spec.add_runtime_dependency "jekyll-redirect-from", ">= 0.16"
   spec.add_runtime_dependency "kramdown-parser-gfm", ">= 1.1"
   spec.add_runtime_dependency "webrick", ">= 1.8"
   spec.add_runtime_dependency "fastimage", ">= 2.2"
+  spec.add_runtime_dependency "loofah", ">= 2.19"
   spec.add_runtime_dependency "nokogiri", ">= 1.15"
   spec.add_runtime_dependency "mini_magick", ">= 4.12"
   spec.add_runtime_dependency "logger", ">= 1.6"

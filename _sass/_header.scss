@@ -226,6 +226,16 @@ body.dark-mode .header-control {
   }
 }
 
+// The menu is collapsed in the markup so the page does not reflow (and animate
+// the reflow) when the navigation script initialises. Without JavaScript
+// nothing could open it, so keep it visible in that case; head.html adds the
+// `js` class before the body renders.
+html:not(.js) .site-nav {
+  max-height: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .nav-list {
   display: flex;
   flex-direction: column;

@@ -109,6 +109,28 @@ body.dark-mode .btn-secondary {
   border-color: $dark-accent-primary;
 }
 
+// `btn--ghost` is used in the markup but was never given a style, so those
+// controls fell back to the browser's own button chrome: a light grey face
+// that dark mode could not reach, leaving light text on it at 1.3:1. The
+// theme tokens below follow whichever mode is active.
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+
+  &:hover {
+    background: rgba($color-accent-primary, 0.08);
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+}
+
+body.dark-mode .btn--ghost:hover {
+  background: rgba($dark-accent-primary, 0.16);
+  border-color: $dark-accent-primary;
+  color: $dark-accent-primary;
+}
+
 .stat {
   display: grid;
   gap: map.get($spacing, 1);
@@ -126,7 +148,7 @@ body.dark-mode .btn-secondary {
 
 .stat__value {
   font-size: 1.75rem;
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
 }
 
 body.dark-mode .stat {
@@ -1148,7 +1170,7 @@ body.dark-mode {
 
 .notebook-output--widget {
   font-style: italic;
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
 }
 
 .notebook-segment {
@@ -1569,7 +1591,7 @@ body.dark-mode {
   &:hover,
   &:focus-visible {
     background: rgba($color-accent-secondary, 0.16);
-    color: $color-accent-secondary;
+    color: $color-accent-secondary-text;
   }
 }
 

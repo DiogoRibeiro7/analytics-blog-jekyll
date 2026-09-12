@@ -23,6 +23,32 @@ Choose the workflow that matches how you plan to host and work with DataLog.
 1. **Fork or clone** the repository and add the theme gem to your Jekyll site if it is not already present by including `gem "datalog-theme", "~> 0.1"` in your `Gemfile`.【F:README.md†L96-L103】
 2. **Update `_config.yml`** to reference the theme: set `theme: datalog-theme` and review site metadata (title, URL, author profiles).【F:README.md†L105-L108】【F:_config.yml†L1-L115】
 3. **Install dependencies** locally with Bundler: `bundle install`.【F:README.md†L66-L74】
+
+   A site using the gem needs three things in `_config.yml`:
+
+   ```yaml
+   theme: datalog-theme
+   plugins:
+     - datalog-theme   # registers the theme's Liquid tags and filters
+   author:
+     name: Your Name   # required; the build stops without it
+   ```
+
+   Naming the theme under `plugins:` is what makes Jekyll load it. Jekyll reads
+   `_plugins/` for a site but not for a theme gem, so without that line the tags
+   the layouts use are never registered and the build fails with
+   `Unknown tag 't'`.
+
+   Turning on search adds two pages your site does not have to write:
+
+   ```yaml
+   features:
+     search: true
+   ```
+
+   The theme then generates `/search/` and the `/search.json` index it reads,
+   because a theme gem can ship layouts and includes but not pages. A site that
+   defines either path itself keeps its own version.
 4. **Push to GitHub** on the `develop` branch, then enable GitHub Pages in the repository settings, selecting the `develop` branch as the source.【F:README.md†L87-L94】
 5. **Allow GitHub Pages to build** using the `github-pages` gem; the site will publish automatically after the workflow completes.【F:README.md†L109-L111】
 
@@ -40,7 +66,7 @@ Choose the workflow that matches how you plan to host and work with DataLog.
      python3 -m venv .venv
      source .venv/bin/activate
      ```
-   Both setups benefit from installing notebook helpers: `pip install jupyter nbconvert`.【F:docs/user-guide.md†L12-L31】
+   Notebook pages are rendered by the theme itself; Python is only needed for `scripts/notebook_validation.py` (`pip install -r requirements.txt`).【F:docs/user-guide.md†L12-L31】
 3. **Install Ruby dependencies** with Bundler: `bundle install`.【F:README.md†L66-L74】
 4. **Run the development server** with live reload to preview changes:
    ```bash

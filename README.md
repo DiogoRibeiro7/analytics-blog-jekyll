@@ -1,5 +1,6 @@
 # DataLog — A Data Science Jekyll Theme
 
+[![Gem Version](https://img.shields.io/gem/v/datalog-theme)](https://rubygems.org/gems/datalog-theme)
 [![Tests](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/test.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/test.yml)
 [![Deploy](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/deploy.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/deploy.yml)
 [![Gem Release](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/gem-release.yml/badge.svg)](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/actions/workflows/gem-release.yml)
@@ -40,7 +41,7 @@ site; the rest is reference content you can copy from.
 | Demo content (this site only) | `_posts/`, `_notebooks/`, `_portfolio/`, `_datasets/`, `_packages/`, `_pages/`, `index.md`, `404.html` |
 | Starter scaffold | `template/` — minimal seed for the [GitHub template repository](docs/template-repository.md); excluded from this site's build |
 | Configuration | `_config.yml`, `_data/`, `Gemfile`, `package.json`, `requirements.txt` |
-| Tests & tooling | `tests/`, `scripts/`, `Rakefile`, `vitest.config.js`, `playwright.config.js`, `pa11yci.json`, `lighthouserc.json`, `percy.config.yml` |
+| Tests & tooling | `tests/`, `scripts/`, `Rakefile`, `vitest.config.js`, `playwright.config.js`, `pa11yci.json`, `lighthouserc.json` |
 | Docs | `docs/`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `TESTING.md` |
 
 ```
@@ -95,7 +96,7 @@ site; the rest is reference content you can copy from.
 2. **Configure environment** (optional)
 
    Copy [`.env.example`](.env.example) to `.env` and fill in any keys you
-   need — GA4 credentials, Percy/Codecov tokens, Playwright base URL, etc.
+   need — GA4 credentials, the Codecov token, Playwright base URL, etc.
    All values are optional; the site runs without them, and features that
    require credentials will skip cleanly. See
    [docs/environment-setup.md](docs/environment-setup.md) for the full reference.

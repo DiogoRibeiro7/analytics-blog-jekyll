@@ -1,11 +1,12 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs/promises';
-import { spawn } from 'child_process';
 import YAML from 'yaml';
 // `critical` is pure ESM and exposes only named exports, so a default import
 // resolves to undefined and the module fails to link.
 import { generate } from 'critical';
+
+import { spawnCompat } from './spawn_compat.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,7 +59,7 @@ function resolveCriticalSettings(config) {
 
 function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawnCompat(command, args, {
       stdio: 'inherit',
       env: process.env,
       cwd: rootDir,

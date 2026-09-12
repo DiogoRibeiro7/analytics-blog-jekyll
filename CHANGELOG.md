@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-09-12
+
+### Added
+
+- `tests/test_search_pages.rb` covers the generator: both pages when search is on, neither when it is off or unconfigured, and no duplicate when the site provides its own.
+- The README carries a badge showing the version published on RubyGems, linking to the gem page.
+- `scripts/verify_gem_package.rb` checks that a built gem contains every bundle its manifest references; the release workflow builds the bundles and runs it before publishing.
+- `tests/test_gem_package.rb` covers what a site using the gem needs: the bundles are packaged, the plugins' gem dependencies are declared, and requiring the theme registers its Liquid tags.
+- The search index test checks that tags are whole tags rather than only that the field is an array.
+- The integration suite runs axe-core over six pages in both light and dark mode, so contrast, missing accessible names and misplaced ARIA cannot regress unnoticed.
+- A social card image (`assets/img/social-card.png`), so the Open Graph and Twitter image tags no longer point at a missing file.
+- The release workflow now does a release in one run plus one pull request: "Run workflow" with a version bumps `develop` and opens the PR into `main`; merging it tags `main`, publishes the GitHub release and starts the gem publish.
+
+### Changed
+
+- MathJax is only loaded on pages that contain math (`theme_options.math.render_on_load: auto`, the new default of the demo site) and Prism only on pages with a code block (`theme_options.syntax_highlighting.load: auto`); pages can still opt in or out with `math:` and `syntax_highlighting:` front matter, and a page with `math: false` is also left alone by the math preprocessor. Pages without either skip about 400 KB of CDN scripts and stylesheets.
+- The IBM Plex web fonts fall back to local fonts scaled to Plex's metrics, so the swap once the web font arrives no longer moves the layout, and the Google Fonts stylesheet no longer blocks rendering.
+- The home hero image is preloaded and small screens get a 640 px variant (`hero_image_small` for pages that set their own `hero_image`).
+- The Lighthouse workflow inlines critical CSS before building, as the deploy does, so it measures the published configuration.
+- CI jobs install only what they use: the Jekyll test job no longer installs libvips (the image plugin uses MiniMagick, which the runners already provide) or keeps redundant pip and `_site` caches, and the accessibility, Lighthouse and deploy workflows no longer set up Python, which only the Rake verification task needs.
+- The hero background is served as a 46 KB WebP instead of a 1.27 MB PNG.
+- Footer text and links, and the skip link in dark mode, meet the 4.5:1 contrast ratio; the blog listing uses second-level headings for its cards.
+- The Tests workflow runs for pull requests into `main` as well as `develop`; the duplicate theme-stability workflow is gone.
+- The configuration guide documents where settings actually live (`_config.yml` plus `_data/config/author.yml`).
+- The gem publish can authenticate with RubyGems trusted publishing (OpenID Connect) instead of a stored API key; the `RUBYGEMS_TRUSTED_PUBLISHING` repository variable selects it.
+
+### Fixed
+
+- Sites installing the gem had the search interface and its JavaScript but no search: the page that renders it and the one that builds its index are pages, which a theme gem cannot ship. Both are generated now for any site with `features.search` enabled, and a site that defines either path keeps its own.
+- The published gem could not be used. Jekyll reads `_plugins/` for a site but not for a theme gem, and `lib/datalog-theme.rb` did not load them, so the tags the layouts use were never registered and every consumer site failed to build with `Unknown tag 't'`. Naming the theme under `plugins:` now loads them.
+- The gem shipped `_data/js_manifest.json`, which points every page at the browser bundles, without the bundles themselves: `assets/js/dist/` is build output that git does not track, and the gemspec selected files with `git ls-files`. Sites using the theme loaded no JavaScript at all.
+- The gemspec did not declare `loofah`, which the notebook plugin requires, so loading the theme raised `cannot load such file -- loofah`.
+- The home layout sorted `site.portfolio`, which is nil unless a site declares that collection, and sorting nil stops the build. The section is skipped when the collection is absent.
+- The search index shipped every tag as a list of single characters, so the tag filter on the search page offered 34 buttons reading `a`, `b`, `[`, `"` and so on instead of the 48 real tags. A `split: ''` in the index template turned each tag array into its string form before splitting it.
+- A tag consisting only of whitespace produced a filter button with no accessible name at all, which fails WCAG 4.1.2.
+- The fallback author avatar carried an `aria-label` on a plain `div`, where ARIA prohibits it, so screen readers announced nothing for it. It is now an image role, matching the photo it stands in for.
+- Text set in the teal accent failed WCAG AA everywhere it appeared, reaching only 3.0:1 to 3.5:1 on post badges, skill tags, search highlights and Prism keywords. Teal text now uses a darker tone; the original teal stays for fills and borders.
+- Dark mode had several unreadable components, none of which any check covered: the citation tools kept light backgrounds under light text, leaving a heading white on white at 1.09:1, and difficulty badges kept their light-mode text colour on a near-black pill at 1.93:1.
+- Buttons marked `btn--ghost` were never styled, so they fell back to the browser's own button chrome and could not follow the theme.
+- The Playwright and coverage reports were copied into the built site and published with it. Both are excluded now, and the Playwright report is also ignored by git.
+- `datalog check` reported every dependency as missing on Windows, including bundler, which it treats as a critical failure. The probe called `command -v`, a POSIX shell builtin with no executable behind it; it now searches `PATH` itself, honouring `PATHEXT`.
+- The build and test scripts run on Windows. `npm run test:integration` spawned the Playwright `.cmd` launcher, which Node refuses with `EINVAL`; `npm run build:critical` spawned `bundle`, which is a `.bat` there and failed with `ENOENT`; `bundle exec rake ci:verify` invoked `python3`, which on Windows is a Microsoft Store stub rather than the interpreter; and the CLI tests ran the binstub through its shebang. Node dependencies now run under the current Node binary instead of their launcher shims, and the remaining launchers go through the command interpreter with arguments quoted, so paths containing spaces survive.
+- The site navigation no longer renders expanded and then animates shut on small screens once the script runs, which moved the whole page by about 340 px and put every page's cumulative layout shift near 0.3.
+
+### Removed
+
+- Percy and its visual suite (`tests/visual/`): Percy never ran without a token and carried the last open npm advisory and about 150 packages, and the suite failed 34 of its 58 specs on CDN waits and strict locators, locally and in CI. The integration specs under `tests/integration/` remain the browser checks and gate every deploy. `npm audit` is clean.
+- The `jekyll-jupyter-notebook` gem and the Jupyter toolchain. Notebook pages are rendered by the theme; only `nbformat` remains, for the notebook validation script.
+- `_data/config/site.yml`, `theme.yml` and `features.yml`, which nothing read.
+
 ## [0.6.1] - 2026-09-11
 
 ### Fixed

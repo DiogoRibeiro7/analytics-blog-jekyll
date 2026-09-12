@@ -16,8 +16,8 @@ abstract: >-
   It offers integrated notebook publishing, advanced math rendering, interactive
   visualization workflows, and reproducibility tooling optimised for open science communities.
 license: MIT
-version: 0.6.1
-date-released: 2026-09-11
+version: 0.7.0
+date-released: 2026-09-12
 keywords:
   - data-science
   - jekyll

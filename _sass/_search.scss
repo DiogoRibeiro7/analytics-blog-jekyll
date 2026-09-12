@@ -460,7 +460,7 @@ body.dark-mode .search-result:focus-within .search-result__card {
   padding: 0.1rem 0.5rem;
   border-radius: map.get($radius, sm);
   background: rgba($color-accent-secondary, 0.1);
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
   font-weight: 600;
   text-transform: capitalize;
 }

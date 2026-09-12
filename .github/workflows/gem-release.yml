@@ -1,5 +1,16 @@
 name: Gem Release
 
+# Publishes datalog-theme to RubyGems when a v* tag is pushed. Two credential
+# modes, selected by the RUBYGEMS_TRUSTED_PUBLISHING repository variable:
+#
+#   "true"  -> trusted publishing: the job authenticates with an OpenID Connect
+#              token, no long-lived secret. Requires a trusted publisher on
+#              rubygems.org for this repository, this workflow file and the
+#              rubygems environment.
+#   unset   -> the RUBYGEMS_API_KEY secret of the rubygems environment.
+#
+# Either way the job waits for approval in the rubygems environment first.
+
 on:
   push:
     tags:
@@ -15,6 +26,7 @@ jobs:
       url: https://rubygems.org/gems/datalog-theme
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -27,18 +39,42 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
+      # The browser bundles are build output, so they are not in the
+      # repository. Without this step the gem ships a manifest pointing at
+      # bundles it does not contain and every consumer site loads no scripts.
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Build browser bundles
+        run: npm run build:js
+
       - name: Build gem
         run: gem build datalog-theme.gemspec
 
-      - name: Publish gem
+      - name: Verify the gem is complete
+        run: ruby scripts/verify_gem_package.rb
+
+      - name: Configure RubyGems credentials (trusted publishing)
+        if: vars.RUBYGEMS_TRUSTED_PUBLISHING == 'true'
+        uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+
+      - name: Publish gem (trusted publishing)
+        if: vars.RUBYGEMS_TRUSTED_PUBLISHING == 'true'
+        run: gem push datalog-theme-*.gem
+
+      - name: Publish gem (API key)
+        if: vars.RUBYGEMS_TRUSTED_PUBLISHING != 'true'
         env:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
         run: |
           if [ -z "$GEM_HOST_API_KEY" ]; then
-            echo "RUBYGEMS_API_KEY secret is not configured."
+            echo "::error::RUBYGEMS_API_KEY is not configured in the rubygems environment, and trusted publishing is not enabled (RUBYGEMS_TRUSTED_PUBLISHING variable)."
             exit 1
           fi
-          # gem push reads GEM_HOST_API_KEY from the environment, so no credentials
-          # file is needed. The previous heredoc had its body at column 0, which
-          # ended the YAML block early: the step wrote an empty file and never pushed.
           gem push datalog-theme-*.gem
