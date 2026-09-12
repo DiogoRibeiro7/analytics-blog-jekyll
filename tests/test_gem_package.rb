@@ -56,6 +56,14 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # esbuild's metafile describes a build, not anything a page loads. The gem
+  # used to ship a committed copy that no longer matched its own bundles.
+  def test_leaves_out_the_build_records
+    %w[_data/js_meta.json assets/js/dist/meta.json assets/js/dist/manifest.json].each do |path|
+      refute_includes @spec.files, path, "#{path} is a record of the build, which no page loads"
+    end
+  end
+
   def test_declares_the_gems_the_shipped_plugins_require
     required = Dir[ROOT.join("_plugins", "*.rb")].flat_map do |plugin|
       File.readlines(plugin).filter_map { |line| line[/\A\s*require "([a-z0-9_-]+)"/, 1] }

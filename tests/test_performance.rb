@@ -12,8 +12,9 @@ class PerformanceBundlesTest < Minitest::Test
     @manifest ||= JSON.parse(File.read(File.join(SiteBuilder.root, "_data/js_manifest.json")))
   end
 
+  # esbuild's metafile, which `npm run build:js` writes next to the bundles.
   def meta
-    @meta ||= JSON.parse(File.read(File.join(SiteBuilder.root, "_data/js_meta.json")))
+    @meta ||= JSON.parse(File.read(File.join(SiteBuilder.root, "assets/js/dist/meta.json")))
   end
 
   def bundle_path(url)

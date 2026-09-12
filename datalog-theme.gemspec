@@ -51,8 +51,11 @@ Gem::Specification.new do |spec|
     # The browser bundles are build output, so git does not track them, but
     # _data/js_manifest.json points every page at them: a gem without them
     # gives consumers a site whose scripts all 404. Run `npm run build:js`
-    # before packaging; scripts/verify_gem_package.rb checks the result.
-    built = Dir.glob("assets/js/dist/**/*").select { |f| File.file?(f) }
+    # before packaging; scripts/verify_gem_package.rb checks the result. The
+    # esbuild metafile and the copy of the manifest written next to the bundles
+    # are records of the build that no page loads, so they stay out.
+    built = Dir.glob("assets/js/dist/**/*").select { |f| File.file?(f) } -
+            %w[assets/js/dist/manifest.json assets/js/dist/meta.json]
 
     (tracked + built).uniq.sort
   end
