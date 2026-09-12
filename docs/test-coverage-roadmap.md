@@ -8,9 +8,17 @@ nav_order: 13
 
 ## Current Status
 
-**Overall Coverage:** 89.37% ✅
-**Test Count:** 775 tests (up from 109 tests)
-**Target:** 65%+ (EXCEEDED!)
+**JavaScript line coverage:** 91.05% ✅ (target 65%+, exceeded)
+
+Coverage is no longer only a JavaScript unit-test question. Four suites run against
+every change:
+
+| Suite | Size | What it covers |
+|-------|------|----------------|
+| Vitest | 859 tests | JavaScript units, measured below |
+| Minitest | 180 runs | Plugins, Liquid output, CSP, packaging |
+| Playwright | 62 tests | The built site in a browser, both themes |
+| Rake `ci:verify` | 12 scripts | Cross-cutting checks on the built output |
 
 ## Progress Summary
 
@@ -18,30 +26,30 @@ nav_order: 13
 
 | Module | Coverage | Status |
 |--------|----------|--------|
-| **Core Modules** | 91.32% | ✅ Excellent |
+| **Core Modules** | 96.11% | ✅ Excellent |
 | `language-filter.js` | 100% | ✅ Complete |
 | `scroll-progress.js` | 100% | ✅ Complete |
 | `dark-mode.js` | 100% | ✅ Complete |
 | `github-cards.js` | 98.3% | ✅ Excellent |
 | `search-hotkeys.js` | 88.88% | ✅ Good |
-| `skip-links.js` | 88% | ✅ Good |
-| `navigation.js` | 84% | ✅ Good |
-| **Search Modules** | 88.08% | ✅ Excellent |
+| `skip-links.js` | 96% | ✅ Excellent |
+| `navigation.js` | 96% | ✅ Excellent |
+| **Search Modules** | 92.3% | ✅ Excellent |
 | `filters.js` | 100% | ✅ Complete |
 | `autocomplete.js` | 98.52% | ✅ Excellent |
 | `analytics.js` | 97.77% | ✅ Excellent |
-| `utils.js` | 95.74% | ✅ Excellent |
+| `utils.js` | 97.72% | ✅ Excellent |
 | `render.js` | 87.96% | ✅ Good |
 | `app.js` | 84.1% | ✅ Good |
 | `search.js` | 81.77% | ✅ Good |
-| `engine.js` | 79.06% | ✅ Good |
-| **Main Modules** | 89.53% | ✅ Excellent |
+| `engine.js` | 97.58% | ✅ Excellent |
+| **Main Modules** | 89.7% | ✅ Excellent |
 | `analytics-dashboard.js` | 100% | ✅ Complete |
-| `math.js` | 94.09% | ✅ Excellent |
-| `loader.js` | 93.75% | ✅ Excellent |
+| `math.js` | 94.91% | ✅ Excellent |
+| `loader.js` | 95.16% | ✅ Excellent |
 | `academic.js` | 92.53% | ✅ Excellent |
-| `notebook.js` | 91.89% | ✅ Excellent |
-| `visualizations.js` | 82.88% | ✅ Good |
+| `notebook.js` | 89.33% | ✅ Good |
+| `visualizations.js` | 82.73% | ✅ Good |
 
 ## Phase 1: Completed ✅
 
@@ -66,25 +74,55 @@ nav_order: 13
 - [x] Improved visualizations.js coverage (82.88%)
 - [x] Exceeded 65% overall coverage target (now at 89.37%!)
 
-## Future Improvements (Phase 4)
+## Phase 4: Completed ✅
 
-### Areas for potential further improvement:
+All three targets set for this phase have been met:
 
-1. **navigation.js (84% → 95%)**
-   - Add tests for edge cases
-   - Test scroll behavior
+- [x] `navigation.js` 84% → 96%
+- [x] `search/engine.js` 79% → 97.58%
+- [x] `skip-links.js` 88% → 96%
 
-2. **search/engine.js (79% → 90%)**
-   - Add more fuzzy search tests
-   - Test ranking algorithms
+## Phase 5: Beyond unit coverage
 
-3. **skip-links.js (88% → 95%)**
-   - Add accessibility testing
+A day of auditing in September 2026 found several defects while JavaScript
+coverage sat near 90%, which says something about where the remaining risk is.
+None of them were reachable by a unit test:
 
-### Maintenance Goals:
-- Keep coverage above 85%
-- Add tests for any new features
-- Review and update tests quarterly
+- The published gem could not be used at all. It shipped a manifest pointing at
+  browser bundles it did not contain, never registered its own Liquid tags, and
+  omitted a runtime dependency. Every consumer site failed to build.
+- The search index emitted each tag as a list of single characters, so the tag
+  filter offered `a`, `b`, `[` instead of the real tags.
+- Dark mode had unreadable components, including a heading rendering white on
+  white, because no check had ever loaded the site in that theme.
+- Two test reports were being published with the site.
+
+### Guards added
+
+| Guard | Catches |
+|-------|---------|
+| `tests/integration/axe.spec.js` | Contrast, accessible names and ARIA, in both themes |
+| `tests/test_gem_package.rb` | A gem missing bundles, dependencies or tag registration |
+| `scripts/verify_gem_package.rb` | The same, in the release workflow, before publishing |
+| `tests/test_search_pages.rb` | Search pages missing from sites using the gem |
+| `tests/test_search_index.rb` | Tag data that is an array but not of real tags |
+
+### Where to look next
+
+1. **Build a consumer site in CI.** Every gem defect above was found by
+   installing the package and building a site with it. Nothing automated does
+   this yet; the release workflow only inspects the package contents.
+2. **Widen the browser audit.** The axe spec covers six pages. Pages such as
+   `/datasets/`, `/research/` and `/academic/` are audited by hand only.
+3. **Assert on data, not just shape.** The search index test passed throughout
+   the tag corruption because the field was an array, of the wrong things.
+   Other generated data files deserve the same scrutiny.
+
+### Maintenance goals
+
+- Keep JavaScript coverage above 85%
+- Add tests for any new feature, at the level where the risk actually lives
+- Prefer a guard that reproduces the failure over one that restates the code
 
 ## Testing Patterns & Best Practices
 
