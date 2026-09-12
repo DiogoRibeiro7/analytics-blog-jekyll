@@ -39,7 +39,10 @@ git checkout develop && git pull
 # CITATION.cff (version, date-released) and theme_version in _config.yml, then:
 git commit -am "chore(release): bump version to X.Y.Z"
 git push origin develop
-gh pr create --base main --head develop --title "release: vX.Y.Z"
+# Promote from a branch named for the release, not from develop, so the pull
+# request and the merge commit on main both say which release they are.
+git push origin "HEAD:refs/heads/release/vX.Y.Z"
+gh pr create --base main --head "release/vX.Y.Z" --title "Release vX.Y.Z"
 # merge the PR with a merge commit; the tag, GitHub release and gem publish follow automatically.
 ```
 
