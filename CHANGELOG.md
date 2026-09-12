@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- The integration suite checks colour contrast with axe-core on six pages in both light and dark mode, so the theme cannot regress into unreadable text again.
+- The search index test checks that tags are whole tags rather than only that the field is an array.
+- The integration suite runs axe-core over six pages in both light and dark mode, so contrast, missing accessible names and misplaced ARIA cannot regress unnoticed.
 - A social card image (`assets/img/social-card.png`), so the Open Graph and Twitter image tags no longer point at a missing file.
 - The release workflow now does a release in one run plus one pull request: "Run workflow" with a version bumps `develop` and opens the PR into `main`; merging it tags `main`, publishes the GitHub release and starts the gem publish.
 
@@ -25,6 +26,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- The search index shipped every tag as a list of single characters, so the tag filter on the search page offered 34 buttons reading `a`, `b`, `[`, `"` and so on instead of the 48 real tags. A `split: ''` in the index template turned each tag array into its string form before splitting it.
+- A tag consisting only of whitespace produced a filter button with no accessible name at all, which fails WCAG 4.1.2.
+- The fallback author avatar carried an `aria-label` on a plain `div`, where ARIA prohibits it, so screen readers announced nothing for it. It is now an image role, matching the photo it stands in for.
 - Text set in the teal accent failed WCAG AA everywhere it appeared, reaching only 3.0:1 to 3.5:1 on post badges, skill tags, search highlights and Prism keywords. Teal text now uses a darker tone; the original teal stays for fills and borders.
 - Dark mode had several unreadable components, none of which any check covered: the citation tools kept light backgrounds under light text, leaving a heading white on white at 1.09:1, and difficulty badges kept their light-mode text colour on a near-black pill at 1.93:1.
 - Buttons marked `btn--ghost` were never styled, so they fell back to the browser's own button chrome and could not follow the theme.

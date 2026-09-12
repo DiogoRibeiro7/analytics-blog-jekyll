@@ -15,6 +15,31 @@ class SearchIndexTest < Minitest::Test
     assert_operator @index["documents"].size, :>, 0, "documents should not be empty"
   end
 
+  # A `split: ''` in the index template turned each tag array into its string
+  # form and then into single characters, so every tagged document shipped tags
+  # like ["[", "\"", "m", "i", ...]. The array assertion below still passed,
+  # which is why this checks the contents.
+  def test_tags_are_whole_tags
+    tagged = 0
+
+    @index["documents"].each do |doc|
+      tags = doc["tags"]
+      assert_kind_of Array, tags, "tags facet should be an array"
+      tagged += 1 unless tags.empty?
+
+      tags.each do |tag|
+        assert_kind_of String, tag, "each tag should be a string"
+        refute_empty tag.strip, "tags should not contain blank entries"
+        assert_match(/\A[[:alnum:]][[:alnum:]\-_. +]*\z/, tag,
+                     "#{doc['url']} has #{tag.inspect}, which looks like a fragment of a serialized array rather than a tag")
+      end
+
+      assert_equal tags.size, tags.uniq.size, "tags should already be unique"
+    end
+
+    assert_operator tagged, :>, 0, "expected at least one document to carry tags"
+  end
+
   def test_document_schema
     required_fields = %w[title url summary content type]
     always_present = %w[title url type]

@@ -4,12 +4,13 @@ import { createRequire } from 'node:module';
 import { expect, test } from '@playwright/test';
 
 /**
- * Colour contrast, in both themes.
+ * Accessibility, in both themes.
  *
  * The Pa11y workflow uses HTML CodeSniffer and only ever sees light mode, which
- * is why a heading rendering white on white in dark mode went unnoticed. This
- * runs axe-core's colour-contrast rule, the same engine Lighthouse uses, over
- * both themes.
+ * is why a heading rendering white on white in dark mode, a button with no
+ * accessible name, and an aria-label on an element that may not carry one all
+ * went unnoticed. This runs axe-core, the engine Lighthouse uses, over both
+ * themes with its full default rule set.
  */
 
 const require = createRequire(import.meta.url);
@@ -33,9 +34,9 @@ const PAGES = [
 test.use({ bypassCSP: true });
 
 for (const theme of ['light', 'dark']) {
-  test.describe(`Colour contrast (${theme} mode)`, () => {
+  test.describe(`Accessibility (${theme} mode)`, () => {
     for (const path of PAGES) {
-      test(`${path} has no contrast violations`, async ({ page }) => {
+      test(`${path} has no axe violations`, async ({ page }) => {
         // Set the preference the way the theme stores it, before any script runs.
         await page.addInitScript((mode) => {
           window.localStorage.setItem('datalog-color-mode', mode);
@@ -45,18 +46,20 @@ for (const theme of ['light', 'dark']) {
         await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
 
         await page.addScriptTag({ content: axeSource });
-        const results = await page.evaluate(async () =>
-          window.axe.run(document, { runOnly: { type: 'rule', values: ['color-contrast'] } })
-        );
+        const results = await page.evaluate(async () => window.axe.run(document));
 
         const failures = results.violations.flatMap((violation) =>
           violation.nodes.map((node) => {
             const data = node.any?.[0]?.data || {};
-            return `${node.target.join(' ')}: ${data.fgColor} on ${data.bgColor} = ${data.contrastRatio} (needs ${data.expectedContrastRatio})`;
+            const detail =
+              data.contrastRatio === undefined
+                ? (node.failureSummary || '').split('\n').slice(1).join(' ').trim()
+                : `${data.fgColor} on ${data.bgColor} = ${data.contrastRatio} (needs ${data.expectedContrastRatio})`;
+            return `[${violation.impact}] ${violation.id} at ${node.target.join(' ')}: ${detail}`;
           })
         );
 
-        expect(failures, `Contrast failures in ${theme} mode on ${path}`).toEqual([]);
+        expect(failures, `axe violations in ${theme} mode on ${path}`).toEqual([]);
       });
     }
   });
