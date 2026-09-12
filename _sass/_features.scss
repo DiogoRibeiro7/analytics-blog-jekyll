@@ -1,0 +1,17 @@
+// Optional features whose styles the stylesheet includes.
+//
+// assets/css/main.scss configures this module from the site's settings before
+// it loads the theme, so a site carries only the styles of the features it
+// uses. Partials read the flags and load the matching styles with
+// `@if features.$flag { @include meta.load-css(...) }` at the position those
+// rules always had, so turning every flag on leaves the stylesheet unchanged.
+//
+// Every flag defaults to true: a site that replaces main.scss with a plain
+// `@use "theme"` keeps the complete stylesheet.
+
+$search: true !default;
+$visualizations: true !default;
+$notebooks: true !default;
+$packages: true !default;
+$academic-dashboard: true !default;
+$open-science-badges: true !default;

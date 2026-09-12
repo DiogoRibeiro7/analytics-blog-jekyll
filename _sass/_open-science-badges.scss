@@ -1,0 +1,56 @@
+// Open science badges (_includes/components/open-science-badges.html), which render
+// only when _data/academic.yml defines badges; _components.scss loads this only then.
+
+@use 'sass:map';
+@use "sass:color";
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.open-science-badges {
+  margin-block: 3rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(12, 35, 64, 0.05), rgba(50, 119, 246, 0.08));
+}
+
+.open-science-badges__intro {
+  margin-bottom: 1rem;
+  color: var(--muted-foreground, #4a5568);
+}
+
+.open-science-badges__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.open-science-badge {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  min-width: 10rem;
+  border-radius: 0.75rem;
+  background: rgba(12, 35, 64, 0.08);
+  border: 1px solid rgba(12, 35, 64, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.open-science-badge:focus-within,
+.open-science-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(12, 35, 64, 0.12);
+}
+
+.open-science-badge__label {
+  font-weight: 600;
+}
+
+.open-science-badge__description,
+.open-science-badge__criteria {
+  font-size: 0.85rem;
+  color: var(--muted-foreground, #4a5568);
+}

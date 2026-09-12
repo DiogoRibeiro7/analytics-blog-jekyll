@@ -1,31 +1,44 @@
 // Primary manifest for the DataLog theme.
 // Provides CSS custom properties and composes the Sass partials.
 @use "sass:color";
+@use "sass:meta";
 // 1) Modules FIRST (no CSS before these)
 @use 'variables' as *;            // gives access to Sass tokens here
 @use 'mixins' as *;
+@use 'features';
 
 // Each partial below MUST import its own tokens if it references them.
-// `@use` here does NOT leak variables into those files' scopes.
-@use 'font-fallbacks';
-@use 'base';
-@use 'typography';
-@use 'layout';
-@use 'header';
-@use 'components';
-@use 'utilities';
-@use 'syntax-highlighting';
-@use 'mathematical';
-@use 'interactive';
-@use 'search';
-@use 'visualizations';
-@use 'phase1-enhancements';
-@use 'phase3-enhancements';
-@use 'phase4-enhancements';
-@use 'phase5-enhancements';
-@use 'package-docs';
+// Loading it here does NOT leak variables into that file's scope.
+// meta.load-css emits a partial's CSS at the point it is included, in this
+// order, and unlike @use it may sit inside @if: the partials for optional
+// features load only when their flag in _features.scss is on.
+@include meta.load-css('font-fallbacks');
+@include meta.load-css('base');
+@include meta.load-css('typography');
+@include meta.load-css('layout');
+@include meta.load-css('header');
+@include meta.load-css('components');
+@include meta.load-css('utilities');
+@include meta.load-css('syntax-highlighting');
+@include meta.load-css('mathematical');
+@if features.$visualizations {
+  @include meta.load-css('interactive');
+}
+@if features.$search {
+  @include meta.load-css('search');
+}
+@if features.$visualizations {
+  @include meta.load-css('visualizations');
+}
+@include meta.load-css('post-components');
+@include meta.load-css('phase3-enhancements');
+@include meta.load-css('phase4-enhancements');
+@include meta.load-css('phase5-enhancements');
+@if features.$packages {
+  @include meta.load-css('package-docs');
+}
 
-// 2) CSS rules AFTER all @use/@forward
+// 2) CSS rules AFTER the partials
 :root {
   // Surface/background colors
   --color-surface: #{$color-surface-50};

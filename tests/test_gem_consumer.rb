@@ -49,6 +49,9 @@ class GemConsumerTest < Minitest::Test
       assert status.success?, "a minimal site should build against the packaged theme:\n#{output}"
       assert_published_pages(site)
       assert_no_demo_content(site)
+
+      stylesheet = File.read(File.join(site, "_site", "assets", "css", "main.css"))
+      refute_includes stylesheet, ".search-app", "a site without features.search should not carry the search styles"
     end
   end
 
