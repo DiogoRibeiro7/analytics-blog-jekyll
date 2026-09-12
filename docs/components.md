@@ -1,37 +1,19 @@
-# Phase 1 Features Guide
+# Post Components
 
-Complete guide to using and customizing the new Phase 1 enhancement features in the DataLog theme.
+The `post` layout adds five components to every post: social sharing buttons, breadcrumbs, an author card, an enhanced table of contents and a difficulty badge. This guide covers what each one shows, the front matter that controls it, how to include it in other layouts, and how to change its look.
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Social Sharing Buttons](#social-sharing-buttons)
-3. [Breadcrumb Navigation](#breadcrumb-navigation)
-4. [Author Bio Cards](#author-bio-cards)
-5. [Enhanced Table of Contents](#enhanced-table-of-contents)
-6. [Difficulty Badges](#difficulty-badges)
-7. [Configuration](#configuration)
-8. [Customization](#customization)
-9. [Troubleshooting](#troubleshooting)
+1. [Social Sharing Buttons](#social-sharing-buttons)
+2. [Breadcrumb Navigation](#breadcrumb-navigation)
+3. [Author Bio Cards](#author-bio-cards)
+4. [Enhanced Table of Contents](#enhanced-table-of-contents)
+5. [Difficulty Badges](#difficulty-badges)
+6. [Front Matter](#front-matter)
+7. [Customization](#customization)
+8. [Troubleshooting](#troubleshooting)
 
----
-
-## Overview
-
-Phase 1 introduces 5 major feature enhancements designed to improve user engagement, navigation, and content discoverability:
-
-- **Social Sharing** - Beautiful, icon-based sharing buttons
-- **Breadcrumbs** - Improved navigation and SEO
-- **Author Bio** - Professional author presentation
-- **Enhanced TOC** - Sticky, interactive table of contents
-- **Difficulty Badges** - Visual content difficulty indicators
-
-All features are:
-- ✅ **Mobile-responsive** - Optimized for all screen sizes
-- ✅ **Accessible** - WCAG 2.1 AA compliant with ARIA labels
-- ✅ **SEO-friendly** - Structured data for search engines
-- ✅ **Dark mode ready** - Uses CSS variables
-- ✅ **Performance optimized** - Minimal JavaScript, lazy loading
+The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
 ---
 
@@ -54,9 +36,9 @@ Allows readers to share your content on social media platforms with beautiful, i
 
 The social sharing component is **automatically included** in all posts. No configuration needed!
 
-### Customization
+### Choosing Platforms
 
-To customize which platforms appear, edit `_includes/components/social-share.html` and comment out unwanted platforms.
+To change which platforms appear, copy `_includes/components/social-share.html` from the theme into your site's `_includes/components/` and remove the platforms you do not want. A file in your site replaces the theme's file of the same name.
 
 #### Manual Usage in Other Layouts
 
@@ -76,7 +58,7 @@ To customize which platforms appear, edit `_includes/components/social-share.htm
 
 ### Styling
 
-Edit `_sass/_phase1-enhancements.scss` under the `.social-share` section to customize:
+Override the `.social-share` rules in your stylesheet (see [Customization](#customization)):
 
 ```scss
 .social-share__button {
@@ -142,7 +124,7 @@ Breadcrumbs are **automatically included** at the top of all posts.
 
 #### Styling
 
-Edit the `.breadcrumbs` section in `_sass/_phase1-enhancements.scss`:
+Override the `.breadcrumbs` rules in your stylesheet:
 
 ```scss
 .breadcrumbs {
@@ -329,7 +311,7 @@ toc_label: "Contents"
 
 ### Styling
 
-Edit `.enhanced-toc` in `_sass/_phase1-enhancements.scss`:
+Override the `.enhanced-toc` rules in your stylesheet:
 
 ```scss
 .enhanced-toc {
@@ -362,7 +344,7 @@ Displays visual, color-coded badges indicating content difficulty level.
 
 ### Usage
 
-Add difficulty to your post front matter:
+Every post shows a badge in its metadata section. Set the level in front matter:
 
 ```yaml
 ---
@@ -371,7 +353,7 @@ difficulty: intermediate
 ---
 ```
 
-The badge will automatically appear in the post metadata section.
+A post without `difficulty` uses `post_defaults.difficulty` from `_config.yml`, or Intermediate when that is not set either.
 
 ### Supported Values
 
@@ -396,9 +378,9 @@ The component normalizes various inputs:
 - `show_icon` - Show difficulty icon (default: true)
 - `show_description` - Show difficulty description (default: false)
 
-### Customization
+### Styling
 
-Edit `.difficulty-badge` in `_sass/_phase1-enhancements.scss`:
+Override the `.difficulty-badge` rules in your stylesheet:
 
 ```scss
 .difficulty-badge--beginner {
@@ -410,76 +392,35 @@ Edit `.difficulty-badge` in `_sass/_phase1-enhancements.scss`:
 
 ---
 
-## Configuration
+## Front Matter
 
-### Global Settings
-
-Add to your `_config.yml`:
-
-```yaml
-# Phase 1 Features Configuration
-phase1_features:
-  # Social sharing
-  social_sharing:
-    enabled: true
-    platforms:
-      - twitter
-      - linkedin
-      - facebook
-      - reddit
-      - email
-
-  # Breadcrumbs
-  breadcrumbs:
-    enabled: true
-    separator: " / "
-    show_home: true
-
-  # Author bio
-  author_bio:
-    enabled: true
-    position: after_content  # or "before_content"
-    show_avatar: true
-    show_social: true
-    compact: false
-
-  # Enhanced TOC
-  enhanced_toc:
-    enabled: true
-    sticky: true
-    show_progress: true
-    collapsible: true
-    h_min: 2
-    h_max: 4
-
-  # Difficulty badges
-  difficulty_badges:
-    enabled: true
-    default_level: beginner
-```
-
-### Per-Post Overrides
-
-Override settings in post front matter:
+The components read these keys from a post's front matter:
 
 ```yaml
 ---
 title: My Post
-difficulty: advanced
-toc: true
-toc_h_min: 2
+difficulty: advanced   # the badge level
+toc: true              # show the table of contents
+toc_label: On this page
+toc_h_min: 2           # the heading levels the table of contents lists
 toc_h_max: 3
-author: custom_author
+author: custom_author  # a key in _data/authors.yml, or a name
 ---
 ```
+
+There are no site-wide switches for the components. To leave one out, copy `_layouts/post.html` into your site and remove its include.
 
 ---
 
 ## Customization
 
+### Your Stylesheet
+
+A site replaces the theme's stylesheet by providing its own `assets/css/main.scss`. Copy the theme's file into your site (`bundle info --path datalog-theme` prints where the gem is installed) and add your rules after its contents, so the theme's styles load first and yours override them. The examples in this guide go there.
+
 ### Colors
 
-All components use CSS variables defined in `_sass/_theme.scss`:
+All components use CSS variables defined in the theme's `_sass/_theme.scss`; redefine them in your stylesheet:
 
 ```scss
 :root {
@@ -492,7 +433,7 @@ All components use CSS variables defined in `_sass/_theme.scss`:
 
 ### Typography
 
-Modify font sizes in `_sass/_phase1-enhancements.scss`:
+Change font sizes:
 
 ```scss
 .social-share__button {
@@ -549,9 +490,8 @@ Ensure `_layouts/post.html` includes:
 **Issue:** Breadcrumbs don't match your site structure
 
 **Solution:**
-1. Verify post has correct `collection` in front matter
-2. Check category is properly set
-3. Ensure collection pages exist (e.g., `/blog/index.html`)
+1. Check the post's `categories`: breadcrumbs link to the category archive, `/categories/` unless `category_archive.path` sets another path
+2. Make sure the collection's index page exists (e.g., `/blog/index.html`), since breadcrumbs link to it
 
 ### Author Bio Not Showing
 
@@ -598,10 +538,7 @@ difficulty: intermediate  # Use lowercase, check spelling
 3. Scripts are loading correctly
 
 **Solution:**
-Add to `_includes/scripts.html` if not already present:
-```html
-<script src="{{ '/assets/js/main.js' | relative_url }}"></script>
-```
+The components' scripts come from the bundles in `assets/js/dist/`, which the published gem includes. A site built from the theme repository has to build them first with `npm run build:js`.
 
 ---
 
@@ -700,7 +637,7 @@ excerpt: "A comprehensive technical analysis of transformer models"
 
 ### Add Custom Social Platforms
 
-Edit `_includes/components/social-share.html` and add:
+Copy `_includes/components/social-share.html` into your site's `_includes/components/` and add:
 
 ```html
 <a href="https://yourplatform.com/share?url={{ share_url | uri_escape }}"
@@ -714,7 +651,7 @@ Edit `_includes/components/social-share.html` and add:
 
 ### Custom Difficulty Levels
 
-Add new levels in `_includes/components/difficulty-badge.html`:
+Copy `_includes/components/difficulty-badge.html` into your site and add new levels:
 
 ```liquid
 {%- when "expert-plus" -%}
@@ -723,7 +660,7 @@ Add new levels in `_includes/components/difficulty-badge.html`:
   {%- assign level_color = "purple" -%}
 ```
 
-And add styling in `_sass/_phase1-enhancements.scss`:
+And style them in your stylesheet:
 
 ```scss
 .difficulty-badge--expert-plus {
@@ -739,10 +676,5 @@ And add styling in `_sass/_phase1-enhancements.scss`:
 
 For issues, questions, or contributions:
 - Open an issue on [GitHub](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues)
-- Check existing documentation in `/docs/`
+- Check the [documentation index](README.md)
 - Review the [Jekyll documentation](https://jekyllrb.com/docs/)
-
----
-
-**Last Updated:** 2025-11-21
-**Version:** 1.0.0 (Phase 1)
