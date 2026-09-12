@@ -319,6 +319,11 @@ exclude:
   - package.json
   - package-lock.json
   - requirements.txt
+  # Test and coverage artefacts: without these the Playwright HTML report and
+  # the coverage report are copied into _site and published with the site.
+  - playwright-report/
+  - test-results/
+  - coverage/
 
 # -----------------------------------------------------------------------------
 # Development

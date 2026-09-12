@@ -476,7 +476,7 @@ body.dark-mode .research-metrics {
   transition: border-color $transition-base;
 
   h3 {
-    color: $color-accent-secondary;
+    color: $color-accent-secondary-text;
     margin: 0;
   }
 
@@ -486,7 +486,7 @@ body.dark-mode .research-metrics {
 
   &:hover {
     border-color: rgba($color-accent-secondary, 0.4);
-    h3 { color: $color-accent-secondary; }
+    h3 { color: $color-accent-secondary-text; }
   }
 }
 
@@ -646,7 +646,7 @@ body.dark-mode .author-profile__bio {
 
 .skill-tag--framework {
   background: rgba($color-accent-secondary, 0.08);
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
 }
 
 .skill-tag--tool {
@@ -932,7 +932,7 @@ body.dark-mode .post-meta {
   padding: 0.1rem 0.5rem;
   border-radius: map.get($radius, sm);
   background: rgba($color-accent-secondary, 0.1);
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
 }
 
 body.dark-mode .post-meta__badge {
@@ -1072,7 +1072,7 @@ body.dark-mode .post-tag {
 
 .post-category {
   background: rgba($color-accent-secondary, 0.08);
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
 
   &:hover { background: rgba($color-accent-secondary, 0.15); }
 }
@@ -1172,7 +1172,7 @@ body.dark-mode .code-block-meta {
 .code-language {
   font-family: $font-family-mono;
   font-weight: 600;
-  color: $color-accent-secondary;
+  color: $color-accent-secondary-text;
   letter-spacing: 0.03em;
 }
 

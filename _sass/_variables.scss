@@ -41,7 +41,10 @@ $color-ink-400: #a1a1aa !default;
 $color-ink-600: #57534e !default;
 $color-ink-800: #292524 !default;
 $color-accent-primary: #2563eb;   // vivid blue — links, primary actions
-$color-accent-secondary: #0d9488; // teal — badges, secondary highlights
+$color-accent-secondary: #0d9488; // teal — fills, borders and other non-text accents
+// #0d9488 reaches only 3.1:1 to 3.7:1 against white and against its own
+// tinted backgrounds, so it fails WCAG AA wherever it is used as text.
+$color-accent-secondary-text: #115e59; // teal — the same accent as readable text
 $color-accent-tertiary: #7c3aed;  // purple — charts, visual accents
 $color-success: #16a34a;
 $color-warning: #d97706;
