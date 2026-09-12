@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. The format 
 
 - `tests/test_gem_consumer.rb` builds a minimal site against the packaged theme and against a checkout of the repository, and fails if the build breaks or publishes anything that identifies the maintainer.
 - `tests/test_navigation_cache.rb` checks that each section still marks only its own navigation link now that the navigation is cached.
+- The performance tests fail if the stylesheet grows past 25 KB gzipped, as they already did for the core script bundle.
 
 ### Changed
 
@@ -16,6 +17,10 @@ All notable changes to this project will be documented in this file. The format 
 - The layouts use `jekyll-include-cache`, a dependency the theme already declared but never used. The footer and skip link are rendered once per build (the skip link once per page language) and the header navigation once per distinct current section, where each was rendered on every page before: on the demo site the navigation renders 10 times instead of 53. The CSP meta tag, the script loader and the analytics snippet stay per page because each carries that page's CSP nonce. Requiring the theme now also loads `jekyll-include-cache`.
 - The documentation is organised by task. `docs/README.md` indexes the guides by what a reader wants to do; the phase summaries, the configuration refactoring plan and the 2025 security audit moved to `docs/history/` under a note that they are not maintained; and the Phase 1 features guide became `docs/components.md`, without the `phase1_features` settings the theme never read and with instructions that work for a site using the gem. The installation guide lost its leftover citation markers, and the README and the starter template pin the current `~> 0.7` series.
 - The installation guide covers what a site supplies itself (pages, navigation, social links), installing from a Git checkout, and publishing to GitHub Pages with GitHub Actions. It replaces instructions for the built-in Pages build, which cannot run the theme.
+
+### Removed
+
+- Includes and layouts that no layout, page or plugin used, with the styles written for them: the `archive` and `post-sidebar` layouts, and the user preferences panel, popular posts, back-to-top button and keyboard shortcuts panel (`navigation-enhancements`), social proof, enhanced metadata, reading progress, reading time, content recommendations, comments, language switcher, bookmark, email preferences, advanced search, newsletter signup and series navigation includes. Several read `phase2_features` to `phase5_features` settings that nothing defined. Comments still render through the `datalog-comments` plugin. The rules in those stylesheets that did style rendered pages (the `kbd` element, fieldsets, `.button` and the search result cards) moved to the partials for what they style, and `_sass/_phase3-enhancements.scss`, `_phase4-enhancements.scss` and `_phase5-enhancements.scss` are gone. Together with the feature gating above, the demo's stylesheet goes from 169 KB to 134 KB (27.6 KB to 23 KB gzipped), and a site with every optional feature off gets 85 KB (15.7 KB gzipped).
 
 ### Fixed
 

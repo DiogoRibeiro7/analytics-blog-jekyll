@@ -2,6 +2,8 @@
 
 These documents record how the theme was built: summaries of its development phases, a plan to reorganise its configuration, and a point-in-time security audit. They are kept for context and are **not maintained**. Much of what they describe has changed since, and several of the includes and settings they document were never wired into a layout, so do not follow them as instructions. The [documentation index](../README.md) lists the current guides.
 
+Most of the includes and layouts the phase 2 to 4 summaries describe, and the phase 3 to 5 stylesheets, were removed after v0.7.0 because no layout used them. Git history still has them.
+
 | Document | What it records |
 | --- | --- |
 | [PHASE1-QUICK-REFERENCE.md](PHASE1-QUICK-REFERENCE.md), [phase1-developer-guide.md](phase1-developer-guide.md), [phase1-example-post.md](phase1-example-post.md) | The first post components: sharing buttons, breadcrumbs, the author card, the table of contents and the difficulty badge. [components.md](../components.md) is the current guide to them; the `phase1_features` settings described here were never read by the theme. |

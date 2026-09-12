@@ -31,9 +31,6 @@
   @include meta.load-css('visualizations');
 }
 @include meta.load-css('post-components');
-@include meta.load-css('phase3-enhancements');
-@include meta.load-css('phase4-enhancements');
-@include meta.load-css('phase5-enhancements');
 @if features.$packages {
   @include meta.load-css('package-docs');
 }
