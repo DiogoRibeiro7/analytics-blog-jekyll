@@ -23,6 +23,21 @@ Choose the workflow that matches how you plan to host and work with DataLog.
 1. **Fork or clone** the repository and add the theme gem to your Jekyll site if it is not already present by including `gem "datalog-theme", "~> 0.1"` in your `Gemfile`.【F:README.md†L96-L103】
 2. **Update `_config.yml`** to reference the theme: set `theme: datalog-theme` and review site metadata (title, URL, author profiles).【F:README.md†L105-L108】【F:_config.yml†L1-L115】
 3. **Install dependencies** locally with Bundler: `bundle install`.【F:README.md†L66-L74】
+
+   A site using the gem needs three things in `_config.yml`:
+
+   ```yaml
+   theme: datalog-theme
+   plugins:
+     - datalog-theme   # registers the theme's Liquid tags and filters
+   author:
+     name: Your Name   # required; the build stops without it
+   ```
+
+   Naming the theme under `plugins:` is what makes Jekyll load it. Jekyll reads
+   `_plugins/` for a site but not for a theme gem, so without that line the tags
+   the layouts use are never registered and the build fails with
+   `Unknown tag 't'`.
 4. **Push to GitHub** on the `develop` branch, then enable GitHub Pages in the repository settings, selecting the `develop` branch as the source.【F:README.md†L87-L94】
 5. **Allow GitHub Pages to build** using the `github-pages` gem; the site will publish automatically after the workflow completes.【F:README.md†L109-L111】
 

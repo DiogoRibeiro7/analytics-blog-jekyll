@@ -39,8 +39,26 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
+      # The browser bundles are build output, so they are not in the
+      # repository. Without this step the gem ships a manifest pointing at
+      # bundles it does not contain and every consumer site loads no scripts.
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Build browser bundles
+        run: npm run build:js
+
       - name: Build gem
         run: gem build datalog-theme.gemspec
+
+      - name: Verify the gem is complete
+        run: ruby scripts/verify_gem_package.rb
 
       - name: Configure RubyGems credentials (trusted publishing)
         if: vars.RUBYGEMS_TRUSTED_PUBLISHING == 'true'
