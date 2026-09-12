@@ -31,3 +31,5 @@ module Datalog
 end
 
 Datalog::Theme.load_plugins
+
+require_relative "datalog/theme/repository_checkout"

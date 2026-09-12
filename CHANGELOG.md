@@ -4,9 +4,20 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- `tests/test_gem_consumer.rb` builds a minimal site against the packaged theme and against a checkout of the repository, and fails if the build breaks or publishes anything that identifies the maintainer.
+
 ### Changed
 
 - The release workflow promotes a `release/vX.Y.Z` branch to `main` instead of promoting `develop` itself, so the pull request and the merge commit on `main` name the release rather than reading "from develop". `develop` still receives the version bump.
+- The installation guide covers what a site supplies itself (pages, navigation, social links), installing from a Git checkout, and publishing to GitHub Pages with GitHub Actions. It replaces instructions for the built-in Pages build, which cannot run the theme.
+
+### Fixed
+
+- Sites installing the gem published part of the demo site. The maintainer's CV templates and publication exports were copied into every site, and the demo's social profiles, contact addresses and academic profiles reached the footer and the script data on every page through `_data`. The gem now contains only the `_data` files the layouts need (translations, the script manifest and CDN integrity hashes) and none of the demo's downloads, and `scripts/verify_gem_package.rb` refuses a gem that does.
+- A site installing the theme from a Git checkout or a local path inherited the whole demo site. Jekyll merged the demo's `_config.yml` into the site's configuration, so the build stopped on a `datasets` feed for a collection the site did not have, and a site that declared the collection to get past it carried the maintainer's author details, contact addresses and social profiles. The build now stops with an explanation until the site sets `ignore_theme_config: true`, and with that set the theme also leaves out the demo's `_data` files and downloads.
+- Without `_data/navigation.yml` the header and footer linked to the demo's sections (Research, Projects, Datasets, Academic Ops), which a site using the theme does not have, and the header and footer showed "DataLog" rather than the site's title. The navigation and the footer's "Explore" and "Connect" columns are now left out when there is nothing to list, and the name falls back to `title`.
 
 ## [0.7.0] - 2026-09-12
 

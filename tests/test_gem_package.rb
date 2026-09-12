@@ -36,6 +36,26 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # The demo site keeps its navigation, social profiles, author profile, CV and
+  # publication exports in _data and assets, which the gem otherwise ships, so
+  # every site using the theme published them.
+  def test_leaves_out_the_demo_sites_data_and_downloads
+    %w[_data/i18n/en.yml _data/js_manifest.json _data/cdn-integrity.yml].each do |path|
+      assert_includes @spec.files, path, "the layouts need #{path} to render"
+    end
+
+    %w[
+      _data/navigation.yml
+      _data/social.yml
+      _data/config/author.yml
+      _data/publications.yml
+      assets/templates/diogo-ribeiro-cv.md
+      assets/publications/publications.bib
+    ].each do |path|
+      refute_includes @spec.files, path, "#{path} belongs to the demo site, not the theme"
+    end
+  end
+
   def test_declares_the_gems_the_shipped_plugins_require
     required = Dir[ROOT.join("_plugins", "*.rb")].flat_map do |plugin|
       File.readlines(plugin).filter_map { |line| line[/\A\s*require "([a-z0-9_-]+)"/, 1] }

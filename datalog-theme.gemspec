@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "lib/datalog/theme/version"
+require_relative "lib/datalog/theme/package"
 
 Gem::Specification.new do |spec|
   spec.name          = "datalog-theme"
@@ -31,10 +32,13 @@ Gem::Specification.new do |spec|
   # Ship only theme infrastructure — not demo content (_posts, _pages, _portfolio,
   # _datasets, _packages, _notebooks, tests, docs, scripts, CI configs, frontend
   # tooling, Dockerfiles, etc.). Theme consumers get layouts/includes/sass/assets/
-  # plugins/data/lib/bin and the licensing/changelog metadata.
+  # plugins/data/lib/bin and the licensing/changelog metadata. Within _data and
+  # assets, the demo site's own files (its navigation, social profiles, author
+  # profile, CV and publication exports) stay out: see Datalog::Theme::Package.
   spec.files = Dir.chdir(__dir__) do
     tracked = `git ls-files -z`.split("\x0").select do |f|
-      f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) ||
+      (f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) &&
+        Datalog::Theme::Package.theme_file?(f)) ||
         %w[
           LICENSE
           README.md
