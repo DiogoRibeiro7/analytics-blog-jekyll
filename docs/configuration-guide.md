@@ -105,6 +105,19 @@ datalog_plugins:
       category_id: ""
 ```
 
+### 6. Embedded content
+
+The Content Security Policy lets iframes load from the site itself and from Observable. List any other host your pages embed, such as a Shiny server, a slide deck or a video platform:
+
+```yaml
+csp:
+  frame_src:
+    - https://*.shinyapps.io
+    - https://www.youtube-nocookie.com
+```
+
+Plotly, D3 and Bokeh load their libraries from jsDelivr, which the policy already allows, and the code in a `data-d3-script` or `data-bokeh-script` block runs with the page's nonce, so the policy needs no `unsafe-eval`.
+
 ## Accessing configuration in templates
 
 ```liquid

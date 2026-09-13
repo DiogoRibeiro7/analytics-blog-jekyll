@@ -78,4 +78,29 @@ class MathPreprocessorTest < Minitest::Test
     assert_match(/class="math-expression/, html,
                  "Built post with math should contain preprocessor wrappers")
   end
+
+  # Dollar signs in code used to be wrapped as math, inserting markup into
+  # shell, R and SQL snippets.
+  def test_dollar_signs_in_fenced_code_stay_literal
+    source = "Math $x^2$ here.\n\n```bash\necho $HOME and $PATH\n```\n"
+    result = MathPreprocessor::Processor.new(source).process
+
+    assert_includes result, "```bash\necho $HOME and $PATH\n```"
+    assert_match(/math-expression-inline[^>]*>\$x\^2\$</, result, "math outside the code is still wrapped")
+  end
+
+  def test_dollar_signs_in_inline_code_stay_literal
+    source = "Run `echo $HOME and $PATH` first."
+    assert_equal source, MathPreprocessor::Processor.new(source).process
+  end
+
+  def test_dollar_signs_in_highlight_blocks_stay_literal
+    source = "{% highlight r %}\ndf$col + df$other\n{% endhighlight %}"
+    assert_equal source, MathPreprocessor::Processor.new(source).process
+  end
+
+  def test_prices_stay_text
+    source = "It costs $5 a month, or $50 a year."
+    assert_equal source, MathPreprocessor::Processor.new(source).process
+  end
 end

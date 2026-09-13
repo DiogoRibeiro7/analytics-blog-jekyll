@@ -1,3 +1,4 @@
+import { initCopyButtons } from "./core/copy-buttons.js";
 import { initDarkModeToggle } from "./core/dark-mode.js";
 import { initGitHubCards } from "./core/github-cards.js";
 import { initLanguageFilter } from "./core/language-filter.js";
@@ -14,6 +15,7 @@ export function initializeCore() {
   initScrollProgress();
   initSearchHotkeys();
   initGitHubCards();
+  initCopyButtons();
 }
 
 if (document.readyState === "loading") {

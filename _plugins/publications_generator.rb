@@ -6,7 +6,13 @@ module Jekyll
     priority :low
 
     def generate(site)
-      publications_data = site.data["publications"] ||= {}
+      publications_data = site.data["publications"]
+      # _data/publications.yml is normally a map with `settings` and
+      # `manual_entries`; a plain list of entries is read as the manual
+      # entries rather than stopping the build with a TypeError.
+      publications_data = { "manual_entries" => publications_data } if publications_data.is_a?(Array)
+      publications_data = {} unless publications_data.is_a?(Hash)
+      site.data["publications"] = publications_data
       settings = publications_data["settings"] || {}
       config_source = site.config.dig("theme_options", "publications", "bibtex_source")
       bibtex_source = settings["bibtex_source"] || config_source
@@ -22,7 +28,7 @@ module Jekyll
         end
       end
 
-      manual_entries = publications_data["manual_entries"] || []
+      manual_entries = Array(publications_data["manual_entries"]).select { |entry| entry.is_a?(Hash) }
       combined = (imported_entries + manual_entries).map { |entry| normalize_entry(entry) }
 
       academic_citations = site.data.dig("academic", "citations", "per_publication") || {}

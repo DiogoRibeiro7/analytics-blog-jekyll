@@ -209,4 +209,18 @@ class PublicationsGeneratorTest < Minitest::Test
     entries = @generator.send(:parse_bibtex_entries, nil)
     assert_empty entries
   end
+
+  # A list is a natural shape for _data/publications.yml, and it used to stop
+  # the build with a TypeError.
+  def test_reads_a_list_of_publications_as_manual_entries
+    site = Struct.new(:data, :config) do
+      def in_source_dir(path)
+        path
+      end
+    end.new({ "publications" => [{ "title" => "A Listed Paper", "year" => 2024, "authors" => ["Jane Doe"] }] }, {})
+
+    @generator.generate(site)
+
+    assert_equal ["A Listed Paper"], site.data["publications"]["entries"].map { |entry| entry["title"] }
+  end
 end
