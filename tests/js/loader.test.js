@@ -604,22 +604,6 @@ describe('Loader Module', () => {
   });
 
   describe('bootstrapFeatures() with auto detection', () => {
-    it('should auto-detect search from site-search class', async () => {
-      document.body.dataset.featureSearch = 'auto';
-      document.body.innerHTML += '<form class="site-search"></form>';
-
-      const manifest = {
-        core: 'data:text/javascript,export default {}',
-        features: {
-          search: 'data:text/javascript,export default {}'
-        }
-      };
-
-      await bootstrapFeatures(manifest);
-
-      expect(document.body.dataset.featureSearchState).toBe('ready');
-    });
-
     it('should auto-detect visualizations from viz-type', async () => {
       document.body.dataset.featureVisualizations = 'auto';
       document.body.innerHTML += '<div data-viz-type="plotly"></div>';
@@ -700,6 +684,33 @@ describe('Loader Module', () => {
       // Feature not enabled because auto-detect test failed before feature was requested
       const state = document.body.dataset.featureVisualizationsState;
       expect(state === undefined || state === 'skipped').toBe(true);
+    });
+  });
+
+  // The header's search form is on every page, but only the search page
+  // renders the app; matching the form loaded the search bundle everywhere.
+  describe('search bundle', () => {
+    const manifest = {
+      core: 'data:text/javascript,export default {}',
+      features: { search: 'data:text/javascript,export default {}' }
+    };
+
+    it('is not loaded for the header search form alone', async () => {
+      document.body.dataset.featureSearch = 'auto';
+      document.body.innerHTML = '<form class="site-search" action="/search/"><input name="q"></form>';
+
+      await bootstrapFeatures(manifest);
+
+      expect(document.body.dataset.featureSearchState).not.toBe('ready');
+    });
+
+    it('is loaded on a page that renders the search app', async () => {
+      document.body.dataset.featureSearch = 'auto';
+      document.body.innerHTML = '<div data-search-app></div>';
+
+      await bootstrapFeatures(manifest);
+
+      expect(document.body.dataset.featureSearchState).toBe('ready');
     });
   });
 

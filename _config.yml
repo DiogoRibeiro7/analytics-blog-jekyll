@@ -135,7 +135,6 @@ defaults:
       toc: true
       toc_label: On this page
       author: Diogo Ribeiro
-      mathjax: true
   - scope:
       path: ""
       type: "portfolio"
