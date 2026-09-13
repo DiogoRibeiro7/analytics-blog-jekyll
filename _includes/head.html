@@ -62,7 +62,8 @@
 <link rel="canonical" href="{{ canonical_url }}" />
 {% if js_manifest and js_manifest.core %}
 <link rel="modulepreload" href="{{ js_manifest.core | relative_url }}" crossorigin="anonymous" />
-{% if js_manifest.features and js_manifest.features.search and site.features.search %}
+{%- comment -%} Only a page that renders the search app uses the search bundle. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.search and site.features.search and content contains 'data-search-app' %}
 <link rel="modulepreload" href="{{ js_manifest.features.search | relative_url }}" crossorigin="anonymous" />
 {% endif %}
 {% if js_manifest.features and js_manifest.features.math and math_enabled and math_engine == 'mathjax' %}

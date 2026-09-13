@@ -10,10 +10,14 @@ Exposes math_enabled, math_engine, math_status_id, and math_has_expressions vari
 
 math_enabled resolves, in order: the page's `mathjax` or `math` front matter,
 then `theme_options.math.render_on_load` (falling back to `features.mathjax`).
-With `render_on_load: auto` the engine is only loaded when the rendered page
-contains math (`$`, `\(`, `\[` or kramdown's `math/tex` scripts) or declares
-`math_expressions`; `true` loads it on every page; `false` only on pages that
-opt in.
+With `render_on_load: auto` the engine is only loaded on pages with math: the
+math preprocessor records each expression it wraps in `math_expressions`, and
+leaves code alone. Kramdown's `math/tex` scripts and the preprocessor's
+`math-expression--source` wrappers in the rendered page count too: notebook
+pages carry the wrappers but record no expressions of their own. Searching the
+rendered page for `$`, `\(` or `\[` instead loaded MathJax for shell variables,
+prices and escaped parentheses in code. `true` loads it on every page; `false`
+only on pages that opt in.
 {%- endcomment -%}
 {%- assign math_settings = site.theme_options.math | default: {} -%}
 {%- assign math_engine = include.page.math_engine | default: math_settings.engine | default: 'mathjax' -%}
@@ -35,7 +39,7 @@ opt in.
   {%- assign math_enabled = include.page.math -%}
 {%- elsif math_load == 'auto' -%}
   {%- assign math_enabled = math_has_expressions -%}
-  {%- if content contains 'math/tex' or content contains '$' or content contains '\(' or content contains '\[' -%}
+  {%- if content contains 'math/tex' or content contains 'math-expression--source' -%}
     {%- assign math_enabled = true -%}
   {%- endif -%}
 {%- else -%}
