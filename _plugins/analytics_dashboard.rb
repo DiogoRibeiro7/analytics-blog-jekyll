@@ -31,7 +31,10 @@ module Datalog
 
       data = query_analytics(site)
       data["fetched_at"] = Time.now.utc.iso8601
-      write_cache(cache_path, data)
+      # Only a successful report is cached. A missing-configuration or error
+      # payload used to be kept for CACHE_TTL as well, so a site that had just
+      # set GA4_PROPERTY_ID went on reporting the old problem for a day.
+      write_cache(cache_path, data) if data["status"] == "ok"
       data
     rescue StandardError => e
       Jekyll.logger.warn("Analytics", "Falling back to cached analytics data: #{e.message}")
@@ -43,7 +46,7 @@ module Datalog
     end
 
     def fresh?(payload)
-      return false unless payload.is_a?(Hash)
+      return false unless payload.is_a?(Hash) && payload["status"] == "ok"
 
       fetched_at = payload["fetched_at"]
       return false if fetched_at.to_s.empty?

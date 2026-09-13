@@ -109,7 +109,10 @@ module Datalog
     # `.notebook-cell__code` and `.notebook-cell__outputs` in _sass/_components.scss).
     def render_code(cell, source, metadata, site, cell_index)
       language = cell.dig("metadata", "language") || metadata[:language] || "text"
-      code_html = %(<pre class="notebook-cell__code"><code class="language-#{language}">#{CGI.escapeHTML(source)}</code></pre>)
+      # The language comes from the notebook file, so it is cut down to the
+      # characters a class name can hold before it goes into the attribute.
+      language_class = language.to_s.gsub(/[^\w+#.-]/, "")
+      code_html = %(<pre class="notebook-cell__code"><code class="language-#{language_class}">#{CGI.escapeHTML(source)}</code></pre>)
       base_metadata = metadata.respond_to?(:merge) ? metadata.merge(language: language) : { language: language }
       outputs_html = render_outputs(Array(cell["outputs"]), site: site, cell_index: cell_index, metadata: base_metadata)
       outputs_html = %(\n<div class="notebook-cell__outputs">\n#{outputs_html}\n</div>) unless outputs_html.empty?
@@ -165,11 +168,13 @@ module Datalog
     def image_output_html(output)
       data = output["data"] || {}
 
+      # Jupyter writes base64 image data split over lines or ending in a newline,
+      # and the data URI check rejects whitespace, which dropped those images.
       if (png = data["image/png"])
-        html = %(<img src="data:image/png;base64,#{Array(png).join}" alt="Notebook output" />)
+        html = %(<img src="data:image/png;base64,#{Array(png).join.gsub(/\s+/, '')}" alt="Notebook output" />)
         return [html, "image/png"]
       elsif (jpeg = data["image/jpeg"])
-        html = %(<img src="data:image/jpeg;base64,#{Array(jpeg).join}" alt="Notebook output" />)
+        html = %(<img src="data:image/jpeg;base64,#{Array(jpeg).join.gsub(/\s+/, '')}" alt="Notebook output" />)
         return [html, "image/jpeg"]
       elsif (svg = data["image/svg+xml"])
         encoded = Base64.strict_encode64(Array(svg).join)

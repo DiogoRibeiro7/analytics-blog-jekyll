@@ -83,19 +83,27 @@ module Datalog
       branch = options[:branch]
       message = options[:message] || "Publish DataLog site on #{Time.now.utc.strftime('%Y-%m-%d %H:%M UTC')}"
 
-      say_status :build, "bundle exec jekyll build", :blue
-      unless system({ "BUNDLE_GEMFILE" => gemfile_path(root) }, "bundle exec jekyll build", chdir: root)
+      # A deployment is a production build: without JEKYLL_ENV the published
+      # site left out the analytics tag and shipped the development CSP logger.
+      build_env = { "BUNDLE_GEMFILE" => gemfile_path(root), "JEKYLL_ENV" => "production" }
+      say_status :build, "JEKYLL_ENV=production bundle exec jekyll build", :blue
+      unless system(build_env, "bundle exec jekyll build", chdir: root)
         say_error "Jekyll build failed. Resolve the error above and try again."
         exit 1
       end
 
+      published = false
       Dir.mktmpdir("datalog-publish") do |tmp|
         worktree_path = File.join(tmp, "deploy")
         prepare_worktree(root, branch, worktree_path)
-        copy_site_output(root, worktree_path)
-        commit_and_push(worktree_path, branch, message)
-        cleanup_worktree(root, worktree_path)
+        begin
+          copy_site_output(root, worktree_path)
+          published = commit_and_push(worktree_path, branch, message)
+        ensure
+          cleanup_worktree(root, worktree_path)
+        end
       end
+      exit 1 unless published
     end
 
     desc "update", "Update the DataLog theme and related assets to the latest version"
@@ -182,23 +190,26 @@ module Datalog
           exit 1
         end
 
+        # Values go in as JSON strings, which YAML reads as double-quoted scalars.
+        # Interpolated between plain quotes, a title containing a double quote
+        # or a tag containing a colon produced front matter that did not parse.
         tags_yaml = if tags.empty?
                       "[]"
                     else
-                      "\n" + tags.map { |tag| "  - #{tag}" }.join("\n")
+                      "\n" + tags.map { |tag| "  - #{tag.to_json}" }.join("\n")
                     end
         front_matter = <<~YAML
           ---
           layout: post
-          title: "#{title}"
-          description: "#{summary}"
-          author: "#{author}"
+          title: #{title.to_json}
+          description: #{summary.to_json}
+          author: #{author.to_json}
           date: #{date.strftime('%Y-%m-%d')}
           tags:#{tags_yaml}
-          difficulty: "#{difficulty}"
+          difficulty: #{difficulty.to_json}
           hero:
             image: /assets/images/#{slug}.jpg
-            alt: "Hero image for #{title}"
+            alt: #{"Hero image for #{title}".to_json}
           callouts:
             - label: Key takeaway
               content: Highlight the most important insight from the post.
@@ -553,17 +564,26 @@ module Datalog
       end
     end
 
+    # Returns whether the branch now holds the site. The exit status of commit
+    # and push used to be ignored, so a rejected push still ended as a publish.
     def commit_and_push(worktree_path, branch, message)
       Dir.chdir(worktree_path) do
         system("git", "add", "--all")
         if system("git", "diff", "--cached", "--quiet")
           say_status :skip, "No changes to publish", :yellow
-          return
+          return true
         end
 
-        system("git", "commit", "-m", message)
+        unless system("git", "commit", "-m", message)
+          say_error "git commit failed, so nothing was published."
+          return false
+        end
+
         say_status :git, "git push origin #{branch}", :blue
-        system("git", "push", "origin", branch)
+        return true if system("git", "push", "origin", branch)
+
+        say_error "git push to #{branch} failed, so the site was not published."
+        false
       end
     end
 
