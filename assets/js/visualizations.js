@@ -594,11 +594,32 @@
       .catch(() => setStatus(element, 'D3 assets failed to load', 'error'));
   };
 
+  // Observable embeds come from observablehq.com, the one host the Content
+  // Security Policy allows for them. Rebuilding the address behind that
+  // origin also keeps a javascript: or data: URL in the page's markup from
+  // ever becoming the frame's source.
+  const observableEmbedUrl = (value) => {
+    try {
+      const url = new URL(value, 'https://observablehq.com');
+      if (url.origin !== 'https://observablehq.com') {
+        return null;
+      }
+      return `https://observablehq.com${url.pathname}${url.search}${url.hash}`;
+    } catch (error) {
+      return null;
+    }
+  };
+
   const renderObservable = (element) => {
     // data-viz-src is the attribute the user guide documents for embeds.
-    const src = element.getAttribute('data-observable-src') || element.getAttribute('data-viz-src');
-    if (!src) {
+    const source = element.getAttribute('data-observable-src') || element.getAttribute('data-viz-src');
+    if (!source) {
       setStatus(element, 'Missing Observable notebook source', 'error');
+      return Promise.resolve();
+    }
+    const src = observableEmbedUrl(source);
+    if (!src) {
+      setStatus(element, 'Observable embeds must come from observablehq.com', 'error');
       return Promise.resolve();
     }
     const iframe = document.createElement('iframe');

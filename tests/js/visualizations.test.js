@@ -1293,6 +1293,29 @@ describe('Observable rendering', () => {
     expect(status.textContent).toBe('Embedded');
   });
 
+  it.each([
+    ['another host', 'https://example.com/embed/xyz'],
+    ['a javascript: URL', 'javascript:alert(1)'],
+    ['a data: URL', 'data:text/html,<script>alert(1)</script>']
+  ])('refuses an embed address on %s', async (_label, address) => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', address);
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    expect(canvas.querySelector('iframe')).toBeNull();
+    expect(status.textContent).toBe('Observable embeds must come from observablehq.com');
+  });
+
   it('creates iframe for observable embed', async () => {
     const element = document.createElement('div');
     element.setAttribute('data-viz-type', 'observable');
