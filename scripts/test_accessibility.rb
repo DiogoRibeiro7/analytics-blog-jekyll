@@ -19,7 +19,9 @@ raise "Main landmark missing role=main" unless html =~ /<main[^>]*role\s*=\s*"ma
 
 skip_include = File.read(File.join(root, "_includes", "skip-link.html"))
 
-raise "Skip link missing" unless html.include?("include skip-link") && skip_include.include?("skip-link")
+# The layout may render it with include_cached, since the skip link takes nothing from the page.
+skip_link_rendered = html.match?(/\{%-?\s*include(?:_cached)?\s+skip-link\.html/)
+raise "Skip link missing" unless skip_link_rendered && skip_include.include?("skip-link")
 
 header = File.read(File.join(root, "_includes", "header.html"))
 footer = File.read(File.join(root, "_includes", "footer.html"))
