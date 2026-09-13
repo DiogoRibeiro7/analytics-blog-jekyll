@@ -2,6 +2,7 @@
   "generated_at": "{{ 'now' | date_to_xmlschema }}",
   "documents": [
     {% assign known_langs = 'python,r,sql,julia,javascript,scala,go,java,typescript,html,css' | split: ',' %}
+    {% assign no_code = '' | split: '' %}
     {% assign searchable = '' | split: '' %}
     {% for post in site.posts %}
       {% unless post.exclude_from_search %}
@@ -76,37 +77,19 @@
       {% capture doc_type %}
         {% if doc.collection == 'posts' %}post{% elsif doc.collection == 'portfolio' %}project{% elsif doc.collection == 'datasets' %}dataset{% elsif doc.layout == 'research' %}research{% elsif doc.layout == 'project' %}project{% elsif doc.layout == 'post' %}post{% else %}{{ doc.collection | default: doc.layout | default: 'page' }}{% endif %}
       {% endcapture %}
-      {% assign normalized_title = doc.title | default: doc.name | normalize_search %}
-      {% assign normalized_summary = summary | normalize_search %}
-      {% assign normalized_content = content_text | normalize_search %}
-      {% assign normalized_tags = tags | normalize_search_array %}
-      {% assign normalized_languages = languages | normalize_search_array %}
-      {% assign normalized_difficulty = doc.difficulty | default: doc.level | normalize_search | default: '' %}
+      {%- comment -%}
+      Each text field is written once. The search engine normalizes it in the browser with the
+      function it applies to queries; a precomputed normalized copy doubled the size of the file.
+      The code blocks come from the page's source, collected before rendering by
+      _plugins/search_code_blocks.rb: by the time this renders, a post's content is already HTML.
+      {%- endcomment %}
       {
         "title": {{ doc.title | default: doc.name | jsonify }},
         "url": {{ doc.url | relative_url | jsonify }},
         "type": {{ doc_type | strip | jsonify }},
         "summary": {{ summary | strip | jsonify }},
         "content": {{ content_text | jsonify }},
-        "code": [
-          {% assign raw_blocks = raw_content | split: '```' %}
-          {% assign code_counter = 0 %}
-          {% for block in raw_blocks %}
-            {% assign block_index = forloop.index0 | modulo: 2 %}
-            {% if block_index == 1 %}
-              {% assign lines = block | split: '\n' %}
-              {% assign first_line = lines[0] | default: '' %}
-              {% assign language_hint = first_line | strip | downcase | default: 'text' %}
-              {% assign code_body = block | remove_first: first_line | strip %}
-              {% if code_counter > 0 %},{% endif %}
-              {
-                "language": {{ language_hint | jsonify }},
-                "code": {{ code_body | jsonify }}
-              }
-              {% assign code_counter = code_counter | plus: 1 %}
-            {% endif %}
-          {% endfor %}
-        ],
+        "code": {{ doc.search_code | default: no_code | jsonify }},
         "math": [
           {% assign math_counter = 0 %}
           {% for piece in inline_math_segments %}
@@ -137,15 +120,7 @@
         "difficulty": {{ doc.difficulty | default: doc.level | default: '' | jsonify }},
         "topics": {{ doc.topics | default: tags | uniq | jsonify }},
         "date": {% if doc.date %}{{ doc.date | date_to_xmlschema | jsonify }}{% else %}null{% endif %},
-        "reading_time": {{ doc.reading_time | default: doc.time | default: '' | jsonify }},
-        "normalized": {
-          "title": {{ normalized_title | jsonify }},
-          "summary": {{ normalized_summary | jsonify }},
-          "content": {{ normalized_content | jsonify }},
-          "tags": {{ normalized_tags | uniq | jsonify }},
-          "languages": {{ normalized_languages | uniq | jsonify }},
-          "difficulty": {{ normalized_difficulty | jsonify }}
-        }
+        "reading_time": {{ doc.reading_time | default: doc.time | default: '' | jsonify }}
         {% assign search_extensions = doc.datalog_search_extensions %}
         {% if search_extensions and search_extensions != empty %}
         ,"extensions": {{ search_extensions | jsonify }}
