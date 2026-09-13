@@ -2,6 +2,7 @@
 title: Programming Language Archive
 permalink: /archives/languages/
 layout: page
+show_title: false # the page renders its own <h1>
 description: Filter tutorials and research artefacts by primary programming language.
 ---
 

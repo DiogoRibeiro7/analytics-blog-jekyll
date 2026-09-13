@@ -2,6 +2,7 @@
 title: Categories
 permalink: /categories/
 layout: page
+show_title: false # the page renders its own <h1>
 description: Browse every post by category.
 ---
 

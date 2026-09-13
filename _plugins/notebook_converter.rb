@@ -94,7 +94,15 @@ module Datalog
                                       metadata: build_sanitization_metadata(meta, cell_index: cell_index))
       return if sanitized.to_s.strip.empty?
 
-      %(<section class="notebook-cell notebook-cell--markdown">\n#{sanitized}\n</section>)
+      %(<section class="notebook-cell notebook-cell--markdown">\n#{demote_headings(sanitized.to_s)}\n</section>)
+    end
+
+    # The notebook layout gives the page its <h1>, and a notebook's first
+    # markdown cell usually repeats the title as `# Title`. Each heading moves
+    # down a level (h1 to h2, and so on to h6), which keeps one <h1> on the
+    # page and the cells' own outline under it.
+    def demote_headings(html)
+      html.gsub(%r{<(/?)h([1-5])(?=[\s>])}i) { "<#{Regexp.last_match(1)}h#{Regexp.last_match(2).to_i + 1}" }
     end
 
     # Class names mirror the theme stylesheet (`.notebook-cell--input`,

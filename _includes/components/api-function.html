@@ -74,7 +74,17 @@ Parameters:
     <div class="api-function__section">
       <h4 class="api-function__section-title">Examples</h4>
       <div class="api-function__examples">
+        {%- comment -%}
+        Examples are code. Through markdownify, a Python comment such as
+        "# Two-sample t-test" became a page heading. Examples written as
+        Markdown with fenced code blocks still render as Markdown.
+        {%- endcomment -%}
+        {% if include.examples contains '```' %}
         {{ include.examples | markdownify }}
+        {% else %}
+        {% assign example_language = include.language | default: page.language | default: 'text' | downcase %}
+        <pre><code class="language-{{ example_language }}">{{ include.examples | strip | escape }}</code></pre>
+        {% endif %}
       </div>
     </div>
   {% endif %}
