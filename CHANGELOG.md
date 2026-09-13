@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- A Lint job in the Tests workflow runs ESLint and RuboCop, and the test summary fails when it does. Both linters were configured in the repository but ran in no workflow. RuboCop is now a development dependency, pinned because the repository has no `Gemfile.lock`; the offenses that predate the job are listed in `.rubocop_todo.yml`, so new code has to pass (#204).
+- `tests/test_workflows.rb` checks the release and CI guards described below, and `tests/js/cdn-integrity.test.js` runs the Subresource Integrity check from `tests/test_sri.js`, a script no test command ran (#204).
 - `tests/test_gem_consumer.rb` builds a minimal site against the packaged theme and against a checkout of the repository, and fails if the build breaks or publishes anything that identifies the maintainer.
 - `tests/test_navigation_cache.rb` checks that each section still marks only its own navigation link now that the navigation is cached.
 - The performance tests fail if the stylesheet grows past 25 KB gzipped, as they already did for the core script bundle.
@@ -18,6 +20,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- `gem-release.yml` publishes only from a `v*` tag, a manual run included, and stops when the tag does not match `lib/datalog/theme/version.rb`. The tag job in `release.yml` builds the script bundles and the gem and runs `scripts/verify_gem_package.rb` before it creates the tag, so a broken package no longer leaves a tag and a GitHub release for a gem that never published (#204).
+- The Python security audit runs `pip-audit` on `requirements.txt`. It used to collect `import` lines from `scripts/`, which name modules rather than packages, and ignore every result (#204).
 - `search.json` no longer stores a normalized copy of each document's title, summary, content, tags and languages. The search engine normalizes them in the browser, once per document, with the function it applies to queries; the copy was 41% of the file, and queries and documents had been normalized by different code. With the code blocks below added, the demo's index goes from 219 KB to 137 KB.
 - The Tests workflow runs the Playwright suite and enforces the coverage thresholds on pull requests. The coverage steps waited for a Node 20 leg the matrix no longer has, and the browser specs only ran in the deploy after a merge, so both kinds of failure surfaced on `develop` instead of on the pull request.
 - MathJax loads only on pages with math, and the search bundle only on the search page. With `render_on_load: auto`, MathJax loaded wherever a dollar sign or an escaped parenthesis appeared in the rendered page, including shell variables, prices and inline scripts, and the demo also turned it on for every post; it now follows the expressions the math preprocessor finds, and on the demo loads on 6 pages instead of 28. The search bundle was preloaded and run on every page because the header's search form matched the loader's check; it now loads on the one page that renders the search app.
@@ -29,6 +33,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
+- `project-sync.yml`, which only printed what it would have done, and `tests/test_critical_css.js`, `tests/test_search_accessibility.js` and `tests/test_viz_accessibility.js`, which no test command ran and which failed against the current sources (#204).
 - Includes and layouts that no layout, page or plugin used, with the styles written for them: the `archive` and `post-sidebar` layouts, and the user preferences panel, popular posts, back-to-top button and keyboard shortcuts panel (`navigation-enhancements`), social proof, enhanced metadata, reading progress, reading time, content recommendations, comments, language switcher, bookmark, email preferences, advanced search, newsletter signup and series navigation includes. Several read `phase2_features` to `phase5_features` settings that nothing defined. Comments still render through the `datalog-comments` plugin. The rules in those stylesheets that did style rendered pages (the `kbd` element, fieldsets, `.button` and the search result cards) moved to the partials for what they style, and `_sass/_phase3-enhancements.scss`, `_phase4-enhancements.scss` and `_phase5-enhancements.scss` are gone. Together with the feature gating above, the demo's stylesheet goes from 169 KB to 134 KB (27.6 KB to 23 KB gzipped), and a site with every optional feature off gets 85 KB (15.7 KB gzipped).
 
 ### Fixed
