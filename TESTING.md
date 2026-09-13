@@ -52,7 +52,6 @@ which run in the background.
 | `deploy.yml` | Push to `develop` | Build + publish GitHub Pages |
 | `gem-release.yml` | Push tag `v*` | Publish theme gem |
 | `release.yml` | `workflow_dispatch` | Cut a release branch |
-| `project-sync.yml` | Issue labeled/opened | Mirror to GitHub Project |
 
 ### Local-only / not wired to CI
 

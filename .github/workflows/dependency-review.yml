@@ -114,23 +114,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install safety
-        run: pip install safety
+      # Audits the packages CI installs from requirements.txt. The steps this
+      # replaces listed `import` lines (module names, not packages) and ignored
+      # every result, so the job could not fail.
+      - name: Install pip-audit
+        run: python -m pip install pip-audit
 
-      - name: Check for Python vulnerabilities
-        continue-on-error: true
-        run: |
-          # Create requirements file from scripts
-          find scripts -name "*.py" -exec grep -h "^import\|^from" {} \; | \
-            grep -v "^from \." | \
-            sort -u > requirements-check.txt || true
-
-          # Run safety check if pip packages are used
-          if [ -s requirements-check.txt ]; then
-            safety check --json || true
-          else
-            echo "No Python dependencies to check"
-          fi
+      - name: Audit requirements.txt
+        run: pip-audit -r requirements.txt
 
   security-summary:
     name: Security Summary
