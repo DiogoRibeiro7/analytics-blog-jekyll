@@ -187,7 +187,7 @@ way, with its test suites added.
      python3 -m venv .venv
      source .venv/bin/activate
      ```
-   Notebook pages are rendered by the theme itself; Python is only needed for `scripts/notebook_validation.py` (`pip install -r requirements.txt`).
+   Notebook pages are rendered by the theme itself, so building the site needs no Python.
 3. **Install dependencies**: `bundle install` for Ruby, then `npm ci` for Node.js.
 4. **Build the JavaScript bundles** with `npm run build:js`. The layouts load them from `assets/js/dist/`, which is build output and not in the repository.
 5. **Run the development server** with live reload to preview changes:
@@ -266,6 +266,6 @@ After updating `_config.yml`, restart the development server (or rebuild in Dock
 
 - Browse the [documentation index](README.md) for guides to configuration, post components, notebooks, math, visualizations and accessibility.
 - Add `_data/navigation.yml` and `_data/social.yml` for your site's navigation and footer links (section 2.1).
-- When working on the theme repository, run `bundle exec rake ci:verify` to mirror the repository’s automated checks.
+- When working on the theme repository, run `npm test` and `bundle exec rake test` for the unit and Ruby suites the Tests workflow runs.
 
 With your environment configured and first post published, you are ready to build a reproducible analytics publication on top of DataLog.
