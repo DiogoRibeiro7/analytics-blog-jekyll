@@ -31,7 +31,8 @@
 {% endif %}
 <meta name="generator" content="Jekyll" />
 <meta name="referrer" content="no-referrer-when-downgrade" />
-<meta name="robots" content="index,follow" />
+{%- comment -%} `robots:` in front matter keeps a page out of search results, as the 404, search and admin pages do. {%- endcomment %}
+<meta name="robots" content="{{ page.robots | default: 'index,follow' }}" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="application-name" content="{{ site.title }}" />
 <meta property="og:site_name" content="{{ site.title }}" />
@@ -321,10 +322,19 @@
 
 <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
 <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+{%- comment -%} A verification tag renders only when the site sets its code: an empty one verifies nothing. {%- endcomment %}
+{% if site.google_site_verification and site.google_site_verification != "" %}
 <meta name="google-site-verification" content="{{ site.google_site_verification }}" />
+{% endif %}
+{% if site.bing_site_verification and site.bing_site_verification != "" %}
 <meta name="msvalidate.01" content="{{ site.bing_site_verification }}" />
+{% endif %}
+{% if site.yandex_site_verification and site.yandex_site_verification != "" %}
 <meta name="yandex-verification" content="{{ site.yandex_site_verification }}" />
+{% endif %}
+{% if site.baidu_site_verification and site.baidu_site_verification != "" %}
 <meta name="baidu-site-verification" content="{{ site.baidu_site_verification }}" />
+{% endif %}
 <meta name="plausible-domain" content="{{ site.url | replace: 'https://', '' | replace: 'http://', '' }}" />
 
 <script nonce="{{ page.csp_nonce }}">

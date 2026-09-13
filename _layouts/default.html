@@ -8,11 +8,6 @@
   <head>
     {% include head.html %}
     <meta name="twitter:creator" content="{{ site.author.twitter | default: site.social.twitter }}" />
-    {% if page.tags and page.tags.size > 0 %}
-      <meta name="keywords" content="{% include helpers/array-to-sentence.html items=page.tags conjunction='and' %}" />
-    {% endif %}
-    <meta name="format-detection" content="telephone=no" />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     {% include meta/schema.html page=page %}
     {% include meta/scripts-loader.html location='head' %}
   </head>
