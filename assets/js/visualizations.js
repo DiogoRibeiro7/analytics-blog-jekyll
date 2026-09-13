@@ -604,7 +604,10 @@
       if (url.origin !== 'https://observablehq.com') {
         return null;
       }
-      return `https://observablehq.com${url.pathname}${url.search}${url.hash}`;
+      // The query (cells=chart and the like) is rebuilt one encoded parameter
+      // at a time; an embed address has no use for a fragment.
+      const query = Array.from(url.searchParams, ([key, entry]) => `${encodeURIComponent(key)}=${encodeURIComponent(entry)}`).join('&');
+      return 'https://observablehq.com' + url.pathname + (query ? '?' + query : '');
     } catch (error) {
       return null;
     }

@@ -1293,6 +1293,27 @@ describe('Observable rendering', () => {
     expect(status.textContent).toBe('Embedded');
   });
 
+  it('keeps the cells an embed address selects', async () => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', 'https://observablehq.com/embed/@datalog/conversion-effects?cells=viewof+chart,plot#ignored');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    const iframe = new URL(canvas.querySelector('iframe').src);
+    expect(iframe.origin + iframe.pathname).toBe('https://observablehq.com/embed/@datalog/conversion-effects');
+    expect(iframe.searchParams.get('cells')).toBe('viewof chart,plot');
+    expect(iframe.hash).toBe('');
+  });
+
   it.each([
     ['another host', 'https://example.com/embed/xyz'],
     ['a javascript: URL', 'javascript:alert(1)'],
