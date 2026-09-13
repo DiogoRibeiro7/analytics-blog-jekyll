@@ -11,7 +11,8 @@ module Jekyll
       page = context.registers[:page]
       return "" unless page["datalog_bibliography"]
 
-      Jekyll.logger.warn("datalog-citations", "#{page['path']} sets datalog_bibliography, but datalog_plugins.enabled does not list datalog-citations")
+      Jekyll.logger.warn("datalog-citations", "#{page['path']} sets datalog_bibliography, " \
+                                              "but datalog_plugins.enabled does not list datalog-citations")
       ""
     end
   end

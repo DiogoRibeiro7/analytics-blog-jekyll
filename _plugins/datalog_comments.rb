@@ -11,7 +11,8 @@ module Jekyll
       page = context.registers[:page]
       return "" unless page["datalog_comments"]
 
-      Jekyll.logger.warn("datalog-comments", "#{page['path']} sets datalog_comments, but datalog_plugins.enabled does not list datalog-comments")
+      Jekyll.logger.warn("datalog-comments", "#{page['path']} sets datalog_comments, " \
+                                             "but datalog_plugins.enabled does not list datalog-comments")
       ""
     end
   end
