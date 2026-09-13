@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- A Docker Images workflow builds `Dockerfile` and `Dockerfile.dev`, without pushing, on pull requests that change what they are built from (#205).
 - `bundle exec rake test` builds the demo site and runs the Minitest suite, the same command as the Tests workflow, and is the default Rake task. `tests/test_site_output.rb` takes over what the `ci:verify` scripts checked and no other suite did: `CITATION.cff` matching the theme version, citation exports and scholar metadata on posts, the math status live region, `noopener` on every link that opens a new tab, and sandboxed app embeds. The browser suite checks that code blocks in a post get a labelled copy button, which the post layout adds when the page loads (#204).
 - A Lint job in the Tests workflow runs ESLint and RuboCop, and the test summary fails when it does. Both linters were configured in the repository but ran in no workflow. RuboCop is now a development dependency, pinned because the repository has no `Gemfile.lock`; the offenses that predate the job are listed in `.rubocop_todo.yml`, so new code has to pass (#204).
 - `tests/test_workflows.rb` checks the release and CI guards described below, and `tests/js/cdn-integrity.test.js` runs the Subresource Integrity check from `tests/test_sri.js`, a script no test command ran (#204).
@@ -22,6 +23,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- The pre-commit hook runs lint-staged only: ESLint and the Vitest tests related to the staged JavaScript. It used to run `npm audit`, which needs the network, and the whole Vitest suite on every commit; both still run on every pull request (#205).
+- Dependabot pull requests are titled `chore(deps)`, `chore(deps-dev)` and `ci(deps)`. The prefixes repeated the scope Dependabot appends, which gave titles like `chore(deps-dev)(deps-dev)` (#205).
+- The accessibility, broken link, dependency review and Lighthouse workflows cancel a pull request's superseded runs, the accessibility workflow installs a pinned `pa11y-ci` and uses the `http-server` devDependency, and `package.json` is marked private so `npm publish` refuses to publish the repository's tooling (#205).
 - `gem-release.yml` publishes only from a `v*` tag, a manual run included, and stops when the tag does not match `lib/datalog/theme/version.rb`. The tag job in `release.yml` builds the script bundles and the gem and runs `scripts/verify_gem_package.rb` before it creates the tag, so a broken package no longer leaves a tag and a GitHub release for a gem that never published (#204).
 - The Python security audit runs `pip-audit` on `requirements.txt`. It used to collect `import` lines from `scripts/`, which name modules rather than packages, and ignore every result (#204).
 - `search.json` no longer stores a normalized copy of each document's title, summary, content, tags and languages. The search engine normalizes them in the browser, once per document, with the function it applies to queries; the copy was 41% of the file, and queries and documents had been normalized by different code. With the code blocks below added, the demo's index goes from 219 KB to 137 KB.
@@ -42,6 +46,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Neither Docker image built. `Dockerfile` copied a `Gemfile.lock` the repository does not have, then built the script bundles without esbuild, a dev dependency it had skipped; `Dockerfile.dev` ran `bundle install` without the gemspec the Gemfile loads. Both copy what the gemspec requires, drop the Python they installed for a notebook check that is gone, and use Node.js 22 like CI (#205).
 - The config validator stopped a build with "Invalid type for 'author'" for `author: Jane Doe`, and with "Invalid value for 'url'" for `url: ""`, which `jekyll new` writes. Both are accepted (#202).
 - Loading the theme broke `warn` keyword arguments for the whole build: a `Kernel#warn` override printed `uplevel:` and `category:` as a hash after the message. The override is gone; the `Warning` filter beside it still silences the same two messages (#202).
 - Notebook images whose base64 data Jupyter had split over lines or ended with a newline failed the data URI check and lost their `src`. The data is joined without whitespace first (#202).
