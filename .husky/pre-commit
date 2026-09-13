@@ -1,13 +1,7 @@
 #!/bin/sh
 
-# Run security audit (high+ only; moderate issues in dev deps are non-blocking)
-npm audit --audit-level=high --omit=dev || {
-  echo "Security vulnerabilities found. Run npm audit fix to resolve."
-  exit 1
-}
-
-# Run lint-staged (format and lint staged files)
+# Lints the staged JavaScript and runs the unit tests that import it (the
+# lint-staged section of package.json). The hook used to run npm audit, which
+# needs the network, and all of Vitest on every commit; the Tests and
+# Dependency Review workflows run both on every pull request.
 npx lint-staged
-
-# Run tests
-npm test

@@ -454,7 +454,7 @@ npx playwright show-trace trace.zip
 ✅ Mock external dependencies
 ✅ Use data attributes for selectors
 ✅ Wait for elements properly
-✅ Run tests before committing (pre-commit hook does this)
+✅ Run tests before committing (the pre-commit hook runs the ones related to the staged JavaScript; `npm test` runs them all)
 
 ### DON'T
 

@@ -47,4 +47,17 @@ class WorkflowsTest < Minitest::Test
     steps.each { |step| refute step["continue-on-error"], "#{step['name']} should not ignore failures" }
     assert(steps.any? { |step| step["run"].to_s.include?("pip-audit -r requirements.txt") })
   end
+
+  # Runs for a superseded push used to keep going in these workflows.
+  def test_workflows_set_a_concurrency_group
+    %w[accessibility.yml broken-links.yml dependency-review.yml docker.yml lighthouse.yml].each do |name|
+      assert workflow(name)["concurrency"], "#{name} should set a concurrency group"
+    end
+  end
+
+  # Nothing built the Dockerfiles, so both stopped working unnoticed.
+  def test_both_docker_images_are_built
+    images = workflow("docker.yml").dig("jobs", "build", "strategy", "matrix", "image")
+    assert_equal(%w[Dockerfile Dockerfile.dev], images.map { |image| image["file"] })
+  end
 end
