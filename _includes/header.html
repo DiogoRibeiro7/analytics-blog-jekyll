@@ -1,5 +1,26 @@
 {% assign localization_config = site.theme_options.localization %}
 {% assign navigation_data = site.data.navigation %}
+{%- comment -%} `header:` (or `main:`) in _data/navigation.yml lists the links. Without it the header has no navigation, rather than links to sections the site may not have. {%- endcomment -%}
+{% assign nav_items = navigation_data.header | default: navigation_data.main %}
+{%- comment -%}
+The navigation is the same on every page except for which links mark the current
+section, so header/navigation.html renders from the indexes of those links (",2,")
+and is cached for each distinct set.
+{%- endcomment -%}
+{% assign page_contexts = '' | split: '' %}
+{% if page.section %}{% assign page_contexts = page_contexts | push: page.section %}{% endif %}
+{% if page.layout %}{% assign page_contexts = page_contexts | push: page.layout %}{% endif %}
+{% if page.collection %}{% assign page_contexts = page_contexts | push: page.collection %}{% endif %}
+{% if page.type %}{% assign page_contexts = page_contexts | push: page.type %}{% endif %}
+{%- capture active_items -%}
+  {%- for item in nav_items -%}
+    {%- assign item_url = item.url | relative_url -%}
+    {%- if page.url == item.url or page.url == item_url -%},{{ forloop.index0 }}
+    {%- elsif item.section and page_contexts contains item.section -%},{{ forloop.index0 }}
+    {%- elsif item.url != '/' and page.url contains item.url -%},{{ forloop.index0 }}
+    {%- endif -%}
+  {%- endfor -%},
+{%- endcapture -%}
 <header class="site-header" role="banner" data-sticky-header>
   <div class="header-progress" aria-hidden="true">
     <progress class="header-progress__bar" value="0" max="100" data-scroll-progress></progress>
@@ -18,7 +39,7 @@
           </svg>
         </span>
         <span class="site-title-group">
-          <span class="site-title">{{ site.name | default: 'DataLog' }}</span>
+          <span class="site-title">{{ site.name | default: site.title }}</span>
           <span class="site-tagline">{{ brand_symbol }}</span>
         </span>
       </a>
@@ -41,30 +62,18 @@
             </svg>
           </button>
           {% endif %}
+          {% if nav_items.size > 0 %}
           <button class="header-control header-control--icon nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
             <span aria-hidden="true">☰</span>
           </button>
+          {% endif %}
         </div>
       </div>
     </div>
-    {% assign nav_items = navigation_data.header | default: navigation_data.main %}
-    {% if nav_items == nil %}
-      {% assign nav_items = '' | split: '' %}
-      {% assign nav_items = nav_items | push: {"title": "Blog", "url": "/blog/", "section": "blog"} %}
-      {% assign nav_items = nav_items | push: {"title": "Research", "url": "/research/", "section": "research"} %}
-      {% assign nav_items = nav_items | push: {"title": "Projects", "url": "/portfolio/", "section": "portfolio"} %}
-      {% assign nav_items = nav_items | push: {"title": "Datasets", "url": "/datasets/", "section": "datasets"} %}
-      {% assign nav_items = nav_items | push: {"title": "Visualizations", "url": "/visualizations/", "section": "visualizations"} %}
-      {% assign nav_items = nav_items | push: {"title": "Academic Ops", "url": "/academic/", "section": "academic"} %}
-      {% assign nav_items = nav_items | push: {"title": "About", "url": "/about/", "section": "about"} %}
-    {% endif %}
-    {% assign page_contexts = '' | split: '' %}
-    {% if page.section %}{% assign page_contexts = page_contexts | push: page.section %}{% endif %}
-    {% if page.layout %}{% assign page_contexts = page_contexts | push: page.layout %}{% endif %}
-    {% if page.collection %}{% assign page_contexts = page_contexts | push: page.collection %}{% endif %}
-    {% if page.type %}{% assign page_contexts = page_contexts | push: page.type %}{% endif %}
+    {% if nav_items.size > 0 %}
     <nav id="site-nav" class="site-nav" role="navigation" aria-label="Primary navigation" data-open="false">
-      {% include header/navigation.html items=nav_items page=page contexts=page_contexts %}
+      {% include_cached header/navigation.html items=nav_items active=active_items lang=page.lang %}
     </nav>
+    {% endif %}
   </div>
 </header>

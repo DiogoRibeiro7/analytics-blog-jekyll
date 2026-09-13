@@ -267,9 +267,9 @@ The following packages are deprecated but not necessarily vulnerable:
 - GitHub Security Advisories
 
 ### Related Documentation
-- [SECURITY.md](../SECURITY.md) - Security policy
-- [docs/environment-setup.md](environment-setup.md) - Environment configuration
-- [.github/workflows/](../.github/workflows/) - CI/CD workflows
+- [SECURITY.md](../../SECURITY.md) - Security policy
+- [docs/environment-setup.md](../environment-setup.md) - Environment configuration
+- [.github/workflows/](../../.github/workflows/) - CI/CD workflows
 
 ---
 

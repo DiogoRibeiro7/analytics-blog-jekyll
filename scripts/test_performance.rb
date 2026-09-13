@@ -8,7 +8,7 @@ require "stringio"
 
 root = Pathname.new(File.join(__dir__, ".."))
 manifest_path = root.join("_data/js_manifest.json")
-meta_path = root.join("_data/js_meta.json")
+meta_path = root.join("assets/js/dist/meta.json")
 
 abort("JavaScript manifest missing. Run node scripts/build_js.mjs first.") unless manifest_path.exist?
 abort("JavaScript metafile missing. Run node scripts/build_js.mjs first.") unless meta_path.exist?

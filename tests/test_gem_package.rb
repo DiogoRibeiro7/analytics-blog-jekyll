@@ -36,6 +36,34 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # The demo site keeps its navigation, social profiles, author profile, CV and
+  # publication exports in _data and assets, which the gem otherwise ships, so
+  # every site using the theme published them.
+  def test_leaves_out_the_demo_sites_data_and_downloads
+    %w[_data/i18n/en.yml _data/js_manifest.json _data/cdn-integrity.yml].each do |path|
+      assert_includes @spec.files, path, "the layouts need #{path} to render"
+    end
+
+    %w[
+      _data/navigation.yml
+      _data/social.yml
+      _data/config/author.yml
+      _data/publications.yml
+      assets/templates/diogo-ribeiro-cv.md
+      assets/publications/publications.bib
+    ].each do |path|
+      refute_includes @spec.files, path, "#{path} belongs to the demo site, not the theme"
+    end
+  end
+
+  # esbuild's metafile describes a build, not anything a page loads. The gem
+  # used to ship a committed copy that no longer matched its own bundles.
+  def test_leaves_out_the_build_records
+    %w[_data/js_meta.json assets/js/dist/meta.json assets/js/dist/manifest.json].each do |path|
+      refute_includes @spec.files, path, "#{path} is a record of the build, which no page loads"
+    end
+  end
+
   def test_declares_the_gems_the_shipped_plugins_require
     required = Dir[ROOT.join("_plugins", "*.rb")].flat_map do |plugin|
       File.readlines(plugin).filter_map { |line| line[/\A\s*require "([a-z0-9_-]+)"/, 1] }
@@ -57,14 +85,14 @@ class GemPackageTest < Minitest::Test
     script = <<~RUBY
       require "jekyll"
       require #{ROOT.join('lib/datalog-theme.rb').to_s.inspect}
-      puts !Liquid::Template.tags["t"].nil?
+      puts %w[t include_cached].all? { |tag| Liquid::Template.tags[tag] }
     RUBY
 
     stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", script, chdir: ROOT.to_s)
 
     assert status.success?, "loading the gem entry point failed: #{stderr}"
     assert_equal "true", stdout.strip,
-                 "requiring the theme should register the {% t %} tag its layouts use"
+                 "requiring the theme should register the {% t %} and {% include_cached %} tags its layouts use"
   end
 
   private

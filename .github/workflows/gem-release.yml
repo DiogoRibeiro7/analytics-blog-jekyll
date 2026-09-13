@@ -54,6 +54,9 @@ jobs:
       - name: Build browser bundles
         run: npm run build:js
 
+      - name: Check the committed script manifest matches the build
+        run: git diff --exit-code -- _data/js_manifest.json
+
       - name: Build gem
         run: gem build datalog-theme.gemspec
 

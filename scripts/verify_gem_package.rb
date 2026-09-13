@@ -8,14 +8,20 @@
 # points every page at those bundles, without the bundles themselves, and every
 # consumer site requested them and got a 404.
 #
+# It also refuses a gem carrying the demo site's own files from _data or
+# assets (see lib/datalog/theme/package.rb): every site using the theme would
+# publish them, including the maintainer's CV and contact details.
+#
 # Usage: ruby scripts/verify_gem_package.rb [path/to/datalog-theme-X.Y.Z.gem]
 
 require "json"
 require "rubygems/package"
 require "tmpdir"
+require_relative "../lib/datalog/theme/package"
 
 REQUIRED_FILES = [
   "lib/datalog-theme.rb",
+  "_data/i18n/en.yml",
   "_data/js_manifest.json",
   "_layouts/home.html",
   "_layouts/post.html",
@@ -37,6 +43,9 @@ abort("No gem found. Run `gem build datalog-theme.gemspec` first.") unless gem_p
 
 files = Gem::Package.new(gem_path).spec.files
 problems = REQUIRED_FILES.reject { |path| files.include?(path) }.map { |path| "missing #{path}" }
+files.reject { |path| Datalog::Theme::Package.theme_file?(path) }.each do |path|
+  problems << "#{path} belongs to the demo site, not the theme"
+end
 
 if files.include?("_data/js_manifest.json")
   Dir.mktmpdir do |dir|
@@ -54,9 +63,9 @@ if files.include?("_data/js_manifest.json")
 end
 
 if problems.empty?
-  puts "#{File.basename(gem_path)}: #{files.size} files, including every bundle its manifest references."
+  puts "#{File.basename(gem_path)}: #{files.size} files, including every bundle its manifest references and no demo content."
 else
-  warn "#{File.basename(gem_path)} is missing files that sites using the theme need:"
+  warn "#{File.basename(gem_path)} is not fit for sites using the theme:"
   problems.each { |problem| warn "  - #{problem}" }
   exit 1
 end

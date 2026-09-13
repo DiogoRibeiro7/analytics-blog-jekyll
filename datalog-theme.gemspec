@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "lib/datalog/theme/version"
+require_relative "lib/datalog/theme/package"
 
 Gem::Specification.new do |spec|
   spec.name          = "datalog-theme"
@@ -31,10 +32,13 @@ Gem::Specification.new do |spec|
   # Ship only theme infrastructure — not demo content (_posts, _pages, _portfolio,
   # _datasets, _packages, _notebooks, tests, docs, scripts, CI configs, frontend
   # tooling, Dockerfiles, etc.). Theme consumers get layouts/includes/sass/assets/
-  # plugins/data/lib/bin and the licensing/changelog metadata.
+  # plugins/data/lib/bin and the licensing/changelog metadata. Within _data and
+  # assets, the demo site's own files (its navigation, social profiles, author
+  # profile, CV and publication exports) stay out: see Datalog::Theme::Package.
   spec.files = Dir.chdir(__dir__) do
     tracked = `git ls-files -z`.split("\x0").select do |f|
-      f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) ||
+      (f.match?(%r{\A(?:_layouts|_includes|_sass|_plugins|_data|assets|lib|bin)/}) &&
+        Datalog::Theme::Package.theme_file?(f)) ||
         %w[
           LICENSE
           README.md
@@ -47,8 +51,11 @@ Gem::Specification.new do |spec|
     # The browser bundles are build output, so git does not track them, but
     # _data/js_manifest.json points every page at them: a gem without them
     # gives consumers a site whose scripts all 404. Run `npm run build:js`
-    # before packaging; scripts/verify_gem_package.rb checks the result.
-    built = Dir.glob("assets/js/dist/**/*").select { |f| File.file?(f) }
+    # before packaging; scripts/verify_gem_package.rb checks the result. The
+    # esbuild metafile and the copy of the manifest written next to the bundles
+    # are records of the build that no page loads, so they stay out.
+    built = Dir.glob("assets/js/dist/**/*").select { |f| File.file?(f) } -
+            %w[assets/js/dist/manifest.json assets/js/dist/meta.json]
 
     (tracked + built).uniq.sort
   end

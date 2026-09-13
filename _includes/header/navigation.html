@@ -3,36 +3,33 @@
 required:
   - items
 optional:
-  - page
-  - contexts
+  - active
+  - lang
 ---
-Renders the primary navigation list with active state awareness.
+Renders the primary navigation list. `active` lists the indexes of the items that
+mark the current section, each between commas (",2,"); header.html works them out
+from the page. Nothing else here depends on the page, which is what lets
+header.html render this with include_cached. `lang` is passed only so that each
+page language gets its own copy of any translated descriptions.
 {%- endcomment -%}
 {%- assign nav_items = include.items | default: '' -%}
 {%- if nav_items == '' -%}
   {%- assign nav_items = '' | split: '' -%}
 {%- endif -%}
-{%- assign active_page = include.page | default: page -%}
-{%- assign contexts = include.contexts | default: '' -%}
-{%- if contexts == '' -%}
-  {%- assign contexts = '' | split: '' -%}
-{%- endif -%}
+{%- assign active_items = include.active | default: '' -%}
 <ul class="nav-list">
   {%- for item in nav_items -%}
     {%- assign item_url = item.url | relative_url -%}
+    {%- capture item_marker -%},{{ forloop.index0 }},{%- endcapture -%}
     {%- assign is_active = false -%}
+    {%- if active_items contains item_marker -%}
+      {%- assign is_active = true -%}
+    {%- endif -%}
     {%- assign nav_title = item.title | default: 'Untitled' | strip -%}
     {%- assign nav_section = item.section | default: nav_title | replace: '_', ' ' | replace: '-', ' ' | strip -%}
     {%- assign nav_description = item.description | default: '' -%}
     {%- if nav_description == '' and item.description_key -%}
       {%- capture nav_description -%}{% t item.description_key %}{%- endcapture -%}
-    {%- endif -%}
-    {%- if active_page.url == item.url or active_page.url == item_url -%}
-      {%- assign is_active = true -%}
-    {%- elsif item.section and contexts contains item.section -%}
-      {%- assign is_active = true -%}
-    {%- elsif item.url != '/' and active_page.url contains item.url -%}
-      {%- assign is_active = true -%}
     {%- endif -%}
     {%- if nav_description == '' -%}
       {%- assign nav_description = nav_section | default: nav_title -%}

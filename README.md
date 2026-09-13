@@ -74,13 +74,15 @@ site; the rest is reference content you can copy from.
 
 ## Documentation
 
+- [Documentation Index](docs/README.md) — every guide, grouped by what you want to do.
 - [Documentation Site](docs/site/README.md) — source for the live `datalog-theme.github.io` documentation hub with feature walk-throughs, interactive demos, and migration guides.
 - [User Guide](docs/user-guide.md) — comprehensive documentation covering installation, notebooks, math, visualizations, research workflows, accessibility, performance, and collaboration best practices for DataLog users.
 - [Environment Setup Guide](docs/environment-setup.md) — configure environment variables, secrets, and integrations for analytics, testing, and deployment.
 - [Scripts Reference](docs/scripts-reference.md) — complete reference for all build, test, import/export, and utility scripts.
 - [Changelog](CHANGELOG.md) — release highlights and upgrade guidance for each published version of the DataLog theme.
 - [Template Repository Guide](docs/template-repository.md) — instructions for publishing a GitHub template with starter content, configuration, and automated deployments.
-- [Installation Guide](docs/install.md) — prerequisites, GitHub Pages, local, and Docker setup paths.
+- [Installation Guide](docs/install.md) — adding the theme to a site, installing from a Git checkout, publishing with GitHub Actions, and local and Docker setup.
+- [Post Components](docs/components.md) — sharing buttons, breadcrumbs, author cards, the table of contents and difficulty badges.
 - [Migrating from Minimal Mistakes](docs/migrating-from-minimal-mistakes.md) — the front-matter fields DataLog reads natively (hero and teaser images, SEO title and description, `classes: wide`, `redirect_from`) and the settings that keep existing URLs.
 - [Plugin Development Guide](docs/plugin-development.md) — understand the hook system and learn how to package extensions for reuse.
 - [Security Policy](SECURITY.md) — report security vulnerabilities and learn about security best practices.
@@ -150,7 +152,7 @@ Once configured, Chart.js visualizations will highlight top-performing posts, se
 
 DataLog ships with an opinionated notebook-to-post pipeline tailored for technical storytelling:
 
-1. **Drop `.ipynb` files into `_notebooks/`** — the custom generator transforms each notebook into a permalink under `/blog/` while keeping a downloadable copy at `/notebooks/<slug>.ipynb`.
+1. **Drop `.ipynb` files into `_notebooks/`** — the custom generator transforms each notebook into a page under `/notebooks/<slug>/` while keeping a downloadable copy at `/notebooks/<slug>.ipynb`.
 2. **Leverage notebook metadata** — optional fields like `title`, `tags`, `keywords`, `difficulty`, and execution metadata will surface in the rendered article header and sidebar.
 3. **Preserve interactivity** — HTML outputs, Plotly figures, and widget placeholders are embedded automatically with responsive styling and dark-mode aware formatting.
 4. **Launch live sessions** — configure `notebooks.repository` and `notebooks.branch` in `_config.yml` to enable Binder and Google Colab links for each notebook, alongside GitHub source references and clone instructions.
@@ -159,9 +161,8 @@ DataLog ships with an opinionated notebook-to-post pipeline tailored for technic
 Matplotlib/Seaborn plots, LaTeX, and code syntax highlighting are optimized for both desktop and mobile viewing, while cell numbering and input/output differentiation mirror the native Jupyter experience.
 
 4. **Deploy to GitHub Pages**
-   - Push the repository to GitHub
-   - Enable GitHub Pages on the repository settings (use the `develop` branch)
-   - GitHub Pages will automatically build the site using the `github-pages` gem
+   - The build GitHub Pages runs by itself cannot load the theme's plugins, so build and publish with GitHub Actions: see [Publish with GitHub Pages](docs/install.md#23-publish-with-github-pages)
+   - `.github/workflows/deploy.yml` publishes this repository's demo site that way
 
 ## Data Science Workflow Integration
 
@@ -207,16 +208,20 @@ Data-driven configuration allows you to publish or reorder projects, datasets, s
 Add the theme gem to your Jekyll site:
 
 ```ruby
-gem "datalog-theme", "~> 0.1"
+gem "datalog-theme", "~> 0.7"
 ```
 
-Then enable it in `_config.yml`:
+Then enable it in `_config.yml`. Naming the theme under `plugins:` registers its Liquid tags, and the build needs an author name:
 
 ```yml
 theme: datalog-theme
+plugins:
+  - datalog-theme
+author:
+  name: Your Name
 ```
 
-For GitHub Pages, pin the `github-pages` gem and allow the included workflow to build and deploy the site automatically.
+The [installation guide](docs/install.md) covers the files a site supplies itself, installing from a Git checkout, and publishing to GitHub Pages. GitHub Pages cannot build a site that uses this theme by itself, so the guide publishes it with GitHub Actions.
 
 ## Continuous Integration & Testing
 
@@ -235,7 +240,7 @@ bundle exec rake ci:verify
 
 ## Demo Site
 
-The repository doubles as a demo site and content laboratory. Explore the curated examples locally via `bundle exec jekyll serve` or review the walkthrough in [`demo/README.md`](demo/README.md) for deployment and navigation tips.
+The repository doubles as a demo site and content laboratory, published at <https://diogoribeiro7.github.io/analytics-blog-jekyll/>. Explore the curated examples locally with `bundle exec jekyll serve`.
 
 ## Citation & Academic Metadata
 

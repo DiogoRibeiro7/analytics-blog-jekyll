@@ -20,13 +20,14 @@
     site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}
   {% endcapture %}
   <body class="{{ body_classes | strip }}" data-theme="{{ page.theme | default: 'system' }}">
-    {% include skip-link.html %}
+    {%- comment -%} The skip link and the footer take nothing from the page, so each is rendered once per build (the skip link once per language). {%- endcomment -%}
+    {% include_cached skip-link.html lang=page.lang %}
     {% include header.html %}
     <main id="main-content" class="site-main container" role="main" tabindex="-1" aria-describedby="{{ math_status_id }}">
       {% include components/math-fallback.html expressions=page.math_expressions %}
       {% include layouts/default/article.html page=page content=content date_format=date_format %}
     </main>
-    {% include footer.html %}
+    {% include_cached footer.html %}
     <div class="visually-hidden" aria-live="polite" id="{{ math_status_id }}">{% t 'global.math_loading' %}</div>
     {% include meta/scripts-loader.html location='body' %}
   </body>

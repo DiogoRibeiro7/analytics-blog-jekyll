@@ -5,7 +5,7 @@
 <footer class="site-footer" role="contentinfo">
   <div class="container footer-container">
     <section class="footer-about">
-      <h3>{{ site.name | default: 'DataLog' }}</h3>
+      <h3>{{ site.name | default: site.title }}</h3>
       <p class="footer-description">{{ site.description | strip_html | truncate: 160 }}</p>
       <p class="footer-author">
         <strong>{{ site.author.name }}</strong>
@@ -20,30 +20,24 @@
       {% endif %}
     </section>
 
+    {%- comment -%} `footer:` in _data/navigation.yml drives this column, which is left out without it. {%- endcomment -%}
+    {% assign footer_links = navigation_data.footer %}
+    {% if footer_links.size > 0 %}
     <nav class="footer-navigation">
       <h3>Explore</h3>
-      {%- comment -%} `footer:` in _data/navigation.yml drives this column; the demo's sections are the fallback. {%- endcomment -%}
-      {% assign footer_links = navigation_data.footer %}
       <ul class="footer-link-list">
-        {% if footer_links and footer_links.size > 0 %}
         {% for item in footer_links %}
         <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
         {% endfor %}
-        {% else %}
-        <li><a href="{{ '/blog/' | relative_url }}">Blog</a></li>
-        <li><a href="{{ '/research/' | relative_url }}">Research</a></li>
-        <li><a href="{{ '/portfolio/' | relative_url }}">Projects</a></li>
-        <li><a href="{{ '/datasets/' | relative_url }}">Datasets</a></li>
-        <li><a href="{{ '/visualizations/' | relative_url }}">Visualizations</a></li>
-        <li><a href="{{ '/about/' | relative_url }}">About</a></li>
-        {% endif %}
       </ul>
     </nav>
+    {% endif %}
 
+    {% assign primary_social = social_data.primary %}
+    {% if primary_social.size > 0 or site.author.email %}
     <section class="footer-connect">
       <h3>Connect</h3>
-      {% assign primary_social = social_data.primary %}
-      {% if primary_social %}
+      {% if primary_social.size > 0 %}
       <ul class="footer-link-list">
         {% for profile in primary_social %}
         <li><a href="{{ profile.url }}" target="_blank" rel="{{ profile.rel | default: 'noopener' }}">{{ profile.label }}</a></li>
@@ -56,18 +50,22 @@
       </p>
       {% endif %}
     </section>
+    {% endif %}
 
     <section class="footer-subscribe">
       <h3>Stay updated</h3>
       <p>Follow via RSS or check back for new research and tutorials.</p>
+      {%- comment -%} jekyll-feed is a dependency of the theme, so /feed.xml exists even when _data/social.yml lists no feeds. {%- endcomment -%}
       {% assign rss_links = social_data.rss %}
-      {% if rss_links %}
       <ul class="footer-link-list">
+        {% if rss_links.size > 0 %}
         {% for feed in rss_links %}
         <li><a href="{{ feed.url | relative_url }}">{{ feed.label }}</a></li>
         {% endfor %}
+        {% else %}
+        <li><a href="{{ '/feed.xml' | relative_url }}">RSS feed</a></li>
+        {% endif %}
       </ul>
-      {% endif %}
     </section>
   </div>
   <div class="container footer-bottom">

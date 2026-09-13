@@ -646,6 +646,52 @@ body.dark-mode .search-result:focus-within .search-result__title a {
   color: $dark-accent-primary;
 }
 
+// Spacing, title, excerpt and metadata of each result, and the filter groups.
+.search-result {
+  padding: 1.5rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &__title a {
+    color: var(--color-text-primary, #1a202c);
+    text-decoration: none;
+    font-size: 1.25rem;
+
+    &:hover {
+      color: var(--color-accent, #3b82f6);
+    }
+  }
+
+  &__excerpt {
+    margin: 0.75rem 0;
+    color: var(--color-text-secondary, #4a5568);
+
+    mark {
+      background: #fef3c7;
+      padding: 0.125rem 0.25rem;
+      border-radius: 2px;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #4a5568);
+  }
+}
+
+.search-filter {
+  margin-bottom: 1.5rem;
+}
+
 // ---------------------------------------------------------------------------
 // Animation
 // ---------------------------------------------------------------------------
