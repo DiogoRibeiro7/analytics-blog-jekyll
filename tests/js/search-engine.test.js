@@ -404,6 +404,25 @@ describe('search — normalized data fast path', () => {
     const results = engine.search('Raw Values');
     expect(results).toHaveLength(1);
   });
+
+  // search.json no longer ships a normalized copy of each field.
+  it('matches accented text without a normalized payload', () => {
+    const doc = makeDoc({ title: 'Análise de dados', content: 'Estatística aplicada' });
+    delete doc.normalized;
+    const engine = createSearchEngine([doc]);
+
+    expect(engine.search('analise')).toHaveLength(1);
+    expect(engine.search('estatistica')).toHaveLength(1);
+  });
+
+  it('filters by tag without a normalized payload', () => {
+    const doc = makeDoc({ title: 'Tagged', tags: ['Machine-Learning'] });
+    delete doc.normalized;
+    const engine = createSearchEngine([doc]);
+
+    expect(engine.search('Tagged', { tags: new Set(['machine-learning']) })).toHaveLength(1);
+    expect(engine.search('Tagged', { tags: new Set(['statistics']) })).toHaveLength(0);
+  });
 });
 
 describe('buildSuggestionPool', () => {

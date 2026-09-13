@@ -60,15 +60,35 @@ class SearchIndexTest < Minitest::Test
       assert_kind_of Array, doc["math"], "math facet should be an array"
       assert_kind_of Array, doc["code"], "code facet should be an array"
 
-      normalized = doc["normalized"]
-      assert_kind_of Hash, normalized, "documents should expose precomputed normalization payload"
-      %w[title summary content difficulty].each do |field|
-        value = normalized[field]
-        assert(value.is_a?(String), "normalized #{field} should be a string")
-      end
-      assert_kind_of Array, normalized["tags"], "normalized tags should be an array"
-      assert_kind_of Array, normalized["languages"], "normalized languages should be an array"
+      refute doc.key?("normalized"),
+             "the search engine normalizes each field in the browser; a precomputed copy doubled the index"
     end
+  end
+
+  # The template split doc.content on backticks, but documents render before
+  # pages, so that content was already HTML and every code list was empty.
+  def test_index_carries_the_code_blocks_of_a_post
+    post = @index["documents"].find { |doc| doc["url"] == "/2024/04/05/sql-optimization-guide/" }
+    refute_nil post, "expected the SQL guide in the index"
+    sql = post["code"].select { |block| block["language"] == "sql" }
+    refute_empty sql, "the SQL guide's fenced blocks should be searchable"
+    sql.each { |block| refute_empty block["code"].strip }
+  end
+
+  def test_error_search_and_admin_pages_are_not_indexed
+    urls = @index["documents"].map { |doc| doc["url"] }
+    %w[/404.html /search/ /admin/analytics/].each do |url|
+      refute_includes urls, url, "#{url} should not appear in search results"
+    end
+  end
+
+  def test_code_blocks_are_read_from_fences
+    source = "Intro\r\n\r\n```Python title=\"x\"\r\nprint(1)\r\n```\r\n\r\n~~~\nplain\n~~~\n\n````md\n```js\nnested\n```\n````\n"
+    assert_equal [
+      { "language" => "python", "code" => "print(1)" },
+      { "language" => "text", "code" => "plain" },
+      { "language" => "md", "code" => "```js\nnested\n```" }
+    ], Datalog::SearchCodeBlocks.extract(source)
   end
 
   def test_index_captures_notebook_content
