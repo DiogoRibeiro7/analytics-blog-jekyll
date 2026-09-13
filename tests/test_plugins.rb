@@ -33,6 +33,13 @@ class PluginLoaderTest < Minitest::Test
     assert_equal "pathname", extensions.dig("comments", "mapping")
   end
 
+  # Posts are documents, and Jekyll fires a post's `posts` hooks and its
+  # `documents` hooks, so registering both ran each plugin hook twice a post.
+  def test_plugin_hooks_are_registered_once_for_posts
+    refute_includes Datalog::PluginLoaderHooks::HOOK_SCOPES, :posts
+    assert_includes Datalog::PluginLoaderHooks::HOOK_SCOPES, :documents
+  end
+
   private
 
   def document_titled(title)

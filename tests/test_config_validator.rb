@@ -49,6 +49,25 @@ class ConfigValidatorTest < Minitest::Test
     assert_includes error.message, "a valid URL"
   end
 
+  # Jekyll sites commonly set `author: Name`; the validator stopped such a
+  # build with "Invalid type for 'author'".
+  def test_accepts_an_author_given_as_a_name
+    config = base_config
+    config["author"] = "Jane Doe"
+
+    run_generator(config)
+    pass
+  end
+
+  # `jekyll new` writes `url: ""`, and a local build keeps it.
+  def test_accepts_an_empty_url
+    config = base_config
+    config["url"] = ""
+
+    run_generator(config)
+    pass
+  end
+
   def test_deprecated_key_migration
     config = base_config
     config["theme_options"]["math"].delete("engine")
