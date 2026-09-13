@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
-- Neither Docker image built. `Dockerfile` copied a `Gemfile.lock` the repository does not have, then built the script bundles without esbuild, a dev dependency it had skipped; `Dockerfile.dev` ran `bundle install` without the gemspec the Gemfile loads. Both copy what the gemspec requires, drop the Python they installed for a notebook check that is gone, and use Node.js 22 like CI (#205).
+- Neither Docker image built. `Dockerfile` copied a `Gemfile.lock` the repository does not have, then built the script bundles without esbuild, a dev dependency it had skipped; `Dockerfile.dev` ran `bundle install` without the gemspec the Gemfile loads. Both copy what the gemspec requires, install the OpenSSL and YAML headers that gems such as `openssl` compile against, drop the Python they installed for a notebook check that is gone, and use Node.js 22 like CI (#205).
 - The config validator stopped a build with "Invalid type for 'author'" for `author: Jane Doe`, and with "Invalid value for 'url'" for `url: ""`, which `jekyll new` writes. Both are accepted (#202).
 - Loading the theme broke `warn` keyword arguments for the whole build: a `Kernel#warn` override printed `uplevel:` and `category:` as a hash after the message. The override is gone; the `Warning` filter beside it still silences the same two messages (#202).
 - Notebook images whose base64 data Jupyter had split over lines or ended with a newline failed the data URI check and lost their `src`. The data is joined without whitespace first (#202).

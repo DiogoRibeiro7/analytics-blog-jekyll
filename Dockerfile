@@ -15,11 +15,16 @@
 # ---------------------------------------------------------------------------
 FROM ruby:3.2-slim AS builder
 
+# libssl-dev and libyaml-dev: with no Gemfile.lock, Bundler resolves gems such
+# as openssl and psych that compile against these headers, which the slim image
+# does not ship.
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
     git \
     curl \
+    libssl-dev \
+    libyaml-dev \
     libvips \
     && rm -rf /var/lib/apt/lists/*
 
