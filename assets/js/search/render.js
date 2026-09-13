@@ -86,7 +86,7 @@ export function renderResults(results, query, elements) {
               enhance: false
             });
           } else if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
-            mathPreviewEl.innerHTML = `\\(${result.mathSnippet}\\)`;
+            mathPreviewEl.textContent = `\\(${result.mathSnippet}\\)`;
             window.MathJax.typesetPromise([mathPreviewEl]).catch(() => {
               mathPreviewEl.textContent = result.mathSnippet;
             });

@@ -221,6 +221,10 @@ describe('Search Utils Module', () => {
       const tokens = tokenize('HELLO WoRLd');
       expect(tokens).toEqual(['hello', 'world']);
     });
+
+    it('keeps words in any script', () => {
+      expect(tokenize('Łódź café Привет')).toEqual(['łodz', 'cafe', 'привет']);
+    });
   });
 
   describe('isMathQuery()', () => {
@@ -375,7 +379,16 @@ describe('Search Utils Module', () => {
     it('should handle empty inputs', () => {
       expect(highlightText('', 'test')).toBe('');
       expect(highlightText('hello', '')).toBe('hello');
-      expect(highlightText(null, 'test')).toBe(null);
+      expect(highlightText(null, 'test')).toBe('');
+    });
+
+    it('escapes the text, so markup from the index is shown rather than parsed', () => {
+      expect(highlightText('<img src=x onerror=alert(1)> title', 'title'))
+        .toBe('&lt;img src=x onerror=alert(1)&gt; <mark>title</mark>');
+    });
+
+    it('never puts one highlight inside the tags of another', () => {
+      expect(highlightText('remark', 'mark ma')).toBe('re<mark>mark</mark>');
     });
   });
 

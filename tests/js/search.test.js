@@ -166,15 +166,18 @@ describe('search utilities', () => {
     expect(liveStatus.textContent.trim().toLowerCase()).toContain('results updated');
     expect(liveCount.textContent).toContain('1 result');
 
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    expect(document.activeElement).toBe(filterSelect);
+    // Tab is left to the browser; the search used to trap focus among the filters.
+    const tabFromInput = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    input.dispatchEvent(tabFromInput);
+    expect(tabFromInput.defaultPrevented).toBe(false);
 
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
     expect(results.querySelector('.search-result').classList.contains('is-active')).toBe(true);
     expect(liveSelection.textContent).toContain('Result 1 of 1');
 
-    filterSelect.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    expect(document.activeElement).toBe(tagButton);
+    const tabFromFilter = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    filterSelect.dispatchEvent(tabFromFilter);
+    expect(tabFromFilter.defaultPrevented).toBe(false);
 
     ignoreSubmit = true;
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

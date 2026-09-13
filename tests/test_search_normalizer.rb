@@ -21,6 +21,13 @@ class SearchNormalizerIntegrationTest < Minitest::Test
     MSG
   end
 
+  # The index used to keep only ASCII: the plugin required unicode_normalize
+  # as if it were a gem, failed, and dropped every other character.
+  def test_keeps_letters_outside_ascii_and_strips_accents
+    assert_equal "cafe straße łodz naive привет",
+                 Datalog::SearchFilters.normalize_search("Café Straße Łódź naïve Привет")
+  end
+
   private
 
   def contains_disallowed_require?(path)
