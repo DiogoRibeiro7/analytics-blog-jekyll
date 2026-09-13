@@ -84,4 +84,22 @@ class NotebookSanitizationTest < Minitest::Test
 
     refute_includes sanitized, "data:image/png"
   end
+
+  # Jupyter writes image data split over lines or ending in a newline, which
+  # the data URI check rejected, so the image lost its source.
+  def test_image_outputs_with_wrapped_base64_keep_their_source
+    data = Base64.strict_encode64("c" * 128)
+    output = { "data" => { "image/png" => ["#{data[0, 40]}\n", "#{data[40..]}\n"] } }
+    html = Datalog::NotebookRenderer.render_output(output, site: @site, cell_index: 5, output_index: 0, metadata: {})
+
+    assert_includes html, "data:image/png;base64,#{data}"
+  end
+
+  def test_code_cell_language_stays_inside_the_class_attribute
+    cell = { "metadata" => { "language" => "python\" onclick=\"alert(1)" }, "outputs" => [] }
+    html = Datalog::NotebookRenderer.render_code(cell, "print(1)", {}, @site, 6)
+
+    assert_includes html, '<code class="language-pythononclickalert1">'
+    refute_includes html, "onclick="
+  end
 end

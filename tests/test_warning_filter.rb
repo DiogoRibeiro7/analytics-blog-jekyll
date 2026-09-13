@@ -67,6 +67,16 @@ class WarningFilterTest < Minitest::Test
                     "Kernel.warn should pass non-matching messages"
   end
 
+  # A Kernel#warn override printed keyword arguments as a hash after the
+  # message instead of passing them on.
+  def test_kernel_warn_keeps_its_keyword_arguments
+    output = capture_warnings do
+      warn("located warning", uplevel: 0)
+    end
+    assert_match(/:\d+: warning: located warning/, output)
+    refute_includes output, "uplevel"
+  end
+
   def test_warning_module_prepended
     assert Warning.singleton_class.ancestors.include?(Datalog::WarningFilter),
            "Datalog::WarningFilter should be prepended to Warning singleton class"

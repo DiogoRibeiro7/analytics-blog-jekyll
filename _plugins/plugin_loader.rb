@@ -149,7 +149,9 @@ end
 
 module Datalog
   module PluginLoaderHooks
-    HOOK_SCOPES = %i[pages documents posts].freeze
+    # Posts are documents: Jekyll fires a post's `posts` hooks and then its
+    # `documents` hooks, so registering both ran every plugin hook twice a post.
+    HOOK_SCOPES = %i[pages documents].freeze
 
     module_function
 
