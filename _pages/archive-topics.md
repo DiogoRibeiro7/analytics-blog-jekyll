@@ -2,6 +2,7 @@
 title: Topic Archive
 permalink: /archives/topics/
 layout: page
+show_title: false # the page renders its own <h1>
 description: Browse content organized by technical topic and research theme.
 ---
 

@@ -28,8 +28,8 @@ class TestI18n < Minitest::Test
   def test_translation_tag_resolves_strings_from_locale_data
     html = SiteBuilder.read("index.html")
 
-    # header.reading_progress in _data/i18n/en.yml.
-    assert_includes html, "Reading progress:",
+    # global.math_loading in _data/i18n/en.yml, the math status every page carries.
+    assert_includes html, "Loading mathematical content",
                     "expected the {% t %} tag to render a string from _data/i18n/en.yml"
   end
 

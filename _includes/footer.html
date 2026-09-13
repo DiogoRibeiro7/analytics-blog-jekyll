@@ -2,10 +2,11 @@
 {% assign footer_year = site.time | date: '%Y' %}
 {% assign navigation_data = site.data.navigation %}
 {% assign social_data = site.data.social %}
+{%- comment -%} The column titles are <h2>: the footer follows the page's own outline, which starts at its <h1>. {%- endcomment %}
 <footer class="site-footer" role="contentinfo">
   <div class="container footer-container">
     <section class="footer-about">
-      <h3>{{ site.name | default: site.title }}</h3>
+      <h2>{{ site.name | default: site.title }}</h2>
       <p class="footer-description">{{ site.description | strip_html | truncate: 160 }}</p>
       <p class="footer-author">
         <strong>{{ site.author.name }}</strong>
@@ -23,8 +24,8 @@
     {%- comment -%} `footer:` in _data/navigation.yml drives this column, which is left out without it. {%- endcomment -%}
     {% assign footer_links = navigation_data.footer %}
     {% if footer_links.size > 0 %}
-    <nav class="footer-navigation">
-      <h3>Explore</h3>
+    <nav class="footer-navigation" aria-labelledby="footer-explore-heading">
+      <h2 id="footer-explore-heading">Explore</h2>
       <ul class="footer-link-list">
         {% for item in footer_links %}
         <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
@@ -36,7 +37,7 @@
     {% assign primary_social = social_data.primary %}
     {% if primary_social.size > 0 or site.author.email %}
     <section class="footer-connect">
-      <h3>Connect</h3>
+      <h2>Connect</h2>
       {% if primary_social.size > 0 %}
       <ul class="footer-link-list">
         {% for profile in primary_social %}
@@ -53,7 +54,7 @@
     {% endif %}
 
     <section class="footer-subscribe">
-      <h3>Stay updated</h3>
+      <h2>Stay updated</h2>
       <p>Follow via RSS or check back for new research and tutorials.</p>
       {%- comment -%} jekyll-feed is a dependency of the theme, so /feed.xml exists even when _data/social.yml lists no feeds. {%- endcomment -%}
       {% assign rss_links = social_data.rss %}

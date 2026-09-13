@@ -19,7 +19,11 @@ Renders the standard article scaffold used by the default layout.
   {%- endif -%}
   <header class="article-header">
     {%- unless hero_overlay_title -%}
-      {%- if article_page.title -%}
+      {%- comment -%}
+      `show_title: false`, in a page's front matter or a layout's, leaves the <h1> to a
+      page or layout that renders its own heading, so the page has one.
+      {%- endcomment -%}
+      {%- if article_page.title and article_page.show_title != false and layout.show_title != false -%}
         <h1 class="article-title" itemprop="headline">{{ article_page.title }}</h1>
       {%- endif -%}
       {%- if article_page.subtitle -%}

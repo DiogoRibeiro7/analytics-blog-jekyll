@@ -30,9 +30,10 @@ post_layout = File.read(File.join(root, "_layouts", "post.html"))
 
 raise "Expected aria-label landmarks" unless header =~ /aria-label=/i || footer =~ /aria-label=/i
 
-unless header.include?("aria-live") && header.include?("aria-hidden")
-  raise "Header missing accessible progress indicators"
-end
+# The reading progress bar is decoration: hidden from assistive technology, and
+# not a live region, which screen readers announced on every scroll event.
+raise "Header progress bar should be aria-hidden" unless header.include?("aria-hidden")
+raise "Header progress should not be a live region" if header.include?("aria-live")
 
 raise "Math toolkit missing aria-live messaging" unless math_bundle.include?("aria-live")
 

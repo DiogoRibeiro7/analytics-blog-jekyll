@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file. The format 
 - `tests/test_related_posts.rb` checks that a post lists the posts it shares a tag with.
 - `csp.frame_src` in `_config.yml` lists the hosts a site embeds iframes from, such as Shiny apps, slide decks or videos, and the Content Security Policy allows them next to Observable.
 - `tests/test_feature_loading.rb` checks which pages load MathJax and the search bundle.
+- `show_title: false` in a page's or a layout's front matter leaves out the title the default layout prints, for pages and layouts that render their own `<h1>`.
+- `tests/test_page_structure.rb` checks that no built page has more than one `<h1>`, the footer's headings and landmark name, the color scheme script at the top of `<body>` and the heights of the academic chart's bars. `tests/js/blocked-storage.test.js` covers dark mode and the core initializers with storage blocked, and the browser suite checks that the saved theme applies before any script bundle loads and that the core bundle still loads when storage is blocked.
 
 ### Changed
 
@@ -29,6 +31,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- A blocked `localStorage` stopped every script feature on the page. Where storage access throws (Safari with all cookies blocked, sandboxed iframes, some privacy extensions), the dark mode toggle threw while the core bundle loaded, the loader gave up, and search, math, visualizations and the academic features never started. Dark mode now treats blocked storage as no saved choice, and each core initializer runs on its own, so a failure is logged without stopping the others (#201).
+- Readers who chose the dark theme saw each page in the light theme first, because the core bundle applied the theme after the page had been drawn. A small nonced script at the top of `<body>` now applies the saved or system choice before anything paints (#201).
+- GitHub repository cards kept their "—" placeholders when the API request failed, with no sign the numbers weren't coming, and asked again on every page view against the unauthenticated limit of 60 requests an hour. A card whose request failed now shows the translated "N/A" and is marked `data-github-state="error"`, and the failure is remembered for ten minutes (#201).
+- Fourteen demo pages had more than one `<h1>`: the default layout printed the title, and so did the dataset, project, portfolio, notebook and package layouts, the 404 page, the archive, category and tag pages and the CV page. Those layouts and pages now set `show_title: false`. Headings in notebook markdown cells move down a level, since a notebook usually opens with its title, and package API examples render as code rather than Markdown, which had turned every Python comment into a heading (15 `<h1>`s on the StatFlow page) (#200).
+- The footer's column titles were `<h3>` regardless of the page above them, and its navigation was an unnamed landmark next to "Primary navigation". The titles are `<h2>` with the same look, and the navigation takes its name from the "Explore" heading (#200).
+- Screen readers announced "Reading progress: N%" on every scroll event, because the percentage sat in a live region. The live region is gone; the progress bar stays hidden from assistive technology (#200).
+- On narrow screens, Escape moved focus to the menu button even with the menu closed, for example while clearing the search field. It now acts only when the menu is open (#200).
+- The bars of the citations-by-year chart on `/academic/` had no height: each set it in a `style` attribute, which the Content Security Policy drops. The heights now come from a nonced style block (#195).
 - Related posts never appeared: the list of posts was split into single characters before it was filtered, so every post said "No related posts yet".
 - Search dropped every letter outside ASCII from its index, so accented, Greek, Cyrillic and CJK words could not be found, and every build printed "[search_normalizer] unicode_normalize gem not available": `String#unicode_normalize` is part of Ruby, not a gem. The browser also cut queries down to the letters a to z; both now keep letters of any script.
 - The search page trapped keyboard focus: Tab from the input or any filter cycled through the filters, so the results could not be reached.

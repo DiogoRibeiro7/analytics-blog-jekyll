@@ -22,7 +22,8 @@ class ArticleScaffoldTest < Minitest::Test
 
   def test_footer_explore_column_reads_navigation_footer
     html = SiteBuilder.read("index.html")
-    footer = html[html.index('<nav class="footer-navigation">')..html.index("</nav>", html.index('<nav class="footer-navigation">'))]
+    start = html.index('<nav class="footer-navigation"')
+    footer = html[start..html.index("</nav>", start)]
     links = footer.scan(%r{<a href="([^"]+)">}).flatten
     expected = (SiteBuilder.site.data.dig("navigation", "footer") || []).map { |item| item["url"] }
     if expected.empty?
