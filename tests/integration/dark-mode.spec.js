@@ -204,4 +204,32 @@ test.describe('Dark Mode Toggle', () => {
 
     expect(newTheme).not.toBe(initialTheme);
   });
+
+  // The theme used to be applied by the core bundle, after the page had been
+  // drawn in the light theme; the layout now applies it before anything paints.
+  test('applies the saved theme before any script bundle loads', async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem('datalog-color-mode', 'dark'));
+    await page.route('**/assets/js/**', (route) => route.abort());
+
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.locator('body')).toHaveClass(/(^|\s)dark-mode(\s|$)/);
+  });
+
+  // Storage access throws in Safari with all cookies blocked and in sandboxed
+  // iframes; that exception used to reject the core bundle and every feature.
+  test('loads the core bundle when storage is blocked', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        get() {
+          throw new DOMException('The operation is insecure.', 'SecurityError');
+        }
+      });
+    });
+
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.locator('body')).toHaveAttribute('data-feature-core-state', 'ready');
+  });
 });

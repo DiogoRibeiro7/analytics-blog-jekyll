@@ -20,6 +20,19 @@
     site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}
   {% endcapture %}
   <body class="{{ body_classes | strip }}" data-theme="{{ page.theme | default: 'system' }}">
+    {%- comment -%}
+    Applies the saved or system color scheme before anything is drawn. core/dark-mode.js
+    applies the same rule, but only once the script bundles have loaded, so readers who
+    chose dark saw the light theme first; keep the two in step.
+    {%- endcomment %}
+    <script nonce="{{ page.csp_nonce }}">
+      try {
+        var mode = localStorage.getItem("datalog-color-mode");
+        if (mode === "dark" || (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.body.classList.add("dark-mode");
+        }
+      } catch (error) {}
+    </script>
     {%- comment -%} The skip link and the footer take nothing from the page, so each is rendered once per build (the skip link once per language). {%- endcomment -%}
     {% include_cached skip-link.html lang=page.lang %}
     {% include header.html %}
