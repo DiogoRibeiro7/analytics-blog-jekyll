@@ -1,0 +1,46 @@
+name: Docker Images
+
+# Builds both images, without pushing, on pull requests that change what they
+# are built from. Nothing built them before, and both had stopped working: the
+# production image copied a Gemfile.lock the repository does not have.
+on:
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'Dockerfile'
+      - 'Dockerfile.dev'
+      - '.dockerignore'
+      - 'Gemfile'
+      - 'datalog-theme.gemspec'
+      - 'lib/datalog/theme/package.rb'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the ${{ matrix.image.name }} image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: production
+            file: Dockerfile
+          - name: development
+            file: Dockerfile.dev
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Build the image
+        run: docker build --file ${{ matrix.image.file }} --tag datalog-${{ matrix.image.name }}:ci .
