@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. The format 
 - `show_title: false` in a page's or a layout's front matter leaves out the title the default layout prints, for pages and layouts that render their own `<h1>`.
 - `tests/test_page_structure.rb` checks that no built page has more than one `<h1>`, the footer's headings and landmark name, the color scheme script at the top of `<body>` and the heights of the academic chart's bars. `tests/js/blocked-storage.test.js` covers dark mode and the core initializers with storage blocked, and the browser suite checks that the saved theme applies before any script bundle loads and that the core bundle still loads when storage is blocked.
 - `tests/test_head_metadata.rb` checks that each head tag appears once, that empty verification tags are left out, that the 404, search and admin pages carry `noindex` and stay out of the sitemap, and that every page's JSON-LD parses without empty values.
+- Tests for the fixes to the config validator, the warning filter, notebook images and languages, the analytics cache, plugin hook registration, `{% t %}` options, `datalog publish` and `datalog new post`, in the existing test files for each.
 
 ### Changed
 
@@ -29,10 +30,21 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
+- `lib/datalog/theme/theme.rb`, a theme registration hook that nothing required.
 - Includes and layouts that no layout, page or plugin used, with the styles written for them: the `archive` and `post-sidebar` layouts, and the user preferences panel, popular posts, back-to-top button and keyboard shortcuts panel (`navigation-enhancements`), social proof, enhanced metadata, reading progress, reading time, content recommendations, comments, language switcher, bookmark, email preferences, advanced search, newsletter signup and series navigation includes. Several read `phase2_features` to `phase5_features` settings that nothing defined. Comments still render through the `datalog-comments` plugin. The rules in those stylesheets that did style rendered pages (the `kbd` element, fieldsets, `.button` and the search result cards) moved to the partials for what they style, and `_sass/_phase3-enhancements.scss`, `_phase4-enhancements.scss` and `_phase5-enhancements.scss` are gone. Together with the feature gating above, the demo's stylesheet goes from 169 KB to 134 KB (27.6 KB to 23 KB gzipped), and a site with every optional feature off gets 85 KB (15.7 KB gzipped).
 
 ### Fixed
 
+- The config validator stopped a build with "Invalid type for 'author'" for `author: Jane Doe`, and with "Invalid value for 'url'" for `url: ""`, which `jekyll new` writes. Both are accepted (#202).
+- Loading the theme broke `warn` keyword arguments for the whole build: a `Kernel#warn` override printed `uplevel:` and `category:` as a hash after the message. The override is gone; the `Warning` filter beside it still silences the same two messages (#202).
+- Notebook images whose base64 data Jupyter had split over lines or ended with a newline failed the data URI check and lost their `src`. The data is joined without whitespace first (#202).
+- A notebook's language went into a code cell's `class` attribute unescaped; it is now cut down to the characters a class name can hold (#202).
+- The analytics dashboard cached a missing-configuration or error report for a day, so after `GA4_PROPERTY_ID` was set it went on saying analytics wasn't configured. Only successful reports are cached (#202).
+- Every DataLog plugin hook ran twice for each post: the loader registered its hooks for posts as well as documents, and Jekyll fires both for a post (#202).
+- `{% t %}` split its options on every comma, so a quoted value such as `name: "Doe, Jane"` reached the translation as a fragment (#202).
+- `datalog publish` built without `JEKYLL_ENV=production`, so the published site left out the analytics tag and included the development CSP logger, and it ignored the exit status of `git commit` and `git push`, so a rejected push still ended as a publish. It builds for production and exits with an error when either step fails (#202).
+- `datalog new post` wrote the title, summary, author and tags between plain quotes, so a title with a double quote or a tag with a colon produced front matter that didn't parse (#202).
+- The `datalog_slides`, `datalog_comments` and `datalog_bibliography` fallback tags, which stand in when their plugin is disabled, printed "feature coming soon", the slides one with the page's raw configuration, on a page that set the key by hand. They render nothing and log a warning naming the plugin to enable (#202).
 - Search never matched code: every document's code list in `search.json` was empty, because the index template split the content on backticks after Jekyll had already rendered posts to HTML. `_plugins/search_code_blocks.rb` collects fenced code blocks from the source before rendering, and the demo's index now carries 34 of them (#198).
 - The 404, search and admin pages asked search engines to index them, the search and admin pages were listed in `sitemap.xml`, and all three appeared in site search. The robots tag now comes from `robots:` in front matter, and those pages set `noindex`, `sitemap: false` and `exclude_from_search: true` (#198, #199).
 - Every page carried the `keywords`, `format-detection` and jsDelivr `preconnect` tags twice, written by both `head.html` and the default layout, and empty Google, Bing, Yandex and Baidu verification tags when the site set no codes (#199).
