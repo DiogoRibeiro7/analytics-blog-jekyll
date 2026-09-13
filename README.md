@@ -225,17 +225,18 @@ The [installation guide](docs/install.md) covers the files a site supplies itsel
 
 ## Continuous Integration & Testing
 
-The repository ships with a multi-language CI pipeline located in `.github/workflows/ci.yml`. It performs the following checks:
+The Tests workflow (`.github/workflows/test.yml`) runs on every pull request:
 
-- Ruby matrix builds (3.1 & 3.2) to compile the theme, run lint-style verifications, and execute the `ci:verify` Rake task.
-- Python notebook validation to ensure `.ipynb` files retain kernel metadata and can be published.
-- Node.js checks that interactive visualizations (Plotly, Observable, Bokeh, R Shiny, ipywidgets) remain wired up.
-- Accessibility, math rendering, syntax highlighting, and performance budgets enforced through scripts in the `scripts/` directory.
+- Vitest unit tests for the JavaScript, with coverage thresholds.
+- A Jekyll build of the demo site, then the Minitest suite against the output: plugins, templates, the Content Security Policy, packaging and performance budgets.
+- Playwright browser tests, including axe accessibility checks in both themes.
+- ESLint and RuboCop.
 
-Run the suite locally with:
+Separate workflows audit dependencies and run CodeQL, Pa11y and Lighthouse. Run the unit and Ruby suites locally with:
 
 ```bash
-bundle exec rake ci:verify
+npm test
+bundle exec rake test
 ```
 
 ## Demo Site

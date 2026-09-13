@@ -189,14 +189,11 @@ PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --headed
 #### Ruby Tests
 
 ```bash
-# Run all Ruby tests
-bundle exec ruby -Itests -e "Dir['tests/test_*.rb'].each { |f| require_relative f }"
+# Run all Ruby tests (builds the demo site once, then checks it)
+bundle exec rake test
 
 # Run specific test
 bundle exec ruby tests/test_filters.rb
-
-# Run CI verification
-bundle exec rake ci:verify
 ```
 
 ## Writing Tests

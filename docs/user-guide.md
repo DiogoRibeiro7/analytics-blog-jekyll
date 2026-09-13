@@ -146,7 +146,7 @@ Coming from Minimal Mistakes? Its `header` images, `seo_title`, `seo_description
 We welcome contributions from the academic and data science community:
 
 1. Fork the repository and create a feature branch.
-2. Ensure `bundle exec jekyll build` and `bundle exec rake ci:verify` complete without errors (install Jekyll locally if necessary).
+2. Ensure `npm test` and `bundle exec rake test` complete without errors.
 3. Add or update tests/documentation when modifying plugins or layouts.
 4. Follow the existing code style and Sass architecture (`_sass/` directory). Avoid wrapping imports in try/catch blocks.
 5. Submit a pull request summarizing your changes and referencing related issues or discussions.
@@ -156,7 +156,7 @@ We welcome contributions from the academic and data science community:
 When you're ready to publish a new version of DataLog or announce major updates:
 
 1. Update the version constants (`lib/datalog/theme/version.rb`, `_config.yml`, `CITATION.cff`).
-2. Run the verification suite (`bundle exec rake ci:verify`) and ensure GitHub Actions succeeds.
+2. Run the test suites (`npm test`, `bundle exec rake test`) and ensure GitHub Actions succeeds.
 3. Follow the detailed checklist in [`docs/distribution.md`](distribution.md) to release the gem, submit to the Jekyll theme directory, and coordinate outreach with academic communities.
 4. Share the preferred citation (from `CITATION.cff`) in announcements and research communications.
 

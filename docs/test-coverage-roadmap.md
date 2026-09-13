@@ -10,15 +10,17 @@ nav_order: 13
 
 **JavaScript line coverage:** 91.05% ✅ (target 65%+, exceeded)
 
-Coverage is no longer only a JavaScript unit-test question. Four suites run against
+Coverage is no longer only a JavaScript unit-test question. Three suites run against
 every change:
 
 | Suite | Size | What it covers |
 |-------|------|----------------|
-| Vitest | 859 tests | JavaScript units, measured below |
-| Minitest | 180 runs | Plugins, Liquid output, CSP, packaging |
-| Playwright | 62 tests | The built site in a browser, both themes |
-| Rake `ci:verify` | 12 scripts | Cross-cutting checks on the built output |
+| Vitest | 897 tests | JavaScript units, measured below |
+| Minitest | 230 runs | Plugins, Liquid output, CSP, packaging and the built site |
+| Playwright | 64 tests | The built site in a browser, both themes |
+
+A fourth, the `rake ci:verify` scripts, mostly checked source files for strings; the
+checks nothing else covered moved into Minitest, against the built site.
 
 ## Progress Summary
 

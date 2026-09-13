@@ -6,7 +6,6 @@ This document provides a comprehensive overview of all utility scripts in the `/
 
 - [Overview](#overview)
 - [Build & Optimization](#build--optimization)
-- [Testing Scripts](#testing-scripts)
 - [Import & Export](#import--export)
 - [Utilities](#utilities)
 - [Usage Examples](#usage-examples)
@@ -21,7 +20,6 @@ The `/scripts` directory contains utility scripts for building, testing, and mai
 | Category | Count | Languages |
 |----------|-------|-----------|
 | Build & Optimization | 4 | JavaScript |
-| Testing | 11 | Ruby, JavaScript |
 | Import & Export | 4 | Ruby |
 | Utilities | 4 | Ruby, Python |
 
@@ -31,7 +29,7 @@ All scripts are executable and can be run directly:
 
 ```bash
 # Ruby scripts
-./scripts/test_security.rb
+./scripts/visualize_plugins.rb
 
 # JavaScript/Node scripts
 ./scripts/generate_sri.js
@@ -40,7 +38,7 @@ All scripts are executable and can be run directly:
 ./scripts/update_google_scholar.py
 
 # Or explicitly with interpreter
-ruby scripts/test_security.rb
+ruby scripts/visualize_plugins.rb
 node scripts/generate_sri.js
 python3 scripts/update_google_scholar.py
 ```
@@ -148,239 +146,6 @@ npm run validate-sri
 - `1`: Missing or invalid SRI hashes
 
 **CI/CD**: Runs in GitHub Actions deploy workflow
-
----
-
-## Testing Scripts
-
-### test_security.rb
-
-**Purpose**: Security validation tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_security.rb
-```
-
-**What it tests**:
-- Content Security Policy generation
-- XSS prevention in templates
-- Path traversal protection
-- Safe HTML escaping
-
----
-
-### test_accessibility.rb
-
-**Purpose**: Accessibility compliance tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_accessibility.rb
-```
-
-**What it tests**:
-- WCAG 2.1 AA compliance
-- ARIA attributes
-- Semantic HTML
-- Keyboard navigation
-- Screen reader compatibility
-
-**Standards**: WCAG 2.1 Level AA
-
-**Related**: See also `.github/workflows/accessibility.yml`
-
----
-
-### test_math_rendering.rb
-
-**Purpose**: Mathematical content rendering tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_math_rendering.rb
-```
-
-**What it tests**:
-- MathJax/KaTeX integration
-- LaTeX equation rendering
-- Inline vs. display math
-- Math escaping in code blocks
-
-**Engines tested**: MathJax, KaTeX
-
----
-
-### test_code_syntax.rb
-
-**Purpose**: Syntax highlighting tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_code_syntax.rb
-```
-
-**What it tests**:
-- Rouge syntax highlighting
-- Prism.js integration
-- Language detection
-- Line numbering
-- Code block themes
-
----
-
-### test_performance.rb
-
-**Purpose**: Performance benchmarking.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_performance.rb
-```
-
-**What it tests**:
-- Build time performance
-- Page load times
-- Plugin execution time
-- Asset optimization
-
-**Metrics**: Build time, page size, asset count
-
----
-
-### test_responsiveness.rb
-
-**Purpose**: Responsive design validation.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_responsiveness.rb
-```
-
-**What it tests**:
-- Mobile viewport handling
-- Breakpoint behavior
-- Touch targets
-- Flexible layouts
-
-**Viewports tested**: Mobile (375px), Tablet (768px), Desktop (1920px)
-
----
-
-### test_citations.rb
-
-**Purpose**: Academic citation tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_citations.rb
-```
-
-**What it tests**:
-- BibTeX integration
-- Citation formatting
-- Bibliography generation
-- ORCID links
-- Google Scholar integration
-
----
-
-### test_integrations.rb
-
-**Purpose**: Third-party integration tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_integrations.rb
-```
-
-**What it tests**:
-- Binder integration
-- Google Colab links
-- Kaggle integration
-- Giscus comments
-- Analytics integration
-
----
-
-### test_collaboration_workflows.rb
-
-**Purpose**: Collaboration feature tests.
-
-**Language**: Ruby
-
-**Usage**:
-```bash
-./scripts/test_collaboration_workflows.rb
-```
-
-**What it tests**:
-- GitHub repository metrics
-- Contributor attribution
-- Collaborative notebook editing
-- Comment system integration
-
----
-
-### test_search.js
-
-**Purpose**: Search functionality tests.
-
-**Language**: JavaScript (Node.js)
-
-**Usage**:
-```bash
-./scripts/test_search.js
-# Or via test suite
-npm run test:unit
-```
-
-**What it tests**:
-- Search index generation
-- Query parsing
-- Result ranking
-- Keyboard navigation
-- Filter functionality
-
-**Framework**: Vitest
-
-**Related**: See `tests/js/search.test.js`
-
----
-
-### verify_interactive_elements.js
-
-**Purpose**: Interactive element validation.
-
-**Language**: JavaScript (Node.js)
-
-**Usage**:
-```bash
-./scripts/verify_interactive_elements.js
-```
-
-**What it tests**:
-- Button accessibility
-- Form validation
-- Modal dialogs
-- Dropdown menus
-- Interactive visualizations
 
 ---
 
@@ -544,27 +309,6 @@ npm run test:unit
 
 ---
 
-### notebook_validation.py
-
-**Purpose**: Validate Jupyter notebooks.
-
-**Language**: Python
-
-**Usage**:
-```bash
-./scripts/notebook_validation.py [notebook.ipynb]
-```
-
-**What it validates**:
-- Valid JSON structure
-- nbformat version compatibility
-- Cell output integrity
-- Metadata completeness
-
-**Requirements**: `nbformat` Python package
-
----
-
 ### visualize_plugins.rb
 
 **Purpose**: Generate plugin dependency graph.
@@ -694,14 +438,8 @@ npm run test
 # Integration tests (builds site + runs Playwright)
 npm run test:integration
 
-
-# Ruby test scripts
-./scripts/test_security.rb
-./scripts/test_accessibility.rb
-./scripts/test_math_rendering.rb
-./scripts/test_code_syntax.rb
-./scripts/test_performance.rb
-./scripts/test_citations.rb
+# Ruby tests: builds the demo site, then runs the Minitest suite against it
+bundle exec rake test
 ```
 
 ### Import Content
@@ -733,9 +471,6 @@ export NOTION_TOKEN=your_token
 ```bash
 # Update Google Scholar citations
 ./scripts/update_google_scholar.py
-
-# Validate Jupyter notebook
-./scripts/notebook_validation.py _notebooks/analysis.ipynb
 
 # Visualize plugin dependencies
 ./scripts/visualize_plugins.rb
