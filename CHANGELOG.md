@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. The format 
 - `tests/test_gem_consumer.rb` builds a minimal site against the packaged theme and against a checkout of the repository, and fails if the build breaks or publishes anything that identifies the maintainer.
 - `tests/test_navigation_cache.rb` checks that each section still marks only its own navigation link now that the navigation is cached.
 - The performance tests fail if the stylesheet grows past 25 KB gzipped, as they already did for the core script bundle.
+- `tests/test_related_posts.rb` checks that a post lists the posts it shares a tag with.
 
 ### Changed
 
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Related posts never appeared: the list of posts was split into single characters before it was filtered, so every post said "No related posts yet".
 - Sites installing the gem published part of the demo site. The maintainer's CV templates and publication exports were copied into every site, and the demo's social profiles, contact addresses and academic profiles reached the footer and the script data on every page through `_data`. The gem now contains only the `_data` files the layouts need (translations, the script manifest and CDN integrity hashes) and none of the demo's downloads, and `scripts/verify_gem_package.rb` refuses a gem that does.
 - A site installing the theme from a Git checkout or a local path inherited the whole demo site. Jekyll merged the demo's `_config.yml` into the site's configuration, so the build stopped on a `datasets` feed for a collection the site did not have, and a site that declared the collection to get past it carried the maintainer's author details, contact addresses and social profiles. The build now stops with an explanation until the site sets `ignore_theme_config: true`, and with that set the theme also leaves out the demo's `_data` files and downloads.
 - The repository and the gem carried `_data/js_meta.json`, the esbuild metafile, whose committed copy had fallen behind the sources: its byte counts described an older build than the bundles it shipped with, and running `npm run build:js` left it modified. The metafile now stays with the bundles in `assets/js/dist/` and out of the gem. The build also no longer rewrites an unchanged `_data/js_manifest.json`, which Windows checkouts reported as modified because of line endings, and the test and gem release workflows fail if the committed manifest does not match the sources.

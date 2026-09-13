@@ -10,17 +10,14 @@ Builds a list of related posts based on overlapping tags or categories.
 Falls back to a friendly message when no related content is available.
 {%- endcomment -%}
 {%- assign related_limit = include.limit | default: 3 -%}
-{%- assign source_posts = site.collections.posts.docs | default: site.posts | default: '' | split: '' -%}
-{%- assign layout_filtered = source_posts | where: 'layout', 'post' -%}
-{%- assign collection_filtered = source_posts | where: 'collection', 'posts' -%}
-{%- assign candidate_posts = layout_filtered | concat: collection_filtered -%}
-{%- assign sorted_candidates = candidate_posts | sort: 'date' | reverse -%}
+{%- comment -%} site.posts is already newest first. {%- endcomment -%}
 {%- assign rendered_count = 0 -%}
 <section class="post-related" aria-labelledby="post-related-heading">
   <h2 id="post-related-heading">Related posts</h2>
   <ul class="post-related-list">
-    {%- for candidate in sorted_candidates -%}
-      {%- if candidate.url != include.page.url and rendered_count < related_limit -%}
+    {%- for candidate in site.posts -%}
+      {%- if rendered_count >= related_limit -%}{%- break -%}{%- endif -%}
+      {%- if candidate.url != include.page.url -%}
         {%- assign overlap = 0 -%}
         {%- if include.page.tags and candidate.tags -%}
           {%- for tag in include.page.tags -%}
