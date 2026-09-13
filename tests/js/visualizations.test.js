@@ -1227,11 +1227,70 @@ describe('D3 rendering', () => {
 
     expect(status.textContent).toBe('D3 rendering error');
   });
+
+  // The Content Security Policy has no 'unsafe-eval', so the author's code has
+  // to run as a script element carrying the block's nonce, not new Function.
+  it('runs the D3 code as a script element with the nonce of its block', async () => {
+    window.d3 = {};
+    const appended = [];
+    const appendChild = document.head.appendChild.bind(document.head);
+    const spy = vi.spyOn(document.head, 'appendChild').mockImplementation((node) => {
+      if (node.tagName === 'SCRIPT') {
+        appended.push(node);
+      }
+      return appendChild(node);
+    });
+
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'd3');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    const script = document.createElement('script');
+    script.setAttribute('type', 'text/plain');
+    script.setAttribute('data-d3-script', '');
+    script.setAttribute('nonce', 'abc123');
+    script.textContent = 'element.dataset.rendered = "yes";';
+    element.appendChild(script);
+
+    await vizInternals.renderVisualization(element);
+    spy.mockRestore();
+
+    expect(canvas.dataset.rendered).toBe('yes');
+    expect(appended).toHaveLength(1);
+    expect(appended[0].nonce || appended[0].getAttribute('nonce')).toBe('abc123');
+    expect(status.textContent).toBe('Interactive');
+  });
 });
 
 describe('Observable rendering', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+  });
+
+  it('accepts data-viz-src, the attribute the user guide documents', async () => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', 'https://observablehq.com/embed/xyz');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    expect(canvas.querySelector('iframe').src).toBe('https://observablehq.com/embed/xyz');
+    expect(status.textContent).toBe('Embedded');
   });
 
   it('creates iframe for observable embed', async () => {

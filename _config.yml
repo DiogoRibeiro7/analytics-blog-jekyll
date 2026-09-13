@@ -169,6 +169,13 @@ social:
 
 google_analytics: "" # Set to your GA4 measurement ID (e.g. "G-XXXXXXXXXX") to enable tracking
 
+# Content Security Policy: hosts this site embeds iframes from, besides
+# Observable. The demo's R Shiny example is served from shiny.posit.co.
+csp:
+  frame_src:
+    - https://shiny.posit.co
+    - https://*.shinyapps.io
+
 # -----------------------------------------------------------------------------
 # Feature Flags (reference _data/config/features.yml for full options)
 # -----------------------------------------------------------------------------

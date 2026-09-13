@@ -20,6 +20,16 @@ class ContentSecurityPolicyTest < Minitest::Test
     refute_includes homepage, "'unsafe-inline'", "CSP policy should not rely on unsafe-inline allowances"
   end
 
+  # Embeds from any host but Observable were refused; sites list their hosts
+  # under csp.frame_src, and the demo lists its Shiny host.
+  def test_frame_src_includes_configured_hosts
+    policy = SiteBuilder.read("index.html")[/<meta http-equiv="Content-Security-Policy" content="([^"]*)"/, 1].to_s
+    frame_hosts = policy[/frame-src ([^;]*);/, 1].to_s.split
+
+    assert_includes frame_hosts, "https://observablehq.com"
+    assert_includes frame_hosts, "https://shiny.posit.co"
+  end
+
   def test_inline_scripts_all_have_nonces
     html_documents.each do |doc|
       output = read_output(doc)

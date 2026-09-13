@@ -380,21 +380,24 @@
     }
   };
 
+  // Libraries load from jsDelivr, which the Content Security Policy allows;
+  // cdn.plot.ly and cdn.bokeh.org are not in it, so those charts never loaded.
   const ensurePlotly = () =>
     (typeof window.Plotly !== 'undefined'
       ? Promise.resolve()
-      : loadScript('https://cdn.plot.ly/plotly-2.27.0.min.js')).then(() => window.Plotly);
+      : loadScript('https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js')).then(() => window.Plotly);
 
   const ensureD3 = () =>
     (typeof window.d3 !== 'undefined'
       ? Promise.resolve(window.d3)
       : loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js').then(() => window.d3));
 
-  const ensureBokeh = () => {
-    const script = 'https://cdn.bokeh.org/bokeh/release/bokeh-3.3.3.min.js';
-    const style = 'https://cdn.bokeh.org/bokeh/release/bokeh-3.3.3.min.css';
-    return Promise.all([loadScript(script), loadStyle(style)]).then(() => window.Bokeh);
-  };
+  // BokehJS 3 publishes no stylesheet: the request for one failed, and with it
+  // every Bokeh chart.
+  const ensureBokeh = () =>
+    (typeof window.Bokeh !== 'undefined'
+      ? Promise.resolve()
+      : loadScript('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh.min.js')).then(() => window.Bokeh);
 
   const ensureRequire = () => {
     if (typeof window.requirejs !== 'undefined') {
@@ -525,6 +528,35 @@
       });
   };
 
+  // Runs code an author wrote into the page (a D3 or Bokeh block) as a script
+  // element carrying the page's CSP nonce, taken from the block's own
+  // <script type="text/plain">. The policy has no 'unsafe-eval', so running
+  // that code with `new Function` was refused and those blocks never rendered.
+  // The arguments travel on the script element, which the code reaches as
+  // document.currentScript, so nothing is added to window.
+  const runInlineCode = (sourceNode, params, body, args) => {
+    const run = { args, done: false, error: null, result: undefined };
+    const script = document.createElement('script');
+    const nonce = sourceNode.nonce || sourceNode.getAttribute('nonce');
+    if (nonce) {
+      script.nonce = nonce;
+    }
+    script.datalogRun = run;
+    script.textContent = `(function (run) {\ntry {\nrun.result = (function (${params.join(', ')}) {\n${body}\n}).apply(null, run.args);\nrun.done = true;\n} catch (error) {\nrun.error = error;\n}\n})(document.currentScript.datalogRun);`;
+    try {
+      document.head.appendChild(script);
+    } finally {
+      script.remove();
+    }
+    if (run.error) {
+      throw run.error;
+    }
+    if (!run.done) {
+      throw new Error('The Content Security Policy did not allow the visualization script to run');
+    }
+    return run.result;
+  };
+
   const renderD3 = (element) => {
     const scriptNode = element.querySelector('[data-d3-script]');
     if (!scriptNode) {
@@ -544,8 +576,7 @@
         };
         try {
           const instrumented = `${code}\n;try { if (typeof data !== 'undefined') captureData(data); } catch (instrumentationError) {}`;
-          const runner = new Function('d3', 'element', 'captureData', instrumented);
-          const result = runner(d3, canvas, captureData);
+          const result = runInlineCode(scriptNode, ['d3', 'element', 'captureData'], instrumented, [d3, canvas, captureData]);
           if (typeof result !== 'undefined') {
             captureData(result);
           }
@@ -564,7 +595,8 @@
   };
 
   const renderObservable = (element) => {
-    const src = element.getAttribute('data-observable-src');
+    // data-viz-src is the attribute the user guide documents for embeds.
+    const src = element.getAttribute('data-observable-src') || element.getAttribute('data-viz-src');
     if (!src) {
       setStatus(element, 'Missing Observable notebook source', 'error');
       return Promise.resolve();
@@ -621,8 +653,7 @@
           const code = scriptNode.textContent || '';
           canvas.replaceChildren();
           try {
-            const runner = new Function('Bokeh', 'element', code);
-            runner(Bokeh, canvas);
+            runInlineCode(scriptNode, ['Bokeh', 'element'], code, [Bokeh, canvas]);
             setStatus(element, 'Interactive');
           } catch (error) {
             console.error('Bokeh script error', error);
