@@ -11,7 +11,8 @@ module Jekyll
       page = context.registers[:page]
       return "" unless page["datalog_slides"]
 
-      Jekyll.logger.warn("datalog-slides", "#{page['path']} sets datalog_slides, but datalog_plugins.enabled does not list datalog-slides")
+      Jekyll.logger.warn("datalog-slides", "#{page['path']} sets datalog_slides, " \
+                                           "but datalog_plugins.enabled does not list datalog-slides")
       ""
     end
   end
