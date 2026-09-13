@@ -105,9 +105,11 @@ class CLITest < Minitest::Test
 
   def with_env(values)
     saved = values.keys.to_h { |key| [key, ENV.fetch(key, nil)] }
-    values.each { |key, value| ENV[key] = value }
-    yield
-  ensure
-    saved.each { |key, value| ENV[key] = value }
+    begin
+      values.each { |key, value| ENV[key] = value }
+      yield
+    ensure
+      saved.each { |key, value| ENV[key] = value }
+    end
   end
 end

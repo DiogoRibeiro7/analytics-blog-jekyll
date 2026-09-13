@@ -33,8 +33,8 @@ class AnalyticsDashboardTest < Minitest::Test
     Dir.mktmpdir do |dir|
       site = Struct.new(:source, :config).new(dir, {})
       saved = ENV.delete("GA4_PROPERTY_ID")
-      begin
-        payload = Datalog::Analytics.fetch(site)
+      payload = begin
+        Datalog::Analytics.fetch(site)
       ensure
         ENV["GA4_PROPERTY_ID"] = saved if saved
       end
