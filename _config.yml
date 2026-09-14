@@ -209,20 +209,6 @@ theme_options:
     render_on_load: auto
     katex_cdn: https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/
     mathjax_cdn: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
-  syntax_highlighting:
-    engine: prism
-    load: auto
-    cdn: https://cdn.jsdelivr.net/npm/prismjs@1.29.0
-    themes:
-      light: prism-coy
-      dark: prism-tomorrow
-    components:
-      - core
-      - python
-      - r
-      - sql
-      - julia
-      - javascript
   localization:
     default_locale: en
     locales:

@@ -12,7 +12,6 @@ export default [
       globals: {
         ...globals.browser,
         MathJax: "readonly",
-        Prism: "readonly",
         DatalogMath: "readonly",
         Plotly: "readonly",
         Bokeh: "readonly",
@@ -71,7 +70,6 @@ export default [
         ...globals.browser,
         ...globals.node,
         MathJax: "readonly",
-        Prism: "readonly",
         DatalogMath: "readonly",
         Plotly: "readonly",
         Bokeh: "readonly",

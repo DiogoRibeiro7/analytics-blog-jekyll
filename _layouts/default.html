@@ -9,7 +9,6 @@
     {% include head.html %}
     <meta name="twitter:creator" content="{{ site.author.twitter | default: site.social.twitter }}" />
     {% include meta/schema.html page=page %}
-    {% include meta/scripts-loader.html location='head' %}
   </head>
   {% capture body_classes %}
     site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}

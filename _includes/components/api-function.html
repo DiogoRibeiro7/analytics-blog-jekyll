@@ -83,7 +83,7 @@ Parameters:
         {{ include.examples | markdownify }}
         {% else %}
         {% assign example_language = include.language | default: page.language | default: 'text' | downcase %}
-        <pre><code class="language-{{ example_language }}">{{ include.examples | strip | escape }}</code></pre>
+        <pre class="highlight" tabindex="0"><code class="language-{{ example_language }}">{{ include.examples | strip | rouge_highlight: example_language }}</code></pre>
         {% endif %}
       </div>
     </div>

@@ -272,7 +272,12 @@ schema_type: TechnicalArticle
       const metaBar = document.createElement('div');
       metaBar.className = 'code-block-meta';
 
-      const lang = codeBlock.getAttribute('class');
+      // Rouge puts the language on the block's wrapper rather than on the code.
+      // With line numbers on, the code is a table whose first column holds the
+      // numbers, and the copy leaves them out.
+      const langHolder = codeBlock.matches('[class*="language-"]') ? codeBlock : codeBlock.closest('.highlighter-rouge');
+      const lang = langHolder && langHolder.getAttribute('class');
+      const source = codeBlock.querySelector('.rouge-code') || codeBlock;
       if (lang) {
         const m = lang.match(/language-([a-z0-9+#]+)/i);
         if (m) {
@@ -291,7 +296,7 @@ schema_type: TechnicalArticle
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         button.addEventListener('click', function () {
-          navigator.clipboard.writeText(codeBlock.textContent).then(function () {
+          navigator.clipboard.writeText(source.textContent).then(function () {
             button.textContent = 'Copied!';
             button.classList.add('is-copied');
             setTimeout(function () {

@@ -104,7 +104,7 @@ Parameters:
     </div>
   </div>
 
-  <pre class="enhanced-code-block__pre{% if show_line_numbers %} enhanced-code-block__pre--numbered{% endif %}"><code id="{{ code_id }}" class="language-{{ language }}" data-code-content>{{ code_content }}</code></pre>
+  <pre class="highlight enhanced-code-block__pre{% if show_line_numbers %} enhanced-code-block__pre--numbered{% endif %}" tabindex="0"><code id="{{ code_id }}" class="language-{{ language }}" data-code-content>{{ code_content | rouge_highlight: language }}</code></pre>
 
   {%- comment -%} Feedback message {%- endcomment -%}
   <div class="enhanced-code-block__feedback" data-feedback role="status" aria-live="polite"></div>
