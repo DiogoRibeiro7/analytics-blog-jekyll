@@ -69,12 +69,6 @@ module Datalog
               engine: { type: :string, enum: %w[mathjax katex] },
               enabled: { type: :boolean }
             }
-          },
-          syntax_highlighting: {
-            type: :hash,
-            schema: {
-              cdn: { type: :string }
-            }
           }
         }
       }
@@ -85,6 +79,10 @@ module Datalog
         replacement: "theme_options.math.engine",
         message: "'math_engine' has moved under theme_options.math.engine.",
         auto_migrate: true
+      },
+      "theme_options.syntax_highlighting" => {
+        message: "Code is highlighted by Rouge when the site builds and the theme no longer loads Prism, " \
+                 "so these settings have no effect. Remove them."
       }
     }.freeze
 

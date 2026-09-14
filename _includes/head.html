@@ -12,12 +12,6 @@
 {% endif %}
 {% include meta/math-config.html page=page %}
 {% assign js_manifest = site.data.js_manifest %}
-{% assign syntax_config = site.theme_options.syntax_highlighting %}
-{% assign prism_cdn = syntax_config.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' %}
-{% assign prism_theme = syntax_config.themes.dark | default: syntax_config.themes.light | default: 'prism-tomorrow' %}
-{% assign prism_theme_url = prism_cdn | append: '/themes/' | append: prism_theme | append: '.css' %}
-{% assign prism_line_numbers_url = prism_cdn | append: '/plugins/line-numbers/prism-line-numbers.min.css' %}
-{% include meta/syntax-config.html %}
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 {%- comment -%} Not include_cached: the CSP nonce is different on every page. {%- endcomment -%}
@@ -70,6 +64,24 @@
 {% if js_manifest.features and js_manifest.features.math and math_enabled and math_engine == 'mathjax' %}
 <link rel="modulepreload" href="{{ js_manifest.features.math | relative_url }}" crossorigin="anonymous" />
 {% endif %}
+{%- comment -%}
+  The loader requests a feature bundle only after the core bundle has loaded.
+  Preloading the bundles this page will use, on the same tests the loader
+  applies, starts those downloads alongside core.
+{%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.visualizations and site.features.visualizations and content contains 'data-viz-type' %}
+<link rel="modulepreload" href="{{ js_manifest.features.visualizations | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
+<link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% if js_manifest.features and js_manifest.features.academic %}
+  {% if site.features.academic_dashboard or site.features.citation_tracking %}
+    {% if content contains 'data-citation-metric' or content contains 'data-citation-table' or content contains 'data-citation-chart' %}
+<link rel="modulepreload" href="{{ js_manifest.features.academic | relative_url }}" crossorigin="anonymous" />
+    {% endif %}
+  {% endif %}
+{% endif %}
 {% endif %}
 {% assign alternate_translations = page.translations %}
 {% if alternate_translations %}
@@ -96,19 +108,20 @@
 <title>{{ site.title }}</title>
 {% endif %}
 
+{%- comment -%}
+  Only the weights the stylesheet renders. Sans 700, Serif 400 and Mono 500
+  were requested as well, and no page of the demo site used them.
+{%- endcomment -%}
+{% assign google_fonts_url = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:wght@600;700&family=IBM+Plex+Mono:wght@400;600&display=swap' %}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preload" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" as="style" />
-<link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" media="print" data-async-style media="print" data-async-style />
+<link rel="preload" href="{{ google_fonts_url | add_sri }}" as="style" />
+<link rel="stylesheet" href="{{ google_fonts_url | add_sri }}" media="print" data-async-style />
 <noscript>
-  <link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" />
+  <link rel="stylesheet" href="{{ google_fonts_url | add_sri }}" />
 </noscript>
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-{% if prism_enabled %}
-<link rel="stylesheet" href="{{ prism_theme_url | add_sri }}" />
-<link rel="stylesheet" href="{{ prism_line_numbers_url | add_sri }}" />
-{% endif %}
 {% assign critical_config = site.critical_css | default: {} %}
 {% assign critical_enabled = critical_config.enabled | default: false %}
 {% assign main_stylesheet = '/assets/css/main.css' | relative_url %}

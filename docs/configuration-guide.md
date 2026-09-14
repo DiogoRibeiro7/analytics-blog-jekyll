@@ -63,16 +63,14 @@ theme_options:
     output: chtml
     accessibility: true
     render_on_load: auto # auto | true | false
-  syntax_highlighting:
-    load: auto           # auto | always
-    components: [core, python, r, sql, julia, javascript]
 ```
 
-MathJax and Prism are loaded from a CDN and together weigh several hundred kilobytes, so by default they are only loaded where they are needed:
+The math engine is loaded from a CDN and weighs several hundred kilobytes, so by default it is only loaded where it is needed:
 
 - `math.render_on_load: auto` loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
-- `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
-- A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+- A page can force it with `math: true` or `math: false` in its front matter. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+
+Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
 A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
 

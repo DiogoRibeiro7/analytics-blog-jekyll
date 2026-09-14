@@ -188,7 +188,7 @@ Matplotlib/Seaborn plots, LaTeX, and code syntax highlighting are optimized for 
 The `_config.yml` file exposes an opinionated set of options crafted for research teams:
 
 - `theme_options.math` toggles between **MathJax** and **KaTeX** engines, equation numbering, and accessibility defaults.
-- `theme_options.syntax_highlighting` defines the Prism CDN, theme pairings for light/dark modes, and the language components to preload.
+- Code blocks are highlighted by Rouge when the site builds, and the theme styles Rouge's output for light and dark mode, so code needs no settings.
 - `theme_options.visualizations` controls default behaviour for Plotly, D3, Bokeh, Observable, Shiny, and widget embeds.
 - `theme_options.taxonomy`, `content.research_areas`, and `content.methodologies` organize content by research area and methodology for archive navigation.
 - `integrations.github` enables live repository metrics with caching support for portfolio cards, while Binder/Colab/Kaggle toggles control interactive notebook links.

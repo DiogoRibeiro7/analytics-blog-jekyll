@@ -37,16 +37,22 @@ class ImageOptimizerTest < Minitest::Test
     end
   end
 
-  def test_built_site_first_image_gets_fetchpriority_high
-    html = find_optimized_page
-    skip "No HTML page with optimized images found in built site" unless html
+  def test_built_site_never_marks_a_lazy_image_high_priority
+    html_outputs.each do |url, html|
+      Nokogiri::HTML5(html).css('img[loading="lazy"][fetchpriority="high"]').each do |img|
+        flunk "#{url}: <img src=\"#{img['src']}\"> is both lazy and high priority"
+      end
+    end
+  end
 
-    doc = Nokogiri::HTML.fragment(html)
-    images = doc.css("img").reject { |img| img["data-no-optimize"] == "true" }
-    prioritized = images.select { |img| img["fetchpriority"] }
-    skip "No images with fetchpriority in built site" if prioritized.empty?
+  def test_built_home_page_leaves_priority_to_its_preloaded_hero
+    doc = Nokogiri::HTML5(SiteBuilder.read("index.html"))
+    assert doc.at_css('link[rel="preload"][as="image"]'), "The home page should preload its hero image"
 
-    assert_equal "high", prioritized.first["fetchpriority"]
+    card = doc.at_css(".card-media img")
+    skip "No post card image on the home page" unless card
+    assert_equal "lazy", card["loading"], "A post card image below the hero should be lazy"
+    assert_nil card["fetchpriority"], "A post card image should not compete with the hero"
   end
 
   # ---------------------------------------------------------------------------
@@ -71,30 +77,61 @@ class ImageOptimizerTest < Minitest::Test
     assert_equal "async", img["decoding"]
   end
 
-  def test_process_assigns_fetchpriority_to_first_image_only
+  def test_process_fetches_the_first_content_image_early_and_the_rest_lazily
     html = <<~HTML
       <html><body>
-        <img src="/first.jpg" width="100" height="100">
-        <img src="/second.jpg" width="200" height="200">
+        <header><img src="/logo.png" width="40" height="40"></header>
+        <div class="post-content">
+          <img src="/first.jpg" width="100" height="100">
+          <img src="/second.jpg" width="200" height="200">
+        </div>
       </body></html>
     HTML
     document = build_mock_document(html)
     Jekyll::ImageOptimizer.process(document)
 
     doc = Nokogiri::HTML.fragment(document.output)
-    images = doc.css("img")
-    assert_equal "high", images[0]["fetchpriority"],
-                 "First image should get fetchpriority=\"high\""
-    assert_nil images[1]["fetchpriority"],
-               "Second image should not get fetchpriority"
+    first = doc.at_css('img[src="/first.jpg"]')
+    assert_equal "high", first["fetchpriority"], "The first content image should get fetchpriority=\"high\""
+    assert_nil first["loading"], "The first content image should not be lazy"
+    %w[/logo.png /second.jpg].each do |src|
+      img = doc.at_css("img[src=\"#{src}\"]")
+      assert_equal "lazy", img["loading"], "#{src} should be lazy"
+      assert_nil img["fetchpriority"], "#{src} should not get fetchpriority"
+    end
+  end
+
+  def test_process_prioritises_no_image_when_the_page_preloads_one
+    html = <<~HTML
+      <html><head><link rel="preload" as="image" href="/hero.webp"></head><body>
+        <div class="page-content"><img src="/card.jpg" width="100" height="100"></div>
+      </body></html>
+    HTML
+    document = build_mock_document(html)
+    Jekyll::ImageOptimizer.process(document)
+
+    img = Nokogiri::HTML.fragment(document.output).at_css("img")
+    assert_equal "lazy", img["loading"]
+    assert_nil img["fetchpriority"], "The preloaded hero should be the page's only early image"
+  end
+
+  def test_process_does_not_prioritise_a_content_image_the_author_made_lazy
+    html = '<html><body><div class="post-content"><img src="/photo.jpg" width="100" height="100" loading="lazy"></div></body></html>'
+    document = build_mock_document(html)
+    Jekyll::ImageOptimizer.process(document)
+
+    img = Nokogiri::HTML.fragment(document.output).at_css("img")
+    assert_equal "lazy", img["loading"]
+    assert_nil img["fetchpriority"], "A lazy image should not get fetchpriority=\"high\""
   end
 
   def test_process_skips_data_no_optimize_images
     html = <<~HTML
-      <html><body>
+      <html><body><div class="post-content">
         <img src="/skip.jpg" data-no-optimize="true">
         <img src="/keep.jpg" width="100" height="100">
-      </body></html>
+        <img src="/later.jpg" width="100" height="100">
+      </div></body></html>
     HTML
     document = build_mock_document(html)
     Jekyll::ImageOptimizer.process(document)
@@ -102,15 +139,16 @@ class ImageOptimizerTest < Minitest::Test
     doc = Nokogiri::HTML.fragment(document.output)
     skipped = doc.at_css('img[src="/skip.jpg"]')
     kept = doc.at_css('img[src="/keep.jpg"]')
+    later = doc.at_css('img[src="/later.jpg"]')
 
     assert_nil skipped["loading"],
                "Image with data-no-optimize should not get loading attribute"
     assert_nil skipped["decoding"],
                "Image with data-no-optimize should not get decoding attribute"
-    assert_equal "lazy", kept["loading"],
-                 "Normal image should still get loading=\"lazy\""
     assert_equal "high", kept["fetchpriority"],
-                 "First non-skipped image should get fetchpriority=\"high\""
+                 "First optimized content image should get fetchpriority=\"high\""
+    assert_equal "lazy", later["loading"],
+                 "Later images should still get loading=\"lazy\""
   end
 
   def test_process_does_not_overwrite_existing_attributes
@@ -210,6 +248,15 @@ class ImageOptimizerTest < Minitest::Test
       return page.output unless optimized_imgs.empty?
     end
     nil
+  end
+
+  def html_outputs
+    (@site.pages + @site.docs_to_write).filter_map do |page|
+      next unless page.respond_to?(:output_ext) && page.output_ext == ".html"
+      next if page.output.nil? || page.output.empty?
+
+      [page.url, page.output]
+    end
   end
 
   # Build a lightweight mock document for Jekyll::ImageOptimizer.process.

@@ -2,9 +2,14 @@
 
 @use 'variables' as *;
 
-// Prism.js inspired syntax highlighting tuned for analytical workloads
+// Syntax highlighting for Rouge, which highlights code as the site builds:
+// kramdown's fenced code blocks, and the includes that use the rouge_highlight
+// filter. Rouge marks tokens with short Pygments class names, such as k for a
+// keyword, s2 for a double-quoted string and nf for a function name.
 pre[class*='language-'],
-code[class*='language-'] {
+code[class*='language-'],
+pre.highlight,
+pre.highlight code {
   color: $color-ink-900;
   background: transparent;
   font-family: $font-family-mono;
@@ -12,117 +17,227 @@ code[class*='language-'] {
   line-height: 1.6;
 }
 
-pre[class*='language-'] {
+pre[class*='language-'],
+pre.highlight {
   position: relative;
   padding-top: map.get($spacing, 5);
 }
 
 :not(pre) > code[class*='language-'],
-pre[class*='language-'] {
+pre[class*='language-'],
+pre.highlight {
   background: rgba($color-surface-900, 0.02);
 }
 
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
-  color: $color-ink-300;
-  font-style: italic;
+.highlight {
+  .c,
+  .ch,
+  .cd,
+  .cm,
+  .cpf,
+  .c1,
+  .cs {
+    color: $color-ink-500;
+    font-style: italic;
+  }
+
+  .p {
+    color: $color-ink-500;
+  }
+
+  .nt,
+  .no,
+  .ss,
+  .gd {
+    color: $color-accent-tertiary;
+  }
+
+  .m,
+  .mb,
+  .mf,
+  .mh,
+  .mi,
+  .il,
+  .mo,
+  .mx,
+  .kc {
+    color: $color-accent-secondary-text;
+  }
+
+  .s,
+  .sa,
+  .sb,
+  .sc,
+  .dl,
+  .sd,
+  .s2,
+  .se,
+  .sh,
+  .si,
+  .sx,
+  .s1,
+  .na,
+  .nb,
+  .bp,
+  .gi {
+    color: $color-success;
+  }
+
+  .o,
+  .ni,
+  .nv,
+  .vc,
+  .vg,
+  .vi,
+  .vm {
+    color: $color-accent-primary;
+  }
+
+  .k,
+  .kd,
+  .kn,
+  .kp,
+  .kr,
+  .kt,
+  .kv,
+  .ow,
+  .cp {
+    color: $color-accent-secondary-text;
+  }
+
+  .nf,
+  .fm,
+  .nc,
+  .nd,
+  .ne {
+    color: $color-accent-primary;
+    font-weight: 600;
+  }
+
+  .sr,
+  .gr,
+  .gt {
+    color: $color-warning;
+  }
+
+  .gh,
+  .gu,
+  .gs {
+    font-weight: 700;
+  }
+
+  .ge {
+    font-style: italic;
+  }
 }
 
-.token.punctuation {
+// With line numbers on, Rouge lays a block out as a table: the numbers in the
+// first cell, the code in the second, each in its own <pre>. The site's table,
+// cell and <pre> styles would give it borders, padding and nested boxes.
+.highlight .rouge-table {
+  width: auto;
+  margin: 0;
+  border: 0;
+  border-collapse: collapse;
+  font-size: inherit;
+}
+
+.highlight .rouge-table td {
+  padding: 0;
+  border: 0;
+  vertical-align: top;
+}
+
+.highlight .rouge-table pre {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.highlight .rouge-gutter {
+  padding-right: map.get($spacing, 4);
   color: $color-ink-500;
-}
-
-.token.property,
-.token.tag,
-.token.constant,
-.token.symbol,
-.token.deleted {
-  color: $color-accent-tertiary;
-}
-
-.token.boolean,
-.token.number {
-  color: $color-accent-secondary-text;
-}
-
-.token.selector,
-.token.attr-name,
-.token.string,
-.token.char,
-.token.builtin,
-.token.inserted {
-  color: $color-success;
-}
-
-.token.operator,
-.token.entity,
-.token.url,
-.token.variable {
-  color: $color-accent-primary;
-}
-
-.token.atrule,
-.token.attr-value,
-.token.keyword {
-  color: $color-accent-secondary-text;
-}
-
-.token.function,
-.token.class-name {
-  color: $color-accent-primary;
-  font-weight: 600;
-}
-
-.token.regex,
-.token.important {
-  color: $color-warning;
-}
-
-.token.important,
-.token.bold {
-  font-weight: 700;
-}
-
-.token.italic {
-  font-style: italic;
+  text-align: right;
+  user-select: none;
 }
 
 body.dark-mode pre[class*='language-'],
-body.dark-mode code[class*='language-'] {
+body.dark-mode code[class*='language-'],
+body.dark-mode pre.highlight,
+body.dark-mode pre.highlight code {
   color: $dark-ink-900;
 }
 
-body.dark-mode pre[class*='language-'] {
+body.dark-mode pre[class*='language-'],
+body.dark-mode pre.highlight {
   background: rgba($dark-surface-300, 0.8);
 }
 
-body.dark-mode .token.comment,
-body.dark-mode .token.prolog,
-body.dark-mode .token.doctype,
-body.dark-mode .token.cdata {
-  color: rgba($dark-ink-500, 0.7);
-}
+body.dark-mode .highlight {
+  .c,
+  .ch,
+  .cd,
+  .cm,
+  .cpf,
+  .c1,
+  .cs,
+  .rouge-gutter {
+    color: $dark-ink-500;
+  }
 
-body.dark-mode .token.boolean,
-body.dark-mode .token.number {
-  color: $dark-accent-secondary;
-}
+  .m,
+  .mb,
+  .mf,
+  .mh,
+  .mi,
+  .il,
+  .mo,
+  .mx,
+  .kc {
+    color: $dark-accent-secondary;
+  }
 
-body.dark-mode .token.selector,
-body.dark-mode .token.attr-name,
-body.dark-mode .token.string,
-body.dark-mode .token.inserted {
-  color: #5fe3aa;
-}
+  .s,
+  .sa,
+  .sb,
+  .sc,
+  .dl,
+  .sd,
+  .s2,
+  .se,
+  .sh,
+  .si,
+  .sx,
+  .s1,
+  .na,
+  .nb,
+  .bp,
+  .gi {
+    color: #5fe3aa;
+  }
 
-body.dark-mode .token.keyword,
-body.dark-mode .token.operator {
-  color: $dark-accent-primary;
-}
+  .k,
+  .kd,
+  .kn,
+  .kp,
+  .kr,
+  .kt,
+  .kv,
+  .ow,
+  .cp,
+  .o {
+    color: $dark-accent-primary;
+  }
 
-body.dark-mode .token.function,
-body.dark-mode .token.class-name {
-  color: #9fb6ff;
+  .nf,
+  .fm,
+  .nc,
+  .nd,
+  .ne {
+    color: #9fb6ff;
+  }
 }
