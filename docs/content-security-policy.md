@@ -10,12 +10,42 @@ party integrations.
 - During the build the `_plugins/csp_generator.rb` plugin assigns a **unique nonce** to every page and
   document. The nonce is available in templates as `page.csp_nonce` and is stored centrally under
   `site.data.csp.nonces` for debugging.
-- After each page renders the plugin calculates SHA-256 hashes for any inline script blocks. These
-  hashes are exposed via `page.csp_hashes` and referenced inside the CSP meta tag to support
-  third-party snippets that cannot accept nonces.
-- The `_includes/csp-meta.html` include assembles a directive set that whitelists first-party assets,
-  trusted CDNs, and the per-page nonce. Violations are reported to `/csp-report/` for local testing
-  and observability.
+- After each page renders, the plugin gives every inline `<script>` that lacks one the page's nonce.
+- The `_includes/csp-meta.html` include writes the policy for each page, from what the page loads.
+  Violations are reported to `/csp-report/` for local testing and observability.
+
+## What each page allows
+
+| Directive | Every page | Added when the page needs it |
+|---|---|---|
+| `script-src` | `'self'`, the page nonce | the math engine's directory on pages with math; Plotly, D3, BokehJS or Vega on pages with those blocks; Chart.js on the analytics dashboard; `https://*.googletagmanager.com` on a site that sets `google_analytics` |
+| `style-src` | `'self'`, the page nonce, Google Fonts | KaTeX's `dist/` directory on KaTeX pages |
+| `font-src` | `'self'`, Google Fonts, `data:` | the math engine's directory on pages with math |
+| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; Google's analytics hosts on a site that sets `google_analytics` |
+| `frame-src` | `'self'`, Observable | the hosts in `csp.frame_src` |
+| `object-src` | `'none'` | |
+| `base-uri` | `'self'` | |
+| `form-action` | `'self'` | |
+
+jsDelivr serves any npm package, so the policy names the packages a page loads instead of the whole
+host. The math engine's directory comes from `theme_options.math.mathjax_cdn` or `katex_cdn`, the
+same setting the script tags use. The chart library URLs are written in
+`assets/js/visualizations.js`, `assets/js/notebook.js` and `_includes/analytics/dashboard.html`;
+when one changes, change it in `csp-meta.html` too, and `tests/test_csp.rb` fails until both agree.
+
+A site that embeds something else lists the sources in `_config.yml`:
+
+```yaml
+csp:
+  frame_src:
+    - https://shiny.posit.co
+  script_src:
+    - https://widgets.example.org/
+  style_src: []
+  font_src: []
+  connect_src:
+    - https://api.example.org
+```
 
 ## Working with inline scripts
 

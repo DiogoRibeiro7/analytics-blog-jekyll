@@ -121,7 +121,9 @@ csp:
     - https://www.youtube-nocookie.com
 ```
 
-Plotly, D3 and Bokeh load their libraries from jsDelivr, which the policy already allows, and the code in a `data-d3-script` or `data-bokeh-script` block runs with the page's nonce, so the policy needs no `unsafe-eval`.
+A page that loads scripts, stylesheets, fonts or data from somewhere else lists those sources under `csp.script_src`, `csp.style_src`, `csp.font_src` or `csp.connect_src` in the same way.
+
+Plotly, D3 and Bokeh load their libraries from jsDelivr. The policy of a page with one of those blocks allows that library's package, not the whole of jsDelivr. The code in a `data-d3-script` or `data-bokeh-script` block runs with the page's nonce, so the policy needs no `unsafe-eval`. [content-security-policy.md](content-security-policy.md) lists what each page allows.
 
 ## Accessing configuration in templates
 

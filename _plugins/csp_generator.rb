@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "securerandom"
-require "digest"
 
 module Datalog
   module Security
@@ -18,7 +17,6 @@ module Datalog
       def generate(site)
         site.data["csp"] ||= {}
         site.data["csp"]["nonces"] ||= {}
-        site.data["csp"]["hashes"] ||= {}
 
         assign_nonces(site, site.pages)
         site.collections.each_value do |collection|
@@ -40,7 +38,6 @@ module Datalog
 
         nonce = SecureRandom.base64(nonce_bytes)
         document.data["csp_nonce"] = nonce
-        document.data["csp_hashes"] ||= []
 
         registry_site = site || (document.respond_to?(:site) ? document.site : nil)
         if registry_site.respond_to?(:data)
@@ -61,7 +58,12 @@ module Datalog
         end
       end
 
-      def self.compute_hashes(document)
+      # Gives every inline script in the rendered page the page's nonce. The
+      # generator also took a SHA-256 of each inline script, but the policy is
+      # written into the head while the page renders, so the hashes of the
+      # finished page never reached it; with every script nonced they are not
+      # needed.
+      def self.add_nonces(document)
         return unless document.respond_to?(:output)
 
         output = document.output
@@ -73,32 +75,10 @@ module Datalog
         # Case-insensitive: HTML tag names are, so <SCRIPT> in author content
         # must be matched too. Without /i such a tag received no nonce and was
         # then blocked by the policy, which fails closed but silently.
-        output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/i) do
+        document.output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/i) do
           attributes = Regexp.last_match(1)
           "<script nonce=\"#{nonce}\"#{attributes}>"
         end
-
-        document.output = output
-
-        hashes = []
-        output.scan(%r{<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>}mi) do |match|
-          content = match.first
-          next if content.nil? || content.empty?
-
-          hashes << Digest::SHA256.base64digest(content)
-        end
-
-        hashes.uniq!
-        document.data["csp_hashes"] = hashes
-
-        return unless site.respond_to?(:data)
-
-        site.data["csp"] ||= {}
-        site.data["csp"]["hashes"] ||= {}
-
-        key = document_key(document)
-
-        site.data["csp"]["hashes"][key] = hashes if key
       end
     end
   end
@@ -110,6 +90,6 @@ end
   end
 
   Jekyll::Hooks.register target, :post_render do |document|
-    Datalog::Security::CspGenerator.compute_hashes(document)
+    Datalog::Security::CspGenerator.add_nonces(document)
   end
 end
