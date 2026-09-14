@@ -82,6 +82,21 @@ class ConfigValidatorTest < Minitest::Test
     assert(validator.warnings.any? { |warning| warning.include?("math_engine") })
   end
 
+  # The theme stopped loading Prism, so a site that still configures it should
+  # hear that the settings do nothing.
+  def test_warns_that_syntax_highlighting_settings_have_no_effect
+    config = base_config
+    config["theme_options"]["syntax_highlighting"] = { "cdn" => "https://cdn.jsdelivr.net/npm/prismjs@1.29.0" }
+
+    validator = Datalog::ConfigValidator::Validator.new(config)
+    validator.run
+
+    assert_empty validator.errors
+    assert(validator.warnings.any? do |warning|
+      warning.include?("theme_options.syntax_highlighting") && warning.include?("Rouge")
+    end)
+  end
+
   # --- Markdown / Highlighter enums ---
 
   def test_invalid_markdown_engine

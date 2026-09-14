@@ -3,6 +3,27 @@
 {% assign script_hashes = page.csp_hashes | default: [] %}
 {%- comment -%} Hosts a site embeds iframes from (Shiny apps, slide decks, videos), listed under `csp.frame_src` in _config.yml. {%- endcomment -%}
 {% assign frame_hosts = site.csp.frame_src | join: ' ' %}
+{%- comment -%}
+  Plotly and the Jupyter widget manager can't run under the strict policy.
+  Plotly inserts its rules into a <style> element it creates; the widget manager
+  adds <style> elements too, and compiles widget schemas with new Function. Only
+  the pages that run them get inline styles, and widget pages eval. A page that
+  loads either library another way sets csp.unsafe_inline_styles or
+  csp.unsafe_eval in its front matter. A browser ignores 'unsafe-inline' in a
+  directive that also lists a nonce, so those pages drop the style nonce.
+{%- endcomment -%}
+{% assign csp_inline_styles = page.csp.unsafe_inline_styles %}
+{% assign csp_eval = page.csp.unsafe_eval %}
+{%- comment -%} The widget manager also loads its icon fonts from jsDelivr. {%- endcomment -%}
+{% assign csp_widget_fonts = false %}
+{% if content contains 'data-viz-type="ipywidgets"' or content contains "data-viz-type='ipywidgets'" or content contains 'application/vnd.jupyter.widget-state+json' %}
+  {% assign csp_inline_styles = true %}
+  {% assign csp_eval = true %}
+  {% assign csp_widget_fonts = true %}
+{% endif %}
+{% if content contains 'data-viz-type="plotly"' or content contains "data-viz-type='plotly'" or content contains 'notebook-output-plotly' %}
+  {% assign csp_inline_styles = true %}
+{% endif %}
 {% capture script_hash_directives -%}
   {%- for hash in script_hashes -%}
     'sha256-{{ hash }}'{% unless forloop.last %} {% endunless %}
@@ -10,10 +31,10 @@
 {%- endcapture -%}
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'nonce-{{ nonce_source }}'{% if script_hash_directives != '' %} {{ script_hash_directives | strip }}{% endif %} https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com;
-  style-src 'self' 'nonce-{{ nonce_source }}' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+  script-src 'self' 'nonce-{{ nonce_source }}'{% if csp_eval %} 'unsafe-eval'{% endif %}{% if script_hash_directives != '' %} {{ script_hash_directives | strip }}{% endif %} https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com;
+  style-src 'self' {% if csp_inline_styles %}'unsafe-inline'{% else %}'nonce-{{ nonce_source }}'{% endif %} https://fonts.googleapis.com https://cdn.jsdelivr.net;
   img-src 'self' data: https:;
-  font-src 'self' https://fonts.gstatic.com data:;
+  font-src 'self' https://fonts.gstatic.com{% if csp_widget_fonts %} https://cdn.jsdelivr.net{% endif %} data:;
   connect-src 'self' https://api.github.com https://www.google-analytics.com https://cdn.jsdelivr.net;
   frame-src 'self' https://observablehq.com{% if frame_hosts != '' %} {{ frame_hosts }}{% endif %};
 " />

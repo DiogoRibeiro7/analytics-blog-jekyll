@@ -143,57 +143,10 @@ function shouldSkipFetch(url) {
   return false;
 }
 
-async function loadSiteConfig() {
-  try {
-    const configPath = path.join(ROOT, '_config.yml');
-    const rawConfig = await fs.readFile(configPath, 'utf8');
-    return YAML.parse(rawConfig) || {};
-  } catch (error) {
-    console.warn(`Unable to read _config.yml: ${error.message}`);
-    return {};
-  }
-}
-
-function derivePrismComponents(config) {
-  const defaultComponents = ['python', 'r', 'sql', 'julia', 'javascript'];
-  const configured = config?.theme_options?.syntax_highlighting?.components;
-  if (Array.isArray(configured) && configured.length > 0) {
-    return configured.filter((component) => component && component !== 'core');
-  }
-  return defaultComponents;
-}
-
-function derivePrismThemes(config) {
-  const defaultThemes = ['prism-tomorrow'];
-  const themes = config?.theme_options?.syntax_highlighting?.themes;
-  if (themes && typeof themes === 'object') {
-    const values = Object.values(themes).filter((value) => typeof value === 'string' && value.trim() !== '');
-    if (values.length > 0) {
-      return Array.from(new Set(values));
-    }
-  }
-  return defaultThemes;
-}
-
-function augmentDerivedResources(urls, config) {
+function augmentDerivedResources(urls) {
   const derived = new Set();
-  const prismComponents = derivePrismComponents(config);
-  const prismThemes = derivePrismThemes(config);
 
   for (const url of urls) {
-    if (/cdn\.jsdelivr\.net\/npm\/prismjs@/i.test(url)) {
-      const base = url.replace(/\/$/, '');
-      derived.add(`${base}/prism.min.js`);
-      prismComponents.forEach((component) => {
-        derived.add(`${base}/components/prism-${component}.min.js`);
-      });
-      derived.add(`${base}/plugins/normalize-whitespace/prism-normalize-whitespace.min.js`);
-      derived.add(`${base}/plugins/line-numbers/prism-line-numbers.min.css`);
-      prismThemes.forEach((theme) => {
-        derived.add(`${base}/themes/${theme}.css`);
-      });
-    }
-
     if (/cdn\.jsdelivr\.net\/npm\/katex@/i.test(url)) {
       const base = url.endsWith('/') ? url : `${url}/`;
       derived.add(`${base}katex.min.css`);
@@ -206,7 +159,6 @@ function augmentDerivedResources(urls, config) {
 }
 
 async function main() {
-  const siteConfig = await loadSiteConfig();
   const htmlFiles = await walk(ROOT);
   const urls = new Set();
 
@@ -216,7 +168,7 @@ async function main() {
     extracted.forEach((url) => urls.add(url));
   }
 
-  augmentDerivedResources(urls, siteConfig);
+  augmentDerivedResources(urls);
 
   if (urls.size === 0) {
     console.warn('No CDN resources detected in HTML files.');

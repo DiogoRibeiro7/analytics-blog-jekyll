@@ -55,4 +55,4 @@ This post's front matter is written the way the [Minimal Mistakes](https://mmist
 
 ## Where the rules live
 
-The mapping is a single build hook in `_plugins/front_matter_compat.rb`. It only fills DataLog fields that are absent, so a post that sets `image` or `description` explicitly keeps those values. The full field table and the URL-preservation settings are in the [migration guide]({{ '/docs/migrating-from-minimal-mistakes/' | relative_url }}).
+The mapping is a single build hook in `_plugins/front_matter_compat.rb`. It only fills DataLog fields that are absent, so a post that sets `image` or `description` explicitly keeps those values. The full field table and the URL-preservation settings are in the [migration guide](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/develop/docs/migrating-from-minimal-mistakes.md).

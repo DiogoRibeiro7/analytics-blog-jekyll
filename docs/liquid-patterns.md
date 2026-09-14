@@ -20,10 +20,9 @@ This document describes the reusable Liquid includes introduced to simplify site
 ```
 
 ### `meta/scripts-loader.html`
-*Purpose*: Consolidate Prism asset loading and shared data bootstrapping.
+*Purpose*: Output the page data scripts and the feature loader at the end of the body.
 *Usage*:
 ```liquid
-{% include meta/scripts-loader.html location='head' %}
 {% include meta/scripts-loader.html location='body' %}
 ```
 
@@ -104,7 +103,7 @@ Outputs footer navigation columns with optional descriptions.
 {% include meta/math-config.html page=page %}
 {% include meta/language-attributes.html page=page %}
 ...
-{% include meta/scripts-loader.html location='head' %}
+{% include meta/scripts-loader.html location='body' %}
 ...
 {% include layouts/default/article.html page=page content=content date_format=date_format %}
 ```

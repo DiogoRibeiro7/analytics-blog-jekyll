@@ -345,57 +345,26 @@ describe('renderResults', () => {
     expect(writeTextMock).toHaveBeenCalledWith('\\pi');
   });
 
-  it('renders code snippet with Prism highlighting', () => {
+  it('renders a code snippet as plain text with its language class', () => {
     const results = [{
       title: 'Test',
       url: '/test',
       type: 'post',
       codeSnippet: {
-        code: 'function test() { return 42; }',
-        language: 'javascript'
-      }
-    }];
-
-    window.Prism = {
-      languages: {
-        javascript: {},
-        markup: {}
-      },
-      highlight: vi.fn((code, grammar, lang) => `<span class="token">${code}</span>`)
-    };
-
-    renderResults(results, 'test', { resultsList, resultsMeta, emptyState, template });
-
-    const codeEl = resultsList.querySelector('[data-result-code]');
-    const codeCodeEl = codeEl.querySelector('code');
-
-    expect(codeEl.hidden).toBe(false);
-    expect(codeEl.classList.contains('language-javascript')).toBe(true);
-    expect(codeCodeEl.className).toBe('language-javascript');
-    expect(window.Prism.highlight).toHaveBeenCalledWith(
-      'function test() { return 42; }',
-      {},
-      'javascript'
-    );
-
-    delete window.Prism;
-  });
-
-  it('renders code snippet with fallback when Prism is not available', () => {
-    const results = [{
-      title: 'Test',
-      url: '/test',
-      type: 'post',
-      codeSnippet: {
-        code: 'def hello():\n    print("world")',
+        code: 'def hello():\n    print("<b>world</b>")',
         language: 'python'
       }
     }];
 
     renderResults(results, 'test', { resultsList, resultsMeta, emptyState, template });
 
-    const codeCodeEl = resultsList.querySelector('[data-result-code] code');
-    expect(codeCodeEl.textContent).toBe('def hello():\n    print("world")');
+    const codeEl = resultsList.querySelector('[data-result-code]');
+    const codeCodeEl = codeEl.querySelector('code');
+    expect(codeEl.hidden).toBe(false);
+    expect(codeEl.classList.contains('language-python')).toBe(true);
+    expect(codeCodeEl.className).toBe('language-python');
+    expect(codeCodeEl.textContent).toBe('def hello():\n    print("<b>world</b>")');
+    expect(codeCodeEl.querySelector('b')).toBeNull();
   });
 
   it('uses text language as fallback when language is not specified', () => {
@@ -519,34 +488,5 @@ describe('renderResults', () => {
 
     renderResults(results2, 'test', { resultsList, resultsMeta, emptyState, template });
     expect(resultsList.querySelectorAll('.search-result').length).toBe(2);
-  });
-
-  it('uses Prism.languages.markup as fallback when language grammar is not available', () => {
-    const results = [{
-      title: 'Test',
-      url: '/test',
-      type: 'post',
-      codeSnippet: {
-        code: 'some unknown language code',
-        language: 'unknownlang'
-      }
-    }];
-
-    window.Prism = {
-      languages: {
-        markup: {}
-      },
-      highlight: vi.fn((code) => code)
-    };
-
-    renderResults(results, 'test', { resultsList, resultsMeta, emptyState, template });
-
-    expect(window.Prism.highlight).toHaveBeenCalledWith(
-      'some unknown language code',
-      {},
-      'unknownlang'
-    );
-
-    delete window.Prism;
   });
 });

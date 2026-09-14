@@ -315,6 +315,62 @@ describe('visualization fallbacks', () => {
   });
 });
 
+// require.js sets define.amd, and a UMD bundle that runs while it is set
+// registers with require.js instead of setting its global. The gallery loads
+// require.js for the widget manager next to Plotly, D3 and BokehJS.
+describe('UMD bundles alongside require.js', () => {
+  const requireSelector = 'script[src*="require.min.js"]';
+
+  beforeEach(() => {
+    document.head.innerHTML = '';
+    vizInternals.resetRequireLoading();
+    delete window.requirejs;
+    delete window.UmdFirst;
+    delete window.UmdQueued;
+    delete window.UmdLater;
+  });
+
+  it('loads a bundle by script tag while require.js is not in use', async () => {
+    const src = 'https://cdn.example.com/umd-first.js';
+    const promise = vizInternals.loadUmd(src, 'UmdFirst');
+    const script = document.head.querySelector(`script[src="${src}"]`);
+    expect(script).not.toBeNull();
+
+    window.UmdFirst = { name: 'first' };
+    script.onload();
+
+    await expect(promise).resolves.toEqual({ name: 'first' });
+  });
+
+  it('loads require.js only after a bundle already loading has run', async () => {
+    const src = 'https://cdn.example.com/umd-queued.js';
+    const bundle = vizInternals.loadUmd(src, 'UmdQueued');
+    const requireReady = vizInternals.ensureRequire();
+    await Promise.resolve();
+    expect(document.head.querySelector(requireSelector)).toBeNull();
+
+    window.UmdQueued = {};
+    document.head.querySelector(`script[src="${src}"]`).onload();
+    await bundle;
+    await vi.waitFor(() => expect(document.head.querySelector(requireSelector)).not.toBeNull());
+
+    window.requirejs = vi.fn();
+    document.head.querySelector(requireSelector).onload();
+    await expect(requireReady).resolves.toBe(window.requirejs);
+  });
+
+  it('asks require.js for a bundle requested once require.js is in use', async () => {
+    const src = 'https://cdn.example.com/umd-later.js';
+    const module = { name: 'later' };
+    window.requirejs = vi.fn((dependencies, onLoad) => onLoad(module));
+    await vizInternals.ensureRequire();
+
+    await expect(vizInternals.loadUmd(src, 'UmdLater')).resolves.toBe(module);
+    expect(window.requirejs).toHaveBeenCalledWith([src], expect.any(Function), expect.any(Function));
+    expect(document.head.querySelector(`script[src="${src}"]`)).toBeNull();
+  });
+});
+
 describe('loadScript and loadStyle', () => {
   beforeEach(() => {
     // Clear any previously loaded scripts/styles tracking

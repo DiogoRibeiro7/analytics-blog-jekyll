@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1: Build the static site
 # ---------------------------------------------------------------------------
-FROM ruby:3.2-slim AS builder
+FROM ruby:3.4-slim AS builder
 
 # libssl-dev and libyaml-dev: with no Gemfile.lock, Bundler resolves gems such
 # as openssl and psych that compile against these headers, which the slim image
@@ -65,7 +65,7 @@ RUN bundle exec jekyll build --trace \
 # ---------------------------------------------------------------------------
 # Stage 2: Serve with nginx
 # ---------------------------------------------------------------------------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30-alpine AS runtime
 
 # Remove default nginx content
 RUN rm -rf /usr/share/nginx/html/*

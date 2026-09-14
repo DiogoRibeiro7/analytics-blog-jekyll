@@ -7,6 +7,7 @@ require "fileutils"
 require "cgi"
 require "loofah"
 require "base64"
+require_relative "rouge_highlight_filter"
 
 module Datalog
   module NotebookRenderer
@@ -112,7 +113,12 @@ module Datalog
       # The language comes from the notebook file, so it is cut down to the
       # characters a class name can hold before it goes into the attribute.
       language_class = language.to_s.gsub(/[^\w+#.-]/, "")
-      code_html = %(<pre class="notebook-cell__code"><code class="language-#{language_class}">#{CGI.escapeHTML(source)}</code></pre>)
+      # Rouge highlights the cell as the site builds, as kramdown does for code
+      # blocks, and escapes it.
+      highlighted = Jekyll::RougeHighlightFilter.highlight(source, language_class)
+      pre_attributes = %(class="highlight notebook-cell__code" tabindex="0")
+      code_attributes = %(class="language-#{language_class}")
+      code_html = %(<pre #{pre_attributes}><code #{code_attributes}>#{highlighted}</code></pre>)
       base_metadata = metadata.respond_to?(:merge) ? metadata.merge(language: language) : { language: language }
       outputs_html = render_outputs(Array(cell["outputs"]), site: site, cell_index: cell_index, metadata: base_metadata)
       outputs_html = %(\n<div class="notebook-cell__outputs">\n#{outputs_html}\n</div>) unless outputs_html.empty?

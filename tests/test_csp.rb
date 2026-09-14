@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
-require "set"
 
 class ContentSecurityPolicyTest < Minitest::Test
   def setup
@@ -28,6 +27,53 @@ class ContentSecurityPolicyTest < Minitest::Test
 
     assert_includes frame_hosts, "https://observablehq.com"
     assert_includes frame_hosts, "https://shiny.posit.co"
+  end
+
+  # Plotly inserts its rules into a <style> element it creates, and the Jupyter
+  # widget manager adds <style> elements and compiles schemas with new Function.
+  # Only the pages that run them get a looser policy.
+  def test_pages_without_plotly_or_widgets_keep_the_strict_policy
+    %w[index.html 2024/04/05/sql-optimization-guide/index.html].each do |page|
+      directives = policy_directives(SiteBuilder.read(page))
+
+      assert(directives["style-src"].any? { |source| source.start_with?("'nonce-") },
+             "#{page} should authorise styles by nonce")
+      refute_includes directives["style-src"], "'unsafe-inline'", "#{page} should not allow inline styles"
+      refute_includes directives["script-src"], "'unsafe-eval'", "#{page} should not allow eval"
+    end
+  end
+
+  def test_plotly_pages_allow_inline_styles_but_not_eval
+    directives = policy_directives(SiteBuilder.read("2024/04/07/data-visualization-plotly-showcase/index.html"))
+
+    assert_includes directives["style-src"], "'unsafe-inline'"
+    refute(directives["style-src"].any? { |source| source.start_with?("'nonce-") },
+           "A nonce in style-src would make browsers ignore 'unsafe-inline'")
+    refute_includes directives["script-src"], "'unsafe-eval'"
+  end
+
+  def test_widget_pages_allow_inline_styles_and_eval
+    directives = policy_directives(SiteBuilder.read("visualizations/index.html"))
+
+    assert_includes directives["style-src"], "'unsafe-inline'"
+    assert_includes directives["script-src"], "'unsafe-eval'"
+    assert(directives["script-src"].any? { |source| source.start_with?("'nonce-") },
+           "Scripts should still need the nonce")
+    assert_includes directives["font-src"], "https://cdn.jsdelivr.net", "The widget manager loads its icon fonts from jsDelivr"
+    refute_includes policy_directives(SiteBuilder.read("index.html"))["font-src"], "https://cdn.jsdelivr.net"
+  end
+
+  def test_front_matter_can_loosen_the_policy_for_other_embeds
+    template = Liquid::Template.parse("{% include csp-meta.html %}")
+    context = {
+      "site" => SiteBuilder.payload["site"],
+      "page" => { "csp_nonce" => "abc", "csp" => { "unsafe_inline_styles" => true, "unsafe_eval" => true } },
+      "content" => "<p>No chart markup</p>"
+    }
+    directives = policy_directives(template.render!(context, registers: { site: SiteBuilder.site }))
+
+    assert_includes directives["style-src"], "'unsafe-inline'"
+    assert_includes directives["script-src"], "'unsafe-eval'"
   end
 
   def test_inline_scripts_all_have_nonces
@@ -99,6 +145,15 @@ class ContentSecurityPolicyTest < Minitest::Test
   end
 
   private
+
+  # The page's Content-Security-Policy meta tag as a map of directive to sources.
+  def policy_directives(html)
+    policy = html[/<meta http-equiv="Content-Security-Policy" content="([^"]*)"/, 1].to_s
+    policy.split(";").each_with_object({}) do |directive, directives|
+      name, *sources = directive.split
+      directives[name] = sources if name
+    end
+  end
 
   def html_documents
     @html_documents ||= begin
