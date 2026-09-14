@@ -22,7 +22,14 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    # A dependency goes to the first group it matches. vitest and its plugins
+    # have to move together, major versions included: each Vitest 5 update
+    # failed on its own, because the other package still required Vitest 4.
     groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
       development-dependencies:
         dependency-type: "development"
         update-types:
@@ -91,3 +98,13 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    # CodeQL fails when its init and analyze steps run different versions, and
+    # the Pages upload and deploy actions are released together.
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
+      pages:
+        patterns:
+          - "actions/upload-pages-artifact"
+          - "actions/deploy-pages"
