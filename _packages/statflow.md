@@ -196,7 +196,7 @@ sample = np.random.normal(100, 15, 100)
 result = sf.ttest(sample, mu=95)
 print(f"95% CI: {result.confidence_interval}")
 '
-   see_also="[mannwhitneyu](#mannwhitneyu), [anova](#anova)" %}
+   see_also="mannwhitneyu, anova" %}
 
 {% include components/api-function.html
    name="mannwhitneyu"
@@ -230,7 +230,7 @@ print(f"95% CI: {result.confidence_interval}")
 result = sf.mannwhitneyu(group1, group2)
 print(f\"U statistic: {result.statistic:.2f}\")
 "
-   see_also="[ttest](#ttest), [kruskal](#kruskal)" %}
+   see_also="ttest" %}
 
 {% include components/api-function.html
    name="anova"
@@ -262,7 +262,7 @@ group3 = np.random.normal(110, 15, 30)
 result = sf.anova(group1, group2, group3, post_hoc='tukey')
 print(result.summary())
 "
-   see_also="[kruskal](#kruskal), [ttest](#ttest)" %}
+   see_also="ttest" %}
 
 ## Regression Models {#regression-models}
 
@@ -308,7 +308,7 @@ print(model.summary())
 # Make predictions
 predictions = model.predict(X)
 '
-   see_also="[RidgeRegression](#ridgeregression), [LogisticRegression](#logisticregression)" %}
+   %}
 
 ## Distributions {#distributions}
 
@@ -354,7 +354,7 @@ cdf_values = dist.cdf(x)
 median = dist.quantile(0.5)
 q95 = dist.quantile(0.95)
 '
-   see_also="[StudentT](#studentt), [Exponential](#exponential)" %}
+   %}
 
 ## Utilities {#utilities}
 
@@ -410,7 +410,7 @@ print(f"Median: {np.median(data):.4f}")
 print(f"95% CI: {result.confidence_interval}")
 print(f"Bootstrap SE: {result.standard_error:.4f}")
 '
-   see_also="[permutation_test](#permutation_test)" %}
+   %}
 
 ## Hypothesis Testing {#hypothesis-testing}
 

@@ -47,6 +47,20 @@ class SiteOutputTest < Minitest::Test
     assert_empty offenders, "a link that opens a new tab without noopener gives that page access to window.opener"
   end
 
+  # An in-page link to an id the page does not have goes nowhere. StatFlow's
+  # "See Also" lists turned each whole list into one anchor.
+  def test_in_page_links_reach_an_element_on_the_page
+    SiteBuilder.build
+    broken = Dir.glob(File.join(SiteBuilder.destination, "**", "*.html")).filter_map do |path|
+      html = File.read(path)
+      ids = html.scan(/\b(?:id|name)="([^"]+)"/).flatten
+      missing = html.gsub(%r{<(script|style)\b.*?</\1>}m, "").scan(/href="#([^"]+)"/).flatten.uniq - ids
+      "#{path.delete_prefix(SiteBuilder.destination)}: #{missing.join(', ')}" unless missing.empty?
+    end
+
+    assert_empty broken
+  end
+
   # Shiny apps and widgets run third-party code in an iframe.
   def test_embedded_apps_are_sandboxed
     source = File.read(File.join(SiteBuilder.root, "assets", "js", "visualizations.js"))
