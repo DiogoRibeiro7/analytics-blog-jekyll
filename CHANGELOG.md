@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- `csp.script_src`, `csp.style_src`, `csp.font_src` and `csp.connect_src` in `_config.yml` add sources to the Content Security Policy, as `csp.frame_src` does for iframes (#196).
+- The policy sets `object-src 'none'`, `base-uri 'self'` and `form-action 'self'`. None of them falls back to `default-src`, so all three were open (#196).
 - `tests/test_csp.rb` checks which pages get the looser policy. `tests/integration/csp-charts.spec.js` loads the real Plotly and widget manager, checks that the chart and the widget render, and fails on any script or style violation. Unit tests in `tests/js/visualizations.test.js` cover the order in which chart libraries and require.js load (#195).
 - A `rouge_highlight` Liquid filter highlights code passed to an include as the site builds. The package API examples and the enhanced code block, which printed its code unescaped, use it, and the notebook converter highlights code cells the same way (#197).
 - The head preloads the visualization, notebook and academic bundles on the pages that use them, as it already did for search and math, so they download alongside the core bundle instead of after it (#197).
@@ -29,6 +31,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- Each page's Content Security Policy allows only the jsDelivr packages that page loads: the math engine's directory, and Plotly, D3, BokehJS, Vega or Chart.js where the page uses them. The policy allowed all of jsDelivr, which serves any npm package, on every page. Widget pages still allow all of jsDelivr, and they are the only pages that allow require.js from cdnjs (#196).
+- Google's analytics hosts are in the policy only on a site that sets `google_analytics`. They are the hosts Google documents for GA4, including the regional `*.google-analytics.com` hosts GA4 reports to (#196).
 - The Content Security Policy is looser on pages with a Plotly or ipywidgets block and unchanged on every other page. Plotly pages allow inline styles in place of the style nonce. Widget pages also allow `'unsafe-eval'` and fonts from jsDelivr. A page that loads either library another way can set `csp.unsafe_inline_styles` or `csp.unsafe_eval` in its front matter (#195).
 - Code is highlighted by Rouge alone, when the site builds. Pages with code also loaded Prism from jsDelivr (seven scripts and two stylesheets on a post), which highlighted the blocks again in the browser and turned every language it had no grammar for, such as bash and yaml, into plain text. The theme now styles Rouge's tokens and line numbers in light and dark mode, in greys that meet 4.5:1 contrast (the comment grey Prism used measured 2.33:1 in light mode), and gives every code block tabindex="0", as Prism did, so a wide block can be scrolled from the keyboard. Search results show code snippets as plain text (#197).
 - The academic and publication data is inlined only on pages that render citation metrics, tables or charts, the only pages whose script reads it. On the home page it was nearly a quarter of the HTML (#197).
@@ -57,6 +61,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
+- The CSP generator's inline script hashes. It computed them after a page had rendered, too late to reach the policy written into its head, and every inline script already carries the nonce (#196).
 - Prism: its scripts and stylesheets, their SRI entries, the `meta/syntax-config.html` include, the `syntax_highlighting` page setting and the `theme_options.syntax_highlighting` block in the demo configuration (#197).
 - `window.DatalogTheme` and `window.DatalogContent`, which every page inlined and no script read (#197).
 - `jekyll-archives` and `jekyll-remote-theme` from the gem's dependencies, which nothing in the theme used, and the 22 unbundled script sources from the gem. Pages load the bundles in `assets/js/dist` and `assets/js/loader.js`; every site copied the sources into its published output as well. A site that installs the theme from a checkout still has them (#203).
@@ -68,6 +73,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- KaTeX's fonts load. The policy refused the fonts its stylesheet requests from jsDelivr (#196).
 - Plotly charts render. Plotly inserts its rules into a `<style>` element it creates, which the policy refused, so every Plotly block reported that Plotly failed to load (#195).
 - Jupyter widgets render. The policy refused the widget manager's `<style>` elements, the `new Function` it compiles widget schemas with, and its icon fonts. The theme also called a `WidgetManager` that `@jupyter-widgets/html-manager` does not export, and the error was swallowed; it now uses `HTMLManager` (#195).
 - A page with a widget no longer loses its Plotly, D3 or BokehJS chart depending on which script loads first. require.js, which the widget manager loads, made a bundle that ran after it register as an anonymous module, and require.js threw `Mismatched anonymous define()`. Bundles requested after require.js now load through it (#195).
