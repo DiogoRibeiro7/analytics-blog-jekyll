@@ -316,9 +316,19 @@ schema_type: TechnicalArticle
       wrapper.insertBefore(metaBar, pre);
     });
 
-    // Make equation references focus their targets for accessibility.
-    if (window.MathJax && window.MathJax.startup) {
-      window.MathJax.startup.promise.then(function () {
+    // Make equation references focus their targets for accessibility. This runs
+    // on DOMContentLoaded, before MathJax has loaded, when window.MathJax is
+    // still the configuration object and has no startup.promise; reading it
+    // threw. The head's MathJax configuration announces typeset math instead.
+    const onMathReady = function (callback) {
+      if (document.body.classList.contains('math-ready') && document.querySelector('mjx-container')) {
+        callback();
+      } else {
+        document.addEventListener('datalog:math-ready', callback, { once: true });
+      }
+    };
+    if (window.MathJax) {
+      onMathReady(function () {
         const equations = document.querySelectorAll('.post-content mjx-container[display="true"]');
         let eqIndex = 1;
         equations.forEach(function (container) {

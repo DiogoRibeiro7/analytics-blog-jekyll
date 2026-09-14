@@ -419,9 +419,16 @@
   const ensureD3 = () => loadUmd('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js', 'd3');
 
   // BokehJS 3 publishes no stylesheet: the request for one failed, and with it
-  // every Bokeh chart.
+  // every Bokeh chart. Its core bundle also lacks Bokeh.Plotting, which the code
+  // in a data-bokeh-script block calls; that comes from the API bundle.
   const ensureBokeh = () =>
-    loadUmd('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh.min.js', 'Bokeh');
+    loadUmd('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh.min.js', 'Bokeh').then((Bokeh) =>
+      Bokeh && Bokeh.Plotting
+        ? Bokeh
+        : loadScript('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh-api.min.js').then(
+            () => window.Bokeh
+          )
+    );
 
   const ensureRequire = () => {
     if (!requireLoading) {
@@ -713,7 +720,8 @@
           }
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Bokeh assets failed to load', error);
         setStatus(element, 'Bokeh assets failed to load', 'error');
       });
   };

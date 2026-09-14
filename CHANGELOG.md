@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- `tests/test_csp_pages.rb` checks that every nonce in a page matches its policy, that MathJax and Disqus pages get what they load, and that Observable's classic embeds may be framed (#196).
 - `csp.script_src`, `csp.style_src`, `csp.font_src` and `csp.connect_src` in `_config.yml` add sources to the Content Security Policy, as `csp.frame_src` does for iframes (#196).
 - The policy sets `object-src 'none'`, `base-uri 'self'` and `form-action 'self'`. None of them falls back to `default-src`, so all three were open (#196).
 - `tests/test_csp.rb` checks which pages get the looser policy. `tests/integration/csp-charts.spec.js` loads the real Plotly and widget manager, checks that the chart and the widget render, and fails on any script or style violation. Unit tests in `tests/js/visualizations.test.js` cover the order in which chart libraries and require.js load (#195).
@@ -73,6 +74,15 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- MathJax typesets math again. Its configuration loaded the `\require` extension, which stopped MathJax 3.2 while starting up (`Illegal characters used in \require prefix`), so no page rendered an equation. Every extension the pages use is loaded directly, so authors don't need `\require`.
+- Posts with math no longer throw `Cannot read properties of undefined (reading 'then')`. The post layout read `MathJax.startup.promise` before MathJax had loaded; MathJax now announces typeset math with a `datalog:math-ready` event.
+- Equations are no longer taken out of the tab order. MathJax's explorer gave each one `tabindex="1"`, which axe reports; it is turned off, and the assistive MathML screen readers use stays on.
+- The math preprocessor's wrapper has `role="math"`. It carried an `aria-label` with no role, which ARIA forbids, and axe failed the page once MathJax rendered the expression inside it.
+- Notebook pages run their inline scripts. The pages are created after the CSP generator assigns nonces, and their templates printed an empty `page.csp_nonce`, so the browser refused every inline script in the head. MathJax's inserted stylesheet is allowed on math pages.
+- Bokeh blocks render. The theme loaded BokehJS's core bundle, which has no `Bokeh.Plotting`; it now loads the API bundle too, and logs a failed load instead of ignoring it.
+- Disqus comments load. The policy refused Disqus's script, stylesheet, iframe and the inline style that sizes the iframe.
+- Observable embeds display. An `observablehq.com` embed redirects to `old.observablehq.com`, which the policy refused. The demo's two embeds pointed at notebooks that return 404 and now embed D3's zoomable sunburst and bar chart.
+- The demo post's slide deck loads. It pointed at a host that does not exist; it now embeds the reveal.js demo deck, and `revealjs.com` is in the demo's `csp.frame_src`.
 - KaTeX's fonts load. The policy refused the fonts its stylesheet requests from jsDelivr (#196).
 - Plotly charts render. Plotly inserts its rules into a `<style>` element it creates, which the policy refused, so every Plotly block reported that Plotly failed to load (#195).
 - Jupyter widgets render. The policy refused the widget manager's `<style>` elements, the `new Function` it compiles widget schemas with, and its icon fonts. The theme also called a `WidgetManager` that `@jupyter-widgets/html-manager` does not export, and the error was swallowed; it now uses `HTMLManager` (#195).

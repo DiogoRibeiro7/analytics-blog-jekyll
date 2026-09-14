@@ -217,7 +217,10 @@
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
       processEnvironments: true,
-      packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'require', 'boldsymbol', 'braket', 'cancel'] },
+      // No 'require': MathJax 3.2 stopped starting up with "Illegal characters
+      // used in \require prefix", and nothing was typeset. Every extension the
+      // pages use is loaded below, so authors never need \require.
+      packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'boldsymbol', 'braket', 'cancel'] },
       tags: 'all',
       tagSide: 'right',
       tagIndent: '1.25em',
@@ -243,7 +246,7 @@
     },
     loader: {
       load: [
-        '[tex]/require', '[tex]/ams', '[tex]/mathtools', '[tex]/physics', '[tex]/mhchem',
+        '[tex]/ams', '[tex]/mathtools', '[tex]/physics', '[tex]/mhchem',
         '[tex]/boldsymbol', '[tex]/braket', '[tex]/cancel', 'ui/menu', 'a11y/semantic-enrich', 'a11y/assistive-mml'
       ]
     },
@@ -256,7 +259,10 @@
         settings: {
           assistiveMml: true,
           collapsible: true,
-          explorer: true
+          // MathJax's explorer gives each equation tabindex="1" when it
+          // attaches, which takes the equations out of the page's tab order.
+          // The assistive MathML above is what screen readers read.
+          explorer: false
         }
       }
     },
@@ -285,7 +291,11 @@
         if (window.DatalogMath && typeof window.DatalogMath.onPageReady === 'function') {
           window.DatalogMath.onPageReady();
         }
-        return window.MathJax.startup.defaultPageReady();
+        // Scripts that act on typeset math wait for this event: until MathJax
+        // loads, window.MathJax is only this configuration object.
+        return window.MathJax.startup.defaultPageReady().then(() => {
+          document.dispatchEvent(new CustomEvent('datalog:math-ready'));
+        });
       }
     }
   };

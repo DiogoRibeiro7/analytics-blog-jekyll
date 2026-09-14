@@ -92,8 +92,12 @@ module MathPreprocessor
       cleaned_source = cleanup_source(latex)
       record_expression(cleaned_source, alt_text)
 
+      # ARIA forbids aria-label on an element with no role, such as a plain span.
+      # axe let it pass while the span held the raw LaTeX as text, and failed it
+      # once MathJax rendered the expression; the math role allows the label.
       attributes = {
         "class" => display ? "math-expression math-expression--source" : "math-expression-inline math-expression--source",
+        "role" => "math",
         "data-math-alt" => alt_text,
         "data-math-source" => cleaned_source,
         "aria-label" => alt_text,
