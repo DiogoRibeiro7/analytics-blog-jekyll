@@ -4,7 +4,9 @@ require_relative "test_helper"
 
 # MathJax and the search bundle used to load on pages that had no use for
 # them: MathJax wherever a `$` appeared, even inside a script, and the search
-# bundle on every page, because the header has a search form.
+# bundle on every page, because the header has a search form. Every page also
+# inlined data that only the academic pages read, and requested the feature
+# bundles it uses only after the core bundle had loaded.
 class FeatureLoadingTest < Minitest::Test
   def test_loads_mathjax_where_the_page_has_math
     {
@@ -29,5 +31,42 @@ class FeatureLoadingTest < Minitest::Test
   def test_preloads_the_search_bundle_only_on_the_search_page
     refute_match(%r{rel="modulepreload"[^>]*/search\.js}, SiteBuilder.read("index.html"))
     assert_match(%r{rel="modulepreload"[^>]*/search\.js}, SiteBuilder.read("search/index.html"))
+  end
+
+  def test_preloads_the_feature_bundles_a_page_uses
+    {
+      "visualizations/index.html" => "visualizations",
+      "notebooks/sample-analysis/index.html" => "notebook"
+    }.each do |page, bundle|
+      assert_match(%r{rel="modulepreload"[^>]*/#{bundle}\.js}, SiteBuilder.read(page),
+                   "#{page} should preload the #{bundle} bundle")
+    end
+
+    home = SiteBuilder.read("index.html")
+    %w[visualizations notebook academic].each do |bundle|
+      refute_match(%r{rel="modulepreload"[^>]*/#{bundle}\.js}, home,
+                   "The home page should not preload the #{bundle} bundle")
+    end
+  end
+
+  def test_inlines_only_the_page_data_a_script_on_the_page_reads
+    home = SiteBuilder.read("index.html")
+    %w[DatalogAcademic DatalogPublications DatalogTheme DatalogContent].each do |global|
+      refute_includes home, "window.#{global} =", "The home page should not inline #{global}"
+    end
+    assert_includes home, "window.DatalogIntegrations =", "core/github-cards.js reads the integration settings"
+  end
+
+  def test_inlines_the_academic_data_where_citations_render
+    template = Liquid::Template.parse("{% include meta/scripts-loader.html location='body' %}")
+    context = {
+      "site" => SiteBuilder.payload["site"],
+      "page" => {},
+      "content" => '<dd data-citation-metric="total">12</dd>'
+    }
+    rendered = template.render!(context, registers: { site: SiteBuilder.site })
+
+    assert_includes rendered, "window.DatalogAcademic ="
+    assert_includes rendered, "window.DatalogPublications ="
   end
 end

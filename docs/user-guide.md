@@ -38,11 +38,11 @@ The site will be available at `http://localhost:4000`. The command watches Markd
 
 ## 2. Jupyter Notebook Integration Tutorial
 
-1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin renders them into blog posts during `jekyll build` or `jekyll serve`.
-2. Populate notebook metadata (`title`, `authors`, `difficulty`, `tags`) through the notebook JSON or via front matter overrides created in `_data/notebooks.yml`.
+1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin publishes each one as a page under `/notebooks/` during `jekyll build` or `jekyll serve`.
+2. The page takes its title, authors and tags from the notebook's own metadata: `title` (or `datalog.title`, falling back to the notebook's first heading), `authors`, and `tags` or `keywords`.
 3. Interactive outputs such as Plotly, ipywidgets, and Bokeh cells are preserved using the theme's visualization runtime. For custom JavaScript outputs, ensure they ship with self-contained HTML snippets.
 4. Readers can download the original notebook automatically—links are generated in the notebook layout.
-5. Configure Binder and Colab URLs in `_config.yml` under `integrations.notebooks` to expose “Run in Binder” and “Open in Colab” buttons.
+5. The “Run in Binder” and “Open in Colab” buttons link to the repository and branch set under `notebooks:` in `_config.yml` (`repository`, `branch`); `notebooks.binder.base_url` and `notebooks.colab.base_url` change the link formats.
 
 ## 3. Mathematical Expression Authoring
 

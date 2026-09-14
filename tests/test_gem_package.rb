@@ -78,6 +78,39 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # The gemspec said Ruby 3.0, while the sass-embedded and nokogiri releases it
+  # resolves need 3.2.
+  def test_requires_the_ruby_its_dependencies_need
+    assert @spec.required_ruby_version.satisfied_by?(Gem::Version.new("3.2.0"))
+    refute @spec.required_ruby_version.satisfied_by?(Gem::Version.new("3.1.9"))
+  end
+
+  # Open-ended requirements accepted any future major release untested.
+  def test_bounds_every_runtime_dependency_below_its_next_major_version
+    @spec.runtime_dependencies.each do |dependency|
+      bounded = dependency.requirement.requirements.any? { |operator, _version| %w[~> <].include?(operator) }
+      assert bounded, "#{dependency.name} #{dependency.requirement} has no upper bound"
+    end
+  end
+
+  # jekyll-archives and jekyll-remote-theme were used by nothing, and googleauth
+  # (with the Google Cloud gems it brings) only by a GA4-configured dashboard.
+  def test_does_not_make_every_site_install_unused_or_optional_gems
+    declared = @spec.runtime_dependencies.map(&:name)
+    %w[jekyll-archives jekyll-remote-theme googleauth].each do |gem_name|
+      refute_includes declared, gem_name
+    end
+  end
+
+  # Pages load the bundles and the loader; a site copies every theme asset into
+  # its output, so the unbundled sources were published by every site.
+  def test_ships_the_loader_but_not_the_unbundled_script_sources
+    assert_includes @spec.files, "assets/js/loader.js"
+    %w[assets/js/main.js assets/js/search/engine.js assets/js/core/dark-mode.js].each do |path|
+      refute_includes @spec.files, path, "no page loads #{path}; the bundles in assets/js/dist are built from it"
+    end
+  end
+
   # Jekyll reads `_plugins/` for a site but not for a theme gem. Sites name the
   # theme in their `plugins:` list, which makes Jekyll require lib/datalog-theme.rb,
   # and that has to be enough to register the tags the layouts use.

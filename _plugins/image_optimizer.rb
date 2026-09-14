@@ -34,6 +34,18 @@ module Jekyll
     }.freeze
     RASTER_EXTENSIONS = %w[.jpg .jpeg .png].freeze
 
+    # The one image a page fetches early: the first in its post or page content,
+    # unless the author made it lazy or the page already preloads an image, as
+    # the hero does. The first <img> anywhere used to be marked both lazy and
+    # high priority; on the home page that was a post card below the hero, and
+    # on tutorials the thumbnail of a related post at the bottom.
+    def priority_image(fragment)
+      return if fragment.at_css('link[rel="preload"][as="image"]')
+
+      image = fragment.css(".post-content img, .page-content img").find { |img| img["data-no-optimize"] != "true" }
+      image unless image.nil? || image["loading"] == "lazy"
+    end
+
     def process(document)
       return unless document.output_ext == ".html"
       return if document.output.nil? || document.output.empty?
@@ -46,18 +58,17 @@ module Jekyll
       manifest = site&.data&.fetch("datalog_responsive_images", {}) || {}
       image_config = site&.config&.fetch("datalog_image_config", {}) || {}
       optimized = false
-      first_priority_assigned = false
+      priority = priority_image(fragment)
 
       fragment.css("img").each do |img|
         next if img["data-no-optimize"] == "true"
 
-        img["loading"] ||= "lazy"
-        img["decoding"] ||= "async"
-
-        unless first_priority_assigned
+        if img == priority
           img["fetchpriority"] ||= "high"
-          first_priority_assigned = true
+        else
+          img["loading"] ||= "lazy"
         end
+        img["decoding"] ||= "async"
 
         normalized_src = normalize_src(img["src"], site)
         picture_entry = manifest[normalized_src]

@@ -24,12 +24,22 @@ module Datalog
         assets/templates
       ].freeze
 
+      # Pages load the bundles in assets/js/dist, which scripts/build_js.mjs
+      # builds from the sources beside them, and the loader that picks among
+      # the bundles. No page loads the sources themselves, and a site copies
+      # every theme asset into its output, so the gem leaves them out.
+      SCRIPTS_PAGES_LOAD = %w[
+        assets/js/dist
+        assets/js/loader.js
+      ].freeze
+
       module_function
 
       # Whether a repository-relative path is part of the theme rather than
       # demo content that happens to live in a theme directory.
       def theme_file?(path)
         return DATA_FILES.any? { |entry| inside?(path, entry) } if inside?(path, "_data")
+        return SCRIPTS_PAGES_LOAD.any? { |entry| inside?(path, entry) } if inside?(path, "assets/js")
 
         DEMO_ASSETS.none? { |entry| inside?(path, entry) }
       end

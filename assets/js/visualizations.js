@@ -382,30 +382,58 @@
 
   // Libraries load from jsDelivr, which the Content Security Policy allows;
   // cdn.plot.ly and cdn.bokeh.org are not in it, so those charts never loaded.
-  const ensurePlotly = () =>
-    (typeof window.Plotly !== 'undefined'
-      ? Promise.resolve()
-      : loadScript('https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js')).then(() => window.Plotly);
+  // The widget manager needs require.js, which defines window.define with
+  // define.amd set. A UMD bundle such as Plotly, D3 or BokehJS that runs while it
+  // is set registers itself as an anonymous AMD module instead of setting its
+  // global, and require.js throws "Mismatched anonymous define()": on a page with
+  // a widget, whichever loaded last failed. A bundle requested before require.js
+  // loads by script tag, and require.js waits for it; a bundle requested after
+  // goes through require.js, which hands back the module.
+  let requireLoading = null;
+  const pendingUmdLoads = new Set();
 
-  const ensureD3 = () =>
-    (typeof window.d3 !== 'undefined'
-      ? Promise.resolve(window.d3)
-      : loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js').then(() => window.d3));
+  const loadUmd = (src, globalName) => {
+    if (typeof window[globalName] !== 'undefined') {
+      return Promise.resolve(window[globalName]);
+    }
+    const loadByScriptTag = () => loadScript(src).then(() => window[globalName]);
+    if (requireLoading) {
+      return requireLoading.then(
+        (requirejs) =>
+          new Promise((resolve, reject) => {
+            requirejs([src], (library) => resolve(library || window[globalName]), reject);
+          }),
+        loadByScriptTag
+      );
+    }
+    const load = loadByScriptTag();
+    pendingUmdLoads.add(load);
+    const settle = () => pendingUmdLoads.delete(load);
+    load.then(settle, settle);
+    return load;
+  };
+
+  const ensurePlotly = () =>
+    loadUmd('https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js', 'Plotly');
+
+  const ensureD3 = () => loadUmd('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js', 'd3');
 
   // BokehJS 3 publishes no stylesheet: the request for one failed, and with it
   // every Bokeh chart.
   const ensureBokeh = () =>
-    (typeof window.Bokeh !== 'undefined'
-      ? Promise.resolve()
-      : loadScript('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh.min.js')).then(() => window.Bokeh);
+    loadUmd('https://cdn.jsdelivr.net/npm/@bokeh/bokehjs@3.3.3/build/js/bokeh.min.js', 'Bokeh');
 
   const ensureRequire = () => {
-    if (typeof window.requirejs !== 'undefined') {
-      return Promise.resolve(window.requirejs);
+    if (!requireLoading) {
+      requireLoading = Promise.allSettled([...pendingUmdLoads]).then(() =>
+        typeof window.requirejs !== 'undefined'
+          ? window.requirejs
+          : loadScript('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js', {
+              async: false
+            }).then(() => window.requirejs)
+      );
     }
-    return loadScript('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js', {
-      async: false
-    }).then(() => window.requirejs);
+    return requireLoading;
   };
 
   const ensureWidgetManager = () =>
@@ -732,21 +760,28 @@
     const canvas = element.querySelector('[data-viz-canvas]') || element;
     canvas.replaceChildren();
 
+    // @jupyter-widgets/html-manager exports HTMLManager, which loads widget
+    // modules through requireLoader and displays a view into an element. The
+    // WidgetManager this called does not exist, and the TypeError was caught
+    // below without a trace, after the canvas had been emptied.
     return ensureWidgetManager()
       .then((widgets) => {
-        const manager = new widgets.WidgetManager();
+        const manager = new widgets.HTMLManager({ loader: widgets.requireLoader });
         return manager
           .set_state(state)
           .then(() => manager.get_model(view.model_id))
           .then((model) => manager.create_view(model))
-          .then((widgetView) => manager.display_view(undefined, widgetView, { el: canvas }))
+          .then((widgetView) => manager.display_view(widgetView, canvas))
           .then(() => setStatus(element, 'Interactive'))
           .catch((error) => {
             console.error('Widget render error', error);
             setStatus(element, 'Widget rendering error', 'error');
           });
       })
-      .catch(() => setStatus(element, 'Widget assets failed to load', 'error'));
+      .catch((error) => {
+        console.error('Widget assets failed to load', error);
+        setStatus(element, 'Widget assets failed to load', 'error');
+      });
   };
 
   const renderVisualization = (element) => {
@@ -844,6 +879,13 @@
   const internals = {
     loadScript,
     loadStyle,
+    loadUmd,
+    ensureRequire,
+    // Tests share one copy of this module, so they reset the loader state.
+    resetRequireLoading: () => {
+      requireLoading = null;
+      pendingUmdLoads.clear();
+    },
     normalizeRecords,
     stringifyValue,
     buildDataTable,
