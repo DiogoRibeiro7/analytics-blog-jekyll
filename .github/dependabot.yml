@@ -1,4 +1,8 @@
 version: 2
+# Dependabot appends the scope to each prefix ("deps", or "deps-dev" for
+# development dependencies), so these titles read chore(deps), chore(deps-dev)
+# and ci(deps). Prefixes that already carried a scope produced titles like
+# chore(deps-dev)(deps-dev).
 updates:
   # npm dependencies (Node.js packages)
   - package-ecosystem: "npm"
@@ -15,8 +19,8 @@ updates:
       - "npm"
       - "automated"
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: "chore"
+      prefix-development: "chore"
       include: "scope"
     groups:
       development-dependencies:
@@ -41,7 +45,7 @@ updates:
       - "ruby"
       - "automated"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
       include: "scope"
     groups:
       jekyll-plugins:
@@ -67,7 +71,7 @@ updates:
       - "python"
       - "automated"
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
       include: "scope"
 
   # GitHub Actions
@@ -85,5 +89,5 @@ updates:
       - "github-actions"
       - "automated"
     commit-message:
-      prefix: "chore(ci)"
+      prefix: "ci"
       include: "scope"

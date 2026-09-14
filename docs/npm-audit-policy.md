@@ -6,7 +6,6 @@ Defines which npm audit findings block CI and when exceptions are permitted.
 
 | Context | Blocking Severity | Scope |
 |---------|------------------|-------|
-| **Pre-commit hook** | high, critical | Production deps only (`--omit=dev`) |
 | **CI (test/deploy)** | high, critical | Production deps only |
 | **Dependency review workflow** | high, critical | Production deps only (`--omit=dev`); moderate+ across all deps is reported, not blocking |
 | **Manual review** | low, moderate | Dev deps — reviewed quarterly |
@@ -19,19 +18,11 @@ Defines which npm audit findings block CI and when exceptions are permitted.
 
 ## CI Configuration
 
-### Pre-commit hook (`.husky/pre-commit`)
-
-```bash
-npm audit --audit-level=high --omit=dev
-```
-
-Blocks commit if high/critical production vulnerabilities exist.
-
 ### Dependency review workflow (`.github/workflows/dependency-review.yml`)
 
 Two steps in the `npm-audit` job, on push, PR and the nightly schedule:
 
-1. `npm audit --audit-level=high --omit=dev` — blocking. Same gate as the pre-commit hook.
+1. `npm audit --audit-level=high --omit=dev` — blocking, so a pull request with a high or critical production advisory cannot merge. The pre-commit hook used to run the same audit, which needed the network on every commit and repeated this check.
 2. `npm audit --audit-level=moderate` — advisory. The full report goes to the job summary, a `::warning::` annotation carries the counts, and the JSON is uploaded as the `npm-audit-results` artifact. This step never fails the job.
 
 ## Exception Process

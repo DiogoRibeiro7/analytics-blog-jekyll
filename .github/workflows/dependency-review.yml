@@ -15,6 +15,12 @@ permissions:
   pull-requests: write
   security-events: write
 
+# Only a pull request's runs are cancelled by a newer push; the runs on develop
+# and the daily schedule always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   dependency-review:
     name: Dependency Review

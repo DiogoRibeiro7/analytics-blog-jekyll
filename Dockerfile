@@ -15,36 +15,38 @@
 # ---------------------------------------------------------------------------
 FROM ruby:3.2-slim AS builder
 
+# libssl-dev and libyaml-dev: with no Gemfile.lock, Bundler resolves gems such
+# as openssl and psych that compile against these headers, which the slim image
+# does not ship.
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
     git \
     curl \
+    libssl-dev \
+    libyaml-dev \
     libvips \
-    python3 \
-    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20 LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Install Node.js 22 LTS, the version CI builds the bundles with
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 
-# Install Ruby dependencies
-COPY Gemfile Gemfile.lock datalog-theme.gemspec ./
-COPY lib/datalog/theme/version.rb lib/datalog/theme/version.rb
+# Install Ruby dependencies. The repository has no Gemfile.lock (copying one
+# stopped the build here), and the Gemfile loads the gemspec, which requires
+# version.rb and package.rb.
+COPY Gemfile datalog-theme.gemspec ./
+COPY lib/datalog/theme/version.rb lib/datalog/theme/package.rb lib/datalog/theme/
 RUN bundle config set --local without 'development' && \
     bundle install --jobs 4
 
-# Install Node dependencies
+# Install Node dependencies, dev dependencies included: esbuild, which builds
+# the bundles below, is one. None of it reaches the nginx image.
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# Install Python dependencies (notebook metadata validation)
-COPY requirements.txt ./
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+RUN npm ci
 
 # Copy source
 COPY . .
