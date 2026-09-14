@@ -27,6 +27,33 @@ party integrations.
 - Avoid inline styles. If you must include them for critical rendering paths, use `<style
   nonce="{{ page.csp_nonce }}">` so the CSP allows them.
 
+## Pages with Plotly or Jupyter widgets
+
+Two libraries the visualization blocks load can't run under the strict policy:
+
+- Plotly inserts its rules into a `<style>` element it creates, which carries no nonce.
+- The Jupyter widget manager adds `<style>` elements as well, and compiles the widgets' JSON schemas
+  with `new Function`.
+
+The policy loosens only on the pages that run them. `_includes/csp-meta.html` looks at the rendered
+page:
+
+| The page contains | `style-src` | `script-src` | `font-src` |
+|---|---|---|---|
+| `data-viz-type="plotly"`, or a `notebook-output-plotly` element | `'unsafe-inline'` in place of the nonce | unchanged | unchanged |
+| `data-viz-type="ipywidgets"`, or a widget state script | `'unsafe-inline'` in place of the nonce | adds `'unsafe-eval'` | adds jsDelivr, for the widget icon fonts |
+
+`style-src` drops the nonce on those pages because a browser ignores `'unsafe-inline'` in a directive
+that also lists a nonce. Scripts need the nonce on every page.
+
+A page that loads either library some other way can ask for the same allowances in its front matter:
+
+```yaml
+csp:
+  unsafe_inline_styles: true
+  unsafe_eval: true
+```
+
 ## Extending CDN allowances with Subresource Integrity
 
 - All external scripts and styles must provide Subresource Integrity (SRI) hashes. The canonical
