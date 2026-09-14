@@ -156,8 +156,8 @@ class ContentSecurityPolicyTest < Minitest::Test
   # require.js from cdnjs.
   def test_policy_leaves_out_hosts_the_page_does_not_use
     home_sources = policy_directives(SiteBuilder.read("index.html")).values.flatten
-    %w[googletagmanager.com google-analytics.com cdnjs.cloudflare.com cdn.jsdelivr.net].each do |host|
-      refute(home_sources.any? { |source| source.include?(host) }, "The home page should not allow #{host}")
+    %w[www.googletagmanager.com www.google-analytics.com cdnjs.cloudflare.com cdn.jsdelivr.net].each do |host|
+      refute(home_sources.any? { |source| allows_host?(source, host) }, "The home page should not allow #{host}")
     end
 
     assert_includes policy_directives(SiteBuilder.read("visualizations/index.html"))["script-src"],
@@ -189,7 +189,7 @@ class ContentSecurityPolicyTest < Minitest::Test
       "admin/analytics/index.html" => ["https://cdn.jsdelivr.net/npm/chart.js@4.4.0/"]
     }.each do |page, packages|
       scripts = policy_directives(SiteBuilder.read(page))["script-src"]
-      assert_equal packages, scripts.select { |source| source.include?("cdn.jsdelivr.net") },
+      assert_equal packages, scripts.select { |source| source_host(source) == "cdn.jsdelivr.net" },
                    "#{page} should allow exactly these jsDelivr packages"
     end
   end
@@ -225,6 +225,22 @@ class ContentSecurityPolicyTest < Minitest::Test
   end
 
   private
+
+  # The host a policy source names, such as "cdn.jsdelivr.net" for
+  # "https://cdn.jsdelivr.net/npm/d3@7/", or nil for a keyword such as 'self'.
+  def source_host(source)
+    source[%r{\Ahttps?://([^/]+)}, 1]
+  end
+
+  # Whether a policy source allows requests to host, counting a wildcard
+  # source such as "https://*.googletagmanager.com".
+  def allows_host?(source, host)
+    named = source_host(source)
+    return false unless named
+    return host == named unless named.start_with?("*.")
+
+    host.end_with?(named.delete_prefix("*"))
+  end
 
   # Renders csp-meta.html outside the site build, for settings the demo lacks.
   def render_policy(overrides)
