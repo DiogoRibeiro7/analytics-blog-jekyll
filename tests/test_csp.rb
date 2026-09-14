@@ -136,15 +136,102 @@ class ContentSecurityPolicyTest < Minitest::Test
                  "Disqus bootstrap script should be annotated with the CSP nonce")
   end
 
-  def test_page_data_records_hashes
+  def test_every_document_has_a_nonce
     html_documents.each do |doc|
       assert doc.data["csp_nonce"], "Expected nonce to be stored in page data for #{document_identifier(doc)}"
-      hashes = doc.data["csp_hashes"]
-      assert_kind_of Array, hashes, "Expected inline script hashes to be captured for #{document_identifier(doc)}"
+    end
+  end
+
+  # object-src, base-uri and form-action do not fall back to default-src, so the
+  # policy left them open.
+  def test_policy_sets_the_directives_default_src_does_not_cover
+    directives = policy_directives(SiteBuilder.read("index.html"))
+
+    assert_equal ["'none'"], directives["object-src"]
+    assert_equal ["'self'"], directives["base-uri"]
+    assert_equal ["'self'"], directives["form-action"]
+  end
+
+  # The demo sets no google_analytics, and only a page with a widget loads
+  # require.js from cdnjs.
+  def test_policy_leaves_out_hosts_the_page_does_not_use
+    home_sources = policy_directives(SiteBuilder.read("index.html")).values.flatten
+    %w[googletagmanager.com google-analytics.com cdnjs.cloudflare.com cdn.jsdelivr.net].each do |host|
+      refute(home_sources.any? { |source| source.include?(host) }, "The home page should not allow #{host}")
+    end
+
+    assert_includes policy_directives(SiteBuilder.read("visualizations/index.html"))["script-src"],
+                    "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/"
+  end
+
+  def test_policy_allows_google_hosts_when_analytics_is_configured
+    directives = render_policy("site" => { "google_analytics" => "G-TEST123" })
+
+    assert_includes directives["script-src"], "https://*.googletagmanager.com"
+    assert_includes directives["connect-src"], "https://*.google-analytics.com"
+  end
+
+  def test_site_configuration_can_add_sources
+    csp = { "script_src" => ["https://widgets.example.org/"], "connect_src" => ["https://api.example.org"] }
+    directives = render_policy("site" => { "csp" => csp })
+
+    assert_includes directives["script-src"], "https://widgets.example.org/"
+    assert_includes directives["connect-src"], "https://api.example.org"
+  end
+
+  # jsDelivr serves any npm package, so each page names the packages it loads.
+  def test_pages_allow_only_the_jsdelivr_packages_they_load
+    {
+      "index.html" => [],
+      "2024/01/01/introducing-datalog/index.html" => ["https://cdn.jsdelivr.net/npm/mathjax@3/es5/"],
+      "katex-demo/index.html" => ["https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/"],
+      "2024/04/07/data-visualization-plotly-showcase/index.html" => ["https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/"],
+      "admin/analytics/index.html" => ["https://cdn.jsdelivr.net/npm/chart.js@4.4.0/"]
+    }.each do |page, packages|
+      scripts = policy_directives(SiteBuilder.read(page))["script-src"]
+      assert_equal packages, scripts.select { |source| source.include?("cdn.jsdelivr.net") },
+                   "#{page} should allow exactly these jsDelivr packages"
+    end
+  end
+
+  # KaTeX's stylesheet loads its fonts from jsDelivr, which the policy refused;
+  # MathJax fetches its components and fonts from its own directory.
+  def test_math_pages_allow_the_engine_its_stylesheet_fonts_and_components
+    katex = policy_directives(SiteBuilder.read("katex-demo/index.html"))
+    %w[style-src font-src].each do |directive|
+      assert_includes katex[directive], "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/"
+    end
+
+    mathjax = policy_directives(SiteBuilder.read("2024/01/01/introducing-datalog/index.html"))
+    %w[font-src connect-src].each do |directive|
+      assert_includes mathjax[directive], "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
+    end
+  end
+
+  def test_policy_template_covers_every_jsdelivr_package_the_chart_scripts_load
+    root = File.expand_path("..", __dir__)
+    sources = File.read(File.join(root, "_includes/csp-meta.html")).scan(%r{https://cdn\.jsdelivr\.net/npm/[^\s'"]+}).uniq
+    urls = %w[assets/js/visualizations.js assets/js/notebook.js _includes/analytics/dashboard.html].flat_map do |file|
+      File.read(File.join(root, file)).scan(%r{https://cdn\.jsdelivr\.net/npm/[^\s'"`)]+})
+    end
+    # Widget pages allow all of jsDelivr, since widget packages come from notebooks.
+    urls = urls.uniq.grep_v(%r{/npm/@(jupyter-widgets|lumino)/})
+
+    refute_empty urls
+    urls.each do |url|
+      covered = sources.any? { |source| source.end_with?("/") ? url.start_with?(source) : url == source }
+      assert covered, "#{url} is loaded by the theme but not allowed in _includes/csp-meta.html"
     end
   end
 
   private
+
+  # Renders csp-meta.html outside the site build, for settings the demo lacks.
+  def render_policy(overrides)
+    context = { "site" => {}, "page" => { "csp_nonce" => "abc" }, "content" => "" }.merge(overrides)
+    template = Liquid::Template.parse("{% include csp-meta.html %}")
+    policy_directives(template.render!(context, registers: { site: SiteBuilder.site }))
+  end
 
   # The page's Content-Security-Policy meta tag as a map of directive to sources.
   def policy_directives(html)

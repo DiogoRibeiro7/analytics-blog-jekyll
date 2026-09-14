@@ -11,6 +11,11 @@
   {% assign keyword_list = raw_keywords | replace: ';', ',' | split: ',' %}
 {% endif %}
 {% include meta/math-config.html page=page %}
+{%- comment -%} The math engine's URLs, which both the script tags below and the Content Security Policy use. {%- endcomment -%}
+{% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
+{% assign katex_cdn = math_settings.katex_cdn | default: default_katex_cdn %}
+{% assign default_mathjax_url = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js' %}
+{% assign mathjax_url = math_settings.mathjax_cdn | default: default_mathjax_url %}
 {% assign js_manifest = site.data.js_manifest %}
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -182,13 +187,9 @@
 </script>
 
 {% if math_enabled %}
-  {% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
-  {% assign katex_cdn = math_settings.katex_cdn | default: default_katex_cdn %}
   {% assign katex_stylesheet_url = katex_cdn | append: 'katex.min.css' %}
   {% assign katex_js_url = katex_cdn | append: 'katex.min.js' %}
   {% assign katex_autorender_url = katex_cdn | append: 'contrib/auto-render.min.js' %}
-  {% assign default_mathjax_url = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js' %}
-  {% assign mathjax_url = math_settings.mathjax_cdn | default: default_mathjax_url %}
   {% if math_engine == 'katex' %}
 <link rel="stylesheet" href="{{ katex_stylesheet_url | add_sri }}" />
 <script defer src="{{ katex_js_url | add_sri }}"></script>
