@@ -8,6 +8,12 @@ Outputs the page data scripts and the feature loader at the end of the body
 highlighted by Rouge when the site builds, so the head renders nothing.
 {%- endcomment -%}
 {%- if include.location == 'body' -%}
+  {%- comment -%}
+    Only academic.js reads the academic and publication data, and the loader
+    runs it only on pages with citation metrics, tables or charts. Inlined on
+    every page, it was a quarter of the home page's HTML.
+  {%- endcomment -%}
+  {%- if content contains 'data-citation-metric' or content contains 'data-citation-table' or content contains 'data-citation-chart' -%}
   {%- assign publications = site.data.publications | default: {} -%}
   <script nonce="{{ page.csp_nonce }}">
     window.DatalogAcademic = {{ site.data.academic | jsonify }};
@@ -18,11 +24,14 @@ highlighted by Rouge when the site builds, so the head renders nothing.
       "yearly_totals": {{ publications.yearly_totals | jsonify }}
     };
   </script>
+  {%- endif -%}
   {%- comment -%} Not include_cached: scripts.html reads the page's math and notebook settings and CSP nonce. {%- endcomment -%}
   {% include scripts.html %}
+  {%- comment -%}
+    core/github-cards.js reads the integration settings. The theme options and
+    content taxonomy were inlined here as well, and no script read them.
+  {%- endcomment -%}
   <script nonce="{{ page.csp_nonce }}">
-    window.DatalogTheme = {{ site.theme_options | jsonify }};
     window.DatalogIntegrations = {{ site.integrations | jsonify }};
-    window.DatalogContent = {{ site.content | jsonify }};
   </script>
 {%- endif -%}
