@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require_relative "csp_policy_helpers"
 
 class ContentSecurityPolicyTest < Minitest::Test
+  include CspPolicyHelpers
+
   def setup
     @site = SiteBuilder.site
     @destination = @site.dest
@@ -247,15 +250,6 @@ class ContentSecurityPolicyTest < Minitest::Test
     context = { "site" => {}, "page" => { "csp_nonce" => "abc" }, "content" => "" }.merge(overrides)
     template = Liquid::Template.parse("{% include csp-meta.html %}")
     policy_directives(template.render!(context, registers: { site: SiteBuilder.site }))
-  end
-
-  # The page's Content-Security-Policy meta tag as a map of directive to sources.
-  def policy_directives(html)
-    policy = html[/<meta http-equiv="Content-Security-Policy" content="([^"]*)"/, 1].to_s
-    policy.split(";").each_with_object({}) do |directive, directives|
-      name, *sources = directive.split
-      directives[name] = sources if name
-    end
   end
 
   def html_documents

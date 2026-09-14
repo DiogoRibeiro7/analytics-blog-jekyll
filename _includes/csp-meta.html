@@ -11,6 +11,18 @@
 {% assign extra_font_src = site.csp.font_src | join: ' ' %}
 {% assign extra_connect_src = site.csp.connect_src | join: ' ' %}
 {%- comment -%}
+  Plotly, the Jupyter widget manager and MathJax can't run under the strict
+  policy. Plotly inserts its rules into a <style> element it creates; the widget
+  manager adds <style> elements too, and compiles widget schemas with
+  new Function; MathJax's CHTML output adds the stylesheet its layout depends
+  on. Only the pages that run them get inline styles, and widget pages eval. A
+  page that loads such a library another way sets csp.unsafe_inline_styles or
+  csp.unsafe_eval in its front matter. A browser ignores 'unsafe-inline' in a
+  directive that also lists a nonce, so those pages drop the style nonce.
+{%- endcomment -%}
+{% assign csp_inline_styles = page.csp.unsafe_inline_styles %}
+{% assign csp_eval = page.csp.unsafe_eval %}
+{%- comment -%}
   jsDelivr serves any npm package, so the policy names the packages this page
   loads rather than the whole host: the math engine, from the URLs the head's
   script tags use (math-config.html and head.html set them), and the chart
@@ -23,6 +35,7 @@
 {% assign cdn_styles = '' %}
 {% assign cdn_fonts = '' %}
 {% assign cdn_connect = '' %}
+{% assign cdn_frames = '' %}
 {% if math_enabled %}
   {% if math_engine == 'katex' %}
     {% assign cdn_scripts = cdn_scripts | append: ' ' | append: katex_cdn %}
@@ -36,19 +49,9 @@
     {% assign cdn_scripts = cdn_scripts | append: ' ' | append: mathjax_dir %}
     {% assign cdn_fonts = cdn_fonts | append: ' ' | append: mathjax_dir %}
     {% assign cdn_connect = cdn_connect | append: ' ' | append: mathjax_dir %}
+    {% assign csp_inline_styles = true %}
   {% endif %}
 {% endif %}
-{%- comment -%}
-  Plotly and the Jupyter widget manager can't run under the strict policy.
-  Plotly inserts its rules into a <style> element it creates; the widget manager
-  adds <style> elements too, and compiles widget schemas with new Function. Only
-  the pages that run them get inline styles, and widget pages eval. A page that
-  loads either library another way sets csp.unsafe_inline_styles or
-  csp.unsafe_eval in its front matter. A browser ignores 'unsafe-inline' in a
-  directive that also lists a nonce, so those pages drop the style nonce.
-{%- endcomment -%}
-{% assign csp_inline_styles = page.csp.unsafe_inline_styles %}
-{% assign csp_eval = page.csp.unsafe_eval %}
 {% if content contains 'data-viz-type="plotly"' or content contains "data-viz-type='plotly'" or content contains 'notebook-output-plotly' %}
   {% assign csp_inline_styles = true %}
   {% assign cdn_scripts = cdn_scripts | append: ' https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/' %}
@@ -76,6 +79,19 @@
   {% assign cdn_fonts = cdn_fonts | append: ' https://cdn.jsdelivr.net' %}
 {% endif %}
 {%- comment -%}
+  The Disqus embed loads its script from the site's shortname subdomain of
+  disqus.com and its assets from disquscdn.com, shows the thread in an iframe
+  from disqus.com, and sizes that iframe with an inline style. The policy
+  allowed none of them.
+{%- endcomment -%}
+{% if content contains 'id="disqus_thread"' %}
+  {% assign csp_inline_styles = true %}
+  {% assign cdn_scripts = cdn_scripts | append: ' https://*.disqus.com https://*.disquscdn.com' %}
+  {% assign cdn_styles = cdn_styles | append: ' https://*.disquscdn.com' %}
+  {% assign cdn_connect = cdn_connect | append: ' https://*.disqus.com' %}
+  {% assign cdn_frames = cdn_frames | append: ' https://disqus.com' %}
+{% endif %}
+{%- comment -%}
   Google's tag loads only on a site that sets google_analytics, and the policy
   allowed its hosts on every site. These are the hosts Google documents for GA4,
   which reports to regional subdomains such as region1.google-analytics.com.
@@ -88,6 +104,8 @@
   object-src, base-uri and form-action do not fall back to default-src. An
   injected <base> tag could repoint the page's relative script URLs, which the
   nonce would then authorise; every theme form submits to the site itself.
+  Observable serves classic notebook embeds from old.observablehq.com, and an
+  observablehq.com embed URL redirects there.
 {%- endcomment -%}
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -96,7 +114,7 @@
   img-src 'self' data: https:;
   font-src 'self' https://fonts.gstatic.com data:{{ cdn_fonts }}{% if extra_font_src != '' %} {{ extra_font_src }}{% endif %};
   connect-src 'self' https://api.github.com{{ cdn_connect }}{% if csp_analytics %} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com{% endif %}{% if extra_connect_src != '' %} {{ extra_connect_src }}{% endif %};
-  frame-src 'self' https://observablehq.com{% if frame_hosts != '' %} {{ frame_hosts }}{% endif %};
+  frame-src 'self' https://observablehq.com https://old.observablehq.com{{ cdn_frames }}{% if frame_hosts != '' %} {{ frame_hosts }}{% endif %};
   object-src 'none';
   base-uri 'self';
   form-action 'self';

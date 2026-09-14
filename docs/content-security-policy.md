@@ -18,11 +18,11 @@ party integrations.
 
 | Directive | Every page | Added when the page needs it |
 |---|---|---|
-| `script-src` | `'self'`, the page nonce | the math engine's directory on pages with math; Plotly, D3, BokehJS or Vega on pages with those blocks; Chart.js on the analytics dashboard; `https://*.googletagmanager.com` on a site that sets `google_analytics` |
-| `style-src` | `'self'`, the page nonce, Google Fonts | KaTeX's `dist/` directory on KaTeX pages |
+| `script-src` | `'self'`, the page nonce | the math engine's directory on pages with math; Plotly, D3, BokehJS or Vega on pages with those blocks; Chart.js on the analytics dashboard; `https://*.disqus.com` and `https://*.disquscdn.com` on pages with Disqus comments; `https://*.googletagmanager.com` on a site that sets `google_analytics` |
+| `style-src` | `'self'`, the page nonce, Google Fonts | KaTeX's `dist/` directory on KaTeX pages; `https://*.disquscdn.com` on Disqus pages; `'unsafe-inline'` in place of the nonce on pages with MathJax, Plotly, a Jupyter widget or Disqus comments |
 | `font-src` | `'self'`, Google Fonts, `data:` | the math engine's directory on pages with math |
-| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; Google's analytics hosts on a site that sets `google_analytics` |
-| `frame-src` | `'self'`, Observable | the hosts in `csp.frame_src` |
+| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; `https://*.disqus.com` on Disqus pages; Google's analytics hosts on a site that sets `google_analytics` |
+| `frame-src` | `'self'`, Observable (`observablehq.com` and `old.observablehq.com`, where its embeds redirect) | `https://disqus.com` on Disqus pages; the hosts in `csp.frame_src` |
 | `object-src` | `'none'` | |
 | `base-uri` | `'self'` | |
 | `form-action` | `'self'` | |
@@ -72,6 +72,10 @@ page:
 |---|---|---|---|
 | `data-viz-type="plotly"`, or a `notebook-output-plotly` element | `'unsafe-inline'` in place of the nonce | unchanged | unchanged |
 | `data-viz-type="ipywidgets"`, or a widget state script | `'unsafe-inline'` in place of the nonce | adds `'unsafe-eval'` | adds jsDelivr, for the widget icon fonts |
+
+Pages with MathJax, whose CHTML output inserts the stylesheet its layout depends on, and pages with
+Disqus comments, whose embed sizes its iframe with an inline style, also get `'unsafe-inline'` in
+`style-src`.
 
 `style-src` drops the nonce on those pages because a browser ignores `'unsafe-inline'` in a directive
 that also lists a nonce. Scripts need the nonce on every page.

@@ -22,8 +22,8 @@ class PluginLoaderTest < Minitest::Test
     refute_nil doc, "expected Plotly showcase post to be indexed"
 
     extensions = doc.fetch("extensions", {})
-    assert_equal "https://slides.datalog-theme.dev/plotly-story.html", extensions.dig("slides", "src")
-    assert_equal "Plotly Showcase Slides", extensions.dig("slides", "title")
+    assert_equal "https://revealjs.com/demo/", extensions.dig("slides", "src")
+    assert_equal "reveal.js demo deck", extensions.dig("slides", "title")
   end
 
   def test_comments_extension_describes_provider

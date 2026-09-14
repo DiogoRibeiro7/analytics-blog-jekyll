@@ -75,9 +75,14 @@ module Datalog
         # Case-insensitive: HTML tag names are, so <SCRIPT> in author content
         # must be matched too. Without /i such a tag received no nonce and was
         # then blocked by the policy, which fails closed but silently.
-        document.output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/i) do
+        output = output.gsub(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)([^>]*)>/i) do
           attributes = Regexp.last_match(1)
           "<script nonce=\"#{nonce}\"#{attributes}>"
+        end
+        # A template that printed page.csp_nonce before the page had one left
+        # nonce="", which authorises nothing.
+        document.output = output.gsub(/(<(?:script|style)\b[^>]*\bnonce=)""/i) do
+          "#{Regexp.last_match(1)}\"#{nonce}\""
         end
       end
     end
@@ -85,8 +90,13 @@ module Datalog
 end
 
 %i[pages documents].each do |target|
-  Jekyll::Hooks.register target, :pre_render do |document|
-    Datalog::Security::CspGenerator.assign_nonce(document.respond_to?(:site) ? document.site : nil, document)
+  Jekyll::Hooks.register target, :pre_render do |document, payload|
+    nonce = Datalog::Security::CspGenerator.assign_nonce(document.respond_to?(:site) ? document.site : nil, document)
+    # A page another generator creates after this one runs, such as a notebook
+    # page, only gets its nonce here. Jekyll has already copied a page's data
+    # into the hash its templates read, so page.csp_nonce rendered empty there.
+    page_data = payload && payload["page"]
+    page_data["csp_nonce"] ||= nonce if nonce && page_data.is_a?(Hash)
   end
 
   Jekyll::Hooks.register target, :post_render do |document|

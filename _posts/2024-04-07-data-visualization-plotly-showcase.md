@@ -7,8 +7,8 @@ difficulty: beginner
 summary: Embed interactive Plotly charts, annotate export controls, and provide accessible descriptions for decision makers.
 hero: /assets/images/posts/plotly-dashboard.jpg
 slides:
-  src: https://slides.datalog-theme.dev/plotly-story.html
-  title: Plotly Showcase Slides
+  src: https://revealjs.com/demo/
+  title: reveal.js demo deck
   theme: datalog
 comments:
   provider: giscus

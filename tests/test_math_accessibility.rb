@@ -18,6 +18,9 @@ class MathAccessibilityTest < Minitest::Test
     nodes.each do |node|
       aria = node["aria-label"]
       assert aria && !aria.strip.empty?, "Math node should expose aria-label text"
+      # ARIA forbids aria-label on a span with no role; axe fails the page once
+      # MathJax has rendered the expression inside it.
+      assert_equal "math", node["role"], "Math node with an aria-label needs a role that allows one"
     end
   end
 
