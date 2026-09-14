@@ -70,7 +70,7 @@ theme_options:
 
 MathJax and Prism are loaded from a CDN and together weigh several hundred kilobytes, so by default they are only loaded where they are needed:
 
-- `math.render_on_load: auto` loads the math engine on pages whose rendered content contains math (`$`, `\(`, `\[` or kramdown math blocks) or that declare `math_expressions`. `true` loads it on every page; `false` only on pages that opt in.
+- `math.render_on_load: auto` loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
 - `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
 - A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 
@@ -83,13 +83,12 @@ External services live in `_config.yml` under `integrations:` and are exposed to
 ```yaml
 integrations:
   github:
-    enabled: true
+    enabled: true        # false turns off the live stars and forks on project pages
     owner: yourusername
-  binder:
-    enabled: true
-  colab:
-    enabled: true
+    cache_ttl: 43200     # seconds a repository's figures stay cached in the browser
 ```
+
+The Binder and Colab buttons on notebook pages are configured with the notebooks rather than here: they link to `notebooks.repository` at `notebooks.branch`, in the formats set by `notebooks.binder.base_url` and `notebooks.colab.base_url`.
 
 ### 5. Analytics and comments
 
@@ -97,13 +96,21 @@ integrations:
 google_analytics: ""     # a GA4 measurement id enables the tag; empty disables it
 
 datalog_plugins:
-  comments:
-    provider: giscus
-    giscus:
+  enabled:
+    - datalog-search     # datalog-comments depends on it
+    - datalog-comments
+  options:
+    datalog-comments:
+      provider: giscus   # giscus, utterances or disqus
       repo: owner/repo
       repo_id: ""        # from https://giscus.app
+      category: General
       category_id: ""
+      mapping: pathname
+      enabled_by_default: false
 ```
+
+A page shows comments when its front matter sets `comments: true`, or on every page with `enabled_by_default: true`. `comments: false` turns them off for one page, and a `comments:` hash overrides these settings for that page. Giscus needs `repo`, `repo_id`, `category` and `category_id`; utterances needs `repo`; Disqus needs `shortname`.
 
 ### 6. Embedded content
 
@@ -123,7 +130,7 @@ Plotly, D3 and Bokeh load their libraries from jsDelivr, which the policy alread
 ```liquid
 {{ site.title }}
 {{ site.theme_options.math.engine }}
-{{ site.integrations.binder.enabled }}
+{{ site.integrations.github.owner }}
 {{ site.data.config.author.name }}
 ```
 

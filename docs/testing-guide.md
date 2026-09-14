@@ -20,15 +20,15 @@ DataLog uses a multi-layered testing strategy:
 |-----------|-----------|---------|----------|
 | **Unit Tests** | Vitest | Test JavaScript modules in isolation | ~4s |
 | **Integration Tests** | Playwright | Test interactions between components | ~30s |
-| **Visual Tests** | Percy + Playwright | Detect visual regressions | ~45s |
-| **Ruby Tests** | Minitest | Test Jekyll plugins and generators | ~10s |
+| **Accessibility Tests** | Playwright + axe-core | Check WCAG rules on key pages in both themes | ~20s |
+| **Ruby Tests** | Minitest | Test Jekyll plugins, generators and the built site | ~60s |
 | **E2E Tests** | Playwright | Test complete user workflows | ~60s |
 
 ### Test Coverage Goals
 
-- **Unit Tests**: 80% statement coverage
+- **Unit Tests**: the thresholds in `vitest.config.js` (see [Coverage Requirements](#coverage-requirements))
 - **Integration Tests**: All critical user paths
-- **Visual Tests**: All major layouts and components
+- **Accessibility Tests**: No axe violations on the pages in `tests/integration/axe.spec.js`
 - **Ruby Tests**: All custom plugins
 
 ## Test Types
@@ -295,24 +295,18 @@ bundle exec ruby tests/test_filters.rb
 
 ### Current Thresholds
 
-From `vitest.config.js`:
+`npm run test:coverage` fails below the thresholds in `vitest.config.js`, and the Tests workflow runs it on every pull request:
 
 ```javascript
 thresholds: {
-  statements: 20,
-  branches: 15,
-  functions: 20,
-  lines: 20
+  statements: 88,
+  branches: 78,
+  functions: 83,
+  lines: 88
 }
 ```
 
-### Goal: 80% Coverage
-
-We're working towards:
-- **Statements**: 80%
-- **Branches**: 60%
-- **Functions**: 80%
-- **Lines**: 80%
+They sit a few points below the measured coverage, so a change that drops coverage fails while ordinary changes pass. Raise them as coverage rises; if this page falls behind, `vitest.config.js` is the authority.
 
 ### How to Improve Coverage
 
@@ -470,7 +464,6 @@ npx playwright show-trace trace.zip
 
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)
-- [Percy Documentation](https://docs.percy.io/)
 - [Minitest Documentation](https://github.com/seattlerb/minitest)
 - [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 

@@ -153,7 +153,7 @@ defaults:
       layout: page
 
 # -----------------------------------------------------------------------------
-# SEO & Social (basic - extended config in _data/config/site.yml)
+# SEO & Social
 # -----------------------------------------------------------------------------
 seo:
   type: "ResearchProject"
@@ -176,22 +176,17 @@ csp:
     - https://*.shinyapps.io
 
 # -----------------------------------------------------------------------------
-# Feature Flags (reference _data/config/features.yml for full options)
+# Feature Flags
 # -----------------------------------------------------------------------------
 features:
   mathjax: true
-  math_toolkit: true
-  math_search: true
   search: true
-  accessibility_skip_link: true
   dark_mode_toggle: true
-  notebook_support: true
   portfolio: true
   datasets: true
   visualizations: true
   academic_dashboard: true
   citation_tracking: true
-  academic_calendar: true
 
 critical_css:
   enabled: true
@@ -204,13 +199,12 @@ critical_css:
     timeout: 30000
 
 # -----------------------------------------------------------------------------
-# Theme Options (reference _data/config/theme.yml for full options)
+# Theme Options
 # -----------------------------------------------------------------------------
 theme_options:
   math:
     engine: mathjax
     output: chtml
-    equation_numbering: true
     accessibility: true
     render_on_load: auto
     katex_cdn: https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/
@@ -245,12 +239,8 @@ integrations:
     api_base: https://api.github.com/repos
     cache_ttl: 43200
     enabled: true
-  binder:
-    enabled: true
-    url_template: https://mybinder.org/v2/gh/%{slug}/%{branch}?labpath=%{path}
-  colab:
-    enabled: true
-    url_template: https://colab.research.google.com/github/%{slug}/blob/%{branch}/%{path}
+# The Binder and Colab buttons on notebook pages are set under `notebooks:`
+# above (repository, branch, binder.base_url, colab.base_url).
 
 # -----------------------------------------------------------------------------
 # DataLog Plugins
