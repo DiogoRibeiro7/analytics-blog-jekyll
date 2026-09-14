@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- Ruby Tests jobs on Ruby 3.3 and 3.4 in the Tests workflow run the Ruby suite on the newer releases, next to the existing job on 3.2. `tests/test_gem_package.rb` checks the Ruby requirement, that every runtime dependency has an upper bound, that the unused and optional gems stay out, and which script files the gem ships (#203).
 - A Docker Images workflow builds `Dockerfile` and `Dockerfile.dev`, without pushing, on pull requests that change what they are built from (#205).
 - `bundle exec rake test` builds the demo site and runs the Minitest suite, the same command as the Tests workflow, and is the default Rake task. `tests/test_site_output.rb` takes over what the `ci:verify` scripts checked and no other suite did: `CITATION.cff` matching the theme version, citation exports and scholar metadata on posts, the math status live region, `noopener` on every link that opens a new tab, and sandboxed app embeds. The browser suite checks that code blocks in a post get a labelled copy button, which the post layout adds when the page loads (#204).
 - A Lint job in the Tests workflow runs ESLint and RuboCop, and the test summary fails when it does. Both linters were configured in the repository but ran in no workflow. RuboCop is now a development dependency, pinned because the repository has no `Gemfile.lock`; the offenses that predate the job are listed in `.rubocop_todo.yml`, so new code has to pass (#204).
@@ -23,6 +24,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- The gem requires Ruby 3.2, the version the sass-embedded and nokogiri releases it resolves need; it claimed 3.0. Every runtime dependency is bounded below its next major version (`~> 1.15` rather than `>= 1.15`), so a breaking release arrives through a pull request instead of an untested `bundle update` (#203).
+- `googleauth` is no longer a dependency of the theme. Only the analytics dashboard with a GA4 property configured uses it, and every site installed it with its Google Cloud dependencies; a site that uses the dashboard adds `gem "googleauth"` to its Gemfile, and without it the dashboard says so (#203).
+- The Docker images build on `ruby:3.4-slim` and serve from `nginx:1.30-alpine`. `ruby:3.2-slim` is end of life and `nginx:1.27-alpine` carried known critical vulnerabilities (#203).
 - The pre-commit hook runs lint-staged only: ESLint and the Vitest tests related to the staged JavaScript. It used to run `npm audit`, which needs the network, and the whole Vitest suite on every commit; both still run on every pull request (#205).
 - Dependabot pull requests are titled `chore(deps)`, `chore(deps-dev)` and `ci(deps)`. The prefixes repeated the scope Dependabot appends, which gave titles like `chore(deps-dev)(deps-dev)` (#205).
 - The accessibility, broken link, dependency review and Lighthouse workflows cancel a pull request's superseded runs, the accessibility workflow installs a pinned `pa11y-ci` and uses the `http-server` devDependency, and `package.json` is marked private so `npm publish` refuses to publish the repository's tooling (#205).
@@ -39,6 +43,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Removed
 
+- `jekyll-archives` and `jekyll-remote-theme` from the gem's dependencies, which nothing in the theme used, and the 22 unbundled script sources from the gem. Pages load the bundles in `assets/js/dist` and `assets/js/loader.js`; every site copied the sources into its published output as well. A site that installs the theme from a checkout still has them (#203).
 - `rake ci:verify` and its twelve scripts in `scripts/`. Most checked that source files contained particular strings, repeated what Minitest, Vitest and Playwright already cover, and passed whether or not the built site worked. The Tests workflow no longer sets up Python, which only one of them needed (#204).
 - `project-sync.yml`, which only printed what it would have done, and `tests/test_critical_css.js`, `tests/test_search_accessibility.js` and `tests/test_viz_accessibility.js`, which no test command ran and which failed against the current sources (#204).
 - `lib/datalog/theme/theme.rb`, a theme registration hook that nothing required.
