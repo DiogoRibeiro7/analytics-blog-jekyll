@@ -49,12 +49,15 @@ class SiteOutputTest < Minitest::Test
 
   # An in-page link to an id the page does not have goes nowhere. StatFlow's
   # "See Also" lists turned each whole list into one anchor.
+  # Parsed rather than matched with patterns, so text inside scripts, such as a
+  # template string building `href="#${id}"`, is not mistaken for a link.
   def test_in_page_links_reach_an_element_on_the_page
     SiteBuilder.build
     broken = Dir.glob(File.join(SiteBuilder.destination, "**", "*.html")).filter_map do |path|
-      html = File.read(path)
-      ids = html.scan(/\b(?:id|name)="([^"]+)"/).flatten
-      missing = html.gsub(%r{<(script|style)\b.*?</\1>}m, "").scan(/href="#([^"]+)"/).flatten.uniq - ids
+      document = Nokogiri::HTML5(File.read(path))
+      targets = document.css("[id]").map { |node| node["id"] } + document.css("[name]").map { |node| node["name"] }
+      links = document.css('a[href^="#"]').map { |link| link["href"].delete_prefix("#") }.reject(&:empty?)
+      missing = links.uniq - targets
       "#{path.delete_prefix(SiteBuilder.destination)}: #{missing.join(', ')}" unless missing.empty?
     end
 
