@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- A `rouge_highlight` Liquid filter highlights code passed to an include as the site builds. The package API examples and the enhanced code block, which printed its code unescaped, use it, and the notebook converter highlights code cells the same way (#197).
+- The head preloads the visualization, notebook and academic bundles on the pages that use them, as it already did for search and math, so they download alongside the core bundle instead of after it (#197).
+- `tests/test_rouge_highlighting.rb` checks that code is highlighted as the site builds and that pages load no Prism. `tests/test_feature_loading.rb` checks the new preloads and which pages inline the academic data, and a Playwright test checks that the copy button labels the language and leaves out line numbers (#197).
 - Ruby Tests jobs on Ruby 3.3 and 3.4 in the Tests workflow run the Ruby suite on the newer releases, next to the existing job on 3.2. `tests/test_gem_package.rb` checks the Ruby requirement, that every runtime dependency has an upper bound, that the unused and optional gems stay out, and which script files the gem ships (#203).
 - `tests/test_site_output.rb` checks that every in-page link on the built site reaches an element on that page (#206).
 - A Docker Images workflow builds `Dockerfile` and `Dockerfile.dev`, without pushing, on pull requests that change what they are built from (#205).
@@ -25,6 +28,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- Code is highlighted by Rouge alone, when the site builds. Pages with code also loaded Prism from jsDelivr (seven scripts and two stylesheets on a post), which highlighted the blocks again in the browser and turned every language it had no grammar for, such as bash and yaml, into plain text. The theme now styles Rouge's tokens and line numbers in light and dark mode, in greys that meet 4.5:1 contrast (the comment grey Prism used measured 2.33:1 in light mode), and gives every code block tabindex="0", as Prism did, so a wide block can be scrolled from the keyboard. Search results show code snippets as plain text (#197).
+- The academic and publication data is inlined only on pages that render citation metrics, tables or charts, the only pages whose script reads it. On the home page it was nearly a quarter of the HTML (#197).
+- The image optimizer fetches one image per page early: the first image in the post or page content, and none on a page that preloads its hero. It gave the first image anywhere on the page both `loading="lazy"` and `fetchpriority="high"`, which was a post card below the hero on the home page and a related-post thumbnail at the bottom of tutorials (#197).
+- Google Fonts is asked for the eight weights the stylesheet uses instead of eleven, and the font stylesheet link no longer repeats its `media` and `data-async-style` attributes (#197).
 - The gem requires Ruby 3.2, the version the sass-embedded and nokogiri releases it resolves need; it claimed 3.0. Every runtime dependency is bounded below its next major version (`~> 1.15` rather than `>= 1.15`), so a breaking release arrives through a pull request instead of an untested `bundle update` (#203).
 - `googleauth` is no longer a dependency of the theme. Only the analytics dashboard with a GA4 property configured uses it, and every site installed it with its Google Cloud dependencies; a site that uses the dashboard adds `gem "googleauth"` to its Gemfile, and without it the dashboard says so (#203).
 - The Docker images build on `ruby:3.4-slim` and serve from `nginx:1.30-alpine`. `ruby:3.2-slim` is end of life, and 1.27 was an nginx mainline branch that no longer gets releases (#203).
@@ -42,8 +49,14 @@ All notable changes to this project will be documented in this file. The format 
 - The documentation is organised by task. `docs/README.md` indexes the guides by what a reader wants to do; the phase summaries, the configuration refactoring plan and the 2025 security audit moved to `docs/history/` under a note that they are not maintained; and the Phase 1 features guide became `docs/components.md`, without the `phase1_features` settings the theme never read and with instructions that work for a site using the gem. The installation guide lost its leftover citation markers, and the README and the starter template pin the current `~> 0.7` series.
 - The installation guide covers what a site supplies itself (pages, navigation, social links), installing from a Git checkout, and publishing to GitHub Pages with GitHub Actions. It replaces instructions for the built-in Pages build, which cannot run the theme.
 
+### Deprecated
+
+- `theme_options.syntax_highlighting` no longer has an effect, and a build that sets it prints a warning (#197).
+
 ### Removed
 
+- Prism: its scripts and stylesheets, their SRI entries, the `meta/syntax-config.html` include, the `syntax_highlighting` page setting and the `theme_options.syntax_highlighting` block in the demo configuration (#197).
+- `window.DatalogTheme` and `window.DatalogContent`, which every page inlined and no script read (#197).
 - `jekyll-archives` and `jekyll-remote-theme` from the gem's dependencies, which nothing in the theme used, and the 22 unbundled script sources from the gem. Pages load the bundles in `assets/js/dist` and `assets/js/loader.js`; every site copied the sources into its published output as well. A site that installs the theme from a checkout still has them (#203).
 - Settings in the demo `_config.yml` that nothing reads: `features.math_toolkit`, `math_search`, `accessibility_skip_link`, `academic_calendar` and `notebook_support`, `theme_options.math.equation_numbering`, and `integrations.binder` and `integrations.colab`, whose buttons are configured under `notebooks:` (#206).
 - `rake ci:verify` and its twelve scripts in `scripts/`. Most checked that source files contained particular strings, repeated what Minitest, Vitest and Playwright already cover, and passed whether or not the built site worked. The Tests workflow no longer sets up Python, which only one of them needed (#204).
