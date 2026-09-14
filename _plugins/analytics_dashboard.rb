@@ -98,7 +98,10 @@ module Datalog
       results["status"] = "ok"
       results
     rescue LoadError => e
-      fallback_payload("missing_dependency", "Install googleauth to enable GA4 integration: #{e.message}")
+      # The theme does not depend on googleauth: only a site with a GA4 property
+      # configured needs it, and adds it to its own Gemfile.
+      fallback_payload("missing_dependency",
+                       "Add gem \"googleauth\" to the site's Gemfile to enable the GA4 integration: #{e.message}")
     rescue StandardError => e
       fallback_payload("error", e.message)
     end
