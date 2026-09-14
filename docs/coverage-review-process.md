@@ -48,7 +48,7 @@ Fill in the table below with current values from `npm run test:coverage`:
 ### 2. Compare to Previous Quarter
 
 - [ ] Did any module drop below its previous coverage?
-- [ ] Did any module drop below the project minimums (80% statements, 70% branches)?
+- [ ] Did any module drop below the project minimums in `vitest.config.js` (88% statements, 78% branches, 83% functions, 88% lines)?
 - [ ] Were new modules added without tests?
 
 ### 3. Identify Priority Gaps
@@ -83,11 +83,13 @@ gh issue create --title "test: improve [module] coverage to [target]%" --label "
 
 ## Coverage Minimums
 
+The minimums are the thresholds in `vitest.config.js`, which fail the Tests workflow when coverage drops below them:
+
 | Metric | Minimum | Target |
 |--------|---------|--------|
-| Statements | 80% | 90% |
-| Branches | 70% | 85% |
-| Functions | 75% | 90% |
-| Lines | 80% | 90% |
+| Statements | 88% | 90% |
+| Branches | 78% | 85% |
+| Functions | 83% | 90% |
+| Lines | 88% | 90% |
 
 Modules on critical user paths (navigation, search, math) should target 95%+.
