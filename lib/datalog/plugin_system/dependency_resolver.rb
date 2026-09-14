@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module Datalog
   module PluginSystem
     class DependencyResolver
