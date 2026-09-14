@@ -189,6 +189,7 @@ The analytics dashboard plugin fetches real-time data from GA4 and displays it o
 - Google Cloud Project with billing enabled (free tier available)
 - Google Analytics 4 property
 - Service account with Analytics API access
+- The `googleauth` gem in your site's Gemfile (`gem "googleauth"`). The theme does not depend on it, so sites without the dashboard don't install the Google Cloud gems; without it the dashboard shows a message saying the gem is missing.
 
 #### Step-by-Step Setup
 

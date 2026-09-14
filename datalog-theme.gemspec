@@ -24,7 +24,9 @@ Gem::Specification.new do |spec|
   spec.metadata["plugin_type"]       = "theme"
   spec.metadata["orcid"]             = "https://orcid.org/0009-0001-2022-7072"
 
-  spec.required_ruby_version = ">= 3.0"
+  # The sass-embedded and nokogiri releases the theme is tested with need Ruby
+  # 3.2; the gemspec said 3.0.
+  spec.required_ruby_version = ">= 3.2"
   spec.require_paths = ["lib"]
   spec.bindir = "bin"
   spec.executables = ["datalog"]
@@ -60,26 +62,30 @@ Gem::Specification.new do |spec|
     (tracked + built).uniq.sort
   end
 
+  # Each dependency stops below its next major version, so a breaking release
+  # reaches sites through a pull request that updates this file rather than an
+  # untested `bundle update`.
   spec.add_runtime_dependency "jekyll", "~> 4.3"
   spec.add_runtime_dependency "jekyll-sass-converter", "~> 3.0"
-  spec.add_runtime_dependency "jekyll-feed", ">= 0.16"
-  spec.add_runtime_dependency "jekyll-seo-tag", ">= 2.8"
-  spec.add_runtime_dependency "jekyll-sitemap", ">= 1.4"
-  spec.add_runtime_dependency "sass-embedded", ">= 1.71"
-  spec.add_runtime_dependency "jekyll-paginate", ">= 1.1"
-  spec.add_runtime_dependency "jekyll-include-cache", ">= 0.2"
-  spec.add_runtime_dependency "jekyll-archives", ">= 2.2"
-  spec.add_runtime_dependency "jekyll-remote-theme", ">= 0.4"
-  spec.add_runtime_dependency "jekyll-redirect-from", ">= 0.16"
-  spec.add_runtime_dependency "kramdown-parser-gfm", ">= 1.1"
-  spec.add_runtime_dependency "webrick", ">= 1.8"
-  spec.add_runtime_dependency "fastimage", ">= 2.2"
-  spec.add_runtime_dependency "loofah", ">= 2.19"
-  spec.add_runtime_dependency "nokogiri", ">= 1.15"
-  spec.add_runtime_dependency "mini_magick", ">= 4.12"
-  spec.add_runtime_dependency "logger", ">= 1.6"
-  spec.add_runtime_dependency "thor", ">= 1.3"
-  spec.add_runtime_dependency "googleauth", ">= 1.9"
+  spec.add_runtime_dependency "jekyll-feed", "~> 0.16"
+  spec.add_runtime_dependency "jekyll-seo-tag", "~> 2.8"
+  spec.add_runtime_dependency "jekyll-sitemap", "~> 1.4"
+  spec.add_runtime_dependency "sass-embedded", "~> 1.71"
+  spec.add_runtime_dependency "jekyll-paginate", "~> 1.1"
+  spec.add_runtime_dependency "jekyll-include-cache", "~> 0.2"
+  spec.add_runtime_dependency "jekyll-redirect-from", "~> 0.16"
+  spec.add_runtime_dependency "kramdown-parser-gfm", "~> 1.1"
+  spec.add_runtime_dependency "webrick", "~> 1.8"
+  spec.add_runtime_dependency "fastimage", "~> 2.2"
+  spec.add_runtime_dependency "loofah", "~> 2.19"
+  spec.add_runtime_dependency "nokogiri", "~> 1.15"
+  spec.add_runtime_dependency "mini_magick", ">= 4.12", "< 6"
+  spec.add_runtime_dependency "logger", "~> 1.6"
+  spec.add_runtime_dependency "thor", "~> 1.3"
+  # googleauth, with the Google Cloud gems it brings, is needed only by the
+  # analytics dashboard with a GA4 property configured, and such a site adds it
+  # to its own Gemfile. jekyll-archives and jekyll-remote-theme were listed here
+  # but used by nothing in the theme.
 
   spec.add_development_dependency "bundler", ">= 2.4"
   spec.add_development_dependency "rake", ">= 13.0"
