@@ -18,8 +18,12 @@ test.describe('Visualization loading', () => {
 
     await page.addInitScript(() => {
       if (!window.__datalogWidgetManagerPromise) {
+        // Mirrors what @jupyter-widgets/html-manager exports. The stub used to
+        // offer a WidgetManager, which the real module does not, so this test
+        // passed while every widget on the page failed to render.
         window.__datalogWidgetManagerPromise = Promise.resolve({
-          WidgetManager: class {
+          requireLoader: () => Promise.resolve({}),
+          HTMLManager: class {
             set_state() {
               return Promise.resolve();
             }
@@ -32,8 +36,7 @@ test.describe('Visualization loading', () => {
               return Promise.resolve({});
             }
 
-            display_view(_model, _view, options) {
-              const el = options && options.el;
+            display_view(_view, el) {
               if (el && !el.querySelector('[data-test-widget-placeholder]')) {
                 const placeholder = document.createElement('div');
                 placeholder.setAttribute('data-test-widget-placeholder', 'true');
