@@ -90,13 +90,22 @@ Parameters:
   {% endif %}
 
   {% if include.see_also %}
+    {%- comment -%}
+    `see_also` is a comma-separated list of functions documented on the same page, such as
+    `see_also="mannwhitneyu, anova"`. The loop used to take the whole string as one item, so two
+    names made a single link to an anchor that did not exist.
+    {%- endcomment -%}
+    {% assign see_also_items = include.see_also | split: "," %}
     <div class="api-function__section">
       <h4 class="api-function__section-title">See Also</h4>
       <ul class="api-function__see-also">
-        {% for item in include.see_also %}
+        {% for raw_item in see_also_items %}
+          {% assign item = raw_item | strip %}
+          {% if item != "" %}
           <li>
             <a href="#{{ item | slugify }}"><code>{{ item }}</code></a>
           </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </div>
