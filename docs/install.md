@@ -259,7 +259,7 @@ After updating `_config.yml`, restart the development server (or rebuild in Dock
 | `Missing required configuration 'author'` | Set `author.name` in `_config.yml`. |
 | The build stops and asks for `ignore_theme_config` | The theme is installed from a Git checkout or a local path; see section 2.2. |
 | Notebook conversion fails | Verify the notebook contains metadata and review `_plugins/notebook_converter.rb` logs; re-run the notebook to capture outputs. |
-| Math does not render | With `theme_options.math.render_on_load: auto`, MathJax loads only on pages that contain math. Add `math: true` to a page's front matter to load it regardless, and check the browser console for LaTeX errors. |
+| Math does not render | With `theme_options.math.render_on_load: auto`, MathJax loads only on pages that contain math. Add `math: true` to a page's front matter to load it regardless, and check the browser console for LaTeX errors. Inline math with spaces inside the dollars counts only when it holds a TeX command, `^` or `_`, so write `$ x $` as `$x$`. |
 | Visualizations missing | Ensure embeds include the correct `data-viz-*` attributes and referenced files exist under `assets/` or your chosen path. |
 
 ## 6. Next Steps

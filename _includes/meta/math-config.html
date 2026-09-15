@@ -8,8 +8,12 @@ optional:
 Computes math rendering settings shared by layouts.
 Exposes math_enabled, math_engine, math_status_id, and math_has_expressions variables.
 
-math_enabled resolves, in order: the page's `mathjax` or `math` front matter,
-then `theme_options.math.render_on_load` (falling back to `features.mathjax`).
+math_enabled resolves, in order: the page's `math` front matter, then its
+`mathjax` front matter, then `theme_options.math.render_on_load` (falling back
+to `features.mathjax`). `mathjax` is an alias read only when `math` is unset: it
+used to be read first, so a page could not turn off with `math: false` what a
+`mathjax: true` in front matter defaults had turned on.
+_plugins/math_preprocessor.rb resolves the two the same way.
 With `render_on_load: auto` the engine is only loaded on pages with math: the
 math preprocessor records each expression it wraps in `math_expressions`, and
 leaves code alone. Kramdown's `math/tex` scripts and the preprocessor's
@@ -33,10 +37,10 @@ only on pages that opt in.
 {%- if math_load == nil -%}
   {%- assign math_load = site.features.mathjax -%}
 {%- endif -%}
-{%- if include.page.mathjax != nil -%}
-  {%- assign math_enabled = include.page.mathjax -%}
-{%- elsif include.page.math != nil -%}
+{%- if include.page.math != nil -%}
   {%- assign math_enabled = include.page.math -%}
+{%- elsif include.page.mathjax != nil -%}
+  {%- assign math_enabled = include.page.mathjax -%}
 {%- elsif math_load == 'auto' -%}
   {%- assign math_enabled = math_has_expressions -%}
   {%- if content contains 'math/tex' or content contains 'math-expression--source' -%}

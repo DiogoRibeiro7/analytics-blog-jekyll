@@ -374,3 +374,52 @@ class ConfigValidatorRebuildTest < Minitest::Test
     end
   end
 end
+
+# A `mathjax: true` in front matter defaults loaded MathJax on every page in its
+# scope, and theme_options.math.enabled, which the user guide's troubleshooting
+# table pointed to, does nothing. The build said neither.
+class ConfigValidatorMathSettingsTest < Minitest::Test
+  def test_warns_when_defaults_load_math_on_every_page_under_auto
+    %w[math mathjax].each do |key|
+      warnings = warnings_for(
+        "theme_options" => { "math" => { "render_on_load" => "auto" } },
+        "defaults" => [
+          { "scope" => { "path" => "", "type" => "posts" }, "values" => { "layout" => "post", key => true } }
+        ]
+      )
+
+      assert_equal 1, warnings.size, warnings.inspect
+      assert_includes warnings.first, "'#{key}: true' for the pages of type 'posts'"
+    end
+  end
+
+  def test_no_warning_for_defaults_that_turn_math_off_or_without_auto
+    defaults = [{ "scope" => { "path" => "_pages" }, "values" => { "mathjax" => false } }]
+    assert_empty warnings_for("theme_options" => { "math" => { "render_on_load" => "auto" } }, "defaults" => defaults)
+
+    defaults = [{ "scope" => { "path" => "" }, "values" => { "mathjax" => true } }]
+    assert_empty warnings_for("theme_options" => { "math" => { "render_on_load" => true } }, "defaults" => defaults)
+  end
+
+  def test_warns_that_math_enabled_has_no_effect
+    [true, false].each do |value|
+      warnings = warnings_for("theme_options" => { "math" => { "enabled" => value } })
+
+      warned = warnings.any? do |warning|
+        warning.include?("theme_options.math.enabled") && warning.include?("render_on_load")
+      end
+      assert warned, "enabled: #{value} should warn: #{warnings.inspect}"
+    end
+  end
+
+  private
+
+  def warnings_for(overrides)
+    config = { "title" => "Test Site", "url" => "https://example.com", "author" => "Test Author" }.merge(overrides)
+    validator = Datalog::ConfigValidator::Validator.new(config)
+    validator.run
+
+    assert_empty validator.errors
+    validator.warnings
+  end
+end

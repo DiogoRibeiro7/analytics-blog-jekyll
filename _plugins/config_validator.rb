@@ -84,6 +84,11 @@ module Datalog
       "theme_options.syntax_highlighting" => {
         message: "Code is highlighted by Rouge when the site builds and the theme no longer loads Prism, " \
                  "so these settings have no effect. Remove them."
+      },
+      # The user guide's troubleshooting table sent readers here.
+      "theme_options.math.enabled" => {
+        message: "Nothing reads it: theme_options.math.render_on_load decides which pages load the math engine, " \
+                 "and a page's `math` front matter overrides that. Remove it."
       }
     }.freeze
 
@@ -109,6 +114,7 @@ module Datalog
 
         apply_deprecated_migrations
         validate_schema(@config, SCHEMA)
+        check_math_defaults
 
         self
       end
@@ -142,6 +148,36 @@ module Datalog
             @warnings << "Deprecated config key '#{path}' detected. #{metadata[:message]}"
           end
         end
+      end
+
+      # With render_on_load: auto, only the pages with math load the math
+      # engine. `math: true` or `mathjax: true` in front matter defaults loads it
+      # on every page in their scope instead, and nothing in the build said so.
+      def check_math_defaults
+        return unless dig_value(@config, %w[theme_options math render_on_load]) == "auto"
+
+        Array(@config["defaults"]).each do |entry|
+          values = entry["values"] if entry.is_a?(Hash)
+          next unless values.is_a?(Hash)
+
+          %w[math mathjax].each do |key|
+            next unless values[key] == true
+
+            @warnings << "Front matter defaults set '#{key}: true' for #{describe_scope(entry['scope'])}, so they all " \
+                         "load the math engine, whatever theme_options.math.render_on_load: auto finds. " \
+                         "Remove it, and set 'math: true' on the pages that need the engine."
+          end
+        end
+      end
+
+      def describe_scope(scope)
+        scope = {} unless scope.is_a?(Hash)
+        type = scope["type"].to_s
+        path = scope["path"].to_s
+        return "every page" if type.empty? && path.empty?
+
+        pages = type.empty? ? "the pages" : "the pages of type '#{type}'"
+        path.empty? ? pages : "#{pages} under '#{path}'"
       end
 
       def validate_schema(data, schema, path = [])
@@ -340,7 +376,8 @@ module Datalog
         head, *tail = path
         return nil if head.nil?
 
-        value = data[head] || data[head.to_sym]
+        # `data[head] || data[head.to_sym]` turned a `false` into nil.
+        value = data.key?(head) ? data[head] : data[head.to_sym]
         return value if tail.empty?
 
         dig_value(value, tail)

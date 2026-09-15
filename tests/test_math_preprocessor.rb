@@ -103,4 +103,53 @@ class MathPreprocessorTest < Minitest::Test
     source = "It costs $5 a month, or $50 a year."
     assert_equal source, MathPreprocessor::Processor.new(source).process
   end
+
+  # MathJax and KaTeX render `$ … $` with spaces inside the dollars, which
+  # Pandoc's rule leaves out, so a page whose only math was written that way
+  # loaded neither engine.
+  def test_padded_inline_math_with_tex_is_wrapped
+    processor = MathPreprocessor::Processor.new('Precision is $ \frac{TP}{TP + FP} $ here.')
+    result = processor.process
+
+    assert_match(/math-expression-inline[^>]*>\$ \\frac\{TP\}\{TP \+ FP\} \$</, result)
+    assert_equal ['\frac{TP}{TP + FP}'], latex_of(processor)
+  end
+
+  def test_padded_prices_stay_text
+    source = "It costs $ 5 a month, or $ 50 a year."
+    assert_equal source, MathPreprocessor::Processor.new(source).process
+  end
+
+  # Unless the wrapped expression is set aside, the padded pattern pairs the
+  # dollar sign before 5 with the one inside the wrapper, whose attributes hold
+  # a TeX command, and wraps the markup.
+  def test_padded_pattern_leaves_wrapped_math_alone
+    processor = MathPreprocessor::Processor.new('It costs $ 5, see $\alpha$.')
+    result = processor.process
+
+    assert result.start_with?("It costs $ 5, see <span "), result
+    assert_equal ['\alpha'], latex_of(processor)
+  end
+
+  # A `mathjax: true` in front matter defaults used to win over a page's
+  # `math: false`.
+  def test_math_front_matter_wins_over_mathjax
+    document = page_with("Costs $5 or $x$.", "mathjax" => true, "math" => false)
+    MathPreprocessor.apply(document)
+    assert_equal "Costs $5 or $x$.", document.content
+
+    document = page_with("Costs $5 or $x$.", "mathjax" => false, "math" => true)
+    MathPreprocessor.apply(document)
+    assert_includes document.content, "math-expression-inline"
+  end
+
+  private
+
+  def page_with(content, data)
+    Struct.new(:content, :data, :output_ext).new(content, data, ".html")
+  end
+
+  def latex_of(processor)
+    processor.expressions.map { |expression| expression["latex"] }
+  end
 end
