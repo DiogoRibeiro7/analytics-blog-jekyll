@@ -26,6 +26,16 @@ module MathPreprocessor
       regex: /(?<![\\$])(?<open>\$)(?![\s$])(?<body>(?:[^$\\\n]|\\.|\n(?![ \t]*\n))+?)(?<![\s\\])(?<close>\$)(?![$\d])/m,
       tag: "span"
     },
+    # MathJax and KaTeX also render math with spaces inside the dollars, such
+    # as `$ \frac{a}{b} $`, which the rule above leaves out, so a page whose
+    # only math was written that way loaded no engine. Such a pair counts when
+    # its body holds a TeX command, a superscript or a subscript, which prices
+    # like `$ 5 or $ 10` do not.
+    {
+      regex: /(?<![\\$])(?<open>\$)(?!\$)(?<body>(?:[^$\\\n]|\\.|\n(?![ \t]*\n))+?)(?<!\\)(?<close>\$)(?![$\d])/m,
+      tag: "span",
+      requires: /\\[a-zA-Z]+|[\^_]/
+    },
     {
       regex: /(?<open>\\\()(?<body>.+?)(?<close>\\\))/m,
       tag: "span"
@@ -57,21 +67,23 @@ module MathPreprocessor
     def process
       return @content unless @content&.match?(/\$|\\\(|\\\[|\\begin\{/)
 
-      code = []
+      @segments = []
       processed = CODE_PATTERNS.reduce(@content.dup) do |text, pattern|
-        text.gsub(pattern) do |match|
-          code << match
-          "\x00#{code.size - 1}\x00"
-        end
+        text.gsub(pattern) { |match| mask(match) }
       end
       processed = apply_patterns(processed, DISPLAY_PATTERNS, display: true)
       processed = apply_patterns(processed, INLINE_PATTERNS, display: false)
       # A segment set aside can contain the placeholder of an earlier one.
-      processed = processed.gsub(PLACEHOLDER) { code[Regexp.last_match(1).to_i] } while processed.match?(PLACEHOLDER)
+      processed = processed.gsub(PLACEHOLDER) { @segments[Regexp.last_match(1).to_i] } while processed.match?(PLACEHOLDER)
       processed
     end
 
     private
+
+    def mask(segment)
+      @segments << segment
+      "\x00#{@segments.size - 1}\x00"
+    end
 
     def apply_patterns(text, patterns, display: false)
       patterns.reduce(text) do |result, pattern|
@@ -81,8 +93,11 @@ module MathPreprocessor
           close = Regexp.last_match[:close]
 
           next match if body.nil? || body.strip.empty?
+          next match if pattern[:requires] && !pattern[:requires].match?(body)
 
-          wrapper_for(match, body, open, close, pattern[:tag], display: display)
+          # Each wrapper is set aside like code. Otherwise a later pattern could
+          # pair a dollar sign inside it with one in the text that follows.
+          mask(wrapper_for(match, body, open, close, pattern[:tag], display: display))
         end
       end
     end
@@ -195,9 +210,9 @@ module MathPreprocessor
   def apply(document)
     return unless document.respond_to?(:content)
     return unless document.respond_to?(:output_ext) && document.output_ext == ".html"
-    # A page that opts out of math rendering (`math: false` or `mathjax: false`)
-    # keeps its dollar signs and TeX-looking text verbatim.
-    return if document.respond_to?(:data) && (document.data["math"] == false || document.data["mathjax"] == false)
+    # A page that opts out of math rendering keeps its dollar signs and
+    # TeX-looking text verbatim.
+    return if document.respond_to?(:data) && math_setting(document.data) == false
 
     content = document.content
     return unless content&.match?(/\$|\\\(|\\\[|\\begin\{/)
@@ -206,6 +221,13 @@ module MathPreprocessor
     updated_content = processor.process
     document.content = updated_content
     document.data["math_expressions"] = processor.expressions if processor.expressions.any?
+  end
+
+  # `math`, or its alias `mathjax` when `math` is unset, as
+  # _includes/meta/math-config.html reads them. A `mathjax: true` in front
+  # matter defaults used to win over a page's `math: false`.
+  def math_setting(data)
+    data["math"].nil? ? data["mathjax"] : data["math"]
   end
 end
 

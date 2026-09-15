@@ -126,7 +126,7 @@ $$
 | --- | --- |
 | `jekyll` command missing | Install Ruby via rbenv/rvm or Conda and rerun `bundle install`. |
 | Notebook conversion fails | Ensure the notebook has been executed and contains JSON metadata; check `_plugins/notebook_converter.rb` logs. |
-| Math not rendering | Verify `theme_options.math.enabled` is `true` and there are no LaTeX syntax errors (MathJax will log them in the console). |
+| Math not rendering | With `theme_options.math.render_on_load: auto`, MathJax loads only on pages that contain math. Inline math with spaces inside the dollars counts only when it holds a TeX command, `^` or `_`, so write `$ x $` as `$x$`, or add `math: true` to the page's front matter to load MathJax regardless. Check the browser console for LaTeX errors. |
 | Visualizations not loading | Confirm data attributes (`data-viz-type`, `data-viz-src`) are set and the referenced files exist. |
 | GitHub API rate limiting | Configure a `github_token` in `_config.yml` or as an environment variable for authenticated requests. |
 

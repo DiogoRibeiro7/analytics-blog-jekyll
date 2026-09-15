@@ -68,7 +68,9 @@ theme_options:
 The math engine is loaded from a CDN and weighs several hundred kilobytes, so by default it is only loaded where it is needed:
 
 - `math.render_on_load: auto` loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
-- A page can force it with `math: true` or `math: false` in its front matter. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+- Inline math with spaces inside the dollars, such as `$ \frac{a}{b} $`, counts when it holds a TeX command, `^` or `_`, so `$ 5 or $ 10` stays text. Where MathJax loads it renders `$ x $` as well, but the preprocessor does not count it: write `$x$`, or set `math: true` on the page.
+- A page can force it with `math: true` or `math: false` in its front matter. `mathjax` is read as an alias when `math` is not set, so a page's `math: false` turns off what a `mathjax: true` default turned on. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+- Leave `math: true` and `mathjax: true` out of `defaults` while `render_on_load` is `auto`: every page in their scope would load the engine, math or not. The build prints a warning when it finds one.
 
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 

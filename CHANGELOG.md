@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- The build warns when front matter `defaults` set `math: true` or `mathjax: true` while `theme_options.math.render_on_load` is `auto`, since every page in their scope then loads the math engine, with math or without. It also warns that `theme_options.math.enabled` has no effect: nothing reads it, though the user guide's troubleshooting table told readers to check it (#234).
+
 ### Fixed
 
+- A page's `math` front matter now takes precedence over `mathjax`. `mathjax`, which the configuration guide did not mention, was read first, so under a `mathjax: true` in front matter defaults a page with `math: false` still loaded MathJax, which then rendered the page's dollar signs. `mathjax` is still read, as an alias, when `math` is not set, and the math preprocessor resolves the two the same way (#234).
+- Inline math with spaces inside the dollars, such as `$ \frac{TP}{TP + FP} $`, counts as math when it holds a TeX command, `^` or `_`. MathJax and KaTeX render it, but the math preprocessor followed Pandoc's rule and left it out, so with `render_on_load: auto` a page whose only math was written that way loaded no engine and showed the TeX source. The preprocessor now sets aside each expression it wraps, as it does code, so a later pattern cannot pair a dollar sign inside one with a dollar sign outside it (#234).
 - `jekyll serve` stopped regenerating the site after its first build when `_config.yml` set `sass.style`, as the demo's does. Converting a stylesheet, jekyll-sass-converter replaces that value in the site's configuration with a Symbol, and the config validator, which checked the configuration again on every build, stopped each rebuild with "Invalid type for 'sass.style'". A site's configuration is now checked on its first build only, and a Symbol passes where a String is expected. `jekyll build` was not affected (#235).
 - Configuration errors linked to a documentation site that was never published. They link to `docs/configuration-reference.md` on GitHub, which now lists every key the validator checks (#235).
 

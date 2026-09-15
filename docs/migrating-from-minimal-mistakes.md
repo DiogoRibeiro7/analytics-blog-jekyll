@@ -20,6 +20,9 @@ A build hook, `_plugins/front_matter_compat.rb`, reads the Minimal Mistakes fiel
 | `subtitle` | rendered under the title | Also shown inside an overlay hero |
 | `excerpt`, `summary`, `keywords`, `toc`, `toc_label`, `permalink`, `redirect_from` | same names | Read natively |
 | `why_this_exists`, `evidence`, `methodology`, `reviewed_at` | provenance note | An editorial note rendered between the topics and the article body |
+| `mathjax` | `math` | Loads the math engine on the page, or with `false` keeps it off; `math` wins when a page sets both |
+
+A site that turned MathJax on with `mathjax: true` in `defaults` should remove it. DataLog loads the math engine only on the pages that contain math (`theme_options.math.render_on_load: auto`), and a default loads it on every page in its scope instead; the build prints a warning when it finds one. Inline math written with spaces inside the dollars, such as `$ \frac{a}{b} $`, is found when it holds a TeX command, `^` or `_`. Section 3 of [configuration-guide.md](configuration-guide.md) has the details.
 
 Ignored, with no effect on the build:
 

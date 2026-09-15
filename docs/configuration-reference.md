@@ -43,7 +43,7 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options` | Map | Any |
 | `theme_options.math` | Map | Any |
 | `theme_options.math.engine` | String | `mathjax`, `katex` |
-| `theme_options.math.enabled` | Boolean | `true`, `false` |
+| `theme_options.math.enabled` | Boolean | `true`, `false`; deprecated, with no effect |
 
 ## Global Settings
 
@@ -115,26 +115,20 @@ This guide documents the configuration keys validated by the automated configura
       engine: mathjax
   ```
 
-##### theme_options.math.enabled
-- **Required:** No
-- **Type:** Boolean
-- **Description:** Explicitly toggle math rendering support regardless of engine selection.
-- **Example:**
-  ```yaml
-  theme_options:
-    math:
-      enabled: true
-  ```
-
 ## Deprecations
 
-The validator also inspects configuration keys that have moved or been renamed and provides non-blocking warnings when it can migrate values automatically.
+The validator also inspects configuration keys that have moved, been renamed or stopped having an effect, and provides non-blocking warnings, migrating values automatically where it can.
 
 ### math_engine (deprecated)
 - **Status:** Deprecated
 - **Replacement:** `theme_options.math.engine`
 - **Migration:** Automatically copied to the new key when not already set.
 - **Action:** Remove the deprecated key after verifying the migrated value in `_config.yml`.
+
+### theme_options.math.enabled (deprecated)
+- **Status:** Deprecated. Nothing reads it, so it has no effect.
+- **Replacement:** `theme_options.math.render_on_load` (`auto`, `true` or `false`) decides which pages load the math engine, and a page's `math` front matter overrides it.
+- **Action:** Remove the key.
 
 ## Troubleshooting
 
