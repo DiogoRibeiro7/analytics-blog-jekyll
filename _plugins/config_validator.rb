@@ -7,7 +7,8 @@ module Datalog
     safe true
     priority :highest
 
-    DOCUMENTATION_BASE_URL = "https://datalog-theme.github.io/docs/configuration-reference"
+    # docs/ is not part of the built site, so errors link to the file on GitHub.
+    DOCUMENTATION_URL = "https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md"
 
     SCHEMA = {
       title: { type: :string, required: true },
@@ -167,6 +168,10 @@ module Datalog
       end
 
       def validate_type(path, value, rules)
+        # YAML never yields a Symbol, but converters rewrite the site's own
+        # configuration: jekyll-sass-converter turns sass.style into one.
+        value = value.to_s if value.is_a?(Symbol)
+
         expected_type = rules[:type]
         if expected_type && !type_valid?(value, expected_type)
           errors << build_type_error(path, expected_type, value)
@@ -244,8 +249,7 @@ module Datalog
           headline: "Missing required configuration '#{identifier}'",
           path: path,
           expected: "Value required",
-          actual: "nil",
-          doc_url: documentation_url(path)
+          actual: "nil"
         }
       end
 
@@ -255,8 +259,7 @@ module Datalog
           headline: "Invalid type for '#{identifier}'",
           path: path,
           expected: human_type(expected_type),
-          actual: value.inspect,
-          doc_url: documentation_url(path)
+          actual: value.inspect
         }
       end
 
@@ -268,8 +271,7 @@ module Datalog
           path: path,
           expected: enum_values.map { |v| "\"#{v}\"" }.join(" or "),
           actual: value.inspect,
-          suggestion: suggestion,
-          doc_url: documentation_url(path)
+          suggestion: suggestion
         }
       end
 
@@ -279,8 +281,7 @@ module Datalog
           headline: "Invalid value for '#{identifier}'",
           path: path,
           expected: expectation,
-          actual: value.inspect,
-          doc_url: documentation_url(path)
+          actual: value.inspect
         }
       end
 
@@ -303,14 +304,9 @@ module Datalog
         lines << "  Received: #{error[:actual]}" if error[:actual]
         lines << ""
         lines << "  #{error[:suggestion]}" if error[:suggestion]
-        lines << "  Documentation: #{error[:doc_url]}"
+        lines << "  Documentation: #{DOCUMENTATION_URL}"
         lines.compact!
         lines.join("\n")
-      end
-
-      def documentation_url(path)
-        anchor = path.map { |segment| segment.gsub(/[^a-z0-9]+/i, "-") }.join("-").downcase
-        "#{DOCUMENTATION_BASE_URL}##{anchor}"
       end
 
       def human_type(type)
@@ -380,7 +376,15 @@ module Datalog
       end
     end
 
+    # `jekyll serve` processes the same site again on every change, without
+    # reading _config.yml again, and by then converters have rewritten parts of
+    # the configuration: jekyll-sass-converter turns sass.style into a Symbol.
+    # Checking on every build stopped each rebuild, so a site is checked on its
+    # first build. A `:site, :after_init` hook would also run once, but Jekyll's
+    # command line reports an error raised there as a backtrace, not a message.
     def generate(site)
+      return if @validated
+
       validator = Validator.new(site.config)
       validator.run
 
@@ -388,9 +392,8 @@ module Datalog
         logger.warn("config", warning)
       end
 
-      return if validator.errors.empty?
-
-      raise Jekyll::Errors::FatalException, validator.formatted_errors
+      @validated = validator.errors.empty?
+      raise Jekyll::Errors::FatalException, validator.formatted_errors unless @validated
     end
 
     private

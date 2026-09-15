@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "open3"
 require "ostruct"
+require "rbconfig"
+require "tmpdir"
 
 class ConfigValidatorTest < Minitest::Test
   def test_required_field_validation
@@ -200,6 +203,14 @@ class ConfigValidatorTest < Minitest::Test
     assert_nil run_generator(config)
   end
 
+  # jekyll-sass-converter replaces sass.style with a Symbol in the site's own
+  # configuration when it converts a stylesheet.
+  def test_accepts_a_sass_style_the_converter_made_a_symbol
+    config = base_config
+    config["sass"] = { "style" => :compressed }
+    assert_nil run_generator(config)
+  end
+
   # --- Plugins array ---
 
   def test_plugins_must_be_array
@@ -273,7 +284,31 @@ class ConfigValidatorTest < Minitest::Test
     assert_nil run_generator(config)
   end
 
+  # --- Documentation link ---
+
+  # Errors linked to a documentation site that was never published.
+  def test_errors_link_to_a_reference_that_lists_every_checked_key
+    config = base_config
+    config["paginate"] = "ten"
+
+    error = assert_raises(Jekyll::Errors::FatalException) { run_generator(config) }
+    assert_equal "https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md",
+                 error.message[/Documentation: (\S+)/, 1]
+
+    reference = File.read(File.expand_path("../docs/configuration-reference.md", __dir__))
+    schema_paths(Datalog::ConfigValidator::SCHEMA).each do |path|
+      assert_includes reference, "| `#{path}` |", "docs/configuration-reference.md should list #{path}"
+    end
+  end
+
   private
+
+  def schema_paths(schema, prefix = nil)
+    schema.flat_map do |key, rules|
+      path = [prefix, key].compact.join(".")
+      [path, *(rules[:schema] ? schema_paths(rules[:schema], path) : [])]
+    end
+  end
 
   def run_generator(config)
     validator = Datalog::ConfigValidator.new
@@ -296,5 +331,46 @@ class ConfigValidatorTest < Minitest::Test
         }
       }
     }
+  end
+end
+
+# `jekyll serve` stopped regenerating after its first build: the validator ran
+# again on the Symbol jekyll-sass-converter had left in sass.style and stopped
+# every rebuild with "Invalid type for 'sass.style'". The site is built in a
+# separate process so its hooks and plugins stay out of the other tests.
+class ConfigValidatorRebuildTest < Minitest::Test
+  VALIDATOR = File.expand_path("../_plugins/config_validator.rb", __dir__)
+
+  # Processes one site twice, as `jekyll serve` does when a file changes, and
+  # prints sass.style as the second build left it.
+  REBUILD = <<~'RUBY'
+    require "jekyll"
+
+    source, validator = ARGV
+    require validator
+
+    File.write(File.join(source, "style.scss"), "---\n---\nbody { color: red; }\n")
+    config = Jekyll.configuration(
+      "source" => source,
+      "destination" => File.join(source, "_site"),
+      "disable_disk_cache" => true,
+      "quiet" => true,
+      "title" => "Test Site",
+      "url" => "https://example.com",
+      "author" => { "name" => "Test Author" },
+      "sass" => { "style" => "compressed" }
+    )
+    site = Jekyll::Site.new(config)
+    2.times { site.process }
+    puts site.config["sass"]["style"].inspect
+  RUBY
+
+  def test_a_site_that_sets_sass_style_rebuilds
+    Dir.mktmpdir do |dir|
+      stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", REBUILD, dir, VALIDATOR)
+
+      assert status.success?, "the second build should succeed:\n#{stdout}#{stderr}"
+      assert_equal ":compressed", stdout.lines.last&.strip, "the converter should have rewritten sass.style"
+    end
   end
 end
