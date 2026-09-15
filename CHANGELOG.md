@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `jekyll serve` stopped regenerating the site after its first build when `_config.yml` set `sass.style`, as the demo's does. Converting a stylesheet, jekyll-sass-converter replaces that value in the site's configuration with a Symbol, and the config validator, which checked the configuration again on every build, stopped each rebuild with "Invalid type for 'sass.style'". A site's configuration is now checked on its first build only, and a Symbol passes where a String is expected. `jekyll build` was not affected (#235).
+- Configuration errors linked to a documentation site that was never published. They link to `docs/configuration-reference.md` on GitHub, which now lists every key the validator checks (#235).
+
 ## [0.8.0] - 2026-09-14
 
 ### Added
