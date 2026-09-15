@@ -2,6 +2,7 @@
 title: Academic CV Template
 permalink: /cv/
 layout: page
+show_title: false # the page renders its own <h1>
 description: Download a LaTeX and Markdown CV template tailored for data scientists and researchers.
 ---
 

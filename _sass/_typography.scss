@@ -146,3 +146,17 @@ pre code {
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+
+// Keyboard keys, such as the shortcut hints on the search page.
+kbd {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-background-secondary, #f7fafc);
+  border: 1px solid var(--color-border, #cbd5e0);
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a202c);
+  box-shadow: 0 2px 0 var(--color-border, #cbd5e0);
+}

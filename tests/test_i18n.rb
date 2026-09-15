@@ -28,9 +28,17 @@ class TestI18n < Minitest::Test
   def test_translation_tag_resolves_strings_from_locale_data
     html = SiteBuilder.read("index.html")
 
-    # header.reading_progress in _data/i18n/en.yml.
-    assert_includes html, "Reading progress:",
+    # global.math_loading in _data/i18n/en.yml, the math status every page carries.
+    assert_includes html, "Loading mathematical content",
                     "expected the {% t %} tag to render a string from _data/i18n/en.yml"
+  end
+
+  # The tag split its options on every comma, so a quoted value containing one
+  # was cut in two and the translation received only a fragment.
+  def test_translation_tag_keeps_commas_inside_quoted_options
+    template = Liquid::Template.parse(%({% t header.brand_home site: "Doe, Jane" %}))
+
+    assert_equal "Doe, Jane home", template.render!({}, registers: { site: SiteBuilder.site })
   end
 
   def test_translation_prefers_locale_data_over_the_inline_fallback

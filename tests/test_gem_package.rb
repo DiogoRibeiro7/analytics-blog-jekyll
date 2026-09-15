@@ -36,6 +36,34 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # The demo site keeps its navigation, social profiles, author profile, CV and
+  # publication exports in _data and assets, which the gem otherwise ships, so
+  # every site using the theme published them.
+  def test_leaves_out_the_demo_sites_data_and_downloads
+    %w[_data/i18n/en.yml _data/js_manifest.json _data/cdn-integrity.yml].each do |path|
+      assert_includes @spec.files, path, "the layouts need #{path} to render"
+    end
+
+    %w[
+      _data/navigation.yml
+      _data/social.yml
+      _data/config/author.yml
+      _data/publications.yml
+      assets/templates/diogo-ribeiro-cv.md
+      assets/publications/publications.bib
+    ].each do |path|
+      refute_includes @spec.files, path, "#{path} belongs to the demo site, not the theme"
+    end
+  end
+
+  # esbuild's metafile describes a build, not anything a page loads. The gem
+  # used to ship a committed copy that no longer matched its own bundles.
+  def test_leaves_out_the_build_records
+    %w[_data/js_meta.json assets/js/dist/meta.json assets/js/dist/manifest.json].each do |path|
+      refute_includes @spec.files, path, "#{path} is a record of the build, which no page loads"
+    end
+  end
+
   def test_declares_the_gems_the_shipped_plugins_require
     required = Dir[ROOT.join("_plugins", "*.rb")].flat_map do |plugin|
       File.readlines(plugin).filter_map { |line| line[/\A\s*require "([a-z0-9_-]+)"/, 1] }
@@ -50,6 +78,39 @@ class GemPackageTest < Minitest::Test
     end
   end
 
+  # The gemspec said Ruby 3.0, while the sass-embedded and nokogiri releases it
+  # resolves need 3.2.
+  def test_requires_the_ruby_its_dependencies_need
+    assert @spec.required_ruby_version.satisfied_by?(Gem::Version.new("3.2.0"))
+    refute @spec.required_ruby_version.satisfied_by?(Gem::Version.new("3.1.9"))
+  end
+
+  # Open-ended requirements accepted any future major release untested.
+  def test_bounds_every_runtime_dependency_below_its_next_major_version
+    @spec.runtime_dependencies.each do |dependency|
+      bounded = dependency.requirement.requirements.any? { |operator, _version| %w[~> <].include?(operator) }
+      assert bounded, "#{dependency.name} #{dependency.requirement} has no upper bound"
+    end
+  end
+
+  # jekyll-archives and jekyll-remote-theme were used by nothing, and googleauth
+  # (with the Google Cloud gems it brings) only by a GA4-configured dashboard.
+  def test_does_not_make_every_site_install_unused_or_optional_gems
+    declared = @spec.runtime_dependencies.map(&:name)
+    %w[jekyll-archives jekyll-remote-theme googleauth].each do |gem_name|
+      refute_includes declared, gem_name
+    end
+  end
+
+  # Pages load the bundles and the loader; a site copies every theme asset into
+  # its output, so the unbundled sources were published by every site.
+  def test_ships_the_loader_but_not_the_unbundled_script_sources
+    assert_includes @spec.files, "assets/js/loader.js"
+    %w[assets/js/main.js assets/js/search/engine.js assets/js/core/dark-mode.js].each do |path|
+      refute_includes @spec.files, path, "no page loads #{path}; the bundles in assets/js/dist are built from it"
+    end
+  end
+
   # Jekyll reads `_plugins/` for a site but not for a theme gem. Sites name the
   # theme in their `plugins:` list, which makes Jekyll require lib/datalog-theme.rb,
   # and that has to be enough to register the tags the layouts use.
@@ -57,14 +118,14 @@ class GemPackageTest < Minitest::Test
     script = <<~RUBY
       require "jekyll"
       require #{ROOT.join('lib/datalog-theme.rb').to_s.inspect}
-      puts !Liquid::Template.tags["t"].nil?
+      puts %w[t include_cached].all? { |tag| Liquid::Template.tags[tag] }
     RUBY
 
     stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", script, chdir: ROOT.to_s)
 
     assert status.success?, "loading the gem entry point failed: #{stderr}"
     assert_equal "true", stdout.strip,
-                 "requiring the theme should register the {% t %} tag its layouts use"
+                 "requiring the theme should register the {% t %} and {% include_cached %} tags its layouts use"
   end
 
   private

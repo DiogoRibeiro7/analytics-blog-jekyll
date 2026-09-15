@@ -1,6 +1,7 @@
 {
   "name": "analytics-blog-jekyll",
   "version": "1.0.0",
+  "private": true,
   "description": "Performance tooling for the DataLog Jekyll theme.",
   "type": "module",
   "scripts": {
@@ -29,20 +30,15 @@
     "http-server": "^14.1.1",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
-    "lint-staged": "^17.5.0",
+    "lint-staged": "^17.5.1",
     "vitest": "^4.0.12",
     "wait-on": "^9.1.0",
     "yaml": "^2.9.0"
   },
   "lint-staged": {
     "*.{js,mjs}": [
-      "eslint --fix"
-    ],
-    "*.{json,yml,yaml}": [
-      "echo '✓ Checked config file:'"
-    ],
-    "*.md": [
-      "echo '✓ Checked documentation file:'"
+      "eslint --fix",
+      "vitest related --run --passWithNoTests"
     ]
   }
 }

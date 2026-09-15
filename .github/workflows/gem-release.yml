@@ -20,6 +20,10 @@ on:
 jobs:
   release:
     name: Build and publish gem
+    # A manual run has to start from a v* tag ("Use workflow from" the tag),
+    # which is how a failed publish is retried. Started from a branch, it
+    # published whatever that branch held.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment:
       name: rubygems
@@ -29,7 +33,7 @@ jobs:
       id-token: write
     steps:
       - name: Check out repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 0
 
@@ -38,6 +42,15 @@ jobs:
         with:
           ruby-version: '3.2'
           bundler-cache: true
+
+      # Otherwise a tag that names one version publishes whatever version.rb says.
+      - name: Check the tag matches the gem version
+        run: |
+          VERSION=$(ruby -e 'load "lib/datalog/theme/version.rb"; print Datalog::Theme::VERSION')
+          if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match lib/datalog/theme/version.rb ($VERSION)"
+            exit 1
+          fi
 
       # The browser bundles are build output, so they are not in the
       # repository. Without this step the gem ships a manifest pointing at
@@ -53,6 +66,9 @@ jobs:
 
       - name: Build browser bundles
         run: npm run build:js
+
+      - name: Check the committed script manifest matches the build
+        run: git diff --exit-code -- _data/js_manifest.json
 
       - name: Build gem
         run: gem build datalog-theme.gemspec

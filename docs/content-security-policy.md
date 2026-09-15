@@ -10,12 +10,42 @@ party integrations.
 - During the build the `_plugins/csp_generator.rb` plugin assigns a **unique nonce** to every page and
   document. The nonce is available in templates as `page.csp_nonce` and is stored centrally under
   `site.data.csp.nonces` for debugging.
-- After each page renders the plugin calculates SHA-256 hashes for any inline script blocks. These
-  hashes are exposed via `page.csp_hashes` and referenced inside the CSP meta tag to support
-  third-party snippets that cannot accept nonces.
-- The `_includes/csp-meta.html` include assembles a directive set that whitelists first-party assets,
-  trusted CDNs, and the per-page nonce. Violations are reported to `/csp-report/` for local testing
-  and observability.
+- After each page renders, the plugin gives every inline `<script>` that lacks one the page's nonce.
+- The `_includes/csp-meta.html` include writes the policy for each page, from what the page loads.
+  Violations are reported to `/csp-report/` for local testing and observability.
+
+## What each page allows
+
+| Directive | Every page | Added when the page needs it |
+|---|---|---|
+| `script-src` | `'self'`, the page nonce | the math engine's directory on pages with math; Plotly, D3, BokehJS or Vega on pages with those blocks; Chart.js on the analytics dashboard; `https://*.disqus.com` and `https://*.disquscdn.com` on pages with Disqus comments; `https://*.googletagmanager.com` on a site that sets `google_analytics` |
+| `style-src` | `'self'`, the page nonce, Google Fonts | KaTeX's `dist/` directory on KaTeX pages; `https://*.disquscdn.com` on Disqus pages; `'unsafe-inline'` in place of the nonce on pages with MathJax, Plotly, a Jupyter widget or Disqus comments |
+| `font-src` | `'self'`, Google Fonts, `data:` | the math engine's directory on pages with math |
+| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; `https://*.disqus.com` on Disqus pages; Google's analytics hosts on a site that sets `google_analytics` |
+| `frame-src` | `'self'`, Observable (`observablehq.com` and `old.observablehq.com`, where its embeds redirect) | `https://disqus.com` on Disqus pages; the hosts in `csp.frame_src` |
+| `object-src` | `'none'` | |
+| `base-uri` | `'self'` | |
+| `form-action` | `'self'` | |
+
+jsDelivr serves any npm package, so the policy names the packages a page loads instead of the whole
+host. The math engine's directory comes from `theme_options.math.mathjax_cdn` or `katex_cdn`, the
+same setting the script tags use. The chart library URLs are written in
+`assets/js/visualizations.js`, `assets/js/notebook.js` and `_includes/analytics/dashboard.html`;
+when one changes, change it in `csp-meta.html` too, and `tests/test_csp.rb` fails until both agree.
+
+A site that embeds something else lists the sources in `_config.yml`:
+
+```yaml
+csp:
+  frame_src:
+    - https://shiny.posit.co
+  script_src:
+    - https://widgets.example.org/
+  style_src: []
+  font_src: []
+  connect_src:
+    - https://api.example.org
+```
 
 ## Working with inline scripts
 
@@ -26,6 +56,37 @@ party integrations.
   page.csp_nonce }}">…</script>`.
 - Avoid inline styles. If you must include them for critical rendering paths, use `<style
   nonce="{{ page.csp_nonce }}">` so the CSP allows them.
+
+## Pages with Plotly or Jupyter widgets
+
+Two libraries the visualization blocks load can't run under the strict policy:
+
+- Plotly inserts its rules into a `<style>` element it creates, which carries no nonce.
+- The Jupyter widget manager adds `<style>` elements as well, and compiles the widgets' JSON schemas
+  with `new Function`.
+
+The policy loosens only on the pages that run them. `_includes/csp-meta.html` looks at the rendered
+page:
+
+| The page contains | `style-src` | `script-src` | `font-src` |
+|---|---|---|---|
+| `data-viz-type="plotly"`, or a `notebook-output-plotly` element | `'unsafe-inline'` in place of the nonce | unchanged | unchanged |
+| `data-viz-type="ipywidgets"`, or a widget state script | `'unsafe-inline'` in place of the nonce | adds `'unsafe-eval'` | adds jsDelivr, for the widget icon fonts |
+
+Pages with MathJax, whose CHTML output inserts the stylesheet its layout depends on, and pages with
+Disqus comments, whose embed sizes its iframe with an inline style, also get `'unsafe-inline'` in
+`style-src`.
+
+`style-src` drops the nonce on those pages because a browser ignores `'unsafe-inline'` in a directive
+that also lists a nonce. Scripts need the nonce on every page.
+
+A page that loads either library some other way can ask for the same allowances in its front matter:
+
+```yaml
+csp:
+  unsafe_inline_styles: true
+  unsafe_eval: true
+```
 
 ## Extending CDN allowances with Subresource Integrity
 

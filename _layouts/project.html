@@ -1,5 +1,6 @@
 ---
 layout: default
+show_title: false # this layout renders the page's <h1>
 ---
 {% assign localization_config = site.theme_options.localization %}
 {% assign date_format = localization_config.date_format | default: 'long' %}
@@ -30,7 +31,7 @@ layout: default
       {% if page.github %}
       <section class="project-case__github" aria-labelledby="github-heading">
         <h2 id="github-heading">{% t 'project.header.github_repository' %}</h2>
-        <div class="project-case__github-card" data-github-repo="{{ page.github.repo }}" data-github-owner="{{ page.github.owner }}">
+        <div class="project-case__github-card" data-github-repo="{{ page.github.repo }}" data-github-owner="{{ page.github.owner }}" data-github-unavailable="{% t 'project.github.unavailable' %}">
           <div class="project-case__github-meta">
             <p class="project-case__github-name">
               <a href="https://github.com/{{ page.github.owner }}/{{ page.github.repo }}" itemprop="url">{{ page.github.owner }}/{{ page.github.repo }}</a>

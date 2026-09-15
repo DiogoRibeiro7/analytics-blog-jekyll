@@ -2,6 +2,7 @@
 title: Difficulty Archive
 permalink: /archives/difficulty/
 layout: page
+show_title: false # the page renders its own <h1>
 description: Filter tutorials and research articles by estimated difficulty level.
 ---
 

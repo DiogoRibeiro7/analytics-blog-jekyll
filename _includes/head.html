@@ -11,15 +11,15 @@
   {% assign keyword_list = raw_keywords | replace: ';', ',' | split: ',' %}
 {% endif %}
 {% include meta/math-config.html page=page %}
+{%- comment -%} The math engine's URLs, which both the script tags below and the Content Security Policy use. {%- endcomment -%}
+{% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
+{% assign katex_cdn = math_settings.katex_cdn | default: default_katex_cdn %}
+{% assign default_mathjax_url = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js' %}
+{% assign mathjax_url = math_settings.mathjax_cdn | default: default_mathjax_url %}
 {% assign js_manifest = site.data.js_manifest %}
-{% assign syntax_config = site.theme_options.syntax_highlighting %}
-{% assign prism_cdn = syntax_config.cdn | default: 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0' %}
-{% assign prism_theme = syntax_config.themes.dark | default: syntax_config.themes.light | default: 'prism-tomorrow' %}
-{% assign prism_theme_url = prism_cdn | append: '/themes/' | append: prism_theme | append: '.css' %}
-{% assign prism_line_numbers_url = prism_cdn | append: '/plugins/line-numbers/prism-line-numbers.min.css' %}
-{% include meta/syntax-config.html %}
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+{%- comment -%} Not include_cached: the CSP nonce is different on every page. {%- endcomment -%}
 {% include csp-meta.html %}
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0b1d3d" />
@@ -30,7 +30,8 @@
 {% endif %}
 <meta name="generator" content="Jekyll" />
 <meta name="referrer" content="no-referrer-when-downgrade" />
-<meta name="robots" content="index,follow" />
+{%- comment -%} `robots:` in front matter keeps a page out of search results, as the 404, search and admin pages do. {%- endcomment %}
+<meta name="robots" content="{{ page.robots | default: 'index,follow' }}" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="application-name" content="{{ site.title }}" />
 <meta property="og:site_name" content="{{ site.title }}" />
@@ -61,11 +62,30 @@
 <link rel="canonical" href="{{ canonical_url }}" />
 {% if js_manifest and js_manifest.core %}
 <link rel="modulepreload" href="{{ js_manifest.core | relative_url }}" crossorigin="anonymous" />
-{% if js_manifest.features and js_manifest.features.search and site.features.search %}
+{%- comment -%} Only a page that renders the search app uses the search bundle. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.search and site.features.search and content contains 'data-search-app' %}
 <link rel="modulepreload" href="{{ js_manifest.features.search | relative_url }}" crossorigin="anonymous" />
 {% endif %}
 {% if js_manifest.features and js_manifest.features.math and math_enabled and math_engine == 'mathjax' %}
 <link rel="modulepreload" href="{{ js_manifest.features.math | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{%- comment -%}
+  The loader requests a feature bundle only after the core bundle has loaded.
+  Preloading the bundles this page will use, on the same tests the loader
+  applies, starts those downloads alongside core.
+{%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.visualizations and site.features.visualizations and content contains 'data-viz-type' %}
+<link rel="modulepreload" href="{{ js_manifest.features.visualizations | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
+<link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{% if js_manifest.features and js_manifest.features.academic %}
+  {% if site.features.academic_dashboard or site.features.citation_tracking %}
+    {% if content contains 'data-citation-metric' or content contains 'data-citation-table' or content contains 'data-citation-chart' %}
+<link rel="modulepreload" href="{{ js_manifest.features.academic | relative_url }}" crossorigin="anonymous" />
+    {% endif %}
+  {% endif %}
 {% endif %}
 {% endif %}
 {% assign alternate_translations = page.translations %}
@@ -93,19 +113,20 @@
 <title>{{ site.title }}</title>
 {% endif %}
 
+{%- comment -%}
+  Only the weights the stylesheet renders. Sans 700, Serif 400 and Mono 500
+  were requested as well, and no page of the demo site used them.
+{%- endcomment -%}
+{% assign google_fonts_url = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:wght@600;700&family=IBM+Plex+Mono:wght@400;600&display=swap' %}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preload" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" as="style" />
-<link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" media="print" data-async-style media="print" data-async-style />
+<link rel="preload" href="{{ google_fonts_url | add_sri }}" as="style" />
+<link rel="stylesheet" href="{{ google_fonts_url | add_sri }}" media="print" data-async-style />
 <noscript>
-  <link rel="stylesheet" href="{{ 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap' | add_sri }}" />
+  <link rel="stylesheet" href="{{ google_fonts_url | add_sri }}" />
 </noscript>
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-{% if prism_enabled %}
-<link rel="stylesheet" href="{{ prism_theme_url | add_sri }}" />
-<link rel="stylesheet" href="{{ prism_line_numbers_url | add_sri }}" />
-{% endif %}
 {% assign critical_config = site.critical_css | default: {} %}
 {% assign critical_enabled = critical_config.enabled | default: false %}
 {% assign main_stylesheet = '/assets/css/main.css' | relative_url %}
@@ -166,13 +187,9 @@
 </script>
 
 {% if math_enabled %}
-  {% assign default_katex_cdn = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/' %}
-  {% assign katex_cdn = math_settings.katex_cdn | default: default_katex_cdn %}
   {% assign katex_stylesheet_url = katex_cdn | append: 'katex.min.css' %}
   {% assign katex_js_url = katex_cdn | append: 'katex.min.js' %}
   {% assign katex_autorender_url = katex_cdn | append: 'contrib/auto-render.min.js' %}
-  {% assign default_mathjax_url = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js' %}
-  {% assign mathjax_url = math_settings.mathjax_cdn | default: default_mathjax_url %}
   {% if math_engine == 'katex' %}
 <link rel="stylesheet" href="{{ katex_stylesheet_url | add_sri }}" />
 <script defer src="{{ katex_js_url | add_sri }}"></script>
@@ -200,7 +217,10 @@
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
       processEnvironments: true,
-      packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'require', 'boldsymbol', 'braket', 'cancel'] },
+      // No 'require': MathJax 3.2 stopped starting up with "Illegal characters
+      // used in \require prefix", and nothing was typeset. Every extension the
+      // pages use is loaded below, so authors never need \require.
+      packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'boldsymbol', 'braket', 'cancel'] },
       tags: 'all',
       tagSide: 'right',
       tagIndent: '1.25em',
@@ -226,7 +246,7 @@
     },
     loader: {
       load: [
-        '[tex]/require', '[tex]/ams', '[tex]/mathtools', '[tex]/physics', '[tex]/mhchem',
+        '[tex]/ams', '[tex]/mathtools', '[tex]/physics', '[tex]/mhchem',
         '[tex]/boldsymbol', '[tex]/braket', '[tex]/cancel', 'ui/menu', 'a11y/semantic-enrich', 'a11y/assistive-mml'
       ]
     },
@@ -239,7 +259,10 @@
         settings: {
           assistiveMml: true,
           collapsible: true,
-          explorer: true
+          // MathJax's explorer gives each equation tabindex="1" when it
+          // attaches, which takes the equations out of the page's tab order.
+          // The assistive MathML above is what screen readers read.
+          explorer: false
         }
       }
     },
@@ -268,7 +291,11 @@
         if (window.DatalogMath && typeof window.DatalogMath.onPageReady === 'function') {
           window.DatalogMath.onPageReady();
         }
-        return window.MathJax.startup.defaultPageReady();
+        // Scripts that act on typeset math wait for this event: until MathJax
+        // loads, window.MathJax is only this configuration object.
+        return window.MathJax.startup.defaultPageReady().then(() => {
+          document.dispatchEvent(new CustomEvent('datalog:math-ready'));
+        });
       }
     }
   };
@@ -319,14 +346,24 @@
 
 <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
 <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+{%- comment -%} A verification tag renders only when the site sets its code: an empty one verifies nothing. {%- endcomment %}
+{% if site.google_site_verification and site.google_site_verification != "" %}
 <meta name="google-site-verification" content="{{ site.google_site_verification }}" />
+{% endif %}
+{% if site.bing_site_verification and site.bing_site_verification != "" %}
 <meta name="msvalidate.01" content="{{ site.bing_site_verification }}" />
+{% endif %}
+{% if site.yandex_site_verification and site.yandex_site_verification != "" %}
 <meta name="yandex-verification" content="{{ site.yandex_site_verification }}" />
+{% endif %}
+{% if site.baidu_site_verification and site.baidu_site_verification != "" %}
 <meta name="baidu-site-verification" content="{{ site.baidu_site_verification }}" />
+{% endif %}
 <meta name="plausible-domain" content="{{ site.url | replace: 'https://', '' | replace: 'http://', '' }}" />
 
 <script nonce="{{ page.csp_nonce }}">
   document.documentElement.classList.add('js');
 </script>
 
+{%- comment -%} Not include_cached: its inline script carries the page's CSP nonce. {%- endcomment -%}
 {% include analytics.html %}

@@ -32,7 +32,7 @@ DataLog is engineered for both academic research teams and the wider open-source
 ## Compliance Checklist
 
 - [ ] All datasets document licensing and provenance.
-- [ ] Accessibility checks (`bundle exec rake ci:verify`) pass on the release branch.
-- [ ] Performance budgets remain under thresholds defined in `scripts/test_performance.rb`.
+- [ ] The Tests workflow, accessibility checks included, passes on the release branch (`bundle exec rake test` runs the Ruby part locally).
+- [ ] Performance budgets remain under the thresholds in `tests/test_performance.rb`.
 - [ ] Localization files are updated for any new interface strings.
 - [ ] Research ethics statements and reproducibility badges reflect the latest policies.

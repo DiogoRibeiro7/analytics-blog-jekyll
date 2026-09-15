@@ -12,8 +12,9 @@ class PerformanceBundlesTest < Minitest::Test
     @manifest ||= JSON.parse(File.read(File.join(SiteBuilder.root, "_data/js_manifest.json")))
   end
 
+  # esbuild's metafile, which `npm run build:js` writes next to the bundles.
   def meta
-    @meta ||= JSON.parse(File.read(File.join(SiteBuilder.root, "_data/js_meta.json")))
+    @meta ||= JSON.parse(File.read(File.join(SiteBuilder.root, "assets/js/dist/meta.json")))
   end
 
   def bundle_path(url)
@@ -31,6 +32,14 @@ class PerformanceBundlesTest < Minitest::Test
     core = manifest.fetch("core")
     assert File.exist?(bundle_path(core)), "Core bundle missing at #{core}"
     assert_operator gzip_size(bundle_path(core)), :<, CORE_BUDGET, "Core bundle exceeds 50KB gzipped"
+  end
+
+  # The demo turns every optional feature on, so this measures the complete
+  # stylesheet; sites without those features get less (see _sass/_features.scss).
+  def test_stylesheet_under_25kb_gzipped
+    stylesheet = SiteBuilder.destination_path("assets/css/main.css")
+    assert File.exist?(stylesheet), "the build should produce assets/css/main.css"
+    assert_operator gzip_size(stylesheet), :<, 25 * 1024, "The stylesheet exceeds 25KB gzipped"
   end
 
   def test_feature_bundles_load_on_demand

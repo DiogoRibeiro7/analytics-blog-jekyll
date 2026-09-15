@@ -737,6 +737,67 @@ describe('GitHub Cards Module', () => {
       expect(document.querySelector('[data-github-stat="stargazers_count"]').textContent).toBe('');
     });
 
+    it('shows the unavailable label and marks the card when the request fails', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: false, status: 403 });
+
+      document.body.innerHTML = `
+        <div data-github-owner="limited" data-github-repo="label" data-github-unavailable="N/A">
+          <span data-github-stat="stargazers_count">—</span>
+        </div>
+      `;
+
+      window.DatalogIntegrations = { github: { enabled: true } };
+
+      await initGitHubCards();
+
+      const card = document.querySelector('[data-github-owner]');
+      expect(card.dataset.githubState).toBe('error');
+      expect(card.querySelector('[data-github-stat]').textContent).toBe('N/A');
+    });
+
+    it('marks the card as ready once its statistics load', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ stargazers_count: 5 }) });
+
+      document.body.innerHTML = `
+        <div data-github-owner="loaded" data-github-repo="repo">
+          <span data-github-stat="stargazers_count">—</span>
+        </div>
+      `;
+
+      window.DatalogIntegrations = { github: { enabled: true } };
+
+      await initGitHubCards();
+
+      expect(document.querySelector('[data-github-owner]').dataset.githubState).toBe('ready');
+    });
+
+    it('does not ask again for a repository that just failed', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: false, status: 403 });
+
+      document.body.innerHTML = '<div data-github-owner="limited" data-github-repo="again"></div>';
+      window.DatalogIntegrations = { github: { enabled: true } };
+
+      await initGitHubCards();
+      await initGitHubCards();
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks again once a failure is ten minutes old', async () => {
+      localStorage.setItem(
+        'datalog-github-limited-later',
+        JSON.stringify({ timestamp: Date.now() - 11 * 60 * 1000, failed: true })
+      );
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ stargazers_count: 9 }) });
+
+      document.body.innerHTML = '<div data-github-owner="limited" data-github-repo="later"></div>';
+      window.DatalogIntegrations = { github: { enabled: true } };
+
+      await initGitHubCards();
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
     it('should handle network fetch errors', async () => {
       global.fetch.mockRejectedValueOnce(new Error('Network failure'));
 

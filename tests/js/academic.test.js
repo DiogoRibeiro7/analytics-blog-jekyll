@@ -1,14 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   populateCitationMetrics,
   populatePublicationCitations,
   populateCitationTimeline,
-  attachCopyHandler,
-  initCopyHandlers,
   initSubmissionFilter,
   initCalendarFilter,
-  initOpenScienceBadges,
-  initAcademicFeatures
+  initOpenScienceBadges
 } from '../../assets/js/academic.js';
 
 describe('Academic Module', () => {
@@ -251,76 +248,6 @@ describe('Academic Module', () => {
 
       const container = document.querySelector('[data-citation-timeline]');
       expect(container).toBeNull();
-    });
-  });
-
-  describe('Copy Functionality', () => {
-    beforeEach(() => {
-      global.navigator.clipboard = {
-        writeText: vi.fn(() => Promise.resolve())
-      };
-    });
-
-    afterEach(() => {
-      delete global.navigator.clipboard;
-    });
-
-    it('should copy citation text on button click', async () => {
-      document.body.innerHTML = `
-        <textarea id="citation-text">@article{test2024}</textarea>
-        <button data-copy-citation data-target="citation-text">Copy</button>
-      `;
-
-      initCopyHandlers();
-
-      const trigger = document.querySelector('[data-copy-citation]');
-      trigger.click();
-
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('@article{test2024}');
-    });
-
-    it('should update button text after successful copy', async () => {
-      document.body.innerHTML = `
-        <textarea id="citation-text">@article{test2024}</textarea>
-        <button data-copy-citation data-target="citation-text">Copy</button>
-      `;
-
-      initCopyHandlers();
-
-      const trigger = document.querySelector('[data-copy-citation]');
-
-      // Click and wait for async clipboard operation
-      trigger.click();
-
-      // Flush promise queue to ensure .then() callbacks execute
-      await vi.waitFor(() => {
-        expect(trigger.textContent).toBe('Copied!');
-      }, { timeout: 1000 });
-
-      expect(trigger.dataset.copied).toBe('true');
-    });
-
-    it('should handle missing target gracefully', () => {
-      document.body.innerHTML = `
-        <button data-copy-citation data-target="nonexistent">Copy</button>
-      `;
-
-      initCopyHandlers();
-
-      const trigger = document.querySelector('[data-copy-citation]');
-      expect(() => trigger.click()).not.toThrow();
-      expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
-    });
-
-    it('should handle missing target attribute', () => {
-      document.body.innerHTML = `
-        <button data-copy-citation>Copy</button>
-      `;
-
-      initCopyHandlers();
-
-      const trigger = document.querySelector('[data-copy-citation]');
-      expect(() => trigger.click()).not.toThrow();
     });
   });
 

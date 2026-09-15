@@ -6,6 +6,9 @@ lang: en
 timezone: Etc/UTC
 
 theme: datalog-theme
+# The Gemfile installs the theme from this repository, whose own _config.yml
+# configures the demo site; without this Jekyll merges it into this one.
+ignore_theme_config: true
 
 author:
   name: DataLog Theme Team

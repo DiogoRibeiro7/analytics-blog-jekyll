@@ -1,66 +1,28 @@
 # frozen_string_literal: true
 
-begin
-  require "unicode_normalize"
-  UNICODE_NORMALIZE_SUPPORTED = true
-rescue LoadError
-  UNICODE_NORMALIZE_SUPPORTED = false
-  warn "[search_normalizer] unicode_normalize gem not available; falling back to basic normalization"
-end
-
 module Datalog
   module SearchFilters
     module_function
 
+    # Lower-cases text and strips combining marks, so "Café" and "cafe" match
+    # while letters outside ASCII ("ß", "ł", Cyrillic, CJK) are kept. The
+    # browser normalizes queries the same way (assets/js/search/utils.js), so
+    # the index and the query agree. String#unicode_normalize is part of Ruby:
+    # this file used to require it as if it were a gem, fail, and fall back to
+    # dropping every character outside ASCII.
     def normalize_search(input)
-      value = input.to_s
+      # Invalid byte sequences are dropped first: unicode_normalize raises on them.
+      value = input.to_s.scrub("")
       return "" if value.empty?
 
-      normalized = if UNICODE_NORMALIZE_SUPPORTED && value.respond_to?(:unicode_normalize)
-                     value.unicode_normalize(:nfkd).gsub(/\p{Mn}/, "")
-                   else
-                     transliterate(value)
-                   end
-
-      normalized.downcase.strip
-    rescue StandardError
-      input.to_s.downcase
-    end
-
-    def transliterate(value)
-      value.encode("ASCII", fallback: lambda { |char|
-        approximate_character(char)
-      }, invalid: :replace, undef: :replace, replace: "")
-    rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
-      value
-    end
-
-    def approximate_character(char)
-      @transliteration_map ||= build_transliteration_map
-      @transliteration_map.fetch(char, "")
-    end
-
-    def build_transliteration_map
-      basic_map = {}
-
-      accents = {
-        "ÀÁÂÃÄÅàáâãäå" => "a",
-        "ÈÉÊËèéêë" => "e",
-        "ÌÍÎÏìíîï" => "i",
-        "ÒÓÔÕÖØòóôõöø" => "o",
-        "ÙÚÛÜùúûü" => "u",
-        "Çç" => "c",
-        "Ññ" => "n",
-        "Ýýÿ" => "y",
-        "Ææ" => "ae",
-        "Œœ" => "oe"
-      }
-
-      accents.each do |chars, replacement|
-        chars.each_char { |char| basic_map[char] = replacement }
+      stripped = begin
+        value.unicode_normalize(:nfkd).gsub(/\p{Mn}/, "")
+      rescue Encoding::CompatibilityError
+        # Text in an encoding other than Unicode cannot be normalized, so it is
+        # indexed as it is.
+        value
       end
-
-      basic_map
+      stripped.downcase.strip
     end
 
     def normalize_search_array(values)

@@ -61,10 +61,9 @@ module Datalog
         "title" => search_config["title"] || "Search",
         "permalink" => PAGE_URL,
         "page_classes" => "search-page",
-        # Results can contain LaTeX and code, so both engines are wanted here
-        # even when the rest of the site loads them only where they appear.
-        "math" => true,
-        "syntax_highlighting" => true
+        # Results can contain LaTeX, so the math engine is wanted here even
+        # when the rest of the site loads it only where math appears.
+        "math" => true
       )
       page.data["subtitle"] = search_config["subtitle"] if search_config["subtitle"]
       site.pages << page

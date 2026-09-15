@@ -12,8 +12,9 @@ module Datalog
     SCHEMA = {
       title: { type: :string, required: true },
       url: { type: :string, required: true, format: :url },
+      # `author: Jane Doe` is a common Jekyll setting; the hash adds an email and profile links.
       author: {
-        type: :hash,
+        type: %i[string hash],
         required: true,
         schema: {
           name: { type: :string, required: true },
@@ -68,12 +69,6 @@ module Datalog
               engine: { type: :string, enum: %w[mathjax katex] },
               enabled: { type: :boolean }
             }
-          },
-          syntax_highlighting: {
-            type: :hash,
-            schema: {
-              cdn: { type: :string }
-            }
           }
         }
       }
@@ -84,6 +79,10 @@ module Datalog
         replacement: "theme_options.math.engine",
         message: "'math_engine' has moved under theme_options.math.engine.",
         auto_migrate: true
+      },
+      "theme_options.syntax_highlighting" => {
+        message: "Code is highlighted by Rouge when the site builds and the theme no longer loads Prism, " \
+                 "so these settings have no effect. Remove them."
       }
     }.freeze
 
@@ -204,6 +203,8 @@ module Datalog
       end
 
       def type_valid?(value, expected_type)
+        return expected_type.any? { |type| type_valid?(value, type) } if expected_type.is_a?(Array)
+
         case expected_type
         when :string
           value.is_a?(String)
@@ -222,6 +223,8 @@ module Datalog
 
       def url_valid?(value)
         return false unless value.is_a?(String)
+        # `url: ""` is what `jekyll new` writes, and what a site built locally keeps.
+        return true if value.strip.empty?
 
         uri = URI.parse(value)
         uri.is_a?(URI::HTTP) && !uri.host.nil?
@@ -311,6 +314,8 @@ module Datalog
       end
 
       def human_type(type)
+        return type.map { |entry| human_type(entry) }.join(" or ") if type.is_a?(Array)
+
         case type
         when :string then "a String"
         when :integer then "an Integer"

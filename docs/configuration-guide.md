@@ -63,16 +63,14 @@ theme_options:
     output: chtml
     accessibility: true
     render_on_load: auto # auto | true | false
-  syntax_highlighting:
-    load: auto           # auto | always
-    components: [core, python, r, sql, julia, javascript]
 ```
 
-MathJax and Prism are loaded from a CDN and together weigh several hundred kilobytes, so by default they are only loaded where they are needed:
+The math engine is loaded from a CDN and weighs several hundred kilobytes, so by default it is only loaded where it is needed:
 
-- `math.render_on_load: auto` loads the math engine on pages whose rendered content contains math (`$`, `\(`, `\[` or kramdown math blocks) or that declare `math_expressions`. `true` loads it on every page; `false` only on pages that opt in.
-- `syntax_highlighting.load: auto` loads Prism on pages that contain a code block. `always` loads it on every page.
-- A page can force either with `math: true` / `math: false` or `syntax_highlighting: true` / `syntax_highlighting: false` in its front matter. Pages that render math or code from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+- `math.render_on_load: auto` loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
+- A page can force it with `math: true` or `math: false` in its front matter. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
+
+Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
 A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
 
@@ -83,13 +81,12 @@ External services live in `_config.yml` under `integrations:` and are exposed to
 ```yaml
 integrations:
   github:
-    enabled: true
+    enabled: true        # false turns off the live stars and forks on project pages
     owner: yourusername
-  binder:
-    enabled: true
-  colab:
-    enabled: true
+    cache_ttl: 43200     # seconds a repository's figures stay cached in the browser
 ```
+
+The Binder and Colab buttons on notebook pages are configured with the notebooks rather than here: they link to `notebooks.repository` at `notebooks.branch`, in the formats set by `notebooks.binder.base_url` and `notebooks.colab.base_url`.
 
 ### 5. Analytics and comments
 
@@ -97,20 +94,43 @@ integrations:
 google_analytics: ""     # a GA4 measurement id enables the tag; empty disables it
 
 datalog_plugins:
-  comments:
-    provider: giscus
-    giscus:
+  enabled:
+    - datalog-search     # datalog-comments depends on it
+    - datalog-comments
+  options:
+    datalog-comments:
+      provider: giscus   # giscus, utterances or disqus
       repo: owner/repo
       repo_id: ""        # from https://giscus.app
+      category: General
       category_id: ""
+      mapping: pathname
+      enabled_by_default: false
 ```
+
+A page shows comments when its front matter sets `comments: true`, or on every page with `enabled_by_default: true`. `comments: false` turns them off for one page, and a `comments:` hash overrides these settings for that page. Giscus needs `repo`, `repo_id`, `category` and `category_id`; utterances needs `repo`; Disqus needs `shortname`.
+
+### 6. Embedded content
+
+The Content Security Policy lets iframes load from the site itself and from Observable. List any other host your pages embed, such as a Shiny server, a slide deck or a video platform:
+
+```yaml
+csp:
+  frame_src:
+    - https://*.shinyapps.io
+    - https://www.youtube-nocookie.com
+```
+
+A page that loads scripts, stylesheets, fonts or data from somewhere else lists those sources under `csp.script_src`, `csp.style_src`, `csp.font_src` or `csp.connect_src` in the same way.
+
+Plotly, D3 and Bokeh load their libraries from jsDelivr. The policy of a page with one of those blocks allows that library's package, not the whole of jsDelivr. The code in a `data-d3-script` or `data-bokeh-script` block runs with the page's nonce, so the policy needs no `unsafe-eval`. [content-security-policy.md](content-security-policy.md) lists what each page allows.
 
 ## Accessing configuration in templates
 
 ```liquid
 {{ site.title }}
 {{ site.theme_options.math.engine }}
-{{ site.integrations.binder.enabled }}
+{{ site.integrations.github.owner }}
 {{ site.data.config.author.name }}
 ```
 

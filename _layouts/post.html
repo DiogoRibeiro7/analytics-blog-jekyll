@@ -272,7 +272,12 @@ schema_type: TechnicalArticle
       const metaBar = document.createElement('div');
       metaBar.className = 'code-block-meta';
 
-      const lang = codeBlock.getAttribute('class');
+      // Rouge puts the language on the block's wrapper rather than on the code.
+      // With line numbers on, the code is a table whose first column holds the
+      // numbers, and the copy leaves them out.
+      const langHolder = codeBlock.matches('[class*="language-"]') ? codeBlock : codeBlock.closest('.highlighter-rouge');
+      const lang = langHolder && langHolder.getAttribute('class');
+      const source = codeBlock.querySelector('.rouge-code') || codeBlock;
       if (lang) {
         const m = lang.match(/language-([a-z0-9+#]+)/i);
         if (m) {
@@ -291,7 +296,7 @@ schema_type: TechnicalArticle
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         button.addEventListener('click', function () {
-          navigator.clipboard.writeText(codeBlock.textContent).then(function () {
+          navigator.clipboard.writeText(source.textContent).then(function () {
             button.textContent = 'Copied!';
             button.classList.add('is-copied');
             setTimeout(function () {
@@ -311,9 +316,19 @@ schema_type: TechnicalArticle
       wrapper.insertBefore(metaBar, pre);
     });
 
-    // Make equation references focus their targets for accessibility.
-    if (window.MathJax && window.MathJax.startup) {
-      window.MathJax.startup.promise.then(function () {
+    // Make equation references focus their targets for accessibility. This runs
+    // on DOMContentLoaded, before MathJax has loaded, when window.MathJax is
+    // still the configuration object and has no startup.promise; reading it
+    // threw. The head's MathJax configuration announces typeset math instead.
+    const onMathReady = function (callback) {
+      if (document.body.classList.contains('math-ready') && document.querySelector('mjx-container')) {
+        callback();
+      } else {
+        document.addEventListener('datalog:math-ready', callback, { once: true });
+      }
+    };
+    if (window.MathJax) {
+      onMathReady(function () {
         const equations = document.querySelectorAll('.post-content mjx-container[display="true"]');
         let eqIndex = 1;
         equations.forEach(function (container) {

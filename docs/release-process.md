@@ -22,7 +22,7 @@ The workflow validates the version (format, not already tagged, `[Unreleased]` h
 
 4. Review the PR and merge it with **Create a merge commit**. Squash or rebase merges detach `main` from `develop`'s history and make the next promotion conflict.
 
-On that merge the same workflow tags `main` with `vX.Y.Z` and publishes the GitHub release with the changelog section. The tag push starts `gem-release.yml`, which pauses in the `rubygems` environment until a reviewer approves it, then pushes the gem to RubyGems.
+On that merge the same workflow tags `main` with `vX.Y.Z` and publishes the GitHub release with the changelog section. Before it tags, it builds the script bundles and the gem and runs `scripts/verify_gem_package.rb`, so a package that would not publish stops the release before the tag exists. The tag push starts `gem-release.yml`, which pauses in the `rubygems` environment until a reviewer approves it, checks that the tag matches `lib/datalog/theme/version.rb`, then pushes the gem to RubyGems.
 
 Requirements this flow relies on:
 
@@ -39,7 +39,10 @@ git checkout develop && git pull
 # CITATION.cff (version, date-released) and theme_version in _config.yml, then:
 git commit -am "chore(release): bump version to X.Y.Z"
 git push origin develop
-gh pr create --base main --head develop --title "release: vX.Y.Z"
+# Promote from a branch named for the release, not from develop, so the pull
+# request and the merge commit on main both say which release they are.
+git push origin "HEAD:refs/heads/release/vX.Y.Z"
+gh pr create --base main --head "release/vX.Y.Z" --title "Release vX.Y.Z"
 # merge the PR with a merge commit; the tag, GitHub release and gem publish follow automatically.
 ```
 
@@ -50,6 +53,8 @@ git checkout main && git pull
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z          # a tag pushed by a person triggers gem-release.yml directly
 ```
+
+To retry a publish that failed after the tag was pushed, run **Gem Release** from the Actions tab with **Use workflow from** set to the tag. Started from a branch, the job does not run.
 
 ## Rollback
 

@@ -1,0 +1,530 @@
+// The search page (_includes/search/page.html) and its dark mode. _components.scss
+// loads this only when features.search is on.
+
+@use 'sass:map';
+@use "sass:color";
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.search-page {
+  .page {
+    padding-bottom: map.get($spacing, 7);
+  }
+
+  .page-header {
+    max-width: $max-width-wide;
+  }
+}
+
+.search-app {
+  display: grid;
+  gap: map.get($spacing, 6);
+  margin-top: map.get($spacing, 4);
+
+  @media (min-width: map.get($breakpoints, lg)) {
+    grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.search-app__panel {
+  display: grid;
+  gap: map.get($spacing, 5);
+
+  @media (min-width: map.get($breakpoints, lg)) {
+    position: sticky;
+    top: 6.5rem;
+  }
+}
+
+.search-app__form,
+.search-app__analytics {
+  background: rgba($color-neutral-100, 0.7);
+  border: 1px solid rgba($color-neutral-900, 0.1);
+  border-radius: 1rem;
+  padding: map.get($spacing, 5);
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(8px);
+}
+
+.search-app__form {
+  display: grid;
+  gap: map.get($spacing, 5);
+}
+
+.search-app__label {
+  font-weight: 600;
+  color: $color-ink-700;
+}
+
+.search-app__input-group {
+  display: flex;
+  align-items: center;
+  gap: map.get($spacing, 2);
+}
+
+.search-app__input {
+  flex: 1;
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-neutral-900, 0.18);
+  background: #fff;
+  font-size: map.get($font-size-scale, md);
+  font-family: $font-family-mono;
+  color: $color-ink-900;
+  transition: border-color $transition-snappy, box-shadow $transition-snappy;
+
+  &:focus {
+    outline: none;
+    border-color: $color-accent-primary;
+    box-shadow: 0 0 0 3px rgba($color-accent-primary, 0.2);
+  }
+}
+
+.search-app__submit {
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-radius: 0.75rem;
+  border: none;
+  background: $color-accent-primary;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform $transition-snappy, box-shadow $transition-snappy, background $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: color.adjust($color-accent-primary, $lightness: -6%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba($color-accent-primary, 0.25);
+  }
+
+  &:focus-visible {
+    @include focus-ring($color-accent-primary);
+  }
+}
+
+.search-app__shortcuts {
+  margin: map.get($spacing, 2) 0 0;
+  color: $color-ink-500;
+  font-size: map.get($font-size-scale, sm);
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    padding: map.get($spacing, 1) map.get($spacing, 2);
+    margin: 0 map.get($spacing, 1);
+    border-radius: 0.5rem;
+    border: 1px solid rgba($color-neutral-900, 0.2);
+    background: #fff;
+    font-family: $font-family-mono;
+    font-size: 0.75em;
+  }
+}
+
+.search-app__autocomplete {
+  margin-top: map.get($spacing, 3);
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-neutral-900, 0.14);
+  background: #fff;
+  box-shadow: $shadow-soft;
+  max-height: 16rem;
+  overflow: auto;
+  padding: map.get($spacing, 2);
+  display: grid;
+  gap: map.get($spacing, 1);
+}
+
+.search-autocomplete__option {
+  width: 100%;
+  text-align: left;
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-700;
+  transition: background $transition-snappy, color $transition-snappy;
+
+  &.is-active,
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-primary, 0.12);
+    color: $color-accent-primary;
+  }
+}
+
+.search-app__filters {
+  border: 1px dashed rgba($color-neutral-900, 0.18);
+  border-radius: 0.75rem;
+  padding: map.get($spacing, 4);
+}
+
+.search-app__filters-grid {
+  display: grid;
+  gap: map.get($spacing, 4);
+
+  @media (min-width: map.get($breakpoints, md)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.search-filter {
+  display: grid;
+  gap: map.get($spacing, 2);
+  font-size: map.get($font-size-scale, sm);
+
+  select {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid rgba($color-neutral-900, 0.18);
+    padding: map.get($spacing, 2) map.get($spacing, 3);
+    font-size: map.get($font-size-scale, sm);
+    background: #fff;
+    color: $color-ink-700;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+      box-shadow: 0 0 0 3px rgba($color-accent-primary, 0.2);
+    }
+  }
+}
+
+.search-filter__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+.search-filter__tag {
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-radius: 999px;
+  border: 1px solid rgba($color-neutral-900, 0.18);
+  background: rgba($color-neutral-900, 0.05);
+  font-size: map.get($font-size-scale, xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-ink-600;
+  transition: background $transition-snappy, color $transition-snappy, border-color $transition-snappy;
+
+  &[aria-pressed='true'] {
+    background: rgba($color-accent-primary, 0.16);
+    color: $color-accent-primary;
+    border-color: rgba($color-accent-primary, 0.45);
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-secondary, 0.16);
+    color: $color-accent-secondary-text;
+  }
+}
+
+.search-filter__empty {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+.search-app__analytics-title {
+  font-size: map.get($font-size-scale, md);
+  margin-bottom: map.get($spacing, 2);
+}
+
+.search-app__analytics-empty {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+.search-app__analytics-list {
+  display: grid;
+  gap: map.get($spacing, 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-analytics__query {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-neutral-900, 0.14);
+  background: rgba($color-neutral-900, 0.04);
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  font-size: map.get($font-size-scale, sm);
+  text-align: left;
+  cursor: pointer;
+  color: $color-ink-700;
+  transition: background $transition-snappy, color $transition-snappy, border-color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-primary, 0.14);
+    border-color: rgba($color-accent-primary, 0.35);
+    color: $color-accent-primary;
+  }
+}
+
+.search-app__results {
+  display: grid;
+  gap: map.get($spacing, 4);
+}
+
+.search-app__results-header {
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing, 1);
+}
+
+.search-app__results-meta {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+.search-app__results-list {
+  display: grid;
+  gap: map.get($spacing, 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-result__card {
+  border-radius: 1rem;
+  border: 1px solid rgba($color-neutral-900, 0.1);
+  background: rgba($color-neutral-100, 0.65);
+  box-shadow: $shadow-soft;
+  padding: map.get($spacing, 5);
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+.search-result__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+  font-size: map.get($font-size-scale, xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $color-ink-500;
+}
+
+.search-result__title a {
+  color: $color-ink-900;
+  text-decoration: none;
+  transition: color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-accent-primary;
+  }
+}
+
+.search-result__body {
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+.search-result__code {
+  margin: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba($color-neutral-900, 0.1);
+  max-height: 16rem;
+  font-size: 0.85rem;
+}
+
+.search-result__math {
+  display: grid;
+  gap: map.get($spacing, 2);
+  padding: map.get($spacing, 3);
+  border-radius: 0.75rem;
+  border: 1px solid rgba($color-neutral-900, 0.12);
+  background: rgba($color-neutral-100, 0.85);
+}
+
+.search-result__math-preview {
+  overflow-x: auto;
+  padding-bottom: map.get($spacing, 1);
+}
+
+.search-result__math-source {
+  margin: 0;
+  background: rgba($color-neutral-900, 0.04);
+  border-radius: 0.5rem;
+  padding: map.get($spacing, 2);
+  font-size: 0.85rem;
+}
+
+.search-result__math-copy {
+  justify-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: map.get($spacing, 1);
+  border-radius: 999px;
+  border: 1px solid rgba($color-neutral-900, 0.18);
+  padding: 0.35rem 0.9rem;
+  font-size: map.get($font-size-scale, xs);
+  background: white;
+  color: $color-ink-700;
+  transition: background $transition-snappy, border-color $transition-snappy, color $transition-snappy;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($color-accent-primary, 0.1);
+    border-color: rgba($color-accent-primary, 0.35);
+    color: $color-accent-primary;
+  }
+}
+
+.search-result__math-copy.is-copied {
+  background: rgba($color-accent-primary, 0.12);
+  border-color: rgba($color-accent-primary, 0.4);
+  color: $color-accent-primary;
+}
+
+.search-result__excerpt {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-600;
+
+  .math-expression {
+    font-family: $font-family-mono;
+    background: rgba($color-accent-secondary, 0.1);
+    padding: map.get($spacing, 1) map.get($spacing, 2);
+    border-radius: 0.5rem;
+  }
+}
+
+.search-result__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 3);
+  align-items: center;
+  justify-content: space-between;
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+.search-result__tags {
+  display: flex;
+  gap: map.get($spacing, 2);
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    background: rgba($color-neutral-900, 0.06);
+    border-radius: 999px;
+    padding: map.get($spacing, 1) map.get($spacing, 2);
+  }
+}
+
+.search-app__no-results {
+  font-size: map.get($font-size-scale, md);
+  color: $color-ink-500;
+  text-align: center;
+}
+
+.search-app__noscript {
+  margin-top: map.get($spacing, 4);
+  padding: map.get($spacing, 4);
+  border-radius: 0.75rem;
+  background: rgba($color-warning, 0.15);
+  border: 1px solid rgba($color-warning, 0.45);
+  color: $color-ink-700;
+}
+
+body.dark-mode {
+  .search-app__form,
+  .search-app__analytics,
+  .search-result__card {
+    background: rgba($dark-surface-200, 0.9);
+    border-color: rgba($dark-ink-500, 0.25);
+    box-shadow: none;
+  }
+
+  .search-app__input,
+  .search-filter select {
+    background: $dark-surface-300;
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-900;
+
+    &:focus {
+      border-color: $dark-accent-primary;
+      box-shadow: 0 0 0 3px rgba($dark-accent-primary, 0.35);
+    }
+  }
+
+  .search-app__autocomplete,
+  .search-autocomplete__option,
+  .search-analytics__query,
+  .search-filter__tag,
+  .search-result__tags li {
+    background: rgba($dark-surface-300, 0.85);
+    border-color: rgba($dark-ink-500, 0.3);
+    color: $dark-ink-700;
+  }
+
+  .search-app__shortcuts,
+  .search-app__analytics-empty,
+  .search-app__results-meta,
+  .search-result__meta,
+  .search-app__no-results {
+    color: rgba($dark-ink-500, 0.85);
+  }
+
+  .search-result__title a {
+    color: $dark-ink-900;
+
+    &:hover,
+    &:focus-visible {
+      color: $dark-accent-primary;
+    }
+  }
+
+  .search-result__excerpt {
+    color: $dark-ink-700;
+
+    .math-expression {
+      background: rgba($dark-accent-secondary, 0.25);
+      color: $dark-ink-900;
+    }
+  }
+
+  .search-result__math {
+    background: rgba($dark-surface-300, 0.85);
+    border-color: rgba($dark-ink-500, 0.3);
+  }
+
+  .search-result__math-source {
+    background: rgba($dark-surface-300, 0.65);
+  }
+
+  .search-result__math-copy {
+    background: $dark-surface-300;
+    border-color: rgba($dark-ink-500, 0.35);
+    color: $dark-ink-700;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($dark-accent-primary, 0.15);
+      border-color: rgba($dark-accent-primary, 0.45);
+      color: $dark-accent-primary;
+    }
+  }
+
+  .search-result__math-copy.is-copied {
+    background: rgba($dark-accent-primary, 0.2);
+    border-color: rgba($dark-accent-primary, 0.5);
+    color: $dark-accent-primary;
+  }
+
+  .search-filter__tag[aria-pressed='true'] {
+    background: rgba($dark-accent-primary, 0.35);
+    color: $dark-ink-900;
+    border-color: rgba($dark-accent-primary, 0.55);
+  }
+}

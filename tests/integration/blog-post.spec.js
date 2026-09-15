@@ -2,6 +2,48 @@ import { expect, test } from '@playwright/test';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 
+// The post layout adds copy buttons when the page loads, so only a browser sees
+// them. The `rake ci:verify` script that stood in for this test only checked
+// that the layout's source mentioned the class name.
+test.describe('Post code blocks', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
+
+  test('each code block gets a labelled copy button', async ({ page }) => {
+    await page.goto(new URL('/2024/04/05/sql-optimization-guide/', baseUrl).href, { waitUntil: 'load' });
+
+    const buttons = page.locator('.post-content .code-copy');
+    await expect(buttons.first()).toBeVisible();
+    await expect(buttons.first()).toHaveAttribute('aria-label', 'Copy code to clipboard');
+    expect(await buttons.count()).toBe(await page.locator('.post-content pre > code').count());
+  });
+
+  // Rouge puts the language on the block's wrapper and, with line numbers on,
+  // lays the block out as a table whose first column holds the numbers.
+  test('labels the language and copies the code without its line numbers', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.copiedText = [];
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text) => {
+            window.copiedText.push(text);
+            return Promise.resolve();
+          }
+        }
+      });
+    });
+    await page.goto(new URL('/2024/04/05/sql-optimization-guide/', baseUrl).href, { waitUntil: 'load' });
+
+    const block = page.locator('.post-content .code-block-wrapper').first();
+    await expect(block.locator('.code-language')).toHaveText('SQL');
+    await expect(block.locator('.rouge-code .k').first()).toHaveText('SELECT');
+
+    await block.locator('.code-copy').click();
+    const copied = await page.evaluate(() => window.copiedText[0]);
+    expect(copied.startsWith('SELECT')).toBe(true);
+  });
+});
+
 test.describe('Blog Post Navigation', () => {
   test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
 

@@ -149,13 +149,15 @@ describe('initNavigation module', () => {
     expect(focusSpy).toHaveBeenCalled();
   });
 
-  it('does nothing on Escape when already closed', () => {
+  it('leaves focus alone on Escape when the menu is closed', () => {
     createNavDOM();
     initNavigation();
     const nav = document.getElementById('site-nav');
+    const focusSpy = vi.spyOn(document.querySelector('.nav-toggle'), 'focus');
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(nav.dataset.open).toBe('false');
+    expect(focusSpy).not.toHaveBeenCalled();
   });
 
   it('does not close on Escape on desktop', () => {

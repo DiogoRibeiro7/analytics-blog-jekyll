@@ -41,8 +41,9 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
     "@type": "WebPage",
     "@id": {{ page_url | jsonify }}
   },
-  "headline": {{ schema_page.title | truncate: 110 | jsonify }},
-  {%- if description -%}
+  "headline": {{ schema_page.title | default: site.title | truncate: 110 | jsonify }},
+  {%- comment -%} Values the page doesn't have are left out: "description": "" and "dateModified": "" are invalid structured data. {%- endcomment -%}
+  {%- if description and description != "" -%}
   "description": {{ description | jsonify }},
   {%- endif -%}
   "url": {{ page_url | jsonify }},
@@ -64,7 +65,9 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {%- if schema_page.date -%}
   "datePublished": "{{ schema_page.date | date_to_xmlschema }}",
   {%- endif -%}
+  {%- if modified -%}
   "dateModified": "{{ modified | date_to_xmlschema }}",
+  {%- endif -%}
   {%- if word_count > 0 -%}
   "wordCount": {{ word_count }},
   {%- endif -%}

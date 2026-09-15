@@ -22,8 +22,8 @@ class PluginLoaderTest < Minitest::Test
     refute_nil doc, "expected Plotly showcase post to be indexed"
 
     extensions = doc.fetch("extensions", {})
-    assert_equal "https://slides.datalog-theme.dev/plotly-story.html", extensions.dig("slides", "src")
-    assert_equal "Plotly Showcase Slides", extensions.dig("slides", "title")
+    assert_equal "https://revealjs.com/demo/", extensions.dig("slides", "src")
+    assert_equal "reveal.js demo deck", extensions.dig("slides", "title")
   end
 
   def test_comments_extension_describes_provider
@@ -31,6 +31,13 @@ class PluginLoaderTest < Minitest::Test
     extensions = doc.fetch("extensions", {})
     assert_equal "giscus", extensions.dig("comments", "provider")
     assert_equal "pathname", extensions.dig("comments", "mapping")
+  end
+
+  # Posts are documents, and Jekyll fires a post's `posts` hooks and its
+  # `documents` hooks, so registering both ran each plugin hook twice a post.
+  def test_plugin_hooks_are_registered_once_for_posts
+    refute_includes Datalog::PluginLoaderHooks::HOOK_SCOPES, :posts
+    assert_includes Datalog::PluginLoaderHooks::HOOK_SCOPES, :documents
   end
 
   private

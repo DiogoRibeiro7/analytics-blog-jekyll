@@ -49,6 +49,25 @@ class ConfigValidatorTest < Minitest::Test
     assert_includes error.message, "a valid URL"
   end
 
+  # Jekyll sites commonly set `author: Name`; the validator stopped such a
+  # build with "Invalid type for 'author'".
+  def test_accepts_an_author_given_as_a_name
+    config = base_config
+    config["author"] = "Jane Doe"
+
+    run_generator(config)
+    pass
+  end
+
+  # `jekyll new` writes `url: ""`, and a local build keeps it.
+  def test_accepts_an_empty_url
+    config = base_config
+    config["url"] = ""
+
+    run_generator(config)
+    pass
+  end
+
   def test_deprecated_key_migration
     config = base_config
     config["theme_options"]["math"].delete("engine")
@@ -61,6 +80,21 @@ class ConfigValidatorTest < Minitest::Test
     assert_equal "katex", config.dig("theme_options", "math", "engine")
     refute config.key?("math_engine"), "deprecated key should be removed after migration"
     assert(validator.warnings.any? { |warning| warning.include?("math_engine") })
+  end
+
+  # The theme stopped loading Prism, so a site that still configures it should
+  # hear that the settings do nothing.
+  def test_warns_that_syntax_highlighting_settings_have_no_effect
+    config = base_config
+    config["theme_options"]["syntax_highlighting"] = { "cdn" => "https://cdn.jsdelivr.net/npm/prismjs@1.29.0" }
+
+    validator = Datalog::ConfigValidator::Validator.new(config)
+    validator.run
+
+    assert_empty validator.errors
+    assert(validator.warnings.any? do |warning|
+      warning.include?("theme_options.syntax_highlighting") && warning.include?("Rouge")
+    end)
   end
 
   # --- Markdown / Highlighter enums ---

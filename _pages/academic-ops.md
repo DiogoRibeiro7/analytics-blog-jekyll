@@ -29,12 +29,17 @@ subtitle: Citations, submissions, collaborations, and upcoming events
 {% if citations.yearly_totals %}
 ### Citations by Year
 
+{% comment %} The bar heights are set in a nonced style block because the Content Security Policy drops style attributes. {% endcomment %}
+<style nonce="{{ page.csp_nonce }}">
+{% for year in citations.yearly_totals %}  .year-chart__fill[data-year="{{ year[0] }}"] { --bar-height: {{ year[1] | times: 100 | divided_by: 70 }}%; }
+{% endfor %}</style>
+
 <div class="card">
   <div class="year-chart">
     {% for year in citations.yearly_totals %}
     <div class="year-chart__bar">
       <span class="year-chart__value">{{ year[1] }}</span>
-      <div class="year-chart__fill" style="--bar-height: {{ year[1] | times: 100 | divided_by: 70 }}%"></div>
+      <div class="year-chart__fill" data-year="{{ year[0] }}"></div>
       <span class="year-chart__label">{{ year[0] }}</span>
     </div>
     {% endfor %}

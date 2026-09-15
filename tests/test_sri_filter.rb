@@ -65,8 +65,8 @@ class SriFilterTest < Minitest::Test
 
   private
 
-  # A URL loaded by the page, as opposed to one merely mentioned in the theme
-  # options that scripts-loader.html serialises into window.DatalogTheme.
+  # A URL loaded by the page (a src or href), as opposed to one that merely
+  # appears in the page's text.
   def references?(html, url)
     html.match?(/\b(?:src|href)="#{Regexp.escape(url)}"/)
   end

@@ -70,11 +70,24 @@ function buildManifest(meta) {
   return manifest;
 }
 
+// Writes a file unless it already holds the same text. Git checks files out
+// with CRLF line endings on Windows, so the comparison ignores line endings;
+// otherwise every build marks the unchanged committed manifest as modified.
+async function writeIfChanged(filePath, contents) {
+  const existing = await fs.readFile(filePath, "utf8").catch(() => null);
+  if (existing !== null && existing.replace(/\r\n/g, "\n") === contents) {
+    return;
+  }
+  await fs.writeFile(filePath, contents);
+}
+
 async function writeOutputs(manifest, meta) {
   const manifestPath = path.resolve(outputDir, "manifest.json");
   const metaPath = path.resolve(outputDir, "meta.json");
+  // The layouts read the manifest from _data, so that copy is committed. The
+  // metafile is build output like the bundles it describes and stays in dist/:
+  // a committed copy fell behind the sources.
   const dataManifestPath = path.resolve(dataDir, "js_manifest.json");
-  const dataMetaPath = path.resolve(dataDir, "js_meta.json");
 
   const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
   const metaJson = `${JSON.stringify(meta, null, 2)}\n`;
@@ -82,8 +95,7 @@ async function writeOutputs(manifest, meta) {
   await Promise.all([
     fs.writeFile(manifestPath, manifestJson),
     fs.writeFile(metaPath, metaJson),
-    fs.writeFile(dataManifestPath, manifestJson),
-    fs.writeFile(dataMetaPath, metaJson)
+    writeIfChanged(dataManifestPath, manifestJson)
   ]);
 
   console.log(`Wrote manifest → ${path.relative(rootDir, manifestPath)}`);

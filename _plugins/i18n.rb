@@ -116,6 +116,11 @@ class TranslateTag < Liquid::Tag
   # quote into the first option name, or interpolation silently fails.
   SYNTAX = /\A\s*(['"]?)(\w[\w.-]*)\1(.*)?\z/m
 
+  # `name: value` pairs, separated by commas or spaces. A quoted value may
+  # contain commas: splitting the markup on every comma cut `name: "Doe, Jane"`
+  # in two.
+  OPTION = /(\w+)\s*:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^\s,]+)/
+
   def initialize(tag_name, markup, tokens)
     super
     raise Liquid::SyntaxError, "Syntax Error in 't' - Valid syntax: t key [arg: value]" unless markup.strip =~ SYNTAX
@@ -134,14 +139,8 @@ class TranslateTag < Liquid::Tag
   def parse_options(markup, context)
     return {} unless markup && !markup.strip.empty?
 
-    tokens = markup.strip.split(",").map(&:strip)
-    tokens.each_with_object({}) do |token, memo|
-      next if token.empty?
-
-      if token.include?(":")
-        key, value = token.split(":", 2)
-        memo[key.strip.to_sym] = context.evaluate(Liquid::Expression.parse(value.strip))
-      end
+    markup.scan(OPTION).to_h do |key, value|
+      [key.to_sym, context.evaluate(Liquid::Expression.parse(value))]
     end
   end
 end

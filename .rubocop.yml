@@ -1,5 +1,18 @@
+inherit_from: .rubocop_todo.yml
+
+# The baseline in .rubocop_todo.yml excludes files per cop; merging keeps
+# those lists when a cop below sets its own Exclude.
+inherit_mode:
+  merge:
+    - Exclude
+
+# Git decides the line endings of a checkout (CRLF on Windows, LF in CI), so
+# the cop reported different offenses on every platform.
+Layout/EndOfLine:
+  Enabled: false
+
 AllCops:
-  TargetRubyVersion: 3.0
+  TargetRubyVersion: 3.2
   NewCops: enable
   SuggestExtensions: false
   Include:

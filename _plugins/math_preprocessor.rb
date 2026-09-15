@@ -19,8 +19,11 @@ module MathPreprocessor
   ].freeze
 
   INLINE_PATTERNS = [
+    # Pandoc's rule for inline math, so prices and shell variables stay text:
+    # the opening $ is followed by a non-space, the closing $ follows a
+    # non-space and is not followed by a digit, and a blank line ends it.
     {
-      regex: /(?<![\\$])(?<open>\$)(?!\$)(?<body>[^$]+?)(?<close>\$)(?!\$)/m,
+      regex: /(?<![\\$])(?<open>\$)(?![\s$])(?<body>(?:[^$\\\n]|\\.|\n(?![ \t]*\n))+?)(?<![\s\\])(?<close>\$)(?![$\d])/m,
       tag: "span"
     },
     {
@@ -28,6 +31,20 @@ module MathPreprocessor
       tag: "span"
     }
   ].freeze
+
+  # Code shows dollar signs literally (shell and R variables, amounts in SQL),
+  # so fenced blocks, highlight tags, <pre>/<code> elements and inline code
+  # spans are set aside before looking for math and put back afterwards.
+  CODE_PATTERNS = [
+    /^([ \t]*)(`{3,}|~{3,})[^\n]*\n.*?(?:^\1\2[ \t]*$|\z)/m,
+    /\{%-?\s*highlight\b.*?\{%-?\s*endhighlight\s*-?%\}/m,
+    %r{<(pre|code)\b[^>]*>.*?</\1>}mi,
+    /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n).)+?(?<!`)\1(?!`)/m
+  ].freeze
+
+  # NUL marks masked code, since page content never contains it. It is written as
+  # an escape: a raw NUL byte in the source stopped RuboCop from parsing the file.
+  PLACEHOLDER = /\x00(\d+)\x00/
 
   class Processor
     attr_reader :expressions
@@ -40,9 +57,18 @@ module MathPreprocessor
     def process
       return @content unless @content&.match?(/\$|\\\(|\\\[|\\begin\{/)
 
-      processed = @content.dup
+      code = []
+      processed = CODE_PATTERNS.reduce(@content.dup) do |text, pattern|
+        text.gsub(pattern) do |match|
+          code << match
+          "\x00#{code.size - 1}\x00"
+        end
+      end
       processed = apply_patterns(processed, DISPLAY_PATTERNS, display: true)
-      apply_patterns(processed, INLINE_PATTERNS, display: false)
+      processed = apply_patterns(processed, INLINE_PATTERNS, display: false)
+      # A segment set aside can contain the placeholder of an earlier one.
+      processed = processed.gsub(PLACEHOLDER) { code[Regexp.last_match(1).to_i] } while processed.match?(PLACEHOLDER)
+      processed
     end
 
     private
@@ -66,8 +92,12 @@ module MathPreprocessor
       cleaned_source = cleanup_source(latex)
       record_expression(cleaned_source, alt_text)
 
+      # ARIA forbids aria-label on an element with no role, such as a plain span.
+      # axe let it pass while the span held the raw LaTeX as text, and failed it
+      # once MathJax rendered the expression; the math role allows the label.
       attributes = {
         "class" => display ? "math-expression math-expression--source" : "math-expression-inline math-expression--source",
+        "role" => "math",
         "data-math-alt" => alt_text,
         "data-math-source" => cleaned_source,
         "aria-label" => alt_text,

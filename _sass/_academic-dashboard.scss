@@ -1,0 +1,262 @@
+// The academic dashboard (_includes/components/academic-dashboard.html): citation
+// metrics, bibliography export, and the submission, calendar and funding lists.
+// _components.scss loads this only when features.academic_dashboard is on.
+
+@use 'sass:map';
+@use "sass:color";
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.academic-dashboard {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.academic-dashboard__header {
+  text-align: center;
+  max-width: 60ch;
+  margin: 0 auto;
+}
+
+.academic-dashboard__header h1 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  margin-bottom: 0.5rem;
+}
+
+.academic-dashboard__header p {
+  color: var(--muted-foreground, #4a5568);
+}
+
+.academic-dashboard__profiles {
+  background: var(--surface-card, #fff);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 12px 40px rgba(12, 35, 64, 0.08);
+}
+
+.academic-profiles__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 56rem) {
+  .academic-profiles__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.academic-profile {
+  border: 1px solid rgba(12, 35, 64, 0.12);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background: rgba(12, 35, 64, 0.03);
+  display: grid;
+  gap: 1rem;
+}
+
+.academic-profile header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.academic-profile h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.academic-profile a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent, #3277f6);
+}
+
+.academic-profile dl {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.academic-profile dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.academic-profile dt {
+  font-weight: 600;
+  color: var(--muted-foreground, #4a5568);
+}
+
+.academic-profile dd {
+  margin: 0;
+}
+
+.citation-metrics {
+  display: grid;
+  gap: 1.5rem;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  background: rgba(50, 119, 246, 0.08);
+}
+
+.citation-metrics__totals {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .citation-metrics__totals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.citation-metrics .metric {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.citation-metrics .metric dt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted-foreground, #4a5568);
+}
+
+.citation-metrics .metric dd {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.citation-metrics__details {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.citation-metrics__details ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.citation-metrics__timeline {
+  background: rgba(12, 35, 64, 0.08);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.citation-metrics__timeline ul {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.citation-metrics__timeline li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, rgba(50, 119, 246, 0.15) var(--timeline-value, 35%), transparent 0);
+}
+
+.bibliography-export {
+  display: grid;
+  gap: 1rem;
+}
+
+.bibliography-export textarea {
+  width: 100%;
+  min-height: 16rem;
+  font-family: var(--font-mono, "Fira Code", monospace);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(12, 35, 64, 0.2);
+  padding: 1.25rem;
+  background: rgba(12, 35, 64, 0.04);
+}
+
+.bibliography-export__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.submission-controls,
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.submission-controls select,
+.calendar-controls select {
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.submission-list,
+.calendar-list,
+.funding-list,
+.opportunity-list,
+.mentorship-list,
+.workflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.submission-card,
+.calendar-list li,
+.funding-list li,
+.opportunity-list li,
+.mentorship-list li,
+.workflow-list li {
+  border: 1px solid rgba(12, 35, 64, 0.12);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(50, 119, 246, 0.15);
+  color: var(--accent-foreground, #0b1d3d);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.workflow-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 56rem) {
+  .workflow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.networking-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 48rem) {
+  .networking-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

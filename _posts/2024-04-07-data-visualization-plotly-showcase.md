@@ -7,8 +7,8 @@ difficulty: beginner
 summary: Embed interactive Plotly charts, annotate export controls, and provide accessible descriptions for decision makers.
 hero: /assets/images/posts/plotly-dashboard.jpg
 slides:
-  src: https://slides.datalog-theme.dev/plotly-story.html
-  title: Plotly Showcase Slides
+  src: https://revealjs.com/demo/
+  title: reveal.js demo deck
   theme: datalog
 comments:
   provider: giscus
@@ -28,7 +28,7 @@ Interactive dashboards help executives interrogate results without leaving the p
   data-viz-updated="2024-04-07"
 >
   <div class="viz-header">
-    <h3 class="viz-title">Quarterly revenue growth</h3>
+    <h3 class="viz-title" id="quarterly-revenue-growth">Quarterly revenue growth</h3>
     <p class="viz-meta" data-viz-meta>ARR segmented by region and channel</p>
     <span class="viz-status" data-viz-status aria-live="polite">Loading…</span>
   </div>

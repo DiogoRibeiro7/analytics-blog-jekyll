@@ -95,10 +95,10 @@ svg.append('g').attr('transform', `translate(${margin.left}, 0)`).call(d3.axisLe
   </div>
 </div>
 
-### Observable — Topic Model
+### Observable — Zoomable Sunburst
 
-<div class="viz-block" data-viz-type="observable" data-viz-slug="observable-topic-model"
-     data-observable-src="https://observablehq.com/embed/@observablehq/plot-airports?cells=viewof+chart">
+<div class="viz-block" data-viz-type="observable" data-viz-slug="observable-zoomable-sunburst"
+     data-observable-src="https://observablehq.com/embed/@d3/zoomable-sunburst?cells=chart">
   <div class="viz-canvas" data-viz-canvas></div>
 </div>
 

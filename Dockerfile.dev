@@ -1,6 +1,6 @@
 # DataLog Jekyll Theme - Development Environment
 # ===============================================
-# Multi-stage Docker image for local development with hot-reload support
+# Image for local development with live reload
 #
 # Usage:
 #   docker build -f Dockerfile.dev -t datalog-dev .
@@ -9,45 +9,41 @@
 # Or use docker-compose:
 #   docker-compose up
 
-FROM ruby:3.2-slim AS base
+FROM ruby:3.4-slim AS base
 
-# Install system dependencies
+# Install system dependencies. libssl-dev and libyaml-dev: with no Gemfile.lock,
+# Bundler resolves gems such as openssl and psych that compile against these
+# headers, which the slim image does not ship.
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
     git \
     curl \
+    libssl-dev \
+    libyaml-dev \
     libvips \
-    nodejs \
-    npm \
-    python3 \
-    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20 (LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
+# Install Node.js 22 LTS from NodeSource, the version CI uses. The image also
+# installed Debian's nodejs and npm packages, which this replaced anyway.
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Install global Node packages
-RUN npm install -g npm@latest
-
-# Copy dependency files
-COPY Gemfile* ./
-COPY package*.json ./
-COPY requirements.txt ./
+# Copy dependency files. The Gemfile loads the gemspec, which requires
+# version.rb and package.rb; without them `bundle install` failed here.
+COPY Gemfile datalog-theme.gemspec ./
+COPY lib/datalog/theme/version.rb lib/datalog/theme/package.rb lib/datalog/theme/
+COPY package.json package-lock.json ./
 
 # Install Ruby dependencies
 RUN bundle install
 
 # Install Node.js dependencies
 RUN npm ci
-
-# Install Python dependencies (notebook metadata validation)
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy application files
 COPY . .

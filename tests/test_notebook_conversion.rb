@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "nokogiri"
 
 class NotebookConversionTest < Minitest::Test
   NOTEBOOK_PAGE = "notebooks/sample-analysis/index.html"
@@ -22,8 +23,11 @@ class NotebookConversionTest < Minitest::Test
   end
 
   def test_notebook_renders_code_cells
-    assert_includes @notebook_html, "<code class=\"language-python\">import pandas as pd",
-                    "Converted notebook should include code cell content"
+    cell = Nokogiri::HTML5(@notebook_html).at_css(".notebook-cell--input pre.highlight code.language-python")
+
+    refute_nil cell, "Converted notebook should include a Python code cell"
+    assert cell.text.start_with?("import pandas as pd"), "The code cell should hold the notebook's source"
+    assert_equal "import", cell.at_css("span.kn")&.text, "Rouge should highlight the cell as the site builds"
     assert_match(/class="notebook-cell notebook-cell--input"/, @notebook_html,
                  "Notebook cells should include structural classes")
   end

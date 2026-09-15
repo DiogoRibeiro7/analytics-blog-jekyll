@@ -54,7 +54,7 @@ jobs:
           fi
 
       - name: Check out develop
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           ref: develop
           fetch-depth: 0
@@ -117,30 +117,40 @@ jobs:
         run: |
           echo "Dry run: nothing pushed, no PR opened." | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit and push the bump to develop
+      - name: Commit the bump, then publish it on develop and a release branch
         if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml
           git commit -m "chore(release): bump version to $VERSION"
+
+          # develop keeps the bump so it stays current for the next release.
           git push origin HEAD:develop
+
+          # The promotion comes from a branch named for the release rather than
+          # from develop, so the pull request and the merge commit on main both
+          # say which release they are. The force is for a retried release,
+          # where a branch from the failed attempt may still exist; a reused
+          # version is already refused by the validation step above.
+          git push --force origin "HEAD:refs/heads/release/v$VERSION"
 
       - name: Open or refresh the release PR
         if: ${{ !inputs.dry_run }}
         run: |
+          BRANCH="release/v$VERSION"
           {
-            echo "Promotes develop to main as **v$VERSION**. Merge with **Create a merge commit**; on merge, main is tagged and the gem publish starts (it waits for approval in the rubygems environment)."
+            echo "Promotes \`$BRANCH\` to main as **v$VERSION**. Merge with **Create a merge commit**; on merge, main is tagged and the gem publish starts (it waits for approval in the rubygems environment)."
             echo
             cat /tmp/notes.md
           } > /tmp/body.md
-          EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          EXISTING=$(gh pr list --base main --head "$BRANCH" --state open --json number --jq '.[0].number')
           if [ -n "$EXISTING" ]; then
-            gh pr edit "$EXISTING" --title "release: v$VERSION" --body-file /tmp/body.md
+            gh pr edit "$EXISTING" --title "Release v$VERSION" --body-file /tmp/body.md
             echo "Updated PR #$EXISTING" | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            gh pr create --base main --head develop --title "release: v$VERSION" --body-file /tmp/body.md
-            echo "Opened the release PR" | tee -a "$GITHUB_STEP_SUMMARY"
+            gh pr create --base main --head "$BRANCH" --title "Release v$VERSION" --body-file /tmp/body.md
+            echo "Opened the release PR from $BRANCH" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
   tag:
@@ -151,7 +161,7 @@ jobs:
       GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
       - name: Check out main
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           ref: main
           fetch-depth: 0
@@ -179,6 +189,32 @@ jobs:
             echo "::error::RELEASE_TOKEN secret is not configured; tag v${{ steps.version.outputs.version }} by hand (see docs/release-process.md)."
             exit 1
           fi
+
+      # The package is built and checked before the tag exists. gem-release.yml
+      # runs the same checks, but only after the tag push, so a broken package
+      # used to leave a tag and a GitHub release for a gem that never published.
+      - name: Set up Ruby
+        if: steps.version.outputs.new == 'true'
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Set up Node.js
+        if: steps.version.outputs.new == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Build and verify the gem before tagging
+        if: steps.version.outputs.new == 'true'
+        run: |
+          npm ci
+          npm run build:js
+          git diff --exit-code -- _data/js_manifest.json
+          gem build datalog-theme.gemspec
+          ruby scripts/verify_gem_package.rb
 
       # Pushing the tag with the release token triggers gem-release.yml, which
       # then waits for approval in the rubygems environment.

@@ -7,6 +7,7 @@ require "fileutils"
 require "cgi"
 require "loofah"
 require "base64"
+require_relative "rouge_highlight_filter"
 
 module Datalog
   module NotebookRenderer
@@ -94,14 +95,30 @@ module Datalog
                                       metadata: build_sanitization_metadata(meta, cell_index: cell_index))
       return if sanitized.to_s.strip.empty?
 
-      %(<section class="notebook-cell notebook-cell--markdown">\n#{sanitized}\n</section>)
+      %(<section class="notebook-cell notebook-cell--markdown">\n#{demote_headings(sanitized.to_s)}\n</section>)
+    end
+
+    # The notebook layout gives the page its <h1>, and a notebook's first
+    # markdown cell usually repeats the title as `# Title`. Each heading moves
+    # down a level (h1 to h2, and so on to h6), which keeps one <h1> on the
+    # page and the cells' own outline under it.
+    def demote_headings(html)
+      html.gsub(%r{<(/?)h([1-5])(?=[\s>])}i) { "<#{Regexp.last_match(1)}h#{Regexp.last_match(2).to_i + 1}" }
     end
 
     # Class names mirror the theme stylesheet (`.notebook-cell--input`,
     # `.notebook-cell__code` and `.notebook-cell__outputs` in _sass/_components.scss).
     def render_code(cell, source, metadata, site, cell_index)
       language = cell.dig("metadata", "language") || metadata[:language] || "text"
-      code_html = %(<pre class="notebook-cell__code"><code class="language-#{language}">#{CGI.escapeHTML(source)}</code></pre>)
+      # The language comes from the notebook file, so it is cut down to the
+      # characters a class name can hold before it goes into the attribute.
+      language_class = language.to_s.gsub(/[^\w+#.-]/, "")
+      # Rouge highlights the cell as the site builds, as kramdown does for code
+      # blocks, and escapes it.
+      highlighted = Jekyll::RougeHighlightFilter.highlight(source, language_class)
+      pre_attributes = %(class="highlight notebook-cell__code" tabindex="0")
+      code_attributes = %(class="language-#{language_class}")
+      code_html = %(<pre #{pre_attributes}><code #{code_attributes}>#{highlighted}</code></pre>)
       base_metadata = metadata.respond_to?(:merge) ? metadata.merge(language: language) : { language: language }
       outputs_html = render_outputs(Array(cell["outputs"]), site: site, cell_index: cell_index, metadata: base_metadata)
       outputs_html = %(\n<div class="notebook-cell__outputs">\n#{outputs_html}\n</div>) unless outputs_html.empty?
@@ -157,11 +174,13 @@ module Datalog
     def image_output_html(output)
       data = output["data"] || {}
 
+      # Jupyter writes base64 image data split over lines or ending in a newline,
+      # and the data URI check rejects whitespace, which dropped those images.
       if (png = data["image/png"])
-        html = %(<img src="data:image/png;base64,#{Array(png).join}" alt="Notebook output" />)
+        html = %(<img src="data:image/png;base64,#{Array(png).join.gsub(/\s+/, '')}" alt="Notebook output" />)
         return [html, "image/png"]
       elsif (jpeg = data["image/jpeg"])
-        html = %(<img src="data:image/jpeg;base64,#{Array(jpeg).join}" alt="Notebook output" />)
+        html = %(<img src="data:image/jpeg;base64,#{Array(jpeg).join.gsub(/\s+/, '')}" alt="Notebook output" />)
         return [html, "image/jpeg"]
       elsif (svg = data["image/svg+xml"])
         encoded = Base64.strict_encode64(Array(svg).join)

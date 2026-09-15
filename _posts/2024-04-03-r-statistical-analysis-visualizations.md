@@ -62,11 +62,11 @@ Exporting figures directly from the R session ensures the rendered asset is trac
 <div
   class="viz-block"
   data-viz-type="observable"
-  data-viz-title="Multilevel conversions"
-  data-viz-slug="observable-conversion-effects"
+  data-viz-title="D3 bar chart"
+  data-viz-slug="observable-d3-bar-chart"
   data-viz-version="1.0"
   data-viz-updated="2024-04-03"
-  data-viz-src="https://observablehq.com/embed/@datalog/conversion-effects?cells=plot"
+  data-viz-src="https://observablehq.com/embed/@d3/bar-chart?cells=chart"
 ></div>
 
 ## Share reproducibility artifacts

@@ -38,11 +38,11 @@ The site will be available at `http://localhost:4000`. The command watches Markd
 
 ## 2. Jupyter Notebook Integration Tutorial
 
-1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin renders them into blog posts during `jekyll build` or `jekyll serve`.
-2. Populate notebook metadata (`title`, `authors`, `difficulty`, `tags`) through the notebook JSON or via front matter overrides created in `_data/notebooks.yml`.
+1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin publishes each one as a page under `/notebooks/` during `jekyll build` or `jekyll serve`.
+2. The page takes its title, authors and tags from the notebook's own metadata: `title` (or `datalog.title`, falling back to the notebook's first heading), `authors`, and `tags` or `keywords`.
 3. Interactive outputs such as Plotly, ipywidgets, and Bokeh cells are preserved using the theme's visualization runtime. For custom JavaScript outputs, ensure they ship with self-contained HTML snippets.
 4. Readers can download the original notebook automatically—links are generated in the notebook layout.
-5. Configure Binder and Colab URLs in `_config.yml` under `integrations.notebooks` to expose “Run in Binder” and “Open in Colab” buttons.
+5. The “Run in Binder” and “Open in Colab” buttons link to the repository and branch set under `notebooks:` in `_config.yml` (`repository`, `branch`); `notebooks.binder.base_url` and `notebooks.colab.base_url` change the link formats.
 
 ## 3. Mathematical Expression Authoring
 
@@ -146,7 +146,7 @@ Coming from Minimal Mistakes? Its `header` images, `seo_title`, `seo_description
 We welcome contributions from the academic and data science community:
 
 1. Fork the repository and create a feature branch.
-2. Ensure `bundle exec jekyll build` and `bundle exec rake ci:verify` complete without errors (install Jekyll locally if necessary).
+2. Ensure `npm test` and `bundle exec rake test` complete without errors.
 3. Add or update tests/documentation when modifying plugins or layouts.
 4. Follow the existing code style and Sass architecture (`_sass/` directory). Avoid wrapping imports in try/catch blocks.
 5. Submit a pull request summarizing your changes and referencing related issues or discussions.
@@ -156,7 +156,7 @@ We welcome contributions from the academic and data science community:
 When you're ready to publish a new version of DataLog or announce major updates:
 
 1. Update the version constants (`lib/datalog/theme/version.rb`, `_config.yml`, `CITATION.cff`).
-2. Run the verification suite (`bundle exec rake ci:verify`) and ensure GitHub Actions succeeds.
+2. Run the test suites (`npm test`, `bundle exec rake test`) and ensure GitHub Actions succeeds.
 3. Follow the detailed checklist in [`docs/distribution.md`](distribution.md) to release the gem, submit to the Jekyll theme directory, and coordinate outreach with academic communities.
 4. Share the preferred citation (from `CITATION.cff`) in announcements and research communications.
 

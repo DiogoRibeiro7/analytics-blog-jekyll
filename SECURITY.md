@@ -156,14 +156,11 @@ Google Analytics dashboard plugin requires service account credentials:
 
 ## Security Testing
 
-DataLog includes security testing scripts:
+DataLog includes security tests:
 
 ```bash
-# Run security validation tests
-ruby scripts/test_security.rb
-
 # Check Content Security Policy generation
-ruby scripts/test_csp.rb
+bundle exec ruby -Itests tests/test_csp.rb
 
 # Validate dependency security
 bundle audit

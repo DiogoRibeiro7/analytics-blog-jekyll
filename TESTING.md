@@ -16,7 +16,7 @@ npm install
 | `npm test` | JavaScript unit tests (Vitest) |
 | `npm run test:coverage` | Unit tests with coverage report |
 | `npm run test:integration` | Playwright integration tests |
-| `bundle exec rake ci:verify` | Full Ruby verification suite |
+| `bundle exec rake test` | Builds the demo site and runs the Minitest suite against it |
 | `bundler-audit check` | Ruby dependency vulnerability scan |
 | `npm audit --omit=dev` | Node.js dependency vulnerability scan |
 
@@ -52,7 +52,6 @@ which run in the background.
 | `deploy.yml` | Push to `develop` | Build + publish GitHub Pages |
 | `gem-release.yml` | Push tag `v*` | Publish theme gem |
 | `release.yml` | `workflow_dispatch` | Cut a release branch |
-| `project-sync.yml` | Issue labeled/opened | Mirror to GitHub Project |
 
 ### Local-only / not wired to CI
 

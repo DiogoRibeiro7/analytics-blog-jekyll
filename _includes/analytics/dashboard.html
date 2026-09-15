@@ -145,5 +145,7 @@
       window.__DATALOG_ANALYTICS__ = {};
     {% endif %}
   </script>
-  <script src="{{ '/assets/js/analytics-dashboard.js' | relative_url }}" defer></script>
+  {%- comment -%} The built bundle, as a module: the script uses `export`, which a classic script cannot parse. {%- endcomment %}
+  {%- assign dashboard_bundle = site.data.js_manifest.entrypoints['analytics-dashboard'] | default: '/assets/js/dist/analytics-dashboard.js' %}
+  <script type="module" src="{{ dashboard_bundle | relative_url }}"></script>
 </div>

@@ -166,8 +166,8 @@ npm run test:coverage
 # Build site
 bundle exec jekyll build
 
-# Verify no errors
-bundle exec rake ci:verify
+# Build the site again and run the Ruby tests against it
+bundle exec rake test
 ```
 
 ### 5. Commit and Push

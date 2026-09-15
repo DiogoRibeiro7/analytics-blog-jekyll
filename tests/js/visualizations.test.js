@@ -315,6 +315,62 @@ describe('visualization fallbacks', () => {
   });
 });
 
+// require.js sets define.amd, and a UMD bundle that runs while it is set
+// registers with require.js instead of setting its global. The gallery loads
+// require.js for the widget manager next to Plotly, D3 and BokehJS.
+describe('UMD bundles alongside require.js', () => {
+  const requireSelector = 'script[src*="require.min.js"]';
+
+  beforeEach(() => {
+    document.head.innerHTML = '';
+    vizInternals.resetRequireLoading();
+    delete window.requirejs;
+    delete window.UmdFirst;
+    delete window.UmdQueued;
+    delete window.UmdLater;
+  });
+
+  it('loads a bundle by script tag while require.js is not in use', async () => {
+    const src = 'https://cdn.example.com/umd-first.js';
+    const promise = vizInternals.loadUmd(src, 'UmdFirst');
+    const script = document.head.querySelector(`script[src="${src}"]`);
+    expect(script).not.toBeNull();
+
+    window.UmdFirst = { name: 'first' };
+    script.onload();
+
+    await expect(promise).resolves.toEqual({ name: 'first' });
+  });
+
+  it('loads require.js only after a bundle already loading has run', async () => {
+    const src = 'https://cdn.example.com/umd-queued.js';
+    const bundle = vizInternals.loadUmd(src, 'UmdQueued');
+    const requireReady = vizInternals.ensureRequire();
+    await Promise.resolve();
+    expect(document.head.querySelector(requireSelector)).toBeNull();
+
+    window.UmdQueued = {};
+    document.head.querySelector(`script[src="${src}"]`).onload();
+    await bundle;
+    await vi.waitFor(() => expect(document.head.querySelector(requireSelector)).not.toBeNull());
+
+    window.requirejs = vi.fn();
+    document.head.querySelector(requireSelector).onload();
+    await expect(requireReady).resolves.toBe(window.requirejs);
+  });
+
+  it('asks require.js for a bundle requested once require.js is in use', async () => {
+    const src = 'https://cdn.example.com/umd-later.js';
+    const module = { name: 'later' };
+    window.requirejs = vi.fn((dependencies, onLoad) => onLoad(module));
+    await vizInternals.ensureRequire();
+
+    await expect(vizInternals.loadUmd(src, 'UmdLater')).resolves.toBe(module);
+    expect(window.requirejs).toHaveBeenCalledWith([src], expect.any(Function), expect.any(Function));
+    expect(document.head.querySelector(`script[src="${src}"]`)).toBeNull();
+  });
+});
+
 describe('loadScript and loadStyle', () => {
   beforeEach(() => {
     // Clear any previously loaded scripts/styles tracking
@@ -1227,11 +1283,114 @@ describe('D3 rendering', () => {
 
     expect(status.textContent).toBe('D3 rendering error');
   });
+
+  // The Content Security Policy has no 'unsafe-eval', so the author's code has
+  // to run as a script element carrying the block's nonce, not new Function.
+  it('runs the D3 code as a script element with the nonce of its block', async () => {
+    window.d3 = {};
+    const appended = [];
+    const appendChild = document.head.appendChild.bind(document.head);
+    const spy = vi.spyOn(document.head, 'appendChild').mockImplementation((node) => {
+      if (node.tagName === 'SCRIPT') {
+        appended.push(node);
+      }
+      return appendChild(node);
+    });
+
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'd3');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    const script = document.createElement('script');
+    script.setAttribute('type', 'text/plain');
+    script.setAttribute('data-d3-script', '');
+    script.setAttribute('nonce', 'abc123');
+    script.textContent = 'element.dataset.rendered = "yes";';
+    element.appendChild(script);
+
+    await vizInternals.renderVisualization(element);
+    spy.mockRestore();
+
+    expect(canvas.dataset.rendered).toBe('yes');
+    expect(appended).toHaveLength(1);
+    expect(appended[0].nonce || appended[0].getAttribute('nonce')).toBe('abc123');
+    expect(status.textContent).toBe('Interactive');
+  });
 });
 
 describe('Observable rendering', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+  });
+
+  it('accepts data-viz-src, the attribute the user guide documents', async () => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', 'https://observablehq.com/embed/xyz');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    expect(canvas.querySelector('iframe').src).toBe('https://observablehq.com/embed/xyz');
+    expect(status.textContent).toBe('Embedded');
+  });
+
+  it('keeps the cells an embed address selects', async () => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', 'https://observablehq.com/embed/@datalog/conversion-effects?cells=viewof+chart,plot#ignored');
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    const iframe = new URL(canvas.querySelector('iframe').src);
+    expect(iframe.origin + iframe.pathname).toBe('https://observablehq.com/embed/@datalog/conversion-effects');
+    expect(iframe.searchParams.get('cells')).toBe('viewof chart,plot');
+    expect(iframe.hash).toBe('');
+  });
+
+  it.each([
+    ['another host', 'https://example.com/embed/xyz'],
+    ['a javascript: URL', 'javascript:alert(1)'],
+    ['a data: URL', 'data:text/html,<script>alert(1)</script>']
+  ])('refuses an embed address on %s', async (_label, address) => {
+    const element = document.createElement('div');
+    element.setAttribute('data-viz-type', 'observable');
+    element.setAttribute('data-viz-src', address);
+
+    const canvas = document.createElement('div');
+    canvas.setAttribute('data-viz-canvas', '');
+    element.appendChild(canvas);
+
+    const status = document.createElement('span');
+    status.setAttribute('data-viz-status', '');
+    element.appendChild(status);
+
+    await vizInternals.renderVisualization(element);
+
+    expect(canvas.querySelector('iframe')).toBeNull();
+    expect(status.textContent).toBe('Observable embeds must come from observablehq.com');
   });
 
   it('creates iframe for observable embed', async () => {

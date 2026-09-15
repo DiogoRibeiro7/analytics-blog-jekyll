@@ -25,6 +25,8 @@ body:
       options:
         - README.md
         - Installation Guide (docs/install.md)
+        - Documentation Index (docs/README.md)
+        - Post Components (docs/components.md)
         - CONTRIBUTING.md
         - User Guide (docs/user-guide.md)
         - Configuration Reference (docs/configuration-reference.md)
