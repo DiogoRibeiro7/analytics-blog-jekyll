@@ -25,11 +25,12 @@ cd /tmp/datalog-starter
 git init
 git add .
 git commit -m "Bootstrap Datalog starter"
+git branch -M main
 git remote add origin git@github.com:DiogoRibeiro7/datalog-starter.git
-git push -u origin develop
+git push -u origin main
 ```
 
-> 💡 Update the remote to match your GitHub username if different.
+> 💡 Update the remote to match your GitHub username if different. The starter's deploy workflow runs on pushes to `main`, so push that branch.
 
 ## 3. Review configuration
 

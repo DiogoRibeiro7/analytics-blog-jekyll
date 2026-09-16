@@ -439,7 +439,7 @@ module Datalog
     end
 
     def ruby_supported?
-      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
+      Gem::Requirement.new(Datalog::Theme::RUBY_REQUIREMENT).satisfied_by?(Gem::Version.new(RUBY_VERSION))
     end
 
     def gemfile_path(root)
