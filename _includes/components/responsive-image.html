@@ -2,7 +2,7 @@
 {% assign alt_text = include.alt | to_s %}
 {% if image_src == '' or alt_text == '' %}
   {% comment %}Missing required parameters{% endcomment %}
-  {% assign fallback_loading = include.loading | default: site.config.datalog_image_config.lazy_loading | default: 'lazy' %}
+  {% assign fallback_loading = include.loading | default: site.datalog_image_config.lazy_loading | default: 'lazy' %}
   <img src="{{ image_src }}" alt="{{ alt_text }}" loading="{{ fallback_loading }}" decoding="async" />
 {% else %}
   {% assign baseurl = site.baseurl | default: '' %}
@@ -22,8 +22,8 @@
     {% assign normalized_src = normalized_src | replace: '//', '/' %}
     {% assign responsive_entry = manifest[normalized_src] %}
   {% endif %}
-  {% assign requested_sizes = include.sizes | default: site.config.datalog_image_config.default_sizes | default: '100vw' %}
-  {% assign loading_mode = include.loading | default: site.config.datalog_image_config.lazy_loading | default: 'lazy' %}
+  {% assign requested_sizes = include.sizes | default: site.datalog_image_config.default_sizes | default: '100vw' %}
+  {% assign loading_mode = include.loading | default: site.datalog_image_config.lazy_loading | default: 'lazy' %}
   {% if responsive_entry %}
     <picture>
       {% for source in responsive_entry.sources %}

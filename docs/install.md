@@ -192,7 +192,9 @@ GitHub Actions and publish the result instead:
 3. Push to `main`. The site is published once the workflow finishes.
 
 This repository's `.github/workflows/deploy.yml` publishes the demo site the same
-way, with its test suites added.
+way, with its test suites added. To publish AVIF, WebP and resized copies of your
+images, install ImageMagick and avifenc before the build step; the
+[configuration guide](configuration-guide.md#images) has the command.
 
 ### 2.4 Work on the Theme Repository
 

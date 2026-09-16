@@ -79,7 +79,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "fastimage", "~> 2.2"
   spec.add_runtime_dependency "loofah", "~> 2.19"
   spec.add_runtime_dependency "nokogiri", "~> 1.15"
-  spec.add_runtime_dependency "mini_magick", ">= 4.12", "< 6"
   spec.add_runtime_dependency "logger", "~> 1.6"
   spec.add_runtime_dependency "thor", "~> 1.3"
   # googleauth, with the Google Cloud gems it brings, is needed only by the
