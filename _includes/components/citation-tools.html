@@ -4,7 +4,8 @@
 {% assign citation_year = citation_date | date: '%Y' %}
 {% assign authors_source = include.authors | default: page.authors | default: page.author | default: site.author.name %}
 {% assign authors_array = authors_source | arrayify %}
-{% assign publisher = include.publisher | default: site.author.affiliation | default: site.title %}
+{%- comment -%} A configured publisher, else the site's name. The author's affiliation is not the publisher. {%- endcomment -%}
+{% assign publisher = include.publisher | default: site.publisher.name | default: site.title %}
 {% assign doi = include.doi | default: page.doi %}
 {% assign citation_type = include.citation_type | default: include.type | default: 'article' %}
 {% assign citation_key = include.citation_key | default: page.citation_key | default: page.slug | default: citation_title | slugify %}

@@ -1,0 +1,45 @@
+{%- comment -%}
+---
+optional: []
+---
+Resolves who publishes the site, for structured data. Sets publisher_type
+("Person" or "Organization"), publisher_name, publisher_url and, for an
+Organization, publisher_logo and publisher_logo_default (true when the logo is
+the theme's 512px icon, whose size is known).
+
+`publisher` in _config.yml names the publisher. Without it, the site's author
+publishes as a Person, or the site title as an Organization when there is no
+author name. The author's affiliation is not the publisher: schema.html puts it
+on the author.
+{%- endcomment -%}
+{%- assign site_author_name = site.author.name | default: site.author -%}
+{%- if site.publisher.type == 'Organization' -%}
+  {%- assign publisher_type = 'Organization' -%}
+{%- else -%}
+  {%- assign publisher_type = 'Person' -%}
+{%- endif -%}
+{%- assign publisher_name = site.publisher.name -%}
+{%- if publisher_type == 'Person' -%}
+  {%- assign publisher_name = publisher_name | default: site_author_name -%}
+  {%- if publisher_name == nil or publisher_name == '' -%}
+    {%- assign publisher_type = 'Organization' -%}
+  {%- endif -%}
+{%- endif -%}
+{%- if publisher_type == 'Organization' -%}
+  {%- assign publisher_name = publisher_name | default: site.title -%}
+{%- endif -%}
+{%- if site.publisher.url -%}
+  {%- assign publisher_url = site.publisher.url | absolute_url -%}
+{%- else -%}
+  {%- assign publisher_url = site.url -%}
+{%- endif -%}
+{%- assign publisher_logo = nil -%}
+{%- assign publisher_logo_default = false -%}
+{%- if publisher_type == 'Organization' -%}
+  {%- if site.publisher.logo -%}
+    {%- assign publisher_logo = site.publisher.logo | absolute_url -%}
+  {%- else -%}
+    {%- assign publisher_logo = '/assets/img/favicons/android-chrome-512x512.png' | absolute_url -%}
+    {%- assign publisher_logo_default = true -%}
+  {%- endif -%}
+{%- endif -%}

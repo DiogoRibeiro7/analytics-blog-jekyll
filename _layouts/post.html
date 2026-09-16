@@ -57,7 +57,8 @@ schema_type: TechnicalArticle
     <meta itemprop="dateModified" content="{{ page.last_modified_at | default: page.updated | date_to_xmlschema }}" />
   {% endif %}
   <meta itemprop="author" content="{{ author_name }}" />
-  <meta itemprop="publisher" content="{{ site.author.affiliation | default: site.title }}" />
+  {% include meta/publisher.html %}
+  <meta itemprop="publisher" content="{{ publisher_name | escape }}" />
   <meta itemprop="timeRequired" content="{{ time_required }}" />
   {% if difficulty %}<meta itemprop="learningResourceType" content="{{ difficulty }}" />{% endif %}
   {% if has_tags %}<meta itemprop="keywords" content="{{ post_tags | join: ', ' }}" />{% endif %}
@@ -204,7 +205,6 @@ schema_type: TechnicalArticle
        date=page.date
        url=canonical_url
        citation_key=citation_key
-       publisher=site.author.affiliation
        citation_type='article'
        doi=page.doi %}
   {% include components/open-science-badges.html %}

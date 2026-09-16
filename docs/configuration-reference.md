@@ -17,6 +17,11 @@ This guide documents the configuration keys validated by the automated configura
 | `author` | String or map, required | A name, or a map with `name` |
 | `author.name` | String, required when `author` is a map | Any |
 | `author.email` | String | An email address |
+| `publisher` | Map | Any |
+| `publisher.type` | String | `Person`, `Organization` |
+| `publisher.name` | String | Any |
+| `publisher.url` | String | A URL, or a path on the site |
+| `publisher.logo` | String | A URL, or a path on the site |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -90,6 +95,35 @@ This guide documents the configuration keys validated by the automated configura
   ```yaml
   author:
     email: author@example.com
+  ```
+
+## Publisher
+
+### publisher
+- **Required:** No
+- **Type:** Map
+- **Description:** Who publishes the site, as named in each page's JSON-LD `publisher`, a post's microdata, and citation exports. Without it, the author publishes the site as a `Person` (or, with no author name, the site title as an `Organization`), which suits a personal site. An institutional publication sets `type: Organization`. `author.affiliation` is the author's, not the publisher's: structured data lists it as the author's `affiliation`.
+- **Keys:**
+  - `type`: `Person` (default) or `Organization`.
+  - `name`: defaults to `author.name` for a `Person`, and to `title` for an `Organization`.
+  - `url`: defaults to `url`. A path such as `/lab/` is made absolute.
+  - `logo`: an `Organization`'s logo, a URL or a path on the site. Defaults to the theme's 512px icon. A `Person` has no logo.
+- **Citations:** BibTeX, RIS and EndNote exports and the citation line name `publisher.name` when it is set, and otherwise the site `title`.
+- **Examples:**
+  ```yaml
+  # A personal site
+  publisher:
+    type: Person
+    name: Diogo Ribeiro
+    url: https://example.org
+  ```
+  ```yaml
+  # An institutional publication
+  publisher:
+    type: Organization
+    name: Example Lab
+    url: https://example.org/lab
+    logo: /assets/img/lab-logo.png
   ```
 
 ## Theme Options
