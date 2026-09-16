@@ -6,7 +6,7 @@ require_relative "../lib/datalog/theme/version"
 
 # The versions a reader copies from the installation docs and the starter
 # template. After 0.8.0 they still said `~> 0.7` and Ruby 3.0, and the
-# template's workflow built with Ruby 3.1, which cannot install the gem (#242).
+# template's workflow built with Ruby 3.1, which cannot install 0.8.0 (#242).
 # The release workflow rewrites the theme version in these files and runs this
 # test before it pushes the bump.
 class InstallVersionsTest < Minitest::Test
