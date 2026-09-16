@@ -236,8 +236,9 @@ module Jekyll
     # cannot encode the format or the encoder fails, so the manifest only names
     # files that exist.
     def build_variant(image, target_width, format)
-      static_file = image[:file]
       return unless can_encode?(format, image[:encoders])
+
+      static_file = image[:file]
 
       quality = image[:config]["quality"][format]
       cached = cached_variant_path(image, target_width, format, quality)
@@ -259,7 +260,7 @@ module Jekyll
       }
     rescue StandardError => e
       Jekyll.logger.warn "ImageOptimizer:",
-                         "Could not create a #{target_width}px #{format} of #{static_file.relative_path}: #{e.message}"
+                         "Could not create a #{target_width}px #{format} of #{image[:file].relative_path}: #{e.message}"
       nil
     end
 
@@ -365,9 +366,10 @@ module Jekyll
       []
     end
 
-    # A line of `-list format` reads "     WEBP* rw+   WebP Image Format".
+    # A line of `-list format` reads "     WEBP* rw+   WebP Image Format" in
+    # ImageMagick 7. ImageMagick 6 adds the module: "     WEBP* WEBP      rw+".
     def parse_writable_formats(listing)
-      listing.each_line.filter_map { |line| line[/\A\s*([A-Z0-9-]+)\*?\s+[r-]w[+-]\s/, 1] }
+      listing.each_line.filter_map { |line| line[/\A\s*([A-Z0-9-]+)\*?\s+(?:[A-Z0-9-]+\s+)?[r-]w[+-]\s/, 1] }
     end
 
     def which(command)

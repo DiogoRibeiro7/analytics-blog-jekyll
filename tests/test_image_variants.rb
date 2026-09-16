@@ -3,6 +3,7 @@
 require_relative "test_helper"
 require "fastimage"
 require "nokogiri"
+require "open3"
 require "rbconfig"
 require "tmpdir"
 
@@ -109,7 +110,7 @@ class ImageVariantsTest < Minitest::Test
   # --- Finding the encoders ---------------------------------------------------
 
   def test_writable_formats_are_read_from_the_format_list
-    listing = <<~TEXT
+    imagemagick7 = <<~TEXT
          Format  Mode  Description
       -------------------------------------------------------------------------------
            AVIF  rw+   AV1 Image File Format (1.23.2)
@@ -119,7 +120,18 @@ class ImageVariantsTest < Minitest::Test
           WEBP* rw+   WebP Image Format (libwebp 1.6.0 [0210])
     TEXT
 
-    assert_equal %w[AVIF JPEG PNG WEBP], Jekyll::ImageOptimizer.parse_writable_formats(listing)
+    # ImageMagick 6, as Ubuntu installs it, prints the module each format comes from.
+    imagemagick6 = <<~TEXT
+         Format  Module    Mode  Description
+      -------------------------------------------------------------------------------
+            HEIC  HEIC      r--   High Efficiency Image Format
+           JPEG* JPEG      rw-   Joint Photographic Experts Group JFIF format (libjpeg-turbo 2.1.5)
+            PNG* PNG       rw-   Portable Network Graphics (libpng 1.6.43)
+           WEBP* WEBP      rw+   WebP Image Format (libwebp 1.3.2 [020E])
+    TEXT
+
+    assert_equal %w[AVIF JPEG PNG WEBP], Jekyll::ImageOptimizer.parse_writable_formats(imagemagick7)
+    assert_equal %w[JPEG PNG WEBP], Jekyll::ImageOptimizer.parse_writable_formats(imagemagick6)
   end
 
   def test_convert_is_not_taken_for_imagemagick_on_windows
@@ -128,11 +140,11 @@ class ImageVariantsTest < Minitest::Test
       assert_nil Jekyll::ImageOptimizer.detect_tools(windows: true)["imagemagick"]
 
       replacing(:writable_formats, ->(_) { %w[PNG WEBP] }) do
-        found = { "convert" => "/usr/bin/convert" }
+        found.replace("convert" => "/usr/bin/convert")
         assert_equal ["/usr/bin/convert"], Jekyll::ImageOptimizer.detect_tools(windows: false)["imagemagick"]
 
-        found = { "convert" => "/usr/bin/convert", "magick" => "/usr/local/bin/magick",
-                  "avifenc" => "/usr/bin/avifenc" }
+        found.replace("convert" => "/usr/bin/convert", "magick" => "/usr/local/bin/magick",
+                      "avifenc" => "/usr/bin/avifenc")
         tools = Jekyll::ImageOptimizer.detect_tools(windows: false)
         assert_equal ["/usr/local/bin/magick"], tools["imagemagick"]
         assert_equal ["/usr/bin/avifenc"], tools["avifenc"]
@@ -149,7 +161,9 @@ class ImageVariantsTest < Minitest::Test
     missing << "ImageMagick's WebP writer" unless tools["writable"].include?("WEBP")
     missing << "avifenc" unless tools["avifenc"]
     unless missing.empty?
-      flunk "#{missing.join(', ')} not found" if ENV["DATALOG_IMAGE_TOOLS"] == "required"
+      if ENV["DATALOG_IMAGE_TOOLS"] == "required"
+        flunk "#{missing.join(', ')} not found. Detected: #{tools.inspect}\n#{format_listing(tools)}"
+      end
       skip "#{missing.join(', ')} not installed"
     end
 
@@ -211,6 +225,13 @@ class ImageVariantsTest < Minitest::Test
     yield
   ensure
     Jekyll::ImageOptimizer.define_singleton_method(name, original)
+  end
+
+  # The start of ImageMagick's format list, for a failure message.
+  def format_listing(tools)
+    return "" unless tools["imagemagick"]
+
+    Open3.capture2e(*tools["imagemagick"], "-list", "format").first.lines.first(12).join
   end
 
   def read(page)
