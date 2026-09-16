@@ -22,6 +22,16 @@ module Datalog
           email: { type: :string, format: :email }
         }
       },
+      # Who publishes the site in structured data and citations. Without it, the author does.
+      publisher: {
+        type: :hash,
+        schema: {
+          type: { type: :string, enum: %w[Person Organization] },
+          name: { type: :string },
+          url: { type: :string },
+          logo: { type: :string }
+        }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

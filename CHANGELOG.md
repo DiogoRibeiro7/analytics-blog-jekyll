@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - The build warns when front matter `defaults` set `math: true` or `mathjax: true` while `theme_options.math.render_on_load` is `auto`, since every page in their scope then loads the math engine, with math or without. It also warns that `theme_options.math.enabled` has no effect: nothing reads it, though the user guide's troubleshooting table told readers to check it (#234).
+- `publisher` in `_config.yml` names who publishes the site, as a `Person` or an `Organization`, with a `name`, `url` and, for an organization, `logo`. Each page's JSON-LD, a post's microdata and the citation exports use it. `docs/configuration-reference.md` describes the defaults (#240).
+
+### Changed
+
+- The site's author, not the author's affiliation, is the publisher when `publisher` is not set. The JSON-LD named `author.affiliation` as the publishing `Organization`, so every post on a personal site said the author's university published it, and a post's microdata and its BibTeX, RIS and EndNote exports named the university as publisher too. Now the JSON-LD names the author as a `Person`, or the site title as an `Organization` when there is no author name, and the citation exports name the site title. The affiliation moves to the author's own `affiliation` in the JSON-LD, only when the page's author is the site's author. A site that the author's institution does publish keeps its old output with `publisher: {type: Organization, name: <the institution>}` (#240).
 
 ### Fixed
 

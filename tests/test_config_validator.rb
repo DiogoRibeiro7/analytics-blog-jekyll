@@ -35,6 +35,18 @@ class ConfigValidatorTest < Minitest::Test
     assert_includes error.message, 'Did you mean "mathjax"?'
   end
 
+  def test_publisher_type_is_person_or_organization
+    config = base_config
+    config["publisher"] = { "type" => "Company", "name" => "Example Lab" }
+
+    error = assert_raises(Jekyll::Errors::FatalException) { run_generator(config) }
+    assert_includes error.message, "Invalid value for 'publisher.type'"
+    assert_includes error.message, '"Person" or "Organization"'
+
+    config["publisher"]["type"] = "Organization"
+    assert_nil run_generator(config)
+  end
+
   def test_nested_schema_validation
     config = base_config
     config["author"].delete("name")

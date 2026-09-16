@@ -48,6 +48,6 @@ show_title: false # this layout renders the page's <h1>
   {% assign citation_authors = page.authors | default: page.author | default: site.author.name %}
   {% assign citation_date = page.date | default: page.updated %}
   {% assign citation_url = page.url | absolute_url %}
-  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key publisher=site.author.affiliation citation_type='dataset' doi=page.doi %}
+  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key citation_type='dataset' doi=page.doi %}
   {% include components/open-science-badges.html %}
 </article>

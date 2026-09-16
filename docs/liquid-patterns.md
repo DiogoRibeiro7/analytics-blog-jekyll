@@ -19,6 +19,14 @@ This document describes the reusable Liquid includes introduced to simplify site
 {% include meta/schema.html page=page type='TechnicalArticle' %}
 ```
 
+### `meta/publisher.html`
+*Purpose*: Resolve the site's publisher from `publisher` in `_config.yml`, defaulting to the author as a `Person`.
+*Usage*:
+```liquid
+{% include meta/publisher.html %}
+```
+*Provides*: `publisher_type`, `publisher_name`, `publisher_url`, `publisher_logo`, `publisher_logo_default`, `site_author_name`.
+
 ### `meta/scripts-loader.html`
 *Purpose*: Output the page data scripts and the feature loader at the end of the body.
 *Usage*:

@@ -10,12 +10,13 @@ Provides rich structured data for:
 - Article/BlogPosting/TechnicalArticle schema for posts
 - WebPage schema for standard pages
 - Author information with social profile links
-- Publisher organization with branding
+- Publisher: a Person or an Organization, from `publisher` in _config.yml
 - Images, keywords, and content metadata
 
 Defaults to TechnicalArticle for posts, WebPage for other pages.
 {%- endcomment -%}
 {%- assign schema_page = include.page -%}
+{%- include meta/publisher.html -%}
 {%- assign is_post = false -%}
 {%- if schema_page.layout == 'post' or schema_page.collection == 'posts' -%}
   {%- assign is_post = true -%}
@@ -30,7 +31,13 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
 {%- assign schema_nonce = schema_page.csp_nonce | default: page.csp_nonce | default: nonce_lookup[schema_page.path] | default: nonce_lookup[page.path] | default: nonce_lookup[page.url] -%}
 {%- assign description = schema_page.description | default: schema_page.excerpt | strip_html | strip_newlines | truncate: 300 -%}
 {%- assign page_url = schema_page.url | absolute_url -%}
-{%- assign author_name = schema_page.author | default: site.author.name -%}
+{%- assign author_name = schema_page.author | default: site_author_name -%}
+{%- comment -%} The site author's affiliation belongs to them, not to a guest author. {%- endcomment -%}
+{%- assign author_affiliation = schema_page.author_affiliation -%}
+{%- if author_affiliation == nil and author_name == site_author_name -%}
+  {%- assign author_affiliation = site.author.affiliation -%}
+{%- endif -%}
+{%- assign author_affiliation = author_affiliation | strip -%}
 {%- assign word_count = schema_page.content | strip_html | number_of_words -%}
 {%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_page.date -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">
@@ -84,6 +91,12 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
     "@type": "Person",
     "name": {{ author_name | jsonify }},
     "url": {{ site.url | jsonify }}
+    {%- if author_affiliation != '' -%},
+    "affiliation": {
+      "@type": "Organization",
+      "name": {{ author_affiliation | jsonify }}
+    }
+    {%- endif -%}
     {%- if site.author.orcid -%},
     "sameAs": [
       {{ site.author.orcid | jsonify }}
@@ -103,15 +116,19 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
     {%- endif -%}
   },
   "publisher": {
-    "@type": "Organization",
-    "name": {{ site.author.affiliation | default: site.title | jsonify }},
-    "url": {{ site.url | jsonify }},
+    "@type": {{ publisher_type | jsonify }},
+    "name": {{ publisher_name | jsonify }},
+    "url": {{ publisher_url | jsonify }}
+    {%- if publisher_logo -%},
     "logo": {
       "@type": "ImageObject",
-      "url": {{ '/assets/img/favicons/android-chrome-512x512.png' | absolute_url | jsonify }},
+      "url": {{ publisher_logo | jsonify }}
+      {%- if publisher_logo_default -%},
       "width": 512,
       "height": 512
+      {%- endif -%}
     }
+    {%- endif -%}
   }
   {%- if schema_page.doi -%},
   "identifier": {

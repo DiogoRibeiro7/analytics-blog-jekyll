@@ -33,6 +33,14 @@ author:
   twitter: DiogoRibeiro7
   linkedin: diogoribeiro
 
+# Who publishes the site in structured data and citations. Left out, the author
+# publishes it as a Person; the affiliation above stays on the author.
+# publisher:
+#   type: Organization
+#   name: Example Lab
+#   url: https://example.org/lab
+#   logo: /assets/img/lab-logo.png
+
 contact_email: diogo.debastos.ribeiro@gmail.com
 repository_url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
 
