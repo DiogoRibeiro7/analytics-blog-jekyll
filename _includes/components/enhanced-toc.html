@@ -154,7 +154,8 @@ Parameters:
         }
       }
 
-      // Smooth scroll for TOC links
+      // Scroll to TOC targets. The stylesheet's scroll-behavior decides whether
+      // the scroll is smooth, so reduced-motion preferences are respected.
       tocLinks.forEach(link => {
         link.addEventListener('click', function(e) {
           const targetId = this.getAttribute('href');
@@ -163,10 +164,7 @@ Parameters:
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
               const offsetTop = targetElement.offsetTop - 80; // Account for sticky header
-              window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-              });
+              window.scrollTo({ top: offsetTop });
               // Update URL without jumping
               if (history.pushState) {
                 history.pushState(null, null, targetId);
