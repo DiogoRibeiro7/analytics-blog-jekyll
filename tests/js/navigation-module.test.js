@@ -298,9 +298,11 @@ describe('initNavigation module', () => {
     expect(nav.dataset.open).toBe('true');
   });
 
-  // --- Anchor smooth scroll ---
+  // --- Anchor scroll ---
 
-  it('smooth scrolls to anchor on same page', () => {
+  // The stylesheet decides whether the scroll is smooth; a behavior passed here
+  // would override a reader's reduced-motion preference.
+  it('scrolls to anchor on same page without forcing a scroll behavior', () => {
     createNavDOM({ withLinks: false });
     const nav = document.getElementById('site-nav');
     nav.innerHTML = `<a class="nav-link" href="${window.location.pathname}#section1">Section</a>`;
@@ -315,7 +317,8 @@ describe('initNavigation module', () => {
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
     link.dispatchEvent(event);
 
-    expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(target.scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+    expect(event.defaultPrevented).toBe(true);
   });
 
   it('does not scroll for links to different pages', () => {

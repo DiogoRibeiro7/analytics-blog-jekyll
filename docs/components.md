@@ -248,7 +248,7 @@ Provides an interactive, sticky table of contents with reading progress tracking
 - **Reading progress** - Shows percentage complete
 - **Active highlighting** - Highlights current section
 - **Collapsible** - Save space when needed
-- **Smooth scrolling** - Elegant navigation to sections
+- **Smooth scrolling** - Scrolls to a section, or jumps straight to it when the reader has asked their system for reduced motion
 - **Progress bar** - Visual reading progress indicator
 
 ### Usage

@@ -12,7 +12,14 @@
 
 html {
   font-size: $font-size-root;
-  scroll-behavior: smooth;
+}
+
+// Anchor links, and the theme's scripts, which pass no scroll behavior, follow
+// this rule, so a reader who asks for reduced motion jumps to the target.
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Navigation module for responsive site navigation.
- * Handles mobile menu toggling, smooth scrolling, and keyboard navigation.
+ * Handles mobile menu toggling, same-page anchor scrolling, and keyboard navigation.
  * @module core/navigation
  */
 
@@ -42,7 +42,7 @@ function getAnchorTarget(link) {
   }
 }
 
-function smoothScrollToId(id) {
+function scrollToId(id) {
   if (!id) {
     return false;
   }
@@ -50,13 +50,15 @@ function smoothScrollToId(id) {
   if (!target) {
     return false;
   }
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  // With no behavior given, the scroll follows the stylesheet's scroll-behavior,
+  // which is smooth unless the reader asks for reduced motion.
+  target.scrollIntoView({ block: "start" });
   return true;
 }
 
 /**
  * Initializes the navigation system including mobile toggle,
- * smooth scrolling for anchor links, and keyboard accessibility.
+ * scrolling to same-page anchors, and keyboard accessibility.
  * @returns {void}
  */
 export function initNavigation() {
@@ -150,7 +152,7 @@ export function initNavigation() {
       if (!navMediaQuery.matches) {
         closeNav();
       }
-      if (anchorId && smoothScrollToId(anchorId)) {
+      if (anchorId && scrollToId(anchorId)) {
         event.preventDefault();
       }
     });
