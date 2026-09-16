@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   # The sass-embedded and nokogiri releases the theme is tested with need Ruby
   # 3.2; the gemspec said 3.0.
-  spec.required_ruby_version = ">= 3.2"
+  spec.required_ruby_version = Datalog::Theme::RUBY_REQUIREMENT
   spec.require_paths = ["lib"]
   spec.bindir = "bin"
   spec.executables = ["datalog"]
