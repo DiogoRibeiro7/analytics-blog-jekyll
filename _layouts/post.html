@@ -148,6 +148,9 @@ schema_type: TechnicalArticle
   {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at) {%- endcomment -%}
   {% include components/content-provenance.html page=page date_format=date_format %}
 
+  {%- comment -%} The article's series: every part in order, and the previous and next ones {%- endcomment -%}
+  {% include components/series-nav.html page=page %}
+
   {%- comment -%} Enhanced social sharing {%- endcomment -%}
   {% include components/social-share.html url=canonical_url title=page.title description=page.excerpt %}
 
@@ -161,6 +164,9 @@ schema_type: TechnicalArticle
       {{ content }}
     </div>
   </div>
+
+  {%- comment -%} The previous and next parts of the series, for a reader who has finished this one {%- endcomment -%}
+  {% include components/series-nav.html page=page compact=true %}
 
   {%- comment -%} What changed since publication (revisions in front matter) {%- endcomment -%}
   {% include components/revision-history.html page=page date_format=date_format %}

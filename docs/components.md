@@ -11,9 +11,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 5. [Difficulty Badges](#difficulty-badges)
 6. [Revision History](#revision-history)
 7. [License Notice](#license-notice)
-8. [Front Matter](#front-matter)
-9. [Customization](#customization)
-10. [Troubleshooting](#troubleshooting)
+8. [Series Navigation](#series-navigation)
+9. [Front Matter](#front-matter)
+10. [Customization](#customization)
+11. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -541,6 +542,78 @@ license:                     # a licence the theme does not know
 
 ---
 
+## Series Navigation
+
+### What It Does
+
+Joins the parts of a multi-part article into a series a reader can follow in order, whatever was published in between. A post that belongs to a series shows the series at the top (its title, "Part 2 of 3", a progress bar, every part in order with the current one marked, and the previous and next parts) and the previous and next parts again at the end. Both are navigation landmarks of their own; the chronological previous and next post at the foot of the page stay as they are.
+
+### Usage
+
+A complete three-part series. The title and description live once, in `_data/series.yml`:
+
+```yaml
+# _data/series.yml
+missing-data:
+  title: Missing Data and Statistical Inference
+  description: From the missing-data mechanisms to sensitivity analysis, in three parts.
+```
+
+Each part names the series and its place in it:
+
+```yaml
+# _posts/2026-01-10-missing-data-mechanisms.md
+---
+title: Missing Data Mechanisms
+series:
+  id: missing-data
+  order: 1
+---
+```
+
+```yaml
+# _posts/2026-03-02-multiple-imputation.md
+---
+title: Multiple Imputation in Practice
+series:
+  id: missing-data
+  order: 2
+---
+```
+
+```yaml
+# _posts/2026-05-20-sensitivity-analysis.md
+---
+title: Sensitivity Analysis for Untestable Assumptions
+series: missing-data        # the flat form says the same
+series_order: 3
+---
+```
+
+- `id` names the series; `order` is a whole number from 1. Parts are shown in `order`, so a series can be written out of publication order, and gaps are fine: with orders 1, 2 and 4 the last part is "Part 3 of 3".
+- The title comes from `_data/series.yml`, else from a part that gives `series.title` (or `series_title`), else from the id ("Missing Data").
+- A part without an order, an order that is not a whole number, or two parts with the same order stops the build and names the posts.
+- A series is any set of posts or collection documents sharing an id; one part alone is a series of one, shown as "Part 1 of 1" without previous or next links.
+
+### What Renders
+
+- **At the top** of the post, after the metadata: a `<nav>` labelled by its heading ("Series · Missing Data and Statistical Inference · Part 2 of 3"), the description when there is one, a `<progress>` bar (hidden from assistive technology, which has the text), an ordered list of every part linked, the current one carrying `aria-current="page"`, and the previous and next parts with `rel="prev"` and `rel="next"`.
+- **At the end** of the post, before the revision history: the previous and next parts again, in a compact `<nav>` labelled "Series: …". A series of one renders nothing there.
+- The chronological "Previous" and "Next" post links at the foot of the page are unchanged, so a reader can follow either the series or the calendar.
+
+### Styling
+
+```scss
+.series-nav { }                   // the box; --compact at the end of the post
+.series-nav__heading { }          // label, title and "Part k of n"
+.series-nav__progress { }         // the <progress> bar
+.series-nav__part--current { }    // the current part in the list
+.series-nav__link--previous { }   // the previous and next parts
+.series-nav__link--next { }
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -557,6 +630,9 @@ author: custom_author  # a key in _data/authors.yml, or a name
 revisions: []          # what changed since publication; see Revision History
 license: CC-BY-4.0     # the reuse terms of the text and figures; see License Notice
 code_license: MIT      # the reuse terms of the code samples
+series:                # the article's series and its place in it; see Series Navigation
+  id: missing-data
+  order: 2
 ---
 ```
 

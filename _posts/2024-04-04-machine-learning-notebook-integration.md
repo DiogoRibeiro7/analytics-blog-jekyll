@@ -4,6 +4,9 @@ title: MLOps Walkthrough with Jupyter Notebook Integration
 date: 2024-04-04
 tags: [machine-learning, mlops, notebooks]
 difficulty: intermediate
+series:
+  id: python-data-science
+  order: 3
 summary: Connect a notebook-driven training pipeline to DataLog call-to-action buttons, experiment tracking, and reproducibility checklists.
 hero: /assets/images/posts/mlops-notebook-handoff.jpg
 ---

@@ -4,6 +4,9 @@ title: Feature Engineering with pandas Window Functions
 date: 2024-04-02
 tags: [python, pandas, tutorial]
 difficulty: intermediate
+series:
+  id: python-data-science
+  order: 2
 summary: Build production-ready rolling metrics with pandas while documenting inline math expectations for analysts.
 hero: /assets/images/posts/pandas-window-functions.jpg
 ---

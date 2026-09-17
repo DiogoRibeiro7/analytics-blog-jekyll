@@ -4,6 +4,9 @@ date: 2024-02-01
 author: Diogo Ribeiro
 author_affiliation: ESMAD - Instituto Politécnico do Porto
 difficulty: Beginner
+series:
+  id: python-data-science
+  order: 1
 categories:
   - tutorials
 tags:
