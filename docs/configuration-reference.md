@@ -62,6 +62,9 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.math` | Map | Any |
 | `theme_options.math.engine` | String | `mathjax`, `katex` |
 | `theme_options.math.enabled` | Boolean | `true`, `false`; deprecated, with no effect |
+| `theme_options.reading_mode` | Map | Any |
+| `theme_options.reading_mode.enabled` | Boolean | `true` (default), `false` |
+| `theme_options.reading_mode.remember` | Boolean | `true`, `false` (default) |
 
 ## Global Settings
 
@@ -203,6 +206,18 @@ This guide documents the configuration keys validated by the automated configura
   theme_options:
     math:
       engine: mathjax
+  ```
+
+#### theme_options.reading_mode
+- **Required:** No
+- **Type:** Map
+- **Description:** The "Reading mode" control on posts, which hides the site's navigation and the panels around the article and leaves the article, its metadata and its table of contents. `enabled: false` removes the control. `remember: true` keeps a reader's choice in the browser (`localStorage`) from one post to the next; by default the mode lasts for the page. See [components.md: Reading Mode and Print](components.md#reading-mode-and-print).
+- **Example:**
+  ```yaml
+  theme_options:
+    reading_mode:
+      enabled: true
+      remember: false
   ```
 
 ## Deprecations

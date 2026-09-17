@@ -13,9 +13,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 7. [License Notice](#license-notice)
 8. [Series Navigation](#series-navigation)
 9. [Reproducibility Panel](#reproducibility-panel)
-10. [Front Matter](#front-matter)
-11. [Customization](#customization)
-12. [Troubleshooting](#troubleshooting)
+10. [Reading Mode and Print](#reading-mode-and-print)
+11. [Front Matter](#front-matter)
+12. [Customization](#customization)
+13. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -667,6 +668,48 @@ A `<section>` headed "Reproduce this analysis", after the article body (and the 
 .reproduce__item--code { }     // one artifact; --data, --notebook, --environment, --results
 .reproduce__link { }           // the artifact's link
 .reproduce__detail { }         // "at 4f2c1ab", "version v2", "DOI …"
+```
+
+---
+
+## Reading Mode and Print
+
+### What It Does
+
+Long technical articles get read without the site around them, saved as PDFs and printed. Two things serve that:
+
+- **Reading mode**, a button under the post's metadata. It hides the site's navigation and footer, the breadcrumbs, the sharing buttons, the interactive panel, the comments, the citation tools, the badges, the author card, the related posts and the chronological pagination, and leaves the article with its metadata, its table of contents, its equations, figures, code and footnotes, and the panels that belong to it (the series, the reproducibility panel, the revision history, the licence). The reader turns it on; nothing is remembered unless the site asks for it; the button stays in reach as the article scrolls; and Escape leaves the mode. The same article is shown with less around it: no second copy is made, and the light or dark theme is untouched.
+- **Print styles**, applied when the browser prints or saves a PDF. The chrome and the controls that only work on a screen go; the article prints black on white whatever the theme, with code wrapped to the page on a white background; headings stay with what follows them; figures, tables, code blocks, statements and display equations are kept on one page where the browser can; every external link in the text is followed by its address; the article's own address and DOI are printed under the metadata, with the published and updated dates, the authors, the revision notice and the licence; and an interactive embed becomes a note that the content is in the online article, while a visualization's table fallback is printed.
+
+### Usage
+
+Both are on for every post. In `_config.yml`:
+
+```yaml
+theme_options:
+  reading_mode:
+    enabled: true      # false removes the button
+    remember: false    # true keeps a reader's choice from one post to the next
+```
+
+Nothing is needed for print. To print a page other than a post, the same rules apply wherever the classes match: the site chrome, `.post-content` links, code blocks and equations.
+
+### Customization
+
+The rules live in `_sass/_print.scss`, loaded last. `body.reading-mode` carries the reading-mode rules, so a site's own stylesheet can hide or show more:
+
+```scss
+body.reading-mode .my-sidebar { display: none; }
+@media print { .my-widget { display: none; } }
+```
+
+### Styling
+
+```scss
+.reading-mode-bar { }             // holds the button; sticky in reading mode
+.reading-mode-toggle { }          // the button; [aria-pressed="true"] while reading
+.post-print-source { }            // the address line, print only
+.print-only { }                   // anything shown on paper alone
 ```
 
 ---

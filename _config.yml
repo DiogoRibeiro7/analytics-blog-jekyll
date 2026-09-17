@@ -220,6 +220,10 @@ critical_css:
 # Theme Options
 # -----------------------------------------------------------------------------
 theme_options:
+  # The "Reading mode" control on posts: the article without the site around it.
+  reading_mode:
+    enabled: true
+    remember: false   # true keeps a reader's choice from one post to the next
   math:
     engine: mathjax
     output: chtml
