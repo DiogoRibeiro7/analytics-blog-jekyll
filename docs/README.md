@@ -17,6 +17,7 @@ Find the guide for what you want to do.
 | Write theorems, definitions and proofs | [user-guide.md: Theorems, definitions and proofs](user-guide.md#theorems-definitions-and-proofs) |
 | Record the corrections and updates of an article | [components.md: Revision History](components.md#revision-history) |
 | State the licence of an article's text, figures and code | [components.md: License Notice](components.md#license-notice) |
+| Make an article discoverable by Google Scholar and reference managers | [google-scholar-setup.md: Scholarly Metadata on Articles](google-scholar-setup.md#scholarly-metadata-on-articles) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

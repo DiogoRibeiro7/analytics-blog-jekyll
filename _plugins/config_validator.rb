@@ -47,6 +47,8 @@ module Datalog
       # The licence of the site's articles (text and figures) and of their code samples.
       content_license: LICENSE,
       code_license: LICENSE,
+      # Which pages get scholarly discovery metadata: true for every post, or a list of collections and layouts.
+      scholarly: { type: %i[boolean array string] },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

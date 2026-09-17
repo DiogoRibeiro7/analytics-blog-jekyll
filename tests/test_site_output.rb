@@ -26,7 +26,7 @@ class SiteOutputTest < Minitest::Test
     %w[bibtex ris endnote].each do |format|
       assert_includes html, %(data-citation-format="#{format}")
     end
-    assert_includes html, '<meta name="citation_orcid"'
+    assert_includes html, '<meta name="citation_author_orcid"'
   end
 
   def test_pages_with_math_announce_its_status
