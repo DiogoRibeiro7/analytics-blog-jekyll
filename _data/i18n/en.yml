@@ -157,6 +157,9 @@ article:
     updated: Updated
     author: Author
     authors: Authors
+references:
+  figure: Figure
+  table: Table
 post:
   provenance:
     heading: Author and editorial note

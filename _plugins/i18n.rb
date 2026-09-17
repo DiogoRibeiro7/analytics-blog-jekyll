@@ -5,11 +5,13 @@ module Datalog
     module_function
 
     def locale(context)
-      page_lang = context["page"] && context["page"]["lang"]
-      site = context.registers[:site]
+      locale_code(context.registers[:site], context["page"] && context["page"]["lang"])
+    end
+
+    # A page's language, or the site's, as a code such as "pt".
+    def locale_code(site, page_lang)
       site_locale = site.config.dig("theme_options", "localization", "default_locale") || site.config["locale"] || "en"
-      lang = page_lang || site_locale
-      lang.to_s.split(/[-_]/).first
+      (page_lang || site_locale).to_s.split(/[-_]/).first
     end
 
     def data_for(site)

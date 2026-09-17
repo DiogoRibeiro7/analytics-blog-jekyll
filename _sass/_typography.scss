@@ -95,6 +95,41 @@ figcaption {
   margin-top: map.get($spacing, 2);
 }
 
+// Numbered figures and tables, and the references to them (_plugins/references.rb).
+.datalog-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+table > caption {
+  caption-side: top;
+  text-align: left;
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  margin-bottom: map.get($spacing, 2);
+}
+
+body.dark-mode table > caption {
+  color: rgba($dark-ink-500, 0.85);
+}
+
+.datalog-ref-label {
+  font-weight: 600;
+}
+
+// A reference scrolls its target clear of the sticky header.
+[data-ref-target] {
+  scroll-margin-top: calc(var(--header-height, 96px) + #{map.get($spacing, 4)});
+}
+
+@media print {
+  [data-ref-target] {
+    break-inside: avoid;
+  }
+}
+
 body.dark-mode figcaption {
   color: rgba($dark-ink-500, 0.85);
 }
