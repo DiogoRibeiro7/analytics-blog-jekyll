@@ -1,0 +1,27 @@
+{%- comment -%}
+---
+optional: []
+---
+The "Save for later" button of a post (assets/js/reading-state/ui.js): a
+bookmark kept in this browser, and a link to the saved articles when the
+site has a page for them (theme_options.reading_state.list_url). Renders
+nothing when reading state or bookmarks are off.
+{%- endcomment -%}
+{%- assign reading_state = site.theme_options.reading_state -%}
+{%- unless reading_state.enabled == false or reading_state.bookmarks == false -%}
+{%- capture label_save %}{% t 'post.reading_state.save' %}{% endcapture -%}
+{%- capture label_saved %}{% t 'post.reading_state.saved' %}{% endcapture -%}
+{%- capture label_unavailable %}{% t 'post.reading_state.unavailable' %}{% endcapture -%}
+<button type="button" class="post-tool bookmark-toggle" data-bookmark-toggle aria-pressed="false"
+        data-article="{{ page.url | relative_url }}" data-title="{{ page.title | escape }}"
+        data-label-save="{{ label_save | strip | escape }}" data-label-saved="{{ label_saved | strip | escape }}"
+        data-unavailable="{{ label_unavailable | strip | escape }}">
+  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+  </svg>
+  <span data-bookmark-label>{{ label_save | strip }}</span>
+</button>
+{%- if reading_state.list_url %}
+<a class="post-tool post-tool--link" href="{{ reading_state.list_url | relative_url }}">{% t 'post.reading_state.saved_list' %}</a>
+{%- endif %}
+{%- endunless -%}

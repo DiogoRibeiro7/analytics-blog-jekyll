@@ -122,8 +122,11 @@ schema_type: TechnicalArticle
     </dl>
   </section>
 
-  {%- comment -%} Reading mode, and the article's address on paper {%- endcomment -%}
-  {% include components/reading-mode-toggle.html %}
+  {%- comment -%} The reader's tools: save for later and reading mode; and the article's address on paper {%- endcomment -%}
+  <div class="post-tools">
+    {% include components/reading-state-bookmark.html %}
+    {% include components/reading-mode-toggle.html %}
+  </div>
   <p class="post-print-source print-only">{% t 'post.print.source' %} {{ canonical_url }}{% if page.doi %} · DOI {{ page.doi | escape }}{% endif %}</p>
 
   {%- comment -%} The newest correction or update, with a link to the revision history {%- endcomment -%}
@@ -171,6 +174,9 @@ schema_type: TechnicalArticle
 
   {%- comment -%} The previous and next parts of the series, for a reader who has finished this one {%- endcomment -%}
   {% include components/series-nav.html page=page compact=true %}
+
+  {%- comment -%} The reader's own: resume prompt, highlights and notes, kept in the browser {%- endcomment -%}
+  {% include components/reading-state-panel.html %}
 
   {%- comment -%} The code, data and environment behind the analysis {%- endcomment -%}
   {% include components/reproducibility.html page=page %}

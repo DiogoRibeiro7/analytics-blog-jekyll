@@ -1,0 +1,71 @@
+{%- comment -%}
+---
+optional: []
+---
+A post's reading state (assets/js/reading-state/ui.js): the "resume where
+you left off" prompt, the toolbar that appears over a selection, the panel
+of private highlights and notes, and the controls to export, import and
+erase the reader's data. Everything stays in this browser. The markup is
+inert until the reading-state bundle runs; a browser without storage sees
+the message and disabled controls. Renders nothing when reading state is
+off; without progress or highlights, only the data controls remain.
+{%- endcomment -%}
+{%- assign reading_state = site.theme_options.reading_state -%}
+{%- unless reading_state.enabled == false -%}
+{%- assign want_progress = true -%}{%- if reading_state.progress == false -%}{%- assign want_progress = false -%}{%- endif -%}
+{%- assign want_highlights = true -%}{%- if reading_state.highlights == false -%}{%- assign want_highlights = false -%}{%- endif -%}
+{%- capture progress_label %}{% t 'post.reading_state.progress' %}{% endcapture -%}
+{%- capture erase_confirm %}{% t 'post.reading_state.erase_confirm' %}{% endcapture -%}
+{%- capture imported %}{% t 'post.reading_state.imported' %}{% endcapture -%}
+{%- capture import_failed %}{% t 'post.reading_state.import_failed' %}{% endcapture -%}
+{%- capture exported %}{% t 'post.reading_state.exported' %}{% endcapture -%}
+{%- capture erased_article %}{% t 'post.reading_state.erased_article' %}{% endcapture -%}
+{%- capture erased_all %}{% t 'post.reading_state.erased_all' %}{% endcapture -%}
+<div class="reading-state" data-reading-state data-article="{{ page.url | relative_url }}" data-title="{{ page.title | escape }}" data-progress="{{ want_progress }}" data-highlights="{{ want_highlights }}">
+  {%- if want_progress %}
+  <div class="reading-resume" data-reading-resume data-progress-label="{{ progress_label | strip | escape }}" role="region" aria-labelledby="reading-resume-heading" hidden>
+    <p class="reading-resume__text"><strong id="reading-resume-heading">{% t 'post.reading_state.resume' %}</strong> <span data-reading-resume-detail></span></p>
+    <div class="reading-resume__actions">
+      <button type="button" class="post-tool" data-reading-resume-go>{% t 'post.reading_state.resume_button' %}</button>
+      <button type="button" class="post-tool" data-reading-resume-dismiss>{% t 'post.reading_state.dismiss' %}</button>
+    </div>
+  </div>
+  {%- endif %}
+  {%- if want_highlights %}
+  <div class="reading-toolbar" data-reading-toolbar role="toolbar" aria-label="{% t 'post.reading_state.highlight' %}" hidden>
+    <button type="button" data-reading-highlight>{% t 'post.reading_state.highlight' %}</button>
+    <button type="button" data-reading-note>{% t 'post.reading_state.note' %}</button>
+  </div>
+  {%- endif %}
+  <section class="reading-notes" aria-labelledby="reading-notes-heading" data-reading-panel>
+    <h2 id="reading-notes-heading" class="reading-notes__heading">{% if want_highlights %}{% t 'post.reading_state.highlights_heading' %}{% else %}{% t 'post.reading_state.data_heading' %}{% endif %}</h2>
+    <p class="reading-notes__intro">{% t 'post.reading_state.intro' %}{% if want_highlights %} {% t 'post.reading_state.shortcuts' %}{% endif %}</p>
+    <p class="reading-notes__unavailable" data-reading-unavailable hidden>{% t 'post.reading_state.unavailable' %}</p>
+    {%- if want_highlights %}
+    <p class="reading-notes__empty" data-reading-empty>{% t 'post.reading_state.empty' %}</p>
+    <ul class="reading-notes__list" data-reading-list-items></ul>
+    <template data-reading-item-template>
+      <li class="reading-note" data-annotation>
+        <blockquote class="reading-note__quote" data-annotation-quote></blockquote>
+        <p class="reading-note__meta"><span data-annotation-section></span> <span class="reading-note__lost" data-annotation-lost hidden>{% t 'post.reading_state.lost' %}</span></p>
+        <label class="reading-note__label"><span>{% t 'post.reading_state.note_label' %}</span><textarea rows="2" data-annotation-note></textarea></label>
+        <div class="reading-note__actions">
+          <button type="button" class="post-tool" data-annotation-go>{% t 'post.reading_state.go_to' %}</button>
+          <button type="button" class="post-tool" data-annotation-remove>{% t 'post.reading_state.remove' %}</button>
+        </div>
+      </li>
+    </template>
+    {%- endif %}
+    <details class="reading-data">
+      <summary>{% t 'post.reading_state.data_heading' %}</summary>
+      <div class="reading-data__actions">
+        <button type="button" class="post-tool" data-reading-export data-done="{{ exported | strip | escape }}">{% t 'post.reading_state.export' %}</button>
+        <label class="post-tool reading-data__import">{% t 'post.reading_state.import' %}<input type="file" accept="application/json,.json" data-reading-import data-done="{{ imported | strip | escape }}" data-failed="{{ import_failed | strip | escape }}"></label>
+        <button type="button" class="post-tool" data-reading-erase-article data-done="{{ erased_article | strip | escape }}">{% t 'post.reading_state.erase_article' %}</button>
+        <button type="button" class="post-tool" data-reading-erase-all data-confirm="{{ erase_confirm | strip | escape }}" data-done="{{ erased_all | strip | escape }}">{% t 'post.reading_state.erase_all' %}</button>
+      </div>
+      <p class="reading-data__status" data-reading-status aria-live="polite"></p>
+    </details>
+  </section>
+</div>
+{%- endunless -%}

@@ -80,6 +80,11 @@ const FEATURE_CONFIG = [
   {
     name: "notebook",
     test: () => document.body?.dataset.featureNotebook === "true" || document.querySelector(".notebook-output")
+  },
+  {
+    name: "reading-state",
+    // A post with the reading-state panel, or a page listing the saved articles.
+    test: () => document.querySelector("[data-reading-state], [data-reading-list]")
   }
 ];
 

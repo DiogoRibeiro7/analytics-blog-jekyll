@@ -80,6 +80,12 @@
 {% if js_manifest.features and js_manifest.features.visualizations and site.features.visualizations and content contains 'data-viz-type' %}
 <link rel="modulepreload" href="{{ js_manifest.features.visualizations | relative_url }}" crossorigin="anonymous" />
 {% endif %}
+{%- comment -%} Posts carry the reading-state panel; a page with the saved-articles list carries data-reading-list. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features['reading-state'] and site.theme_options.reading_state.enabled != false %}
+  {% if page.layout == 'post' or content contains 'data-reading-list' %}
+<link rel="modulepreload" href="{{ js_manifest.features['reading-state'] | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
 {% endif %}

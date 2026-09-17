@@ -14,9 +14,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 8. [Series Navigation](#series-navigation)
 9. [Reproducibility Panel](#reproducibility-panel)
 10. [Reading Mode and Print](#reading-mode-and-print)
-11. [Front Matter](#front-matter)
-12. [Customization](#customization)
-13. [Troubleshooting](#troubleshooting)
+11. [Bookmarks, Progress and Private Highlights](#bookmarks-progress-and-private-highlights)
+12. [Front Matter](#front-matter)
+13. [Customization](#customization)
+14. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -710,6 +711,94 @@ body.reading-mode .my-sidebar { display: none; }
 .reading-mode-toggle { }          // the button; [aria-pressed="true"] while reading
 .post-print-source { }            // the address line, print only
 .print-only { }                   // anything shown on paper alone
+```
+
+---
+
+## Bookmarks, Progress and Private Highlights
+
+### What It Does
+
+Long technical articles are read over several sittings and annotated. Every post offers three things that work without an account or a server, kept in the reader's browser:
+
+- **Save for later.** A bookmark button next to the reading-mode control. The saved articles are listed on a page of the site (`/saved/` in the demo), with each one's progress and highlights.
+- **Resume where you left off.** As the reader scrolls a long article, their position is saved, as a ratio of the article and the nearest heading. When they come back, some way in and not at the end, a prompt under the metadata offers to resume; it is not shown for a short article, at the start or the end, or when the page was opened at an anchor.
+- **Private highlights and notes.** Selecting a passage brings up a toolbar with "Highlight" and "Highlight with a note"; `Alt+Shift+H` and `Alt+Shift+N` do the same from the keyboard. The panel under the article lists the highlights with their section, a note to edit, "Go to" and "Remove". The panel says what it is: the reader's own notes, not comments, and never sent anywhere.
+
+### Privacy
+
+Everything lives in `localStorage`, under one key per article, and nothing leaves the browser: no account, no request, no telemetry about what was saved or highlighted. The panel's "Your reading data" offers **Export as JSON**, **Import JSON**, **Erase this article's data** and **Erase all reading data** (after a confirmation), and the saved-articles page offers export, import and erase all. A browser that blocks storage (a private window, cleared or blocked site data) shows a message and disables the controls; the article reads as before.
+
+A later sync across devices, through the dynamic services proposed in #259, would be a separate capability the reader opts into; the local layer never needs it.
+
+### How Highlights Survive Edits
+
+A highlight is not a pair of DOM offsets. It is saved as the quoted text with 32 characters of what comes before and after it, and the section heading it sits under, the way a text quote selector does. On each visit the theme looks for the quote in the article's current text (the exact text first, then the same words with any whitespace) and, when it appears more than once, takes the occurrence whose surroundings agree most with the saved context. A passage that was reworded is listed as "Not found in the current text" and can be removed; the rest are unaffected.
+
+Where the browser has the CSS Custom Highlight API, highlights are painted without touching the DOM, so selecting and copying the text are exactly as they were. Elsewhere the text is wrapped in `<mark>` elements, one per text node.
+
+### Usage
+
+Everything is on for posts. In `_config.yml`:
+
+```yaml
+theme_options:
+  reading_state:
+    enabled: true        # false turns the whole layer off
+    bookmarks: true      # each part can be turned off on its own
+    progress: true
+    highlights: true
+    list_url: /saved/    # the page that lists the saved articles; leave it out to have no link
+```
+
+The saved-articles page is any page that includes the list:
+
+```markdown
+---
+layout: page
+title: Saved articles
+permalink: /saved/
+---
+
+{% include components/reading-list.html %}
+```
+
+### Data Format
+
+An export is JSON, `{ "format": 1, "exported_at": "…", "articles": [ … ] }`, each article as:
+
+```json
+{
+  "article": "/2024/04/05/sql-optimization-guide/",
+  "title": "SQL Optimization Playbook for Warehouse Analysts",
+  "bookmarked": true,
+  "saved_at": "2026-09-17T16:00:00Z",
+  "progress": { "ratio": 0.63, "anchor": "optimization-checklist", "updated_at": "2026-09-17T16:05:00Z" },
+  "annotations": [
+    {
+      "id": "…",
+      "quote": "Cluster the fact table on purchase_ts",
+      "prefix": "incremental model.\n",
+      "suffix": " to prune partitions.\n",
+      "section": "optimization-checklist",
+      "note": "Check the clustering key.",
+      "created_at": "2026-09-17T16:02:00Z"
+    }
+  ]
+}
+```
+
+### Styling
+
+```scss
+.post-tools { }                   // the bar with the bookmark and reading-mode buttons
+.bookmark-toggle { }              // [aria-pressed="true"] when saved
+.reading-resume { }               // the resume prompt
+.reading-toolbar { }              // the toolbar over a selection
+::highlight(datalog-annotation)   // a highlight, with the Custom Highlight API
+mark.reading-highlight { }        // a highlight, without it
+.reading-notes { }                // the panel of highlights and notes
+.reading-list { }                 // the saved articles on a page
 ```
 
 ---

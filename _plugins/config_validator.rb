@@ -105,6 +105,17 @@ module Datalog
               enabled: { type: :boolean },
               remember: { type: :boolean }
             }
+          },
+          # Bookmarks, reading progress and private highlights, kept in the reader's browser.
+          reading_state: {
+            type: :hash,
+            schema: {
+              enabled: { type: :boolean },
+              bookmarks: { type: :boolean },
+              progress: { type: :boolean },
+              highlights: { type: :boolean },
+              list_url: { type: :string }
+            }
           }
         }
       }

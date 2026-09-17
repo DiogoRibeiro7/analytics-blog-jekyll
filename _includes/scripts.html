@@ -31,6 +31,12 @@
   {% assign academic_flag = 'false' %}
 {% endif %}
 
+{% if site.theme_options.reading_state.enabled == false %}
+  {% assign reading_state_flag = 'false' %}
+{% else %}
+  {% assign reading_state_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -42,6 +48,7 @@
     body.dataset.featureMath = "{{ math_flag }}";
     body.dataset.featureNotebook = "{{ notebook_flag }}";
     body.dataset.featureAcademic = "{{ academic_flag }}";
+    body.dataset.featureReadingState = "{{ reading_state_flag }}";
   })();
 </script>
 

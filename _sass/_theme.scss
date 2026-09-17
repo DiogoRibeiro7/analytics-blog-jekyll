@@ -34,6 +34,7 @@
 @if features.$packages {
   @include meta.load-css('package-docs');
 }
+@include meta.load-css('reading-state');
 // Reading mode and print come last, so their rules win.
 @include meta.load-css('print');
 

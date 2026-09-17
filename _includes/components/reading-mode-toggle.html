@@ -15,7 +15,7 @@ from one page to the next.
 {%- capture reading_enter %}{% t 'post.reading_mode.enter' %}{% endcapture -%}
 {%- capture reading_exit %}{% t 'post.reading_mode.exit' %}{% endcapture -%}
 <div class="reading-mode-bar">
-  <button type="button" class="reading-mode-toggle" data-reading-mode-toggle aria-pressed="false" aria-describedby="reading-mode-hint"
+  <button type="button" class="post-tool reading-mode-toggle" data-reading-mode-toggle aria-pressed="false" aria-describedby="reading-mode-hint"
           data-label-enter="{{ reading_enter | strip | escape }}" data-label-exit="{{ reading_exit | strip | escape }}"{% if reading_mode.remember %} data-reading-mode-remember{% endif %}>
     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"></path>

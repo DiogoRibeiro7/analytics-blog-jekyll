@@ -19,7 +19,8 @@
   justify-content: flex-end;
 }
 
-.reading-mode-toggle {
+// Shared by the reading-mode control and the reading-state buttons (_reading-state.scss).
+.post-tool {
   display: inline-flex;
   align-items: center;
   gap: map.get($spacing, 2);
@@ -50,7 +51,7 @@
   }
 }
 
-body.dark-mode .reading-mode-toggle {
+body.dark-mode .post-tool {
   border-color: rgba($dark-ink-500, 0.35);
   background: $dark-surface-300;
   color: $dark-ink-700;
@@ -92,8 +93,8 @@ body.reading-mode {
     padding-top: map.get($spacing, 4);
   }
 
-  // The button stays in reach while the article scrolls.
-  .reading-mode-bar {
+  // The tools stay in reach while the article scrolls.
+  .post-tools {
     position: sticky;
     top: map.get($spacing, 3);
     z-index: 5;
@@ -137,6 +138,7 @@ body.reading-mode {
   .author-bio,
   .post-related,
   .post-pagination,
+  .post-tools,
   .reading-mode-bar,
   .back-to-top,
   [data-back-to-top],

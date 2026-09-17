@@ -224,6 +224,13 @@ theme_options:
   reading_mode:
     enabled: true
     remember: false   # true keeps a reader's choice from one post to the next
+  # Bookmarks, reading progress and private highlights, kept in the reader's browser.
+  reading_state:
+    enabled: true
+    bookmarks: true
+    progress: true
+    highlights: true
+    list_url: /saved/  # the page that lists the saved articles (components/reading-list.html)
   math:
     engine: mathjax
     output: chtml
