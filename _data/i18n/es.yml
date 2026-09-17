@@ -211,6 +211,12 @@ post:
     version: "versión {{version}}"
     container: Contenedor
     archive: Entorno archivado
+  reading_mode:
+    enter: Modo de lectura
+    exit: Salir del modo de lectura
+    hint: Oculta la navegación del sitio y los paneles alrededor del artículo; pulsa Escape para salir.
+  print:
+    source: En línea en
   article_information: Información del artículo
   meta:
     published: Publicado

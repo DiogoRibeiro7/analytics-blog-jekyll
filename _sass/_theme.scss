@@ -34,6 +34,8 @@
 @if features.$packages {
   @include meta.load-css('package-docs');
 }
+// Reading mode and print come last, so their rules win.
+@include meta.load-css('print');
 
 // 2) CSS rules AFTER the partials
 :root {

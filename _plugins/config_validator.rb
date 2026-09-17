@@ -97,6 +97,14 @@ module Datalog
               engine: { type: :string, enum: %w[mathjax katex] },
               enabled: { type: :boolean }
             }
+          },
+          # The "Reading mode" control on posts, and whether a reader's choice is kept.
+          reading_mode: {
+            type: :hash,
+            schema: {
+              enabled: { type: :boolean },
+              remember: { type: :boolean }
+            }
           }
         }
       }

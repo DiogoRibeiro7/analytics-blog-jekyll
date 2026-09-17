@@ -211,6 +211,12 @@ post:
     version: "version {{version}}"
     container: Container
     archive: Archived environment
+  reading_mode:
+    enter: Reading mode
+    exit: Exit reading mode
+    hint: Hides the site's navigation and the panels around the article; press Escape to leave.
+  print:
+    source: Online at
   article_information: Article information
   meta:
     published: Published

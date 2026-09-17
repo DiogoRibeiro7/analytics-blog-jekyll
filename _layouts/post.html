@@ -122,6 +122,10 @@ schema_type: TechnicalArticle
     </dl>
   </section>
 
+  {%- comment -%} Reading mode, and the article's address on paper {%- endcomment -%}
+  {% include components/reading-mode-toggle.html %}
+  <p class="post-print-source print-only">{% t 'post.print.source' %} {{ canonical_url }}{% if page.doi %} · DOI {{ page.doi | escape }}{% endif %}</p>
+
   {%- comment -%} The newest correction or update, with a link to the revision history {%- endcomment -%}
   {% include components/revision-notice.html page=page date_format=date_format %}
 
