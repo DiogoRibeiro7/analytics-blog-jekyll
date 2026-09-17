@@ -217,6 +217,38 @@ post:
     hint: Esconde a navegação do site e os painéis à volta do artigo; prima Escape para sair.
   print:
     source: Online em
+  reading_state:
+    save: Guardar para depois
+    saved: Guardado
+    saved_list: Artigos guardados
+    unavailable: Este navegador não deixa o site guardar dados, pelo que guardar, o progresso e os destaques estão desligados.
+    resume: Retomar onde ficou
+    progress: "{{percent}}% lido"
+    resume_button: Retomar
+    dismiss: Ignorar
+    highlight: Destacar
+    note: Destacar com uma nota
+    shortcuts: "Com texto selecionado, Alt+Shift+H destaca-o e Alt+Shift+N acrescenta uma nota."
+    highlights_heading: Os seus destaques privados
+    data_heading: Os seus dados de leitura
+    intro: Guardados apenas neste navegador e nunca enviados. São as suas notas, não comentários.
+    empty: Selecione uma passagem do artigo para a destacar.
+    note_label: Nota
+    go_to: Ir para
+    remove: Remover
+    lost: Não encontrado no texto atual
+    export: Exportar como JSON
+    exported: Os seus dados de leitura foram transferidos.
+    import: Importar JSON
+    imported: "{{count}} artigos importados."
+    import_failed: Esse ficheiro não é uma exportação de dados de leitura.
+    erase_article: Apagar os dados deste artigo
+    erased_article: Os dados deste artigo foram apagados.
+    erase_all: Apagar todos os dados de leitura
+    erase_confirm: Apagar todos os artigos guardados, posições e destaques neste navegador?
+    erased_all: Todos os dados de leitura foram apagados.
+    list_empty: Ainda não há artigos guardados. Guarde um com "Guardar para depois" num artigo.
+    highlights_count: "{{count}} destaques"
   article_information: Informações do artigo
   meta:
     published: Publicado

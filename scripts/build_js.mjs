@@ -19,7 +19,8 @@ const entryDefinitions = [
   { name: "visualizations", file: "visualizations.js", category: "feature" },
   { name: "notebook", file: "notebook.js", category: "feature" },
   { name: "academic", file: "academic.js", category: "feature" },
-  { name: "analytics-dashboard", file: "analytics-dashboard.js", category: "feature" }
+  { name: "analytics-dashboard", file: "analytics-dashboard.js", category: "feature" },
+  { name: "reading-state", file: "reading-state.js", category: "feature" }
 ];
 
 const entryPoints = entryDefinitions.reduce((memo, definition) => {

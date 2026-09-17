@@ -65,6 +65,12 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.reading_mode` | Map | Any |
 | `theme_options.reading_mode.enabled` | Boolean | `true` (default), `false` |
 | `theme_options.reading_mode.remember` | Boolean | `true`, `false` (default) |
+| `theme_options.reading_state` | Map | Any |
+| `theme_options.reading_state.enabled` | Boolean | `true` (default), `false` |
+| `theme_options.reading_state.bookmarks` | Boolean | `true` (default), `false` |
+| `theme_options.reading_state.progress` | Boolean | `true` (default), `false` |
+| `theme_options.reading_state.highlights` | Boolean | `true` (default), `false` |
+| `theme_options.reading_state.list_url` | String | The path of the page that lists the saved articles |
 
 ## Global Settings
 
@@ -218,6 +224,21 @@ This guide documents the configuration keys validated by the automated configura
     reading_mode:
       enabled: true
       remember: false
+  ```
+
+#### theme_options.reading_state
+- **Required:** No
+- **Type:** Map
+- **Description:** Bookmarks, reading progress and private highlights on posts, kept in the reader's browser (`localStorage`) and never sent anywhere. `enabled: false` turns the whole layer off; `bookmarks`, `progress` and `highlights` turn each part off on its own; `list_url` names the page that lists the saved articles (one that includes `components/reading-list.html`), so posts link to it. See [components.md: Bookmarks, Progress and Private Highlights](components.md#bookmarks-progress-and-private-highlights).
+- **Example:**
+  ```yaml
+  theme_options:
+    reading_state:
+      enabled: true
+      bookmarks: true
+      progress: true
+      highlights: true
+      list_url: /saved/
   ```
 
 ## Deprecations

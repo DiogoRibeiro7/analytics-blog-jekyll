@@ -217,6 +217,38 @@ post:
     hint: Hides the site's navigation and the panels around the article; press Escape to leave.
   print:
     source: Online at
+  reading_state:
+    save: Save for later
+    saved: Saved
+    saved_list: Saved articles
+    unavailable: This browser is not letting the site keep data, so saving, progress and highlights are off.
+    resume: Resume where you left off
+    progress: "{{percent}}% read"
+    resume_button: Resume
+    dismiss: Dismiss
+    highlight: Highlight
+    note: Highlight with a note
+    shortcuts: "With text selected, Alt+Shift+H highlights it and Alt+Shift+N adds a note."
+    highlights_heading: Your private highlights
+    data_heading: Your reading data
+    intro: Kept in this browser only and never sent anywhere. These are your notes, not comments.
+    empty: Select a passage of the article to highlight it.
+    note_label: Note
+    go_to: Go to
+    remove: Remove
+    lost: Not found in the current text
+    export: Export as JSON
+    exported: Your reading data was downloaded.
+    import: Import JSON
+    imported: "{{count}} articles imported."
+    import_failed: That file is not a reading data export.
+    erase_article: Erase this article's data
+    erased_article: This article's data was erased.
+    erase_all: Erase all reading data
+    erase_confirm: Erase every saved article, position and highlight in this browser?
+    erased_all: All reading data was erased.
+    list_empty: No saved articles yet. Save one with "Save for later" on a post.
+    highlights_count: "{{count}} highlights"
   article_information: Article information
   meta:
     published: Published

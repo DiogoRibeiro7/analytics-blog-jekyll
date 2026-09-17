@@ -50,7 +50,7 @@ class ReadingModeTest < Minitest::Test
     css = SiteBuilder.read("assets/css/main.css")
 
     assert_match(/body\.reading-mode \.site-header,[^{]*\{display:none !important\}/, css)
-    assert_match(/body\.reading-mode \.reading-mode-bar\{position:sticky/, css)
+    assert_match(/body\.reading-mode \.post-tools\{position:sticky/, css)
     assert_includes css, ".print-only{display:none}"
 
     print = css[/@media print\{@page\{margin:2cm\}.*?\.viz-table-wrapper\[hidden\]\{display:block !important\}\}/m]

@@ -1,0 +1,290 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// Local reading state (assets/js/reading-state): the tools bar above a post,
+// the resume prompt, the toolbar over a selection, the highlights and the
+// panel of private notes, and the list of saved articles on a page. The
+// buttons share .post-tool with the reading-mode control (_print.scss).
+
+.post-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: map.get($spacing, 2);
+}
+
+.post-tool--link {
+  text-decoration: none;
+}
+
+.bookmark-toggle[aria-pressed='true'] svg {
+  fill: currentColor;
+}
+
+// display: flex would override the `hidden` attribute's display: none.
+.reading-resume[hidden],
+.reading-toolbar[hidden] {
+  display: none;
+}
+
+// The resume prompt
+.reading-resume {
+  @include callout($color-accent-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: map.get($spacing, 2) map.get($spacing, 4);
+  margin-top: map.get($spacing, 4);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+
+  p {
+    margin: 0;
+  }
+}
+
+.reading-resume__actions {
+  display: flex;
+  gap: map.get($spacing, 2);
+}
+
+// The toolbar over a selection
+.reading-toolbar {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: map.get($radius, md);
+  background: $color-ink-900;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  button {
+    padding: 0.35rem 0.6rem;
+    border: 0;
+    border-radius: map.get($radius, sm);
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: map.get($font-size-scale, sm);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.18);
+    }
+  }
+}
+
+// The highlights themselves: the Custom Highlight API where the browser has
+// it, marks elsewhere.
+::highlight(datalog-annotation) {
+  background-color: rgba(250, 204, 21, 0.45);
+  color: inherit;
+}
+
+mark.reading-highlight {
+  background-color: rgba(250, 204, 21, 0.45);
+  color: inherit;
+}
+
+body.dark-mode ::highlight(datalog-annotation),
+body.dark-mode mark.reading-highlight {
+  background-color: rgba(250, 204, 21, 0.3);
+}
+
+// The panel of private highlights and the data controls
+.reading-notes {
+  @include callout($color-accent-tertiary);
+  margin-top: map.get($spacing, 5);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+
+  a {
+    color: $color-accent-primary-text;
+  }
+}
+
+.reading-notes__heading {
+  margin: 0 0 map.get($spacing, 1);
+  font-size: map.get($font-size-scale, base);
+}
+
+.reading-notes__intro,
+.reading-notes__empty,
+.reading-notes__unavailable,
+.reading-list__empty {
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-500;
+}
+
+.reading-notes__list {
+  display: grid;
+  gap: map.get($spacing, 3);
+  margin: 0 0 map.get($spacing, 3);
+  padding: 0;
+  list-style: none;
+}
+
+.reading-note {
+  padding-top: map.get($spacing, 2);
+  border-top: 1px solid rgba($color-neutral-200, 0.7);
+}
+
+.reading-note__quote {
+  margin: 0 0 map.get($spacing, 1);
+  padding: 0 0 0 map.get($spacing, 3);
+  border-left: 3px solid rgba(250, 204, 21, 0.9);
+  background: none;
+  font-style: italic;
+}
+
+.reading-note__meta {
+  margin: 0 0 map.get($spacing, 1);
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+.reading-note__lost {
+  font-weight: 600;
+  color: $color-warning-text;
+}
+
+.reading-note__label {
+  display: grid;
+  gap: 2px;
+
+  span {
+    font-size: map.get($font-size-scale, xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-ink-500;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba($color-neutral-200, 0.9);
+    border-radius: map.get($radius, sm);
+    background: $color-surface-50;
+    color: $color-ink-700;
+    font: inherit;
+    font-size: map.get($font-size-scale, sm);
+  }
+}
+
+.reading-note__actions,
+.reading-data__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+  margin-top: map.get($spacing, 2);
+}
+
+.reading-data {
+  margin-top: map.get($spacing, 3);
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+}
+
+.reading-data__import {
+  position: relative;
+  overflow: hidden;
+
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.reading-data__status {
+  margin: map.get($spacing, 2) 0 0;
+  color: $color-ink-500;
+}
+
+// The saved articles on a page
+.reading-list__items {
+  display: grid;
+  gap: map.get($spacing, 3);
+  margin: 0 0 map.get($spacing, 4);
+  padding: 0;
+  list-style: none;
+}
+
+.reading-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 1) map.get($spacing, 3);
+
+  a {
+    font-weight: 600;
+  }
+}
+
+.reading-list__meta {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+body.dark-mode {
+  .reading-resume {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .reading-notes {
+    border-left-color: $dark-accent-tertiary;
+  }
+
+  .reading-notes__intro,
+  .reading-notes__empty,
+  .reading-notes__unavailable,
+  .reading-list__empty,
+  .reading-note__meta,
+  .reading-note__label span,
+  .reading-data__status,
+  .reading-list__meta {
+    color: $dark-ink-500;
+  }
+
+  .reading-note {
+    border-top-color: rgba($dark-ink-500, 0.25);
+  }
+
+  .reading-note__lost {
+    color: $dark-warning;
+  }
+
+  .reading-note__label textarea {
+    border-color: rgba($dark-ink-500, 0.35);
+    background: $dark-surface-300;
+    color: $dark-ink-700;
+  }
+}
+
+@media print {
+  .reading-resume,
+  .reading-toolbar,
+  .reading-note__actions,
+  .reading-data,
+  .reading-notes__empty,
+  .reading-notes__unavailable {
+    display: none !important;
+  }
+
+  .reading-notes {
+    border-left-color: currentColor;
+    background: none;
+  }
+}

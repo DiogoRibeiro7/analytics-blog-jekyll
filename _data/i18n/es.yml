@@ -217,6 +217,38 @@ post:
     hint: Oculta la navegación del sitio y los paneles alrededor del artículo; pulsa Escape para salir.
   print:
     source: En línea en
+  reading_state:
+    save: Guardar para después
+    saved: Guardado
+    saved_list: Artículos guardados
+    unavailable: Este navegador no deja que el sitio guarde datos, así que guardar, el progreso y los resaltados están desactivados.
+    resume: Continuar donde lo dejaste
+    progress: "{{percent}}% leído"
+    resume_button: Continuar
+    dismiss: Descartar
+    highlight: Resaltar
+    note: Resaltar con una nota
+    shortcuts: "Con texto seleccionado, Alt+Shift+H lo resalta y Alt+Shift+N añade una nota."
+    highlights_heading: Tus resaltados privados
+    data_heading: Tus datos de lectura
+    intro: Guardados solo en este navegador y nunca enviados. Son tus notas, no comentarios.
+    empty: Selecciona un pasaje del artículo para resaltarlo.
+    note_label: Nota
+    go_to: Ir a
+    remove: Quitar
+    lost: No se encuentra en el texto actual
+    export: Exportar como JSON
+    exported: Tus datos de lectura se han descargado.
+    import: Importar JSON
+    imported: "{{count}} artículos importados."
+    import_failed: Ese archivo no es una exportación de datos de lectura.
+    erase_article: Borrar los datos de este artículo
+    erased_article: Los datos de este artículo se han borrado.
+    erase_all: Borrar todos los datos de lectura
+    erase_confirm: ¿Borrar todos los artículos guardados, posiciones y resaltados de este navegador?
+    erased_all: Todos los datos de lectura se han borrado.
+    list_empty: Aún no hay artículos guardados. Guarda uno con "Guardar para después" en un artículo.
+    highlights_count: "{{count}} resaltados"
   article_information: Información del artículo
   meta:
     published: Publicado

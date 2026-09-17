@@ -2,6 +2,7 @@
   "core": "/assets/js/dist/core.js",
   "loader": "/assets/js/dist/loader.js",
   "features": {
+    "reading-state": "/assets/js/dist/reading-state.js",
     "search": "/assets/js/dist/search.js",
     "math": "/assets/js/dist/math.js",
     "visualizations": "/assets/js/dist/visualizations.js",
@@ -10,6 +11,7 @@
     "analytics-dashboard": "/assets/js/dist/analytics-dashboard.js"
   },
   "entrypoints": {
+    "reading-state": "/assets/js/dist/reading-state.js",
     "core": "/assets/js/dist/core.js",
     "loader": "/assets/js/dist/loader.js",
     "search": "/assets/js/dist/search.js",
