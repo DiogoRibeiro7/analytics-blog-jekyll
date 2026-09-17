@@ -130,6 +130,87 @@ body.dark-mode table > caption {
   }
 }
 
+// Theorems, definitions and the other statements, and proofs (_plugins/statements.rb).
+.datalog-statement {
+  @include callout($color-accent-primary);
+  margin: map.get($spacing, 5) 0;
+  max-width: $max-width-reading;
+}
+
+.datalog-statement--definition,
+.datalog-statement--assumption {
+  @include callout($color-accent-secondary);
+}
+
+.datalog-statement--example,
+.datalog-statement--remark {
+  @include callout($color-neutral-500);
+}
+
+.datalog-statement__heading,
+.datalog-proof__heading {
+  margin: 0 0 map.get($spacing, 2);
+}
+
+.datalog-statement__body > :last-child,
+.datalog-proof__body > :last-child {
+  margin-bottom: 0;
+}
+
+.datalog-proof {
+  margin: map.get($spacing, 5) 0;
+  max-width: $max-width-reading;
+}
+
+.datalog-proof__heading {
+  font-style: italic;
+}
+
+.datalog-proof__end {
+  margin: 0;
+  text-align: right;
+}
+
+// On the tinted background, a link is a shade darker to keep its contrast, and
+// a code block sits on the page background, which the highlighter's colours
+// are set for.
+.datalog-statement a {
+  color: $color-accent-primary-text;
+
+  &:hover,
+  &:focus {
+    color: $color-accent-secondary-text;
+  }
+}
+
+.datalog-statement pre.highlight,
+.datalog-statement pre[class*='language-'] {
+  background: $color-surface-50;
+}
+
+body.dark-mode {
+  .datalog-statement {
+    border-left-color: $dark-accent-primary;
+  }
+
+  .datalog-statement--definition,
+  .datalog-statement--assumption {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .datalog-statement--example,
+  .datalog-statement--remark {
+    border-left-color: $dark-ink-500;
+  }
+}
+
+@media print {
+  .datalog-statement {
+    border-left-color: currentColor;
+    background: none;
+  }
+}
+
 body.dark-mode figcaption {
   color: rgba($dark-ink-500, 0.85);
 }

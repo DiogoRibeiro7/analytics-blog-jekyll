@@ -160,6 +160,16 @@ article:
 references:
   figure: Figura
   table: Tabela
+  theorem: Teorema
+  lemma: Lema
+  proposition: Proposição
+  corollary: Corolário
+  definition: Definição
+  assumption: Pressuposto
+  example: Exemplo
+  remark: Observação
+  proof: Demonstração
+  proof_of: "Demonstração de {{target}}"
 post:
   provenance:
     heading: Nota do autor e editorial

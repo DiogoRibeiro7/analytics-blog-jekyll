@@ -26,20 +26,26 @@ module Datalog
   #
   # A caption is the body of the tag, not an attribute, so math in it goes
   # through the math preprocessor like the rest of the page.
+  #
+  # Theorems, definitions and the other statements in _plugins/statements.rb
+  # are numbered and referred to the same way.
   module References
     module_function
 
     # Each kind counts separately; the label comes from _data/i18n.
     KINDS = {
-      "figure" => { "key" => "references.figure", "label" => "Figure" },
-      "table" => { "key" => "references.table", "label" => "Table" }
+      "figure" => "Figure", "table" => "Table",
+      "theorem" => "Theorem", "lemma" => "Lemma", "proposition" => "Proposition", "corollary" => "Corollary",
+      "definition" => "Definition", "assumption" => "Assumption", "example" => "Example", "remark" => "Remark"
     }.freeze
     ID = /\A[A-Za-z][\w.:-]*\z/
-    TARGET = /data-ref-target="([^"]+)" data-ref-kind="([a-z]+)"/
-    LABEL = %r{<span class="datalog-ref-label" data-ref-for="([^"]+)"></span>}
+    # A label given in place of the number, as in "Theorem A".
+    CUSTOM_LABEL = /\A[[:alnum:]][[:alnum:].'*-]*\z/
+    TARGET = /data-ref-target="([^"]+)" data-ref-kind="([a-z]+)"(?: data-ref-number="([^"]+)")?/
+    # A label ends with a full stop unless the tag chose another ending.
+    LABEL = %r{<span class="datalog-ref-label" data-ref-for="([^"]+)"(?: data-ref-end="([^"]*)")?></span>}
     LINK = %r{<a class="datalog-ref" href="#([^"]+)" data-ref="\1">[^<]*</a>}
-
-    SOURCE_TARGET = /\{%-?\s*(figure|table)\b[^%]*?\bid=["']([^"']+)["']/
+    SOURCE_TAG = /\{%-?\s*(#{KINDS.keys.join('|')})\b([^%]*)-?%\}/
 
     def number(document)
       content = document.content
@@ -47,8 +53,9 @@ module Datalog
 
       targets = targets(content.scan(TARGET), document)
       content = content.gsub(LABEL) do
-        id = Regexp.last_match(1)
-        %(<span class="datalog-ref-label" data-ref-for="#{id}">#{targets.fetch(id)}.</span>)
+        id, ending = Regexp.last_match.captures
+        text = "#{CGI.escapeHTML(targets.fetch(id))}#{ending || '.'}"
+        %(<span class="datalog-ref-label" data-ref-for="#{id}">#{text}</span>)
       end
       document.content = link_references(content, targets, document)
     end
@@ -63,7 +70,7 @@ module Datalog
 
       post = excerpt.doc
       found = post.content.to_s.scan(TARGET)
-      found = post.content.to_s.scan(SOURCE_TARGET).map(&:reverse) if found.empty?
+      found = source_targets(post.content.to_s) if found.empty?
       targets = targets(found.uniq(&:first), post)
       html.gsub(LINK) do
         id = Regexp.last_match(1)
@@ -72,18 +79,27 @@ module Datalog
       end
     end
 
-    # The id => "Figure 2" of every [id, kind] target, numbered per kind in page order.
+    # [id, kind, label] for each numbered tag in a page's source.
+    def source_targets(source)
+      source.scan(SOURCE_TAG).filter_map do |kind, markup|
+        attributes = markup.scan(/(\w+)=["']([^"']*)["']/).to_h
+        [attributes["id"], kind, attributes["label"]] if attributes["id"]
+      end
+    end
+
+    # The id => "Figure 2" of every [id, kind, label] target, numbered per kind in
+    # page order. A target with its own label does not take a number.
     def targets(found, document)
       counts = Hash.new(0)
-      found.each_with_object({}) do |(id, kind), targets|
+      found.each_with_object({}) do |(id, kind, custom), targets|
         if targets.key?(id)
           raise Jekyll::Errors::FatalException,
-                "#{document.relative_path} numbers two figures or tables with the id \"#{id}\"; " \
-                "each id has to be unique"
+                "#{document.relative_path} has two numbered figures, tables or statements with the id " \
+                "\"#{id}\"; each id has to be unique"
         end
 
-        counts[kind] += 1
-        targets[id] = "#{label(document, kind)} #{counts[kind]}"
+        number = custom ? CGI.unescapeHTML(custom) : (counts[kind] += 1)
+        targets[id] = "#{label(document, kind)} #{number}"
       end
     end
 
@@ -91,8 +107,8 @@ module Datalog
       missing = content.scan(LINK).flatten.uniq - targets.keys
       unless missing.empty?
         raise Jekyll::Errors::FatalException,
-              "#{document.relative_path} refers to #{missing.map { |id| "\"#{id}\"" }.join(', ')}, which no figure " \
-              "or table on the page has as its id"
+              "#{document.relative_path} refers to #{missing.map { |id| "\"#{id}\"" }.join(', ')}, which no " \
+              "numbered figure, table or statement on the page has as its id"
       end
 
       content.gsub(LINK) do
@@ -104,7 +120,15 @@ module Datalog
     def label(document, kind)
       site = document.site
       locale = I18n.locale_code(site, document.data["lang"])
-      I18n.lookup(site, locale, KINDS.fetch(kind)["key"]) || KINDS.fetch(kind)["label"]
+      I18n.lookup(site, locale, "references.#{kind}") || KINDS.fetch(kind)
+    end
+
+    def validate_label(label, tag)
+      return if label.nil? || label.match?(CUSTOM_LABEL)
+
+      raise Liquid::ArgumentError,
+            "{% #{tag} %} takes a label of letters, digits, \".\", \"'\", \"*\" or \"-\", such as label=\"A\"; " \
+            "got #{label.inspect}"
     end
 
     def validate_id(id, tag)

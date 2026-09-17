@@ -57,12 +57,12 @@ class ReferencesTest < Minitest::Test
 
   def test_a_duplicate_id_stops_the_build
     error = assert_raises(Jekyll::Errors::FatalException) { build(figure("fig-a") + table("fig-a")) }
-    assert_includes error.message, "two figures or tables with the id \"fig-a\""
+    assert_includes error.message, "two numbered figures, tables or statements with the id \"fig-a\""
   end
 
   def test_a_reference_to_nothing_stops_the_build
     error = assert_raises(Jekyll::Errors::FatalException) { build("{% ref fig-missing %}\n\n#{figure('fig-a')}") }
-    assert_includes error.message, "refers to \"fig-missing\", which no figure or table on the page has"
+    assert_includes error.message, "refers to \"fig-missing\", which no numbered figure, table or statement"
   end
 
   def test_captions_hold_markdown_and_math

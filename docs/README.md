@@ -14,6 +14,7 @@ Find the guide for what you want to do.
 | Use or restyle the post components: sharing buttons, breadcrumbs, author card, table of contents, difficulty badge | [components.md](components.md) |
 | Add math | [user-guide.md: Mathematical Expression Authoring](user-guide.md#3-mathematical-expression-authoring) |
 | Number figures and tables, and refer to them | [user-guide.md: Figures, tables and cross-references](user-guide.md#figures-tables-and-cross-references) |
+| Write theorems, definitions and proofs | [user-guide.md: Theorems, definitions and proofs](user-guide.md#theorems-definitions-and-proofs) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |
