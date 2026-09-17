@@ -37,6 +37,7 @@
 @include meta.load-css('reading-state');
 @include meta.load-css('service-forms');
 @include meta.load-css('comments-thread');
+@include meta.load-css('reactions');
 // Reading mode and print come last, so their rules win.
 @include meta.load-css('print');
 

@@ -18,9 +18,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 12. [Correction Reports](#correction-reports)
 13. [Contact Form](#contact-form)
 14. [Comments](#comments)
-15. [Front Matter](#front-matter)
-16. [Customization](#customization)
-17. [Troubleshooting](#troubleshooting)
+15. [Reactions](#reactions)
+16. [Front Matter](#front-matter)
+17. [Customization](#customization)
+18. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1039,6 +1040,72 @@ The thread carries `data-state`: `idle` (before the reader gets near), `loading`
 .comment__card, .comment__meta, .comment__author, .comment__time, .comment__body, .comment__reply { }
 .comments-thread__replies { }      // the nested list under a parent
 .comments-form { }                 // the form, a .service-form
+```
+
+---
+
+## Reactions
+
+### What It Does
+
+"Was this useful?" after the article, with a small set of answers a reader can give without writing a comment: useful, clear, interesting, needs clarification, or whatever `reactions.types` lists. It is a quiet strip, not a competitor to the article, and a real signal: the counts on the buttons are the ones the service returns, and only those. Without a backend, with the feature off, or when the service cannot be read, no count is shown; a placeholder or a made-up number never is. The theme once carried simulated social-proof numbers and removed them; this is the honest replacement.
+
+A reaction goes to the site's backend through the [dynamic services](dynamic-services.md) as the page and the reaction, nothing else. The reader's own choice is kept in their browser (`localStorage`, `datalog-reaction:<path>`) so their device shows it pressed on the next visit; that is all the theme keeps, and it never reaches the service.
+
+### Usage
+
+```yaml
+reactions:
+  enabled: true                   # false removes the strip from every post
+  counts: true                    # false hides the counts; readers see only their own choice
+  types:                          # the answers, in order; labels under reactions.types in _data/i18n
+    - useful
+    - clear
+    - interesting
+    - needs-clarification
+
+dynamic_services:
+  base_url: https://api.example.org
+  features:
+    reactions: true
+```
+
+The strip renders under the article, after the series navigation, on a site whose services offer the feature. A post opts out with `reactions: false`. A site that adds a type adds its label under `reactions.types.<key>` in `_data/i18n/<lang>.yml`.
+
+### The Contract
+
+Reading, `GET /v1/reactions?path=/2024/04/05/sql-optimization-guide/`:
+
+```json
+{ "counts": { "useful": 42, "needs-clarification": 3 } }
+```
+
+A type absent from `counts` shows no count. An answer that is not an object of non-negative integers is treated as no counts at all: the strip stays usable and shows nothing invented.
+
+Writing, `POST /v1/reactions` with an `Idempotency-Key`:
+
+```json
+{ "path": "/2024/04/05/sql-optimization-guide/", "reaction": "useful" }
+```
+
+The service answers `201` with `{ "counts": { … }, "reaction": "useful" }`; returning the counts is what lets the strip update them, and without them it keeps the ones it had rather than adding one itself. A `409` means the service already holds this reader's reaction, shown as counted; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), and change nothing.
+
+### Honesty and Privacy
+
+Duplicate votes are the backend's problem, solved however it likes: a rate limit per address, a salted hash of address and day, a cookie it sets itself, or nothing. The theme does not fingerprint readers, no canvas, font or plugin enumeration, no stored identifier beyond the reader's own choice, and a site should not add that on its own. What the strip shows is what the service counted; a site that publishes the numbers elsewhere should publish only that. They are evidence for the author about which articles help, not a ranking.
+
+### States
+
+The strip carries `data-state`: `idle` (before the reader gets near), `loading`, `loaded`, `unavailable` (the service could not be read: no counts, the buttons still work), `pending` (a reaction on its way; `aria-busy`, the buttons disabled), `selected` (the reader's choice pressed, the thanks announced) and `disabled` (no backend, the feature off or not offered, or an API version mismatch; the buttons disabled and the reason announced). The reader's choice is `aria-pressed="true"` on its button. A failure to send is announced as an alert and changes nothing.
+
+### Styling
+
+```scss
+.reactions { }                     // the strip; [data-state="…"]
+.reactions__prompt { }
+.reactions__choice { }             // a button; [aria-pressed="true"] is the reader's choice
+.reactions__count { }              // the service's count, hidden when there is none
+.reactions__status { }             // the announced state
 ```
 
 ---

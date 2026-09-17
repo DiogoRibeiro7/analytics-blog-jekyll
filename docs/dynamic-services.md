@@ -184,4 +184,4 @@ Notes for that deployment:
 
 ## Relationship to the feature issues
 
-This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261) and [comments](components.md#comments) (#253) define what they send and show; subscriptions (#254), reactions (#255), moderation (#257) and Webmentions (#258) would do the same, each with its own paths, payloads and error codes, and none with its own client.
+This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261), [comments](components.md#comments) (#253) and [reactions](components.md#reactions) (#255) define what they send and show; subscriptions (#254), moderation (#257) and Webmentions (#258) would do the same, each with its own paths, payloads and error codes, and none with its own client.

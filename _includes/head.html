@@ -102,6 +102,12 @@
 {% if js_manifest.features and js_manifest.features.comments and page.datalog_comments.provider == 'api' %}
 <link rel="modulepreload" href="{{ js_manifest.features.comments | relative_url }}" crossorigin="anonymous" />
 {% endif %}
+{%- comment -%} "Was this useful?" renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.reactions and page.layout == 'post' and page.reactions != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.reactions != false and site.reactions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.reactions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
 {% endif %}

@@ -175,6 +175,9 @@ schema_type: TechnicalArticle
   {%- comment -%} The previous and next parts of the series, for a reader who has finished this one {%- endcomment -%}
   {% include components/series-nav.html page=page compact=true %}
 
+  {%- comment -%} Was this useful? A reaction without a comment, on a site with a backend {%- endcomment -%}
+  {% include components/reactions.html %}
+
   {%- comment -%} The reader's own: resume prompt, highlights and notes, kept in the browser {%- endcomment -%}
   {% include components/reading-state-panel.html %}
 

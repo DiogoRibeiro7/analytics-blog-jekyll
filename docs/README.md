@@ -26,6 +26,7 @@ Find the guide for what you want to do.
 | Let readers report errors and suggest corrections | [components.md: Correction Reports](components.md#correction-reports) |
 | Take structured contact and collaboration requests | [components.md: Contact Form](components.md#contact-form) |
 | Keep the comments on the site's own backend instead of Giscus, utterances or Disqus | [components.md: Comments](components.md#comments) |
+| Ask readers whether an article was useful, with counts that are real | [components.md: Reactions](components.md#reactions) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

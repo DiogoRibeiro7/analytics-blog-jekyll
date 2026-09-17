@@ -181,6 +181,16 @@ corrections:
     typo: Gralha que muda o sentido
     accessibility: Problema de acessibilidade
     other: Outra coisa
+reactions:
+  prompt: Foi útil?
+  sending: A enviar a sua opinião…
+  thanks: Obrigado. A sua opinião foi contada.
+  already: A sua opinião já tinha sido contada.
+  types:
+    useful: Útil
+    clear: Claro
+    interesting: Interessante
+    needs-clarification: Precisa de clarificação
 comments:
   loading: A carregar a discussão…
   empty: Ainda não há comentários. Comece a discussão.

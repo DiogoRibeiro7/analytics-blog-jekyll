@@ -305,6 +305,17 @@ contact:
   # privacy_notice: ""             # over contact.privacy in _data/i18n
   # retention: ""                  # e.g. Messages are deleted after a year.
 
+# "Was this useful?" after every post: a reaction without a comment, through
+# the dynamic services above. The counts are the service's own; none is invented.
+reactions:
+  enabled: true
+  counts: true
+  types:
+    - useful
+    - clear
+    - interesting
+    - needs-clarification
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

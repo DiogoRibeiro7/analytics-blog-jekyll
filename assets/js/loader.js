@@ -97,6 +97,10 @@ const FEATURE_CONFIG = [
   {
     name: "comments",
     test: () => document.querySelector("[data-comments-thread]")
+  },
+  {
+    name: "reactions",
+    test: () => document.querySelector("[data-reactions]")
   }
 ];
 

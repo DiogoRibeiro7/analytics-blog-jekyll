@@ -53,6 +53,10 @@ This guide documents the configuration keys validated by the automated configura
 | `contact.prompts` | Map | Category to prompt |
 | `contact.privacy_notice` | String | Any |
 | `contact.retention` | String | Any |
+| `reactions` | Map | Any |
+| `reactions.enabled` | Boolean | `true` (default), `false` |
+| `reactions.counts` | Boolean | `true` (default), `false` |
+| `reactions.types` | List | The reactions, in order |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -244,6 +248,18 @@ This guide documents the configuration keys validated by the automated configura
     prompts:
       consulting: Say the scope, the budget range and when you need it.
     retention: Messages are deleted after a year.
+  ```
+
+### reactions
+- **Required:** No
+- **Type:** Map
+- **Description:** "Was this useful?" under every post, on a site whose dynamic services offer the `reactions` feature ([components.md: Reactions](components.md#reactions)). `enabled: false` removes it; `counts: false` hides the service's counts so readers see only their own choice; `types` lists the reactions, in order, with labels under `reactions.types` in `_data/i18n`. A post opts out with `reactions: false` in its front matter.
+- **Example:**
+  ```yaml
+  reactions:
+    enabled: true
+    counts: true
+    types: [useful, clear, interesting, needs-clarification]
   ```
 
 ## Scholarly Metadata

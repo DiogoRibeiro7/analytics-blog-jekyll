@@ -103,6 +103,11 @@ module Datalog
           privacy_notice: { type: :string }, retention: { type: :string }
         }
       },
+      # "Was this useful?" after a post (components/reactions.html).
+      reactions: {
+        type: :hash,
+        schema: { enabled: { type: :boolean }, counts: { type: :boolean }, types: { type: :array } }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

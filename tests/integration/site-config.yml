@@ -10,6 +10,7 @@ dynamic_services:
     corrections: true
     contact: true
     comments: true
+    reactions: true
 
 # The demo's comments come from Giscus, and its two posts with a comments key
 # name their provider themselves; here every other post shows the thread of
