@@ -54,9 +54,13 @@ module Datalog
         remove_demo_data(site)
       end
 
+      # A checkout also holds the script sources the bundles are built from,
+      # which no page loads. The site gets the theme assets the gem would give it.
       def remove_demo_assets(site)
-        demo_dirs = Package::DEMO_ASSETS.map { |entry| File.join(site.theme.root, entry, "") }
-        site.static_files.reject! { |file| demo_dirs.any? { |dir| file.path.start_with?(dir) } }
+        root = File.join(site.theme.root, "")
+        site.static_files.reject! do |file|
+          file.path.start_with?(root) && !Package.theme_file?(file.path.delete_prefix(root))
+        end
       end
 
       # site.data holds the theme's data with the site's merged over it. Each key
