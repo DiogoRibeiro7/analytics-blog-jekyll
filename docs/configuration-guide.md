@@ -96,6 +96,33 @@ theme_options:
 - A copy that fails to encode is left out, with a warning, and the page does not offer it.
 - An image keeps its markup when it already has a `srcset`, sits in a `<picture>` of its own, or sets `data-no-optimize="true"`.
 
+#### Critical CSS
+
+With `critical_css.enabled: true`, a production build inlines the CSS each page needs to draw its first screen and loads `main.css` without blocking rendering. That CSS depends on your own pages and styles, so the theme ships none. Write your site's with:
+
+```bash
+bundle exec datalog critical-css
+```
+
+The command builds the site for production into a temporary directory, extracts the critical CSS of a page with the home layout, a post and one other page, and writes `_includes/critical-css/home.html`, `post.html` and `default.html` in your site, where they take the place of the theme's empty files. Run it again when your layouts or styles change; in CI, run it before `jekyll build`.
+
+```yaml
+critical_css:
+  enabled: true
+  dimensions:                # the viewports a page's first screen is measured in
+    - { width: 1920, height: 1080 }
+    - { width: 375, height: 667 }
+  penthouse_options:
+    timeout: 30000
+  pages:                     # optional: which pages to extract from, as site paths
+    default: /blog/
+```
+
+- The command runs the [critical](https://github.com/addyosmani/critical) npm package, which needs Node.js 22.13 or later and renders pages in headless Chrome that its install downloads. It uses `node_modules/.bin/critical` when your site has installed it (`npm install --save-dev critical@8`), and `npx --yes critical@8` otherwise. `--critical` names another command.
+- Without `pages`, each file comes from the first page with that layout, nearest the site root; `default` skips pages kept out of search engines, such as the search page.
+- Only `assets/css/main.css` is read, so the inlined CSS carries no Google Fonts rules.
+- A production build warns when `critical_css.enabled` is true and one of the three files is empty.
+
 ### 4. Integrations
 
 External services live in `_config.yml` under `integrations:` and are exposed to templates as `site.integrations`:

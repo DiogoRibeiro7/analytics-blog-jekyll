@@ -40,6 +40,15 @@ class GemConsumerTest < Minitest::Test
     Jekyll::Site.new(config).process
   RUBY
 
+  CRITICAL_CSS = <<~'RUBY'
+    require "jekyll"
+    require "datalog/cli"
+
+    source, theme_root, critical = ARGV
+    Jekyll::Theme.prepend(Module.new { define_method(:root) { theme_root } })
+    Datalog::CLI.start(["critical-css", "--root", source, "--critical", critical])
+  RUBY
+
   def test_packaged_theme_builds_a_site_without_the_demo_content
     Dir.mktmpdir do |dir|
       theme = package_into(File.join(dir, "theme"))
@@ -53,6 +62,35 @@ class GemConsumerTest < Minitest::Test
 
       stylesheet = File.read(File.join(site, "_site", "assets", "css", "main.css"))
       refute_includes stylesheet, ".search-app", "a site without features.search should not carry the search styles"
+    end
+  end
+
+  # critical_css.enabled did nothing for a site installed from the gem, whose
+  # critical CSS files are empty (#238). `datalog critical-css` writes its own.
+  def test_critical_css_command_gives_a_packaged_theme_site_its_critical_css
+    critical = File.join(ROOT, "node_modules", ".bin", Gem.win_platform? ? "critical.cmd" : "critical")
+    unless File.file?(critical)
+      flunk "critical is not installed" if ENV["DATALOG_CRITICAL_CSS"] == "required"
+      skip "critical is not installed; run `npm ci` first"
+    end
+
+    Dir.mktmpdir do |dir|
+      theme = package_into(File.join(dir, "theme"))
+      site = write_site(File.join(dir, "site"), "critical_css:\n  enabled: true\n")
+
+      output, status = build(site, theme, CRITICAL_CSS, critical)
+      assert status.success?, "datalog critical-css should write the site's critical CSS:\n#{output}"
+      output, status = build(site, theme, BUILD, env: { "JEKYLL_ENV" => "production" })
+      assert status.success?, output
+
+      { "index.html" => "home", "about.html" => "default", "2026/01/01/hello.html" => "post" }.each do |page, target|
+        html = File.read(File.join(site, "_site", page))
+        css = html[%r{<style data-critical-css="#{target}"[^>]*>(.*?)</style>}m, 1].to_s
+        refute_empty css.strip, "#{page} should inline the #{target} critical CSS"
+        refute_includes css, "{% raw %}"
+        assert_match(/<link rel="stylesheet" href="[^"]*main\.css" media="print" data-async-style/, html)
+        assert_match(%r{<noscript>\s*<link rel="stylesheet" href="[^"]*main\.css" />}, html)
+      end
     end
   end
 
@@ -196,8 +234,8 @@ class GemConsumerTest < Minitest::Test
     site
   end
 
-  def build(site, theme_root)
-    stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", BUILD, site, theme_root, chdir: site)
+  def build(site, theme_root, script = BUILD, *, env: {})
+    stdout, stderr, status = Open3.capture3(env, RbConfig.ruby, "-e", script, site, theme_root, *, chdir: site)
     ["#{stdout}#{stderr}", status]
   end
 

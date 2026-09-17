@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build:js": "node ./scripts/build_js.mjs",
-    "build:critical": "node ./scripts/extract_critical_css.js",
+    "build:critical": "bundle exec datalog critical-css",
     "build:assets": "npm run build:js",
     "generate-sri": "node scripts/generate_sri.js",
     "validate-sri": "node scripts/validate_sri.js",
