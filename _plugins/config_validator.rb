@@ -90,6 +90,11 @@ module Datalog
           features: { type: :hash }, paths: { type: :hash }, csrf_header: { type: :string }, csrf_cookie: { type: :string }
         }
       },
+      # The correction-report form on posts (components/correction-report.html).
+      corrections: {
+        type: :hash,
+        schema: { enabled: { type: :boolean }, categories: { type: :array } }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

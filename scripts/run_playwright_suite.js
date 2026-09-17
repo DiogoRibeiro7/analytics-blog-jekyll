@@ -66,7 +66,10 @@ async function main() {
     );
   } else {
     console.log('➡️  Building site with Jekyll...');
-    const buildCode = await runCommand('bundle', ['exec', 'jekyll', 'build']);
+    // tests/integration/site-config.yml points the dynamic services at an
+    // address the specs intercept, so the forms can be exercised here.
+    const configs = ['_config.yml', 'tests/integration/site-config.yml'].join(',');
+    const buildCode = await runCommand('bundle', ['exec', 'jekyll', 'build', '--config', configs]);
     if (buildCode !== 0) {
       process.exit(buildCode);
     }

@@ -15,9 +15,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 9. [Reproducibility Panel](#reproducibility-panel)
 10. [Reading Mode and Print](#reading-mode-and-print)
 11. [Bookmarks, Progress and Private Highlights](#bookmarks-progress-and-private-highlights)
-12. [Front Matter](#front-matter)
-13. [Customization](#customization)
-14. [Troubleshooting](#troubleshooting)
+12. [Correction Reports](#correction-reports)
+13. [Front Matter](#front-matter)
+14. [Customization](#customization)
+15. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -803,6 +804,70 @@ mark.reading-highlight { }        // a highlight, without it
 
 ---
 
+## Correction Reports
+
+### What It Does
+
+A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, as structured feedback apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history: a collapsed block with a category, the section (filled from the article's headings), the message, an optional email for a reply, and, when the reader had text selected as they opened it, that passage attached. The article's address and title go with the report.
+
+The report goes to the site's backend through the [dynamic services](dynamic-services.md) and is **never shown on the page**. It is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it. Nothing turns a report into a public notice on its own.
+
+### Usage
+
+The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`), and:
+
+```yaml
+corrections:
+  enabled: true                   # false removes the form from every post
+  categories:                     # the choices, in this order; the labels are in _data/i18n under corrections.categories
+    - mathematical-error
+    - factual-error
+    - citation
+    - code
+    - reproducibility
+    - typo
+    - accessibility
+    - other
+```
+
+A post opts out with `corrections: false` in its front matter. A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`.
+
+### What the Service Receives
+
+`POST /v1/corrections`, JSON, with an `Idempotency-Key` header per submission:
+
+```json
+{
+  "category": "code",
+  "section": "optimization-checklist",
+  "message": "The clustering step names purchase_ts but the table clusters on customer_id.",
+  "contact_email": "reader@example.org",
+  "quote": "Cluster the fact table on purchase_ts",
+  "article": { "url": "https://example.org/2024/04/05/sql-optimization-guide/", "title": "SQL Optimization Playbook" }
+}
+```
+
+`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the reference deployment in [dynamic-services.md](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) does the first.
+
+### States
+
+The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, `aria-busy`), `success` (the fields cleared, the message announced), `invalid` (the fields named by the site's checks or the service's `422` marked `aria-invalid` with their messages, the first focused), `error` (the message for the failure, as an alert, with "Reference: …" when the service gave a request id), and `disabled` (no backend, the feature off, the service not offering it, or an API version mismatch, each with its message). Before anything is sent, the message must be 20 characters long and an email, if given, look like one; a hidden honeypot field catches bots without a request.
+
+### From a Report to a Revision
+
+A report is private and unverified. The workflow the theme supports: the report arrives in the backend's store or inbox; the author checks it; if the article changes, the author edits it and adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which is what readers then see, dated, under the metadata and in the revision history. The reporter's email, if any, is for a reply; it never appears on the site.
+
+### Styling
+
+```scss
+.correction-report { }             // the collapsed block
+.service-form { }                  // the form, shared with the contact form; [data-state="…"]
+.service-form__field { }           // a label, its control, hint and error
+.service-form__status { }          // the announced state
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -824,6 +889,7 @@ series:                # the article's series and its place in it; see Series Na
   order: 2
 reproducibility:       # the code, data and environment behind it; see Reproducibility Panel
   code: {url: https://github.com/example/missing-data, ref: 4f2c1ab}
+corrections: false     # no correction-report form on this post; see Correction Reports
 ---
 ```
 

@@ -23,6 +23,7 @@ Find the guide for what you want to do.
 | Read an article without the site around it, or print it | [components.md: Reading Mode and Print](components.md#reading-mode-and-print) |
 | Let readers save articles, resume where they left off and keep private highlights | [components.md: Bookmarks, Progress and Private Highlights](components.md#bookmarks-progress-and-private-highlights) |
 | Connect the optional dynamic features (correction reports, contact, comments) to a backend | [dynamic-services.md](dynamic-services.md) |
+| Let readers report errors and suggest corrections | [components.md: Correction Reports](components.md#correction-reports) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

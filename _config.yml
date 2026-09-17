@@ -272,6 +272,21 @@ dynamic_services:
     corrections: true
     contact: true
 
+# The correction-report form on posts: structured feedback to the author,
+# through the dynamic services above. Labels for the categories live in
+# _data/i18n under corrections.categories.
+corrections:
+  enabled: true
+  categories:
+    - mathematical-error
+    - factual-error
+    - citation
+    - code
+    - reproducibility
+    - typo
+    - accessibility
+    - other
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

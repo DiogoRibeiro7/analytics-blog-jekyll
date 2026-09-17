@@ -1,0 +1,11 @@
+# Settings the browser suite layers over _config.yml (scripts/run_playwright_suite.js):
+# a backend at an address the specs intercept with page.route, so the forms that
+# post to the dynamic services can be exercised without a server. The deploy
+# workflow builds the site again for GitHub Pages without this file.
+dynamic_services:
+  base_url: https://api.example.test
+  api_version: v1
+  timeout_ms: 3000
+  features:
+    corrections: true
+    contact: true

@@ -85,6 +85,10 @@ const FEATURE_CONFIG = [
     name: "reading-state",
     // A post with the reading-state panel, or a page listing the saved articles.
     test: () => document.querySelector("[data-reading-state], [data-reading-list]")
+  },
+  {
+    name: "corrections",
+    test: () => document.querySelector("[data-correction-report]")
   }
 ];
 

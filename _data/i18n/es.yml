@@ -157,6 +157,30 @@ article:
     updated: Actualizado
     author: Autor
     authors: Autores
+corrections:
+  summary: Informar de un error o sugerir una corrección
+  intro: "¿Has visto un error en las matemáticas, los hechos, una cita, el código o la reproducibilidad? Di qué y dónde. El informe va al autor, no a la página."
+  category: Qué tipo de problema
+  section: Dónde
+  section_any: El artículo entero
+  message: Qué está mal, y qué debería decir
+  message_hint: Al menos 20 caracteres. Cita el pasaje si puedes.
+  contact_email: Tu correo (opcional)
+  contact_hint: Solo si quieres una respuesta. Nunca se muestra en el sitio.
+  send: Enviar el informe
+  pending: Enviando el informe…
+  success: "Gracias. El informe llegó al autor y sigue siendo privado; una corrección aparecería en el historial de revisiones del artículo."
+  message_short: "Di un poco más: al menos {{min}} caracteres."
+  email_invalid: Eso no parece una dirección de correo.
+  categories:
+    mathematical-error: Error matemático
+    factual-error: Error factual
+    citation: Cita rota o incorrecta
+    code: Código obsoleto o roto
+    reproducibility: Fallo de reproducibilidad
+    typo: Errata que cambia el sentido
+    accessibility: Problema de accesibilidad
+    other: Otra cosa
 dynamic_services:
   errors:
     disabled: Esta función no está configurada en este sitio.

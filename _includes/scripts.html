@@ -37,6 +37,12 @@
   {% assign reading_state_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} The correction-report form needs a backend with the feature on (components/correction-report.html). {%- endcomment -%}
+{% assign corrections_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.corrections != false and site.corrections.enabled != false %}
+  {% assign corrections_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -49,6 +55,7 @@
     body.dataset.featureNotebook = "{{ notebook_flag }}";
     body.dataset.featureAcademic = "{{ academic_flag }}";
     body.dataset.featureReadingState = "{{ reading_state_flag }}";
+    body.dataset.featureCorrections = "{{ corrections_flag }}";
   })();
 </script>
 

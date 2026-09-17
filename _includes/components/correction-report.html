@@ -1,0 +1,82 @@
+{%- comment -%}
+---
+optional: []
+---
+"Report an error or suggest a correction" (assets/js/corrections/form.js):
+structured feedback about an article, apart from comments, sent to the
+site's dynamic services (docs/dynamic-services.md) and never shown on the
+page. Renders only when the site has a backend with the corrections feature
+on, `corrections.enabled` is not false, and the page does not say
+`corrections: false`. The categories come from `corrections.categories`,
+their labels from `corrections.categories.*` in _data/i18n.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign corrections = site.corrections -%}
+{%- if services.base_url and services.base_url != '' and services.features.corrections != false and corrections.enabled != false and page.corrections != false -%}
+{%- assign categories = corrections.categories -%}
+{%- if categories == nil or categories.size == 0 -%}
+  {%- assign categories = "mathematical-error,factual-error,citation,code,reproducibility,typo,accessibility,other" | split: "," -%}
+{%- endif -%}
+{%- capture labels_json -%}
+{
+  "pending": {{ 'corrections.pending' | t | jsonify }},
+  "success": {{ 'corrections.success' | t | jsonify }},
+  "message_short": {{ 'corrections.message_short' | t | jsonify }},
+  "email_invalid": {{ 'corrections.email_invalid' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<details class="correction-report" id="correction-report" data-correction-report data-article-url="{{ page.url | absolute_url }}" data-article-title="{{ page.title | escape }}">
+  <summary class="correction-report__summary">{% t 'corrections.summary' %}</summary>
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-correction-labels>{{ labels_json | strip }}</script>
+  <form class="service-form correction-report__form" id="correction-report-form" data-state="idle" aria-busy="false" novalidate>
+    <p class="service-form__intro">{% t 'corrections.intro' %}</p>
+    <p class="service-form__quote" data-correction-quote hidden></p>
+    <fieldset class="service-form__fields">
+      <legend class="visually-hidden">{% t 'corrections.summary' %}</legend>
+      <div class="service-form__field">
+        <label for="correction-category">{% t 'corrections.category' %}</label>
+        <select id="correction-category" name="category">
+          {%- for category in categories %}
+          {%- assign category_key = "corrections.categories." | append: category %}
+          <option value="{{ category | escape }}">{{ category_key | t }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="service-form__field">
+        <label for="correction-section">{% t 'corrections.section' %}</label>
+        <select id="correction-section" name="section">
+          <option value="">{% t 'corrections.section_any' %}</option>
+        </select>
+      </div>
+      <div class="service-form__field">
+        <label for="correction-message">{% t 'corrections.message' %}</label>
+        <textarea id="correction-message" name="message" rows="5" required minlength="20" aria-describedby="correction-message-hint"></textarea>
+        <p class="service-form__hint" id="correction-message-hint">{% t 'corrections.message_hint' %}</p>
+        <p class="service-form__error" data-error-for="message" hidden></p>
+      </div>
+      <div class="service-form__field">
+        <label for="correction-email">{% t 'corrections.contact_email' %}</label>
+        <input id="correction-email" name="contact_email" type="email" autocomplete="email" aria-describedby="correction-email-hint">
+        <p class="service-form__hint" id="correction-email-hint">{% t 'corrections.contact_hint' %}</p>
+        <p class="service-form__error" data-error-for="contact_email" hidden></p>
+      </div>
+      <input type="hidden" name="quote" value="">
+      <div class="service-form__trap" aria-hidden="true">
+        <label for="correction-website">Website</label>
+        <input id="correction-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+    </fieldset>
+    <div class="service-form__actions">
+      <button type="submit" class="post-tool">{% t 'corrections.send' %}</button>
+    </div>
+    <p class="service-form__status" data-form-status role="status" aria-live="polite" hidden></p>
+  </form>
+</details>
+{%- endif -%}

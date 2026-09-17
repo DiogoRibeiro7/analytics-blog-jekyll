@@ -44,6 +44,9 @@ This guide documents the configuration keys validated by the automated configura
 | `dynamic_services.paths` | Map | Feature name to its path under the versioned base |
 | `dynamic_services.csrf_header` | String | Any |
 | `dynamic_services.csrf_cookie` | String | Any |
+| `corrections` | Map | Any |
+| `corrections.enabled` | Boolean | `true` (default), `false` |
+| `corrections.categories` | List | The report categories, in order |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -210,6 +213,17 @@ This guide documents the configuration keys validated by the automated configura
     features:
       corrections: true
       contact: true
+  ```
+
+### corrections
+- **Required:** No
+- **Type:** Map
+- **Description:** The correction-report form under every post, on a site whose dynamic services offer the `corrections` feature ([components.md: Correction Reports](components.md#correction-reports)). `enabled: false` removes it; `categories` lists the kinds of problem a reader can pick, in order, with their labels under `corrections.categories` in `_data/i18n`. A post opts out with `corrections: false` in its front matter.
+- **Example:**
+  ```yaml
+  corrections:
+    enabled: true
+    categories: [mathematical-error, factual-error, citation, code, reproducibility, typo, accessibility, other]
   ```
 
 ## Scholarly Metadata

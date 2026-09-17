@@ -378,7 +378,7 @@ npm run test:integration
 ```
 
 **What it does**:
-- Builds Jekyll site
+- Builds the site with `_config.yml` and `tests/integration/site-config.yml` layered over it. The overlay points `dynamic_services` at `https://api.example.test`, an address the specs answer with `page.route`, so the forms that post to a backend (correction reports, contact) can be exercised without a server. The deploy workflow builds the site again without it.
 - Starts static server
 - Runs Playwright tests
 - Cleans up after tests
