@@ -195,6 +195,60 @@ scholar:
   profile_id: ""
 ```
 
+## Scholarly Metadata on Articles
+
+The profile integration above is about you; this section is about your articles. A page read as a research article carries the meta tags Google Scholar, Zotero and other reference managers read to index and cite it, and their Dublin Core equivalents. Not every post is a paper, so the tags are opt-in.
+
+### Which pages get them
+
+- A page with the `research` layout (or in a `research` collection) always does, unless its front matter says `scholarly: false`.
+- Any other page does with `scholarly: true` in its front matter.
+- `scholarly: true` in `_config.yml` covers every post as well; a list such as `scholarly: [posts, notebooks]` names the collections or layouts to cover.
+
+Everything else (the home page, listings, the search page, a post that is a note rather than a paper) gets none of them.
+
+### What they read
+
+```yaml
+---
+title: Model diagnostics for normality
+scholarly: true
+date: 2026-09-16
+authors:
+  - name: Diogo Ribeiro
+    affiliation: ESMAD - Instituto Politécnico do Porto
+    orcid: 0009-0001-2022-7072
+doi: 10.1234/example
+pdf_url: /papers/normality.pdf
+journal: Notes on Applied Statistics   # or conference:
+volume: 3
+number: 2                              # or issue:
+pages: 12-34
+keywords: [normality, diagnostics]
+---
+```
+
+| Tag | From |
+| --- | --- |
+| `citation_title` | `citation_title`, else the title |
+| `citation_author`, then that author's `citation_author_institution` and `citation_author_orcid` | the page's authors, the same list as the byline, the JSON-LD and the citation exports; `citation_authors` names the indexed authors alone |
+| `citation_publication_date` | `date`, as `YYYY/MM/DD` |
+| `citation_public_url`, `citation_fulltext_html_url` | the page's URL |
+| `citation_pdf_url` | `pdf_url` (or `citation_pdf`), made absolute |
+| `citation_doi` | `doi` |
+| `citation_journal_title`, `citation_conference_title` | `journal` (or `publication`), `conference` |
+| `citation_volume`, `citation_issue`, `citation_firstpage`, `citation_lastpage`, `citation_issn`, `citation_isbn` | `volume`, `issue` (or `number`), `pages` split at its dash, `issn`, `isbn` |
+| `citation_publisher` | `publisher` on the page, else the site's publisher |
+| `citation_language` | `lang`, else the site locale |
+| `citation_keywords` | `keywords`, else `tags`, joined with `; ` |
+| `DC.title`, `DC.creator`, `DC.date`, `DC.identifier`, `DC.type`, `DC.language`, `DC.publisher`, `DC.rights`, `DC.description` | the same fields; the identifier is the DOI as a URL, else the page's URL; the rights are the page's licence; the type is `Text` |
+
+A field the page lacks leaves its tag out, so nothing is emitted empty.
+
+### How they relate to the JSON-LD and the citation tools
+
+The three describe the same article to different readers. The JSON-LD `TechnicalArticle` (or `ScholarlyArticle` on a research page) is for search engines; the Highwire and Dublin Core tags are for scholarly indexes and reference managers; the BibTeX, RIS and EndNote exports under "How to cite" are for a reader's own bibliography. All of them take the authors from `page | page_authors`, the DOI from `doi`, the publisher from `publisher` and the licence from `license`, so a change in front matter reaches every one of them.
+
 ## Related Documentation
 
 - [Configuration Reference](configuration-reference.md) - All configuration options

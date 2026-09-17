@@ -307,54 +307,8 @@
   {% endif %}
 {% endif %}
 
-{%- comment -%} citation_authors names the authors for citation indexes alone; otherwise they are the page's authors. {%- endcomment -%}
-{% assign citation_source = page.citation_authors %}
-{% if page.title or page.citation_title %}
-<meta name="citation_title" content="{{ page.citation_title | default: page_title | strip_html | normalize_whitespace }}" />
-{% endif %}
-{% if citation_source %}
-  {% capture citation_source_json %}{{ citation_source | jsonify }}{% endcapture %}
-  {% assign citation_source_first = citation_source_json | slice: 0, 1 %}
-  {% if citation_source_first == '[' %}
-    {% assign citation_author_list = citation_source %}
-  {% else %}
-    {% assign citation_author_list = citation_source | replace: ';', ',' | split: ',' %}
-  {% endif %}
-  {% for author in citation_author_list %}
-<meta name="citation_author" content="{{ author | strip | escape }}" />
-  {% endfor %}
-{% else %}
-  {% for author in head_authors %}
-<meta name="citation_author" content="{{ author.name | strip | escape }}" />
-    {% if author.affiliation %}
-<meta name="citation_author_institution" content="{{ author.affiliation | strip | escape }}" />
-    {% endif %}
-    {% if author.orcid %}
-<meta name="citation_author_orcid" content="{{ author.orcid | escape }}" />
-    {% endif %}
-  {% endfor %}
-{% endif %}
-{% if page.date %}
-<meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />
-{% endif %}
-{% if page.doi %}
-<meta name="citation_doi" content="{{ page.doi }}" />
-{% endif %}
-{% if page.journal %}
-<meta name="citation_journal_title" content="{{ page.journal }}" />
-{% endif %}
-{% if page.conference %}
-<meta name="citation_conference_title" content="{{ page.conference }}" />
-{% endif %}
-{% if page.orcid or site.author.orcid %}
-<meta name="citation_orcid" content="{{ page.orcid | default: site.author.orcid }}" />
-{% endif %}
-{% if page.dataset_doi %}
-<meta name="citation_dataset_doi" content="{{ page.dataset_doi }}" />
-{% endif %}
-{% if page.citation_pdf %}
-<link rel="citation_pdf_url" href="{{ page.citation_pdf | absolute_url }}" />
-{% endif %}
+{%- comment -%} Highwire and Dublin Core tags, for a page read as a research article; the include decides which. {%- endcomment -%}
+{% include meta/scholarly.html %}
 
 <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
 <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />

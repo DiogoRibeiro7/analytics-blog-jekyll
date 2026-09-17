@@ -27,6 +27,11 @@ theme_version: 0.8.0
 # the theme's software). A page sets its own with `license:`, or none with `license: false`.
 content_license: CC-BY-4.0
 
+# Scholarly discovery metadata (the meta tags Google Scholar and reference managers
+# read) on every post and research article. Without it, a page gets them only
+# with `scholarly: true` in its front matter.
+scholarly: true
+
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
   name: Diogo Ribeiro

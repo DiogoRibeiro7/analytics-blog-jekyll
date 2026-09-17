@@ -34,6 +34,7 @@ This guide documents the configuration keys validated by the automated configura
 | `code_license.url` | String | A URL |
 | `code_license.holder` | String or list | A name, or a list of names |
 | `code_license.year` | Integer or string | A year |
+| `scholarly` | Boolean, list or string | `true` for every post, or the collections and layouts that get scholarly metadata |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -165,6 +166,20 @@ This guide documents the configuration keys validated by the automated configura
 - **Example:**
   ```yaml
   code_license: MIT
+  ```
+
+## Scholarly Metadata
+
+### scholarly
+- **Required:** No
+- **Type:** Boolean, list or string
+- **Description:** Which pages carry scholarly discovery metadata: the Highwire meta tags (`citation_title`, `citation_author`, `citation_publication_date`, `citation_doi`, `citation_pdf_url` and the rest) that Google Scholar and reference managers read, and their Dublin Core equivalents. A page with the `research` layout, or in a `research` collection, always has them unless its front matter says `scholarly: false`; any other page has them with `scholarly: true` in its front matter. This setting widens the default: `true` covers every post as well, and a list names the collections or layouts to cover, such as `[notebooks]`. See [google-scholar-setup.md: Scholarly Metadata on Articles](google-scholar-setup.md#scholarly-metadata-on-articles) for the tags and the front matter they read.
+- **Examples:**
+  ```yaml
+  scholarly: true
+  ```
+  ```yaml
+  scholarly: [posts, notebooks]
   ```
 
 ## Theme Options
