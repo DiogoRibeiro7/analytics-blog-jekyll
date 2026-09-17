@@ -16,6 +16,7 @@ Find the guide for what you want to do.
 | Number figures and tables, and refer to them | [user-guide.md: Figures, tables and cross-references](user-guide.md#figures-tables-and-cross-references) |
 | Write theorems, definitions and proofs | [user-guide.md: Theorems, definitions and proofs](user-guide.md#theorems-definitions-and-proofs) |
 | Record the corrections and updates of an article | [components.md: Revision History](components.md#revision-history) |
+| State the licence of an article's text, figures and code | [components.md: License Notice](components.md#license-notice) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

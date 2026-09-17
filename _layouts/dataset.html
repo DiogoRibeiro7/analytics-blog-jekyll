@@ -8,7 +8,8 @@ show_title: false # this layout renders the page's <h1>
   <header class="dataset-header">
     <h1>{{ page.title }}</h1>
     {% if page.updated %}<p class="dataset-meta"><strong>{% t 'dataset.last_updated' %}</strong> {{ page.updated | localize_date: date_format }}</p>{% endif %}
-    {% if page.license %}<p class="dataset-meta"><strong>{% t 'dataset.license' %}</strong> {{ page.license }}</p>{% endif %}
+    {% assign dataset_license = page | page_license %}
+    {% if dataset_license %}<p class="dataset-meta"><strong>{% t 'dataset.license' %}</strong> {% include components/license-link.html license=dataset_license %}</p>{% endif %}
   </header>
   <div class="dataset-summary">
     {{ page.summary | default: page.excerpt }}

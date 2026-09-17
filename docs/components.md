@@ -10,9 +10,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 4. [Enhanced Table of Contents](#enhanced-table-of-contents)
 5. [Difficulty Badges](#difficulty-badges)
 6. [Revision History](#revision-history)
-7. [Front Matter](#front-matter)
-8. [Customization](#customization)
-9. [Troubleshooting](#troubleshooting)
+7. [License Notice](#license-notice)
+8. [Front Matter](#front-matter)
+9. [Customization](#customization)
+10. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -485,6 +486,61 @@ Provenance explains the evidence and the method; the revision history explains h
 
 ---
 
+## License Notice
+
+### What It Does
+
+States the reuse terms of an article: who holds the copyright, the licence of its text and figures and, when it differs, the licence of its code samples. The line sits before "How to cite", where a reader deciding whether to reuse the article looks, and it stays on paper with the licence's address.
+
+The repository's `LICENSE` (MIT) covers the theme's software, not what a site publishes with it. An article's prose and figures are the author's, under whatever terms the author chooses; the code samples in it may reasonably carry a different, software licence. These settings say which.
+
+### Usage
+
+A site-wide default in `_config.yml`:
+
+```yaml
+content_license: CC-BY-4.0   # the text and figures of every article
+code_license: MIT            # the code samples, when their terms differ (optional)
+```
+
+A page keeps, replaces or declines it in front matter:
+
+```yaml
+license: CC-BY-SA-4.0        # this article's own terms
+license: false               # no notice and no licence metadata for this page
+code_license: Apache-2.0
+```
+
+```yaml
+license:                     # a licence the theme does not know
+  name: Open Government Licence v3.0
+  url: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+  holder: The Lab            # optional; defaults to the page's authors
+  year: 2026                 # optional; defaults to the year of the page's date
+```
+
+- Identifiers are SPDX: `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-NC-ND-4.0`, `CC0-1.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-3.0-only`, `GPL-3.0-or-later`, `LGPL-3.0-only`, `AGPL-3.0-only`, `MPL-2.0`, `ISC`, `Unlicense` and `all-rights-reserved`. Case and spacing do not matter (`CC BY 4.0`), `CC BY` alone means the 4.0 version, and `CC0` the 1.0 one.
+- Any other string is shown as given, without a link. Give a map with `name` and `url` for a licence the theme does not know.
+- `holder` and `year` can also sit on the site's `content_license` map, for a site whose articles belong to an institution.
+- Datasets and packages carry their own `license` and never take the site's default: a dataset's data and a package's code have their own terms.
+
+### What Renders
+
+- **The notice**, on a post before "How to cite": "© 2024 Diogo Ribeiro. Text and figures under CC BY 4.0. Code samples under MIT." Each licence with a URL is a link with `rel="license"`. `all-rights-reserved` reads "© 2024 Diogo Ribeiro. All rights reserved."
+- **In print**, the licence's address follows the link, so a PDF or a printout keeps the terms.
+- **A dataset's** header and **a research article's** "Rights" row show the licence the same way, linked.
+- **Metadata:** the page's `<head>` carries `<link rel="license">`, and the JSON-LD `license`, `copyrightYear` and `copyrightHolder` (the authors as `Person`s, or an institution as an `Organization`).
+
+### Styling
+
+```scss
+.content-license { }           // the notice
+.content-license__holder { }   // "© 2024 Diogo Ribeiro."
+.license-link { }              // a licence's name, linked or not
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -499,6 +555,8 @@ toc_h_min: 2           # the heading levels the table of contents lists
 toc_h_max: 3
 author: custom_author  # a key in _data/authors.yml, or a name
 revisions: []          # what changed since publication; see Revision History
+license: CC-BY-4.0     # the reuse terms of the text and figures; see License Notice
+code_license: MIT      # the reuse terms of the code samples
 ---
 ```
 

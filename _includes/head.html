@@ -61,6 +61,8 @@
 <meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
 <link rel="canonical" href="{{ canonical_url }}" />
+{%- assign head_license = page | page_license %}
+{% if head_license.url %}<link rel="license" href="{{ head_license.url | escape }}" />{% endif %}
 {% if js_manifest and js_manifest.core %}
 <link rel="modulepreload" href="{{ js_manifest.core | relative_url }}" crossorigin="anonymous" />
 {%- comment -%} Only a page that renders the search app uses the search bundle. {%- endcomment -%}

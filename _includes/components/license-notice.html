@@ -1,0 +1,28 @@
+{%- comment -%}
+---
+required:
+  - page
+---
+The reuse terms of an article: its copyright holder and year, the licence of
+its text and figures and, when it differs, of its code samples
+(_plugins/licenses.rb). Renders nothing for a page without a licence.
+{%- endcomment -%}
+{%- assign content_license = include.page | page_license -%}
+{%- assign code_license = include.page | page_code_license -%}
+{%- if content_license or code_license -%}
+{%- capture content_link -%}{% include components/license-link.html license=content_license %}{%- endcapture -%}
+{%- capture code_link -%}{% include components/license-link.html license=code_license %}{%- endcapture -%}
+{%- assign content_link = content_link | strip -%}
+{%- assign code_link = code_link | strip -%}
+<p class="content-license">
+  {%- if content_license and content_license.holder %}
+  <span class="content-license__holder">©{% if content_license.year %} {{ content_license.year }}{% endif %} {{ content_license.holder | escape }}.</span>
+  {%- endif %}
+  {%- if content_license %}
+  {% if content_license.reserved %}{% t 'post.license.reserved' %}{% else %}{% t 'post.license.content' license: content_link %}{% endif %}
+  {%- endif %}
+  {%- if code_license %}
+  {% t 'post.license.code' license: code_link %}
+  {%- endif %}
+</p>
+{%- endif -%}

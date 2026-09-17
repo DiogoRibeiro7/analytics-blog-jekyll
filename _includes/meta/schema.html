@@ -122,6 +122,23 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {%- if schema_page.citation_key -%},
   "citation": {{ schema_page.citation_key | jsonify }}
   {%- endif -%}
+  {%- comment -%} The licence of the text and figures, and who holds the copyright. {%- endcomment -%}
+  {%- assign content_license = schema_page | page_license -%}
+  {%- if content_license -%}
+  {%- if content_license.url -%},
+  "license": {{ content_license.url | jsonify }}
+  {%- endif -%}
+  {%- if content_license.year -%},
+  "copyrightYear": {{ content_license.year | jsonify }}
+  {%- endif -%}
+  {%- if content_license.holder -%},
+  "copyrightHolder": {% if content_license.people %}{% if content_license.holders.size > 1 %}[{% endif %}
+  {%- for holder in content_license.holders -%}
+  { "@type": "Person", "name": {{ holder | jsonify }} }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  {% if content_license.holders.size > 1 %}]{% endif %}{% else %}{ "@type": "Organization", "name": {{ content_license.holder | jsonify }} }{% endif %}
+  {%- endif -%}
+  {%- endif -%}
   {%- comment -%} Each correction in the revision history, with its date, summary and link. {%- endcomment -%}
   {%- assign corrections = schema_page.revisions | where: 'type', 'correction' -%}
   {%- if corrections and corrections.size > 0 -%},

@@ -45,7 +45,10 @@ url: https://your-domain.example
 baseurl: ""            # "/repo-name" for a GitHub Pages project site
 author:
   name: Your Name
+content_license: CC-BY-4.0   # the reuse terms of your articles' text and figures (optional)
 ```
+
+`content_license` is the default licence of every article, shown before "How to cite" and in the page's metadata; a page sets its own with `license:` or none with `license: false`, and `code_license` names the code samples' terms when they differ. It covers what you publish, not the theme: the repository's `LICENSE` is the theme's software licence. See [components.md: License Notice](components.md#license-notice) and the [configuration reference](configuration-reference.md#licences).
 
 ### 3. Features and theme options
 

@@ -22,6 +22,18 @@ This guide documents the configuration keys validated by the automated configura
 | `publisher.name` | String | Any |
 | `publisher.url` | String | A URL, or a path on the site |
 | `publisher.logo` | String | A URL, or a path on the site |
+| `content_license` | String or map | An SPDX identifier such as `CC-BY-4.0`, or a map with the keys below |
+| `content_license.id` | String | An SPDX identifier |
+| `content_license.name` | String | Any |
+| `content_license.url` | String | A URL |
+| `content_license.holder` | String or list | A name, or a list of names |
+| `content_license.year` | Integer or string | A year |
+| `code_license` | String or map | An SPDX identifier such as `MIT`, or a map with the keys below |
+| `code_license.id` | String | An SPDX identifier |
+| `code_license.name` | String | Any |
+| `code_license.url` | String | A URL |
+| `code_license.holder` | String or list | A name, or a list of names |
+| `code_license.year` | Integer or string | A year |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -124,6 +136,35 @@ This guide documents the configuration keys validated by the automated configura
     name: Example Lab
     url: https://example.org/lab
     logo: /assets/img/lab-logo.png
+  ```
+
+## Licences
+
+### content_license
+- **Required:** No
+- **Type:** String or map
+- **Description:** The licence of every article's text and figures, shown in the reuse notice before "How to cite", linked with `rel="license"`, in the page's `<link rel="license">` and in the JSON-LD `license`, `copyrightYear` and `copyrightHolder`. A page replaces it with `license:` in front matter, or declines it with `license: false`. Datasets and packages never take it: their `license` is their own. The repository's `LICENSE` covers the theme's software, not what a site publishes.
+- **Values:** an SPDX identifier the theme knows (`CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-NC-ND-4.0`, `CC0-1.0`, `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-3.0-only`, `GPL-3.0-or-later`, `LGPL-3.0-only`, `AGPL-3.0-only`, `MPL-2.0`, `ISC`, `Unlicense`, `all-rights-reserved`; spelling and case are free, `CC BY` alone means 4.0), or a map:
+  - `name` and `url`: a licence the theme does not know. A `name` that is an identifier fills in the rest.
+  - `holder`: the copyright holder, a name or a list. Defaults to the page's authors.
+  - `year`: the copyright year. Defaults to the year of the page's date.
+- **Examples:**
+  ```yaml
+  content_license: CC-BY-4.0
+  ```
+  ```yaml
+  content_license:
+    id: CC-BY-4.0
+    holder: Example Lab
+  ```
+
+### code_license
+- **Required:** No
+- **Type:** String or map
+- **Description:** The licence of the code samples in every article, when it differs from the text's: "Code samples under MIT." A page replaces it with `code_license:` in front matter, or declines it with `code_license: false`. It takes the same values as `content_license`.
+- **Example:**
+  ```yaml
+  code_license: MIT
   ```
 
 ## Theme Options

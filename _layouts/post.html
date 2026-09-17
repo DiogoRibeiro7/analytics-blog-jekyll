@@ -212,6 +212,9 @@ schema_type: TechnicalArticle
     </section>
   {% endif %}
 
+  {%- comment -%} Reuse terms: the licence of the text and figures, and of the code samples {%- endcomment -%}
+  {% include components/license-notice.html page=page %}
+
   {%- comment -%} ===== Citation tools & badges ===== {%- endcomment -%}
   {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
   {% include components/citation-tools.html
