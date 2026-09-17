@@ -76,6 +76,26 @@ Code needs no settings. Rouge highlights it when the site builds (`highlighter: 
 
 A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
 
+#### Images
+
+When the site builds on a machine with [ImageMagick](https://imagemagick.org), each JPEG and PNG in the site's files gets resized copies and a WebP version; with `avifenc` from [libavif](https://github.com/AOMediaCodec/libavif) it also gets an AVIF version. Pages then offer them. A Markdown image such as `![Power curve](/assets/img/power.png)` becomes a `<picture>` with an AVIF and a WebP `<source>`, and its `<img>` keeps its attributes and gains a `srcset` of the resized copies. Without ImageMagick, the build creates nothing and images stay as written.
+
+```yaml
+theme_options:
+  images:
+    variants: true                      # false: create no copies, even with the tools installed
+    sizes: [320, 640, 960, 1280, 1920]  # widths to create, up to the image's own
+    default_sizes: 100vw                # the sizes attribute of an image that has none
+    quality:
+      avif: 45
+      webp: 75
+```
+
+- The build uses ImageMagick 7's `magick`, or ImageMagick 6's `convert` outside Windows, and creates only the formats ImageMagick lists as writable. Install both tools on a runner with `sudo apt-get install -y --no-install-recommends imagemagick libavif-bin`, before the build step.
+- Copies are published beside the original, as `/assets/img/responsive/power-640w.webp`, and kept in `.jekyll-cache/datalog-images`, so a later build reuses them. A site that sets `disable_disk_cache` keeps them in a temporary directory, removed when Jekyll exits.
+- A copy that fails to encode is left out, with a warning, and the page does not offer it.
+- An image keeps its markup when it already has a `srcset`, sits in a `<picture>` of its own, or sets `data-no-optimize="true"`.
+
 ### 4. Integrations
 
 External services live in `_config.yml` under `integrations:` and are exposed to templates as `site.integrations`:

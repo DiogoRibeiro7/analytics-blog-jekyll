@@ -15,7 +15,7 @@ class ResponsiveImagesTest < Minitest::Test
     refute_nil icon_entry, "Responsive manifest should include favicon entry"
 
     source_types = icon_entry.fetch("sources", []).map { |source| source["type"] }.compact.uniq
-    skip "Image conversion tooling unavailable" if source_types.empty?
+    skip_without_variants if source_types.empty?
 
     assert_includes source_types, "image/avif", "AVIF source should be present"
     assert_includes source_types, "image/webp", "WebP source should be present"
@@ -41,7 +41,7 @@ class ResponsiveImagesTest < Minitest::Test
 
     sources = icon_entry.fetch("sources", [])
     if sources.empty?
-      skip "Responsive derivatives were not generated in this environment"
+      skip_without_variants
     else
       sources.each do |source|
         format = source["format"] || source["type"]&.split("/")&.last
@@ -57,6 +57,13 @@ class ResponsiveImagesTest < Minitest::Test
 
     fallback = SiteBuilder.destination_path("assets/img/favicons/android-chrome-192x192.png")
     assert File.exist?(fallback), "Original fallback asset should be copied to _site"
+  end
+
+  # Only a machine with ImageMagick and avifenc creates variants. The Tests
+  # workflow installs both, so there a missing variant is a failure.
+  def skip_without_variants
+    flunk "No image variants were created" if ENV["DATALOG_IMAGE_TOOLS"] == "required"
+    skip "ImageMagick and avifenc are not installed, so no image variants were created"
   end
 
   def test_responsive_include_falls_back_without_manifest_entry
