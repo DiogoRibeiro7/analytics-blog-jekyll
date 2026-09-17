@@ -1,23 +1,30 @@
 {%- comment -%}
 Author bio card with social links and credentials
 Parameters:
-  - author: Author name (default: page.author or site.author.name)
+  - person: An author record from `page | page_authors` (default: the page's first author)
+  - author: An author's name or _data/authors.yml key, when no person is given
   - show_avatar: Show author avatar (default: true)
   - show_social: Show social links (default: true)
-  - compact: Compact layout (default: false)
+  - compact: Avatar, name, affiliation and links only (default: false)
 {%- endcomment -%}
 
-{%- assign author_name = include.author | default: page.author | default: site.author.name -%}
 {%- assign show_avatar = include.show_avatar | default: true -%}
 {%- assign show_social = include.show_social | default: true -%}
 {%- assign compact = include.compact | default: false -%}
 
-{%- comment -%} Get author details from site.data.authors or site.author {%- endcomment -%}
-{%- if site.data.authors and site.data.authors[author_name] -%}
-  {%- assign author_data = site.data.authors[author_name] -%}
+{%- if include.person -%}
+  {%- assign author_data = include.person -%}
+{%- elsif include.author -%}
+  {%- if site.data.authors and site.data.authors[include.author] -%}
+    {%- assign author_data = site.data.authors[include.author] -%}
+  {%- else -%}
+    {%- assign author_data = site.author -%}
+  {%- endif -%}
 {%- else -%}
-  {%- assign author_data = site.author -%}
+  {%- assign bio_authors = page | page_authors -%}
+  {%- assign author_data = bio_authors | first -%}
 {%- endif -%}
+{%- assign author_name = author_data.name | default: include.author | default: site.author.name | escape -%}
 
 <aside class="author-bio{% if compact %} author-bio--compact{% endif %}" itemscope itemtype="https://schema.org/Person">
   <div class="author-bio__inner">
@@ -33,7 +40,10 @@ Parameters:
                height="80">
         {%- else -%}
           {%- comment -%} Fallback avatar with initials {%- endcomment -%}
-          {%- assign initials = author_name | split: ' ' | map: 'first' | slice: 0, 2 | join: '' | upcase -%}
+          {%- comment -%} `map: 'first'` on a list of words returned nothing, so the placeholder showed no initials. {%- endcomment -%}
+          {%- assign name_words = author_data.name | default: author_name | split: ' ' -%}
+          {%- capture initials -%}{%- for word in name_words limit: 2 -%}{{ word | slice: 0 }}{%- endfor -%}{%- endcapture -%}
+          {%- assign initials = initials | upcase | escape -%}
           <div class="author-bio__avatar-placeholder" role="img" aria-label="{{ author_name }}">
             <span aria-hidden="true">{{ initials }}</span>
           </div>
@@ -46,17 +56,17 @@ Parameters:
 
       {%- if author_data.affiliation -%}
         <p class="author-bio__affiliation" itemprop="affiliation">
-          {{ author_data.affiliation }}
+          {{ author_data.affiliation | escape }}
         </p>
       {%- endif -%}
 
-      {%- if author_data.biography or author_data.bio -%}
+      {%- if compact != true and author_data.biography or compact != true and author_data.bio -%}
         <p class="author-bio__description" itemprop="description">
           {{ author_data.biography | default: author_data.bio }}
         </p>
       {%- endif -%}
 
-      {%- if author_data.research_areas and author_data.research_areas.size > 0 -%}
+      {%- if compact != true and author_data.research_areas and author_data.research_areas.size > 0 -%}
         <div class="author-bio__research">
           <strong class="author-bio__research-label">Research interests:</strong>
           <span class="author-bio__research-list">{{ author_data.research_areas | join: ', ' }}</span>

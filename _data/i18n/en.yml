@@ -156,6 +156,7 @@ article:
     published: Published
     updated: Updated
     author: Author
+    authors: Authors
 post:
   provenance:
     heading: Author and editorial note
@@ -167,6 +168,8 @@ post:
   meta:
     published: Published
     author: Author
+    authors: Authors
+    contributors: Contributors
     reading_time: Reading time
     difficulty: Difficulty
     runtime: Runtime

@@ -24,7 +24,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0b1d3d" />
 <meta name="description" content="{{ page_description | strip_html | normalize_whitespace }}" />
-<meta name="author" content="{{ page.author | default: site.author.name }}" />
+{% assign head_authors = page | page_authors %}
+<meta name="author" content="{{ head_authors | map: 'name' | join: ', ' | escape }}" />
 {% if keyword_list %}
 <meta name="keywords" content="{{ keyword_list | join: ', ' | strip }}" />
 {% endif %}
@@ -304,7 +305,8 @@
   {% endif %}
 {% endif %}
 
-{% assign citation_source = page.citation_authors | default: page.authors %}
+{%- comment -%} citation_authors names the authors for citation indexes alone; otherwise they are the page's authors. {%- endcomment -%}
+{% assign citation_source = page.citation_authors %}
 {% if page.title or page.citation_title %}
 <meta name="citation_title" content="{{ page.citation_title | default: page_title | strip_html | normalize_whitespace }}" />
 {% endif %}
@@ -319,8 +321,16 @@
   {% for author in citation_author_list %}
 <meta name="citation_author" content="{{ author | strip | escape }}" />
   {% endfor %}
-{% elsif page.author or site.author.name %}
-<meta name="citation_author" content="{{ page.author | default: site.author.name | strip | escape }}" />
+{% else %}
+  {% for author in head_authors %}
+<meta name="citation_author" content="{{ author.name | strip | escape }}" />
+    {% if author.affiliation %}
+<meta name="citation_author_institution" content="{{ author.affiliation | strip | escape }}" />
+    {% endif %}
+    {% if author.orcid %}
+<meta name="citation_author_orcid" content="{{ author.orcid | escape }}" />
+    {% endif %}
+  {% endfor %}
 {% endif %}
 {% if page.date %}
 <meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />

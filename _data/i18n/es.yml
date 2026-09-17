@@ -156,6 +156,7 @@ article:
     published: Publicado
     updated: Actualizado
     author: Autor
+    authors: Autores
 post:
   provenance:
     heading: Nota del autor y de edición
@@ -167,6 +168,8 @@ post:
   meta:
     published: Publicado
     author: Autor
+    authors: Autores
+    contributors: Colaboradores
     reading_time: Tiempo de lectura
     difficulty: Dificultad
     runtime: Duración

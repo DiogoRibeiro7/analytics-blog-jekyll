@@ -11,7 +11,7 @@ class ArticleScaffoldTest < Minitest::Test
 
   def test_pages_show_the_site_author_by_default
     html = rendered_page("about.md")
-    assert_match(%r{<dd itemprop="author"[^>]*>\s*<span itemprop="name">[^<]+</span>}, html)
+    assert_match(%r{<li class="author-list__person" itemprop="author"[^>]*><span itemprop="name">[^<]+</span>}, html)
   end
 
   def test_show_author_false_hides_the_byline

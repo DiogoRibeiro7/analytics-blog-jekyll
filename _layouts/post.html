@@ -34,8 +34,8 @@ schema_type: TechnicalArticle
 
 {%- comment -%} Canonical URL & author info {%- endcomment -%}
 {% assign canonical_url = page.url | absolute_url %}
-{% assign author_name = page.author | default: site.author.name %}
-{% assign author_affiliation = page.author_affiliation | default: site.author.affiliation %}
+{% assign authors = page | page_authors %}
+{% assign contributors = page | page_contributors %}
 
 {%- comment -%} Tag/Category flags {%- endcomment -%}
 {% assign post_tags = page.tags %}
@@ -56,7 +56,6 @@ schema_type: TechnicalArticle
   {% if page.last_modified_at or page.updated %}
     <meta itemprop="dateModified" content="{{ page.last_modified_at | default: page.updated | date_to_xmlschema }}" />
   {% endif %}
-  <meta itemprop="author" content="{{ author_name }}" />
   {% include meta/publisher.html %}
   <meta itemprop="publisher" content="{{ publisher_name | escape }}" />
   <meta itemprop="timeRequired" content="{{ time_required }}" />
@@ -71,16 +70,15 @@ schema_type: TechnicalArticle
         <dd class="post-meta-definition">{{ page.date | localize_date: date_format }}</dd>
       </div>
       <div>
-        <dt class="post-meta-term">{% t 'post.meta.author' %}</dt>
-        <dd class="post-meta-definition">
-          <span itemprop="author" itemscope itemtype="https://schema.org/Person">
-            <span itemprop="name">{{ author_name }}</span>
-            {% if author_affiliation %}
-              <span class="post-author-affiliation" itemprop="affiliation">{{ author_affiliation }}</span>
-            {% endif %}
-          </span>
-        </dd>
+        <dt class="post-meta-term">{% if authors.size > 1 %}{% t 'post.meta.authors' %}{% else %}{% t 'post.meta.author' %}{% endif %}</dt>
+        <dd class="post-meta-definition">{% include components/author-list.html people=authors %}</dd>
       </div>
+      {% if contributors.size > 0 %}
+        <div>
+          <dt class="post-meta-term">{% t 'post.meta.contributors' %}</dt>
+          <dd class="post-meta-definition">{% include components/author-list.html people=contributors property='contributor' %}</dd>
+        </div>
+      {% endif %}
       <div>
         <dt class="post-meta-term">{% t 'post.meta.reading_time' %}</dt>
         <dd class="post-meta-definition"><span data-reading-time>{{ reading_label }}</span></dd>
@@ -198,10 +196,9 @@ schema_type: TechnicalArticle
 
   {%- comment -%} ===== Citation tools & badges ===== {%- endcomment -%}
   {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
-  {% assign citation_authors = page.authors | default: page.author | default: author_name %}
   {% include components/citation-tools.html
        title=page.title
-       authors=citation_authors
+       authors=authors
        date=page.date
        url=canonical_url
        citation_key=citation_key
@@ -209,8 +206,22 @@ schema_type: TechnicalArticle
        doi=page.doi %}
   {% include components/open-science-badges.html %}
 
-  {%- comment -%} Author bio card {%- endcomment -%}
-  {% include components/author-bio.html author=author_name %}
+  {%- comment -%}
+    Author cards: a full card for a single author, or for each author with
+    `author_cards: detailed`; a compact card each for several authors;
+    none with `author_cards: false`.
+  {%- endcomment -%}
+  {% unless page.author_cards == false %}
+    {% assign detailed_cards = false %}
+    {% if authors.size == 1 or page.author_cards == 'detailed' %}{% assign detailed_cards = true %}{% endif %}
+    {% for author in authors %}
+      {% if detailed_cards %}
+        {% include components/author-bio.html person=author %}
+      {% else %}
+        {% include components/author-bio.html person=author compact=true %}
+      {% endif %}
+    {% endfor %}
+  {% endunless %}
 
   {%- comment -%} ===== Robust related posts (no where_exp, no nil sort) ===== {%- endcomment -%}
   {% include post/related-posts.html page=page date_format=date_format %}
