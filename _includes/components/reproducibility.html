@@ -1,0 +1,61 @@
+{%- comment -%}
+---
+required:
+  - page
+---
+"Reproduce this analysis": the code, data, notebook, environment and results
+behind an article (`reproducibility` in front matter, read by the
+page_reproducibility filter, _plugins/reproducibility.rb). Shows the
+artifacts given, each with its identifiers, and renders nothing without one.
+Site paths already carry the baseurl.
+{%- endcomment -%}
+{%- assign reproduce = include.page | page_reproducibility -%}
+{%- if reproduce -%}
+<section class="reproduce" aria-labelledby="reproduce-heading">
+  <h2 id="reproduce-heading" class="reproduce__heading">{% t 'post.reproduce.heading' %}</h2>
+  <p class="reproduce__intro">{% t 'post.reproduce.intro' %}</p>
+  <dl class="reproduce__list">
+    {%- for artifact in reproduce.artifacts %}
+    {%- assign kind_key = 'post.reproduce.' | append: artifact.kind %}
+    <div class="reproduce__item reproduce__item--{{ artifact.kind }}">
+      <dt>{{ kind_key | t }}</dt>
+      <dd>
+        {%- if artifact.url %}
+        <a class="reproduce__link" href="{{ artifact.url | escape }}"{% if artifact.external %} rel="external noopener"{% endif %}>{{ artifact.label | escape }}</a>
+        {%- endif %}
+        {%- if artifact.ref %}
+        {%- capture ref_text -%}
+          {%- if artifact.ref_url -%}
+          <a href="{{ artifact.ref_url | escape }}" rel="external noopener"><code>{{ artifact.ref | escape }}</code></a>
+          {%- else -%}
+          <code>{{ artifact.ref | escape }}</code>
+          {%- endif -%}
+        {%- endcapture %}
+        <span class="reproduce__detail">{% t 'post.reproduce.ref' ref: ref_text %}</span>
+        {%- endif %}
+        {%- if artifact.version %}
+        {%- assign version_text = artifact.version | escape %}
+        <span class="reproduce__detail">{% t 'post.reproduce.version' version: version_text %}</span>
+        {%- endif %}
+        {%- if artifact.doi %}
+        <span class="reproduce__detail">DOI {{ artifact.doi | escape }}</span>
+        {%- endif %}
+        {%- if artifact.file %}
+        {%- if artifact.file_url %}
+        <a class="reproduce__link" href="{{ artifact.file_url | escape }}"{% if artifact.file_url contains '://' %} rel="external noopener"{% endif %}><code>{{ artifact.file | escape }}</code></a>
+        {%- else %}
+        <code>{{ artifact.file | escape }}</code>
+        {%- endif %}
+        {%- endif %}
+        {%- if artifact.container %}
+        <span class="reproduce__detail">{% t 'post.reproduce.container' %} <code>{{ artifact.container | escape }}</code></span>
+        {%- endif %}
+        {%- if artifact.archive %}
+        <a class="reproduce__link" href="{{ artifact.archive | escape }}" rel="external noopener">{% t 'post.reproduce.archive' %}: {{ artifact.archive_label | escape }}</a>
+        {%- endif %}
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+</section>
+{%- endif -%}

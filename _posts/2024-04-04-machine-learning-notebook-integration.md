@@ -7,6 +7,15 @@ difficulty: intermediate
 series:
   id: python-data-science
   order: 3
+reproducibility:
+  code:
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+    ref: v0.8.0
+  data:
+    url: /datasets/sample-dataset/
+    version: v1
+  environment:
+    file: requirements.txt
 summary: Connect a notebook-driven training pipeline to DataLog call-to-action buttons, experiment tracking, and reproducibility checklists.
 hero: /assets/images/posts/mlops-notebook-handoff.jpg
 ---

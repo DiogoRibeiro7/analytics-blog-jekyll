@@ -199,6 +199,18 @@ post:
     nav_label: "Series: {{title}}"
     previous: Previous part
     next: Next part
+  reproduce:
+    heading: Reproduce this analysis
+    intro: The code, data and environment behind this article.
+    code: Source code
+    data: Data
+    notebook: Notebook
+    environment: Environment
+    results: Results
+    ref: "at {{ref}}"
+    version: "version {{version}}"
+    container: Container
+    archive: Archived environment
   article_information: Article information
   meta:
     published: Published
