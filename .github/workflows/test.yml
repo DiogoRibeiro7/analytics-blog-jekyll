@@ -116,9 +116,12 @@ jobs:
       # Also `bundle exec rake test`. The suite replaced `rake ci:verify`, whose
       # scripts checked source files for strings; Python was only set up here
       # for one of them.
+      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and the
+      # Chrome it runs, so its consumer test must not skip here.
       - name: Run Minitest suite
         env:
           DATALOG_IMAGE_TOOLS: required
+          DATALOG_CRITICAL_CSS: required
         run: bundle exec ruby -Itests -e "Dir['tests/test_*.rb'].sort.each { |file| require_relative file }"
 
       - name: Upload build artifacts

@@ -68,31 +68,20 @@ npm run build:js
 
 ---
 
-### extract_critical_css.js
+### Critical CSS (`npm run build:critical`)
 
-**Purpose**: Extracts and inlines critical CSS for above-the-fold content.
-
-**Language**: JavaScript (Node.js)
+**Purpose**: Writes the critical CSS a production build inlines.
 
 **Usage**:
 ```bash
-./scripts/extract_critical_css.js
-# Or via npm script
 npm run build:critical
+# which runs
+bundle exec datalog critical-css
 ```
 
-**What it does**:
-- Analyzes built site's HTML
-- Extracts critical CSS for key pages
-- Generates inline CSS for faster page loads
-- Outputs to `_includes/critical-css/`
+**What it does**: builds the site for production into a temporary directory, extracts the critical CSS of a home page, a post and one other page with the `critical` npm package, and writes `_includes/critical-css/home.html`, `post.html` and `default.html`. The command is part of the gem, so a site using the theme runs the same one; `lib/datalog/critical_css.rb` implements it, and the [configuration guide](configuration-guide.md#critical-css) describes its settings.
 
-**Requirements**:
-- Built Jekyll site in `_site/`
-- `critical` npm package
-
-**Environment Variables**:
-- `JEKYLL_ENV=production` (recommended)
+**Requirements**: `critical_css.enabled: true` in `_config.yml`, and Node.js 22.13 or later with `critical` installed (`npm ci`), which downloads headless Chrome.
 - `NODE_ENV=production` (recommended)
 
 ---
@@ -416,11 +405,11 @@ npm install
 # 2. Build JavaScript bundles
 npm run build:js
 
-# 3. Build Jekyll site
-JEKYLL_ENV=production bundle exec jekyll build
-
-# 4. Generate critical CSS
+# 3. Generate critical CSS, which the build inlines
 npm run build:critical
+
+# 4. Build Jekyll site
+JEKYLL_ENV=production bundle exec jekyll build
 
 # 5. Generate SRI hashes
 npm run generate-sri
