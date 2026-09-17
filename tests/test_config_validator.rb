@@ -426,6 +426,26 @@ class ConfigValidatorMathSettingsTest < Minitest::Test
 
   private
 
+  def test_warns_when_theme_directories_point_into_a_theme_checkout
+    Dir.mktmpdir do |site|
+      checkout = File.join(site, "vendor", "datalog")
+      FileUtils.mkdir_p(checkout)
+      File.write(File.join(checkout, "datalog-theme.gemspec"), "")
+
+      directories = Datalog::ConfigValidator::ThemeDirectories
+      warnings = directories.warnings(
+        "source" => site, "layouts_dir" => "vendor/datalog/_layouts", "plugins_dir" => "vendor/datalog/_plugins",
+        "sass" => { "sass_dir" => "vendor/datalog/_sass" }
+      )
+
+      assert_equal 1, warnings.size, warnings.inspect
+      assert_includes warnings.first, "layouts_dir, plugins_dir, sass.sass_dir point into a copy of datalog-theme"
+      assert_includes warnings.first, "install.md#keep-the-theme-in-a-git-submodule"
+      # The theme's own repository keeps its directories where Jekyll looks by default.
+      assert_empty directories.warnings("source" => checkout, "layouts_dir" => "_layouts")
+    end
+  end
+
   def warnings_for(overrides)
     config = { "title" => "Test Site", "url" => "https://example.com", "author" => "Test Author" }.merge(overrides)
     validator = Datalog::ConfigValidator::Validator.new(config)

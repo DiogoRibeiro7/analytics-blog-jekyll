@@ -137,8 +137,100 @@ ignore_theme_config: true
 ```
 
 The build stops with an explanation until the line is there. With it the theme
-also leaves out the demo's own `_data` files and downloads, so your site sees
-the same theme files the published gem contains.
+also leaves out the demo's own `_data` files, its downloads and the script
+sources the bundles are built from, so your site sees the same theme files the
+published gem contains.
+
+#### Keep the theme in a Git submodule
+
+A submodule pins the theme to a commit inside your site's repository. Use it as
+the theme, installed from its directory; nothing is copied into your site.
+
+1. **Add the submodule** at a release tag:
+
+   ```bash
+   git submodule add https://github.com/DiogoRibeiro7/analytics-blog-jekyll vendor/datalog
+   git -C vendor/datalog checkout vX.Y.Z
+   git add vendor/datalog && git commit -m "Add the DataLog theme"
+   ```
+
+2. **Install it from that directory** in your `Gemfile`:
+
+   ```ruby
+   gem "datalog-theme", path: "vendor/datalog"
+   ```
+
+3. **Name it as the theme** in `_config.yml`, and keep Jekyll from reading the
+   submodule as pages of your site:
+
+   ```yaml
+   theme: datalog-theme
+   plugins:
+     - datalog-theme
+   ignore_theme_config: true
+   exclude:
+     - vendor
+   ```
+
+4. **Build the script bundles** in the submodule. They are build output, which
+   the published gem includes but the repository does not, so build them after
+   every checkout or update, with Node.js 22 or later:
+
+   ```bash
+   (cd vendor/datalog && npm ci && npm run build:js)
+   ```
+
+Layouts, includes, Sass, assets and the theme's `_data` then all come from
+`vendor/datalog`. The build checks that the two cannot drift apart:
+
+- It stops when the bundles in `vendor/datalog/assets/js/dist` were built from
+  other sources than the submodule holds, or were never built, and names the
+  command to run.
+- It stops when your site has its own copy of a file the theme provides, in
+  `assets/js/dist`, `assets/js/loader.js`, `_data/js_manifest.json` or
+  `_data/cdn-integrity.yml`, and the copy differs from the theme's. A site's
+  file takes the place of the theme's, so such a copy falls behind at the next
+  update. Delete it. Your own `assets/css/main.scss`, translations in
+  `_data/i18n` and images still override the theme's as they should.
+
+To update, check out another tag, build the bundles again and commit the
+submodule:
+
+```bash
+git -C vendor/datalog fetch --tags
+git -C vendor/datalog checkout vX.Y.Z
+(cd vendor/datalog && npm ci && npm run build:js)
+git add vendor/datalog && git commit -m "Update the DataLog theme to vX.Y.Z"
+```
+
+On GitHub Actions, check out the submodule and build the bundles before
+Jekyll:
+
+```yaml
+- uses: actions/checkout@v6
+  with:
+    submodules: true
+- uses: actions/setup-node@v4
+  with:
+    node-version: '22'
+- run: npm ci && npm run build:js
+  working-directory: vendor/datalog
+```
+
+`jekyll serve` does not watch `vendor/`: restart it after updating the
+submodule.
+
+**Moving from copied theme files.** A site that pointed `layouts_dir`,
+`includes_dir`, `plugins_dir` and `sass.sass_dir` into the submodule had to copy
+the theme's assets and `_data` in, since Jekyll cannot read those from another
+directory; the build warns about that setup. To switch:
+
+1. Remove those four settings from `_config.yml` and add the ones in step 3.
+2. Delete the copies: the theme's files in `assets/js`, `_data/js_manifest.json`,
+   `_data/cdn-integrity.yml`, and any copied `assets/css/main.scss`,
+   `assets/img` files and `_data/i18n` files you did not change yourself.
+3. Remove the script or task that copied them, and the step that ran it in CI.
+4. Build: the checks above name any copy that is left.
 
 ### 2.3 Publish with GitHub Pages
 
@@ -281,6 +373,9 @@ After updating `_config.yml`, restart the development server (or rebuild in Dock
 | `Unknown tag 't'` | Add `datalog-theme` under `plugins:` in `_config.yml` (section 2.1). |
 | `Missing required configuration 'author'` | Set `author.name` in `_config.yml`. |
 | The build stops and asks for `ignore_theme_config` | The theme is installed from a Git checkout or a local path; see section 2.2. |
+| The build stops: the script bundles were not built from the theme files beside them | The theme is a checkout or submodule whose bundles are missing or older than its sources. Run `npm ci && npm run build:js` in the theme's directory (section 2.2). |
+| The build stops: your site has its own copies of files datalog-theme provides | Delete the files it lists; the theme provides them (section 2.2). |
+| The build warns that `layouts_dir` and the rest point into a copy of datalog-theme | Use the copy as the theme instead of copying its files in (section 2.2, Moving from copied theme files). |
 | Notebook conversion fails | Verify the notebook contains metadata and review `_plugins/notebook_converter.rb` logs; re-run the notebook to capture outputs. |
 | Math does not render | With `theme_options.math.render_on_load: auto`, MathJax loads only on pages that contain math. Add `math: true` to a page's front matter to load it regardless, and check the browser console for LaTeX errors. Inline math with spaces inside the dollars counts only when it holds a TeX command, `^` or `_`, so write `$ x $` as `$x$`. |
 | Visualizations missing | Ensure embeds include the correct `data-viz-*` attributes and referenced files exist under `assets/` or your chosen path. |

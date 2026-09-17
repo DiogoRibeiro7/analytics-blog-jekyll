@@ -109,6 +109,32 @@ module Datalog
       }
     }.freeze
 
+    # Pointing layouts_dir and the rest into a copy of the theme is how a site
+    # used a Git submodule before the theme loaded its own plugins. Jekyll
+    # cannot read the theme's assets or _data that way, so those were copied
+    # into the site, and the copies fall behind the theme on every update.
+    module ThemeDirectories
+      module_function
+
+      URL = "https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/install.md#keep-the-theme-in-a-git-submodule"
+      KEYS = [%w[layouts_dir], %w[includes_dir], %w[plugins_dir], %w[sass sass_dir]].freeze
+
+      def warnings(config)
+        source = File.expand_path(config["source"] || Dir.pwd)
+        keys = KEYS.select { |path| Array(config.dig(*path)).any? { |dir| theme_checkout?(dir, source) } }
+        return [] if keys.empty?
+
+        ["#{keys.map { |path| path.join('.') }.join(', ')} point into a copy of datalog-theme. Jekyll cannot " \
+         "read the theme's assets and _data that way, so a site copies them in, and the copies fall behind " \
+         "the theme. Use the copy as the theme instead: #{URL}"]
+      end
+
+      def theme_checkout?(dir, source)
+        checkout = File.dirname(File.expand_path(dir.to_s, source))
+        checkout != source && File.file?(File.join(checkout, "datalog-theme.gemspec"))
+      end
+    end
+
     class Validator
       attr_reader :errors, :warnings
 
@@ -435,7 +461,7 @@ module Datalog
       validator = Validator.new(site.config)
       validator.run
 
-      validator.warnings.each do |warning|
+      (validator.warnings + ThemeDirectories.warnings(site.config)).each do |warning|
         logger.warn("config", warning)
       end
 

@@ -36,3 +36,4 @@ end
 Datalog::Theme.load_plugins
 
 require_relative "datalog/theme/repository_checkout"
+require_relative "datalog/theme/installed_files"
