@@ -16,9 +16,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 10. [Reading Mode and Print](#reading-mode-and-print)
 11. [Bookmarks, Progress and Private Highlights](#bookmarks-progress-and-private-highlights)
 12. [Correction Reports](#correction-reports)
-13. [Front Matter](#front-matter)
-14. [Customization](#customization)
-15. [Troubleshooting](#troubleshooting)
+13. [Contact Form](#contact-form)
+14. [Front Matter](#front-matter)
+15. [Customization](#customization)
+16. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -864,6 +865,81 @@ A report is private and unverified. The workflow the theme supports: the report 
 .service-form { }                  // the form, shared with the contact form; [data-state="…"]
 .service-form__field { }           // a label, its control, hint and error
 .service-form__status { }          // the announced state
+```
+
+---
+
+## Contact Form
+
+### What It Does
+
+A research site gets structured requests a `mailto:` link handles badly: a collaboration, a consulting project, an invitation to speak or teach, mentoring, a question about a dataset or something that did not reproduce, a media request. The contact form takes them as one message with a category, the sender's name, email and optional affiliation, a subject and the message, and sends it to the site's backend through the [dynamic services](dynamic-services.md). The page it was sent from goes with it as `source_url`. The hint under the message follows the category, so a collaboration request is asked for the question, data or method and the timescale, a media request for the outlet, topic and deadline; the prompts are short and can be changed or removed.
+
+Nothing the sender writes reaches the page, a feed or the comments: a message is private operational data for the author's inbox. Without a backend, or with the feature off, the form gives way to the site's email address (`contact_email`, else `author.email`), so the page is never empty; the demo's [/contact/](../_pages/contact.md) shows that.
+
+### Usage
+
+Any page rendered by the `page` layout gets the form after its content with:
+
+```yaml
+---
+title: Contact
+permalink: /contact/
+layout: page
+contact_form: true
+---
+```
+
+Other layouts include it where they want it: `{% include components/contact-form.html %}`. The site's settings:
+
+```yaml
+contact:
+  enabled: true                   # false removes the form and the fallback everywhere
+  categories:                     # the choices, in this order; labels under contact.categories in _data/i18n
+    - research-collaboration
+    - consulting
+    - speaking
+    - mentoring
+    - reproducibility
+    - media
+    - other
+  prompts:                        # optional: a prompt per category, over contact.prompts in _data/i18n
+    consulting: Say the scope, the budget range and when you need it.
+  privacy_notice: ""              # optional: over contact.privacy in _data/i18n
+  retention: ""                   # optional: appended to the notice, e.g. "Messages are deleted after a year."
+```
+
+The form renders when `dynamic_services.base_url` is set and `dynamic_services.features.contact` is not `false`. A site that adds a category adds its label under `contact.categories.<key>` and, if it wants one, its prompt under `contact.prompts.<key>` in `_data/i18n/<lang>.yml`.
+
+### What the Service Receives
+
+`POST /v1/contact`, JSON, with an `Idempotency-Key` header per submission:
+
+```json
+{
+  "category": "research-collaboration",
+  "name": "Jane Doe",
+  "email": "jane@example.org",
+  "affiliation": "Example University",
+  "subject": "Potential collaboration on longitudinal models",
+  "message": "We have adherence data over five years and would like to model it together.",
+  "source_url": "https://example.org/contact/"
+}
+```
+
+`affiliation` is present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, rate-limits, keeps the sender's address private, and may store the message, mail it to the author, send the sender a confirmation, or feed an inbox with its own access control; it never publishes a message. No mail, database or API credential is in the browser: the site holds only the service's address ([dynamic-services.md](dynamic-services.md#the-security-boundary)). Attachments are out of scope; a secure upload would be its own contract.
+
+### States
+
+The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, `aria-busy`), `success` (the fields cleared, the message announced), `invalid` (the fields the site's checks or the service's `422` name, marked `aria-invalid` with their messages, the first focused), `error` (the message for the failure, as an alert, with "Reference: …" when the service gave a request id), and `disabled` (the feature off on the service, or an API version mismatch, with its message). Before anything is sent, the name, a plausible email, the subject and a message of 20 characters are required; a hidden honeypot field catches bots without a request. The service is asked once whether it takes messages, the first time the reader reaches into the form.
+
+### Styling
+
+```scss
+.contact-form { }                  // the block; .contact-form--fallback holds the email address
+.service-form { }                  // the form, shared with the correction report; [data-state="…"]
+.service-form__row { }             // name and email side by side from the medium breakpoint
+.service-form__privacy { }         // the privacy notice
 ```
 
 ---

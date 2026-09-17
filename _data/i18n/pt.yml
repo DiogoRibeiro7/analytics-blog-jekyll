@@ -181,6 +181,40 @@ corrections:
     typo: Gralha que muda o sentido
     accessibility: Problema de acessibilidade
     other: Outra coisa
+contact:
+  legend: Contacto
+  intro: "Diga o que tem em mente e como o contactar. A mensagem vai para o autor, não para o site."
+  category: Sobre o que é
+  name: O seu nome
+  email: O seu email
+  affiliation: Afiliação (opcional)
+  subject: Assunto
+  message: Mensagem
+  message_hint: Pelo menos 20 caracteres.
+  privacy: "A sua mensagem e o seu endereço vão para o autor e nunca são mostrados no site."
+  send: Enviar a mensagem
+  pending: A enviar a mensagem…
+  success: "Obrigado. A mensagem chegou ao autor, que responderá para o endereço indicado."
+  name_required: Diga quem é.
+  email_invalid: Isso não parece um endereço de email.
+  subject_required: Dê um assunto à mensagem.
+  message_short: "Diga um pouco mais: pelo menos {{min}} caracteres."
+  fallback: "Este site não tem serviço de mensagens; escreva para {{email}}."
+  categories:
+    research-collaboration: Colaboração em investigação
+    consulting: Consultoria ou um projeto
+    speaking: Palestra ou ensino
+    mentoring: Mentoria
+    reproducibility: Uma questão sobre dados ou reprodutibilidade
+    media: Imprensa ou uma entrevista
+    other: Outra coisa
+  prompts:
+    research-collaboration: "Diga que questão, dados ou método tem em mente, e o prazo."
+    consulting: "Diga qual é o projeto, o seu âmbito e quando precisa dele."
+    speaking: "Diga o evento, a data, o local (ou online), o público e o tema."
+    mentoring: "Diga onde está agora e em que quer melhorar."
+    reproducibility: "Indique o artigo ou o conjunto de dados, e o que não reproduziu ou não está claro."
+    media: "Diga o órgão, o tema e o seu prazo."
 dynamic_services:
   errors:
     disabled: Esta funcionalidade não está configurada neste site.

@@ -11,6 +11,10 @@ layout: default
     {% endif %}
     <div class="page-content">
       {{ content }}
+      {%- if page.contact_form %}
+      {%- comment -%} The contact and collaboration form, or the email address without a backend {%- endcomment %}
+      {% include components/contact-form.html %}
+      {%- endif %}
     </div>
   </div>
 </section>

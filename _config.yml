@@ -287,6 +287,24 @@ corrections:
     - accessibility
     - other
 
+# The contact and collaboration form (a page with `contact_form: true`; the
+# demo's /contact/): structured messages to the author through the dynamic
+# services above. Without them the page shows contact_email instead.
+contact:
+  enabled: true
+  categories:
+    - research-collaboration
+    - consulting
+    - speaking
+    - mentoring
+    - reproducibility
+    - media
+    - other
+  # prompts:                       # a prompt per category, over the ones in _data/i18n
+  #   consulting: Say the scope, the budget range and when you need it.
+  # privacy_notice: ""             # over contact.privacy in _data/i18n
+  # retention: ""                  # e.g. Messages are deleted after a year.
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

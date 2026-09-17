@@ -89,6 +89,10 @@ const FEATURE_CONFIG = [
   {
     name: "corrections",
     test: () => document.querySelector("[data-correction-report]")
+  },
+  {
+    name: "contact",
+    test: () => document.querySelector("[data-contact-form]")
   }
 ];
 

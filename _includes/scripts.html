@@ -43,6 +43,12 @@
   {% assign corrections_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} The contact form likewise (components/contact-form.html). {%- endcomment -%}
+{% assign contact_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.contact != false and site.contact.enabled != false %}
+  {% assign contact_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -56,6 +62,7 @@
     body.dataset.featureAcademic = "{{ academic_flag }}";
     body.dataset.featureReadingState = "{{ reading_state_flag }}";
     body.dataset.featureCorrections = "{{ corrections_flag }}";
+    body.dataset.featureContact = "{{ contact_flag }}";
   })();
 </script>
 
