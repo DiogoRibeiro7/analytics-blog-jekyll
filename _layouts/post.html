@@ -69,6 +69,18 @@ schema_type: TechnicalArticle
         <dt class="post-meta-term">{% t 'post.meta.published' %}</dt>
         <dd class="post-meta-definition">{{ page.date | localize_date: date_format }}</dd>
       </div>
+      {%- comment -%} The last change, when it fell on another day than the publication {%- endcomment -%}
+      {% assign modified = page.last_modified_at | default: page.updated %}
+      {% if modified %}
+        {% assign modified_day = modified | date: '%F' %}
+        {% assign published_day = page.date | date: '%F' %}
+        {% if modified_day != published_day %}
+          <div>
+            <dt class="post-meta-term">{% t 'post.meta.updated' %}</dt>
+            <dd class="post-meta-definition">{{ modified | localize_date: date_format }}</dd>
+          </div>
+        {% endif %}
+      {% endif %}
       <div>
         <dt class="post-meta-term">{% if authors.size > 1 %}{% t 'post.meta.authors' %}{% else %}{% t 'post.meta.author' %}{% endif %}</dt>
         <dd class="post-meta-definition">{% include components/author-list.html people=authors %}</dd>
@@ -110,6 +122,9 @@ schema_type: TechnicalArticle
     </dl>
   </section>
 
+  {%- comment -%} The newest correction or update, with a link to the revision history {%- endcomment -%}
+  {% include components/revision-notice.html page=page date_format=date_format %}
+
   {% if has_tags or has_categories %}
     <section class="post-taxonomy" aria-labelledby="post-taxonomy-heading">
       <h2 id="post-taxonomy-heading" class="visually-hidden">{% t 'post.topics_heading' %}</h2>
@@ -146,6 +161,9 @@ schema_type: TechnicalArticle
       {{ content }}
     </div>
   </div>
+
+  {%- comment -%} What changed since publication (revisions in front matter) {%- endcomment -%}
+  {% include components/revision-history.html page=page date_format=date_format %}
 
   <section class="post-interactive" aria-label="{% t 'post.interactive.label' %}">
     {% if page.interactive_components and page.interactive_components.size > 0 %}

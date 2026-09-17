@@ -1752,6 +1752,108 @@ body.wide .post-content {
   }
 }
 
+// The newest correction or update of an article, under its metadata, and its
+// revision history after the body (_plugins/revisions.rb).
+.revision-notice {
+  @include callout($color-accent-tertiary);
+  font-size: map.get($font-size-scale, sm);
+
+  p {
+    margin: 0;
+    max-width: $max-width-reading;
+  }
+
+  // Links keep their contrast on the tinted background.
+  a {
+    color: $color-accent-primary-text;
+
+    &:hover,
+    &:focus {
+      color: $color-accent-secondary-text;
+    }
+  }
+}
+
+.revision-notice--correction {
+  @include callout($color-warning);
+}
+
+body.dark-mode .revision-notice {
+  border-left-color: $dark-accent-tertiary;
+}
+
+body.dark-mode .revision-notice--correction {
+  border-left-color: $dark-warning;
+}
+
+.revision-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+.revision-history__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 1) map.get($spacing, 3);
+  max-width: $max-width-reading;
+  font-size: map.get($font-size-scale, sm);
+}
+
+.revision-history__date {
+  font-weight: 600;
+  color: $color-ink-700;
+}
+
+.revision-history__type {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.5rem;
+  border-radius: map.get($radius, sm);
+  background: rgba($color-accent-secondary, 0.1);
+  color: $color-accent-secondary-text;
+}
+
+.revision-history__item--correction .revision-history__type {
+  background: rgba($color-warning, 0.12);
+  color: $color-warning-text;
+}
+
+.revision-history__item--published .revision-history__type {
+  background: rgba($color-neutral-500, 0.12);
+  color: $color-ink-700;
+}
+
+.revision-history__summary {
+  flex-basis: 100%;
+}
+
+body.dark-mode {
+  .revision-history__date {
+    color: $dark-ink-700;
+  }
+
+  .revision-history__type {
+    background: rgba($dark-accent-secondary, 0.15);
+    color: $dark-accent-secondary;
+  }
+
+  .revision-history__item--correction .revision-history__type {
+    background: rgba($dark-warning, 0.15);
+    color: $dark-warning;
+  }
+
+  .revision-history__item--published .revision-history__type {
+    background: rgba($dark-ink-500, 0.15);
+    color: $dark-ink-700;
+  }
+}
+
 // Editorial provenance note (why_this_exists, evidence, methodology, reviewed_at).
 .content-provenance {
   @include callout($color-accent-secondary);

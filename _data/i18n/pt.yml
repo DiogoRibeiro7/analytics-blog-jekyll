@@ -177,9 +177,22 @@ post:
     evidence: Evidência utilizada
     method: Método
     reviewed: Revisto
+  revisions:
+    heading: Histórico de revisões
+    corrected_on: "Corrigido em {{date}}."
+    updated_on: "Atualizado em {{date}}."
+    details: Detalhes
+    history_link: Histórico de revisões
+    types:
+      correction: Correção
+      update: Atualização
+      review: Revisão
+      editorial: Editorial
+      published: Publicado
   article_information: Informações do artigo
   meta:
     published: Publicado
+    updated: Atualizado
     author: Autor
     authors: Autores
     contributors: Colaboradores
