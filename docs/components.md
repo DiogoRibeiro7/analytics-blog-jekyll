@@ -185,22 +185,55 @@ author:
 ### Manual Usage
 
 ```liquid
+{% assign authors = page | page_authors %}
 {% include components/author-bio.html
-   author="Author Name"
+   person=authors.first
    show_avatar=true
    show_social=true
    compact=false %}
 ```
 
 **Parameters:**
-- `author` - Author name (default: page.author or site.author.name)
+- `person` - An author from `page | page_authors` (default: the page's first author)
+- `author` - An author's name or `_data/authors.yml` key, instead of `person`
 - `show_avatar` - Show author avatar (default: true)
 - `show_social` - Show social links (default: true)
-- `compact` - Use compact layout (default: false)
+- `compact` - Avatar, name, affiliation and links only, without the biography and research interests (default: false)
 
-### Multiple Authors
+### Authors and Contributors
 
-Create `_data/authors.yml`:
+Without anything in its front matter, a post was written by the site's `author`. A collaborative article lists its authors, in order, and the people who contributed in other ways:
+
+```yaml
+---
+title: Imputation accuracy versus inferential validity
+authors:
+  - Diogo Ribeiro                # the site's author: _config.yml has the rest
+  - jane_smith                   # a key of _data/authors.yml
+  - name: John Doe               # or the author's details
+    affiliation: Example Institute
+    orcid: 0000-0002-1825-0097   # an ORCID iD, or its https://orcid.org/ URL
+    url: https://johndoe.example
+contributors:
+  - name: Ada Curator
+    role: Data curation
+author_cards: detailed           # optional: detailed, or false for none
+---
+```
+
+Every place that names the authors reads the same list, `page | page_authors` (and `page | page_contributors`):
+
+- the byline, with each author's affiliation and a link to their `url`, and a Contributors line with each role;
+- the author cards after the post: a full card for a single author, a compact card for each of several authors, a full card for each with `author_cards: detailed`, and none with `author_cards: false`;
+- the JSON-LD: `author` is one `Person`, or a list of them for several authors, each with its own affiliation and profile links (`sameAs`), and contributors are listed under `contributor`;
+- the `citation_author` meta tags, each followed by that author's `citation_author_institution` and `citation_author_orcid`;
+- the BibTeX, RIS and EndNote exports and the citation line.
+
+A person's details come from the entry itself, then from `_data/authors.yml` (by the entry's `id`, or the key or name it gives), and, for the site's own author, from `author` in `_config.yml`. Another author never takes the site author's affiliation or profiles.
+
+`author: jane_smith` or `author: Jane Doe` still names a single author, and `author_affiliation` sets that author's affiliation. `authors: "Ann Lee; Bo Kim"` separates names with semicolons. A research page's `citation_authors` names the authors for citation indexes alone.
+
+Create `_data/authors.yml` for the people who write for the site:
 
 ```yaml
 john_doe:

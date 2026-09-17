@@ -1029,6 +1029,24 @@ body.dark-mode .post-author-affiliation {
   color: $dark-ink-500;
 }
 
+// Bylines list one or more people, side by side while they fit.
+.author-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-list__role {
+  color: $color-ink-500;
+}
+
+body.dark-mode .author-list__role {
+  color: $dark-ink-500;
+}
+
 .post-notebook-link {
   font-weight: 500;
 }
