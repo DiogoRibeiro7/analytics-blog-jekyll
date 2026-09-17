@@ -1,0 +1,35 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - date_format
+---
+The newest correction or update of an article (`revision_notice`, set from
+`revisions` by _plugins/revisions.rb), announced under the metadata with a
+link to the full history. Renders nothing without one, or with
+`revision_notice: false` in front matter.
+{%- endcomment -%}
+{%- assign revision = include.page.revision_notice -%}
+{%- if revision -%}
+{%- capture revision_date -%}{% include helpers/date-format.html date=revision.date format=include.date_format %}{%- endcapture -%}
+{%- assign revision_date = revision_date | strip -%}
+<aside class="revision-notice revision-notice--{{ revision.type }}" aria-labelledby="revision-notice-lead">
+  <p class="revision-notice__text">
+    <strong id="revision-notice-lead" class="revision-notice__lead">
+      {%- if revision.type == 'correction' -%}
+        {% t 'post.revisions.corrected_on' date: revision_date %}
+      {%- else -%}
+        {% t 'post.revisions.updated_on' date: revision_date %}
+      {%- endif -%}
+    </strong>
+    {{ revision.summary | escape }}
+    {%- if revision.details_url -%}
+    {%- assign details_url = revision.details_url -%}
+    {%- unless details_url contains '://' -%}{%- assign details_url = details_url | relative_url -%}{%- endunless %}
+    <a class="revision-notice__details" href="{{ details_url | escape }}">{% t 'post.revisions.details' %}</a>
+    {%- endif %}
+    <a class="revision-notice__history" href="#revision-history">{% t 'post.revisions.history_link' %}</a>
+  </p>
+</aside>
+{%- endif -%}

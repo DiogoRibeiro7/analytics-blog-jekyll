@@ -9,9 +9,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 3. [Author Bio Cards](#author-bio-cards)
 4. [Enhanced Table of Contents](#enhanced-table-of-contents)
 5. [Difficulty Badges](#difficulty-badges)
-6. [Front Matter](#front-matter)
-7. [Customization](#customization)
-8. [Troubleshooting](#troubleshooting)
+6. [Revision History](#revision-history)
+7. [Front Matter](#front-matter)
+8. [Customization](#customization)
+9. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -425,6 +426,65 @@ Override the `.difficulty-badge` rules in your stylesheet:
 
 ---
 
+## Revision History
+
+### What It Does
+
+Records what changed in an article after it was published, for a post that is corrected or rewritten while keeping its URL. The newest correction or update is announced under the post's metadata, and the full history follows the article's body, ending with the publication date. Readers see what changed and why without reading the Git history.
+
+### Usage
+
+```yaml
+---
+title: Normality tests and sample size
+date: 2019-03-12
+revisions:
+  - date: 2026-09-16
+    type: correction
+    summary: Replaced the sample-size rules for normality tests with model diagnostics.
+    details_url: https://github.com/example/repo/pull/425
+  - date: 2024-03-12
+    type: update
+    summary: Updated the code examples for the current SciPy.
+---
+```
+
+- `date` is the day of the change: a date, a time or a string such as `2026-09-16`.
+- `type` is `correction` (a claim, a result or a method was wrong), `update` (new material or a rewrite), `review` (the article was read through and stands) or `editorial` (wording, typos, links). It defaults to `update`.
+- `summary` says what changed, in a sentence. It is shown as text, so it holds no Markdown or HTML.
+- `details_url` is optional: a pull request, a commit, a release note or a page with the full account. A site path gets the site's base URL.
+
+The list may be in any order; it is shown newest first, and two revisions on one day keep their order. A revision without a date or a summary, an unknown type, or a `revisions` that is not a list stops the build and names the page.
+
+### What Renders
+
+- **The notice.** When there is a correction or an update, an aside under the metadata reads "Corrected on September 16, 2026." or "Updated on …" with the newest one's summary, its details link and a link to the history. A review or an editorial change makes no notice. `revision_notice: false` in front matter turns the notice off for a post whose history is enough.
+- **The history.** A "Revision history" section after the article body lists every revision with its date, its type and its summary, newest first, and ends with the publication date.
+- **The "Updated" date.** The post's metadata shows "Updated" next to "Published" when the article changed on another day than it was published.
+- **Structured data.** The newest revision that changed the article (any type but `review`) sets `last_modified_at` when it is later than the `last_modified_at` or `updated` the page gives. The JSON-LD `dateModified`, the microdata, the feed's `<updated>` and the sitemap's `<lastmod>` all read it. Each correction is also a schema.org `CorrectionComment` under `correction`, with its date, its summary and its link.
+
+### Which Date Is Which
+
+| Field | Meaning | Where it shows |
+| --- | --- | --- |
+| `date` | When the article was published. It never changes, and neither does the URL. | "Published" in the metadata, `datePublished` |
+| `last_modified_at` (or `updated`) | When the article last changed. The newest revision sets it when later. | "Updated" in the metadata, `dateModified`, the feed and the sitemap |
+| `reviewed_at` | When the article was last read through by its author or an editor. | "Reviewed" in the provenance note |
+| `why_this_exists`, `evidence`, `methodology` | Provenance: why the article exists and what it rests on. | The provenance note |
+| `revisions` | The history: what changed since publication, when and why. | The notice, the history and the structured data |
+
+Provenance explains the evidence and the method; the revision history explains how the published claim changed over time. A `review` revision records a read-through in the history and leaves `reviewed_at` alone.
+
+### Styling
+
+```scss
+.revision-notice { }                    // the notice; --correction and --update variants
+.revision-history__item { }             // one entry; --correction, --update, --review, --editorial, --published
+.revision-history__type { }             // the type badge
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -438,6 +498,7 @@ toc_label: On this page
 toc_h_min: 2           # the heading levels the table of contents lists
 toc_h_max: 3
 author: custom_author  # a key in _data/authors.yml, or a name
+revisions: []          # what changed since publication; see Revision History
 ---
 ```
 

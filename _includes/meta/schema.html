@@ -122,6 +122,24 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {%- if schema_page.citation_key -%},
   "citation": {{ schema_page.citation_key | jsonify }}
   {%- endif -%}
+  {%- comment -%} Each correction in the revision history, with its date, summary and link. {%- endcomment -%}
+  {%- assign corrections = schema_page.revisions | where: 'type', 'correction' -%}
+  {%- if corrections and corrections.size > 0 -%},
+  "correction": [
+  {%- for correction in corrections -%}
+  {
+    "@type": "CorrectionComment",
+    "datePublished": "{{ correction.date | date_to_xmlschema }}",
+    "text": {{ correction.summary | jsonify }}
+    {%- if correction.details_url -%}
+    {%- assign correction_url = correction.details_url -%}
+    {%- unless correction_url contains '://' -%}{%- assign correction_url = correction_url | absolute_url -%}{%- endunless -%},
+    "url": {{ correction_url | jsonify }}
+    {%- endif -%}
+  }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+  {%- endif -%}
 }
 </script>
 {%- comment -%} Add BreadcrumbList schema for posts {%- endcomment -%}

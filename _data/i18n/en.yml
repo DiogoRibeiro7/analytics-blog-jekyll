@@ -177,9 +177,22 @@ post:
     evidence: Evidence used
     method: Method
     reviewed: Reviewed
+  revisions:
+    heading: Revision history
+    corrected_on: "Corrected on {{date}}."
+    updated_on: "Updated on {{date}}."
+    details: Details
+    history_link: Revision history
+    types:
+      correction: Correction
+      update: Update
+      review: Review
+      editorial: Editorial
+      published: Published
   article_information: Article information
   meta:
     published: Published
+    updated: Updated
     author: Author
     authors: Authors
     contributors: Contributors
