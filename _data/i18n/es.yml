@@ -157,6 +157,64 @@ article:
     updated: Actualizado
     author: Autor
     authors: Autores
+corrections:
+  summary: Informar de un error o sugerir una corrección
+  intro: "¿Has visto un error en las matemáticas, los hechos, una cita, el código o la reproducibilidad? Di qué y dónde. El informe va al autor, no a la página."
+  category: Qué tipo de problema
+  section: Dónde
+  section_any: El artículo entero
+  message: Qué está mal, y qué debería decir
+  message_hint: Al menos 20 caracteres. Cita el pasaje si puedes.
+  contact_email: Tu correo (opcional)
+  contact_hint: Solo si quieres una respuesta. Nunca se muestra en el sitio.
+  send: Enviar el informe
+  pending: Enviando el informe…
+  success: "Gracias. El informe llegó al autor y sigue siendo privado; una corrección aparecería en el historial de revisiones del artículo."
+  message_short: "Di un poco más: al menos {{min}} caracteres."
+  email_invalid: Eso no parece una dirección de correo.
+  categories:
+    mathematical-error: Error matemático
+    factual-error: Error factual
+    citation: Cita rota o incorrecta
+    code: Código obsoleto o roto
+    reproducibility: Fallo de reproducibilidad
+    typo: Errata que cambia el sentido
+    accessibility: Problema de accesibilidad
+    other: Otra cosa
+contact:
+  legend: Contacto
+  intro: "Di qué tienes en mente y cómo contactarte. El mensaje va al autor, no al sitio."
+  category: De qué se trata
+  name: Tu nombre
+  email: Tu correo
+  affiliation: Afiliación (opcional)
+  subject: Asunto
+  message: Mensaje
+  message_hint: Al menos 20 caracteres.
+  privacy: "Tu mensaje y tu dirección van al autor y nunca se muestran en el sitio."
+  send: Enviar el mensaje
+  pending: Enviando el mensaje…
+  success: "Gracias. El mensaje llegó al autor, que responderá a la dirección indicada."
+  name_required: Di quién eres.
+  email_invalid: Eso no parece una dirección de correo.
+  subject_required: Pon un asunto al mensaje.
+  message_short: "Di un poco más: al menos {{min}} caracteres."
+  fallback: "Este sitio no tiene servicio de mensajes; escribe a {{email}}."
+  categories:
+    research-collaboration: Colaboración en investigación
+    consulting: Consultoría o un proyecto
+    speaking: Charla o docencia
+    mentoring: Mentoría
+    reproducibility: Una pregunta sobre datos o reproducibilidad
+    media: Prensa o una entrevista
+    other: Otra cosa
+  prompts:
+    research-collaboration: "Di qué pregunta, datos o método tienes en mente, y el plazo."
+    consulting: "Di cuál es el proyecto, su alcance y cuándo lo necesitas."
+    speaking: "Di el evento, la fecha, el lugar (o en línea), el público y el tema."
+    mentoring: "Di dónde estás ahora y en qué quieres mejorar."
+    reproducibility: "Indica el artículo o el conjunto de datos, y qué no se reprodujo o no está claro."
+    media: "Di el medio, el tema y tu plazo."
 dynamic_services:
   errors:
     disabled: Esta función no está configurada en este sitio.

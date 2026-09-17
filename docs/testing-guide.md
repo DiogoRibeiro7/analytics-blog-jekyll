@@ -77,6 +77,7 @@ describe('Search utilities', () => {
 - Search workflow
 - Visualization loading
 - User interactions
+- The forms that post to the dynamic services, against a backend the spec plays itself: `npm run test:integration` builds the site with `tests/integration/site-config.yml` layered over `_config.yml`, which sets `dynamic_services.base_url` to `https://api.example.test`, and a spec answers that address with `page.route` (see `tests/integration/corrections.spec.js`)
 
 **Example**:
 ```javascript

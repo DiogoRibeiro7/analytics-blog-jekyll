@@ -44,6 +44,15 @@ This guide documents the configuration keys validated by the automated configura
 | `dynamic_services.paths` | Map | Feature name to its path under the versioned base |
 | `dynamic_services.csrf_header` | String | Any |
 | `dynamic_services.csrf_cookie` | String | Any |
+| `corrections` | Map | Any |
+| `corrections.enabled` | Boolean | `true` (default), `false` |
+| `corrections.categories` | List | The report categories, in order |
+| `contact` | Map | Any |
+| `contact.enabled` | Boolean | `true` (default), `false` |
+| `contact.categories` | List | The message categories, in order |
+| `contact.prompts` | Map | Category to prompt |
+| `contact.privacy_notice` | String | Any |
+| `contact.retention` | String | Any |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -210,6 +219,31 @@ This guide documents the configuration keys validated by the automated configura
     features:
       corrections: true
       contact: true
+  ```
+
+### corrections
+- **Required:** No
+- **Type:** Map
+- **Description:** The correction-report form under every post, on a site whose dynamic services offer the `corrections` feature ([components.md: Correction Reports](components.md#correction-reports)). `enabled: false` removes it; `categories` lists the kinds of problem a reader can pick, in order, with their labels under `corrections.categories` in `_data/i18n`. A post opts out with `corrections: false` in its front matter.
+- **Example:**
+  ```yaml
+  corrections:
+    enabled: true
+    categories: [mathematical-error, factual-error, citation, code, reproducibility, typo, accessibility, other]
+  ```
+
+### contact
+- **Required:** No
+- **Type:** Map
+- **Description:** The contact and collaboration form on a page with `contact_form: true` ([components.md: Contact Form](components.md#contact-form)), on a site whose dynamic services offer the `contact` feature; without them the page shows `contact_email` instead. `enabled: false` removes both. `categories` lists the kinds of message, in order, with labels under `contact.categories` and optional prompts under `contact.prompts` in `_data/i18n`; `prompts` overrides a prompt per category; `privacy_notice` replaces the notice under the fields and `retention` is appended to it.
+- **Example:**
+  ```yaml
+  contact:
+    enabled: true
+    categories: [research-collaboration, consulting, speaking, mentoring, reproducibility, media, other]
+    prompts:
+      consulting: Say the scope, the budget range and when you need it.
+    retention: Messages are deleted after a year.
   ```
 
 ## Scholarly Metadata

@@ -86,6 +86,18 @@
 <link rel="modulepreload" href="{{ js_manifest.features['reading-state'] | relative_url }}" crossorigin="anonymous" />
   {% endif %}
 {% endif %}
+{%- comment -%} The correction-report form renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.corrections and page.layout == 'post' and page.corrections != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.corrections != false and site.corrections.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.corrections | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The contact form renders on a page that asks for it, on a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.contact and page.contact_form %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.contact != false and site.contact.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.contact | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
 {% endif %}

@@ -1,0 +1,200 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// The forms that post to the site's dynamic services (docs/dynamic-services.md):
+// the correction report on posts and the contact form. Their states come from
+// assets/js/dynamic-services/form-state.js as data-state on the form.
+
+.correction-report {
+  @include callout($color-accent-secondary);
+  margin-top: map.get($spacing, 5);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+}
+
+.correction-report__summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: $color-ink-900;
+}
+
+.contact-form {
+  margin-top: map.get($spacing, 5);
+  max-width: $max-width-reading;
+}
+
+.contact-form__fallback {
+  margin: 0;
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.08);
+}
+
+.service-form {
+  margin-top: map.get($spacing, 3);
+}
+
+.service-form__intro,
+.service-form__hint {
+  margin: 0 0 map.get($spacing, 2);
+  color: $color-ink-500;
+}
+
+.service-form__hint {
+  margin: map.get($spacing, 1) 0 0;
+  font-size: map.get($font-size-scale, xs);
+}
+
+.service-form__quote {
+  margin: 0 0 map.get($spacing, 3);
+  padding: 0 0 0 map.get($spacing, 3);
+  border-left: 3px solid rgba($color-neutral-500, 0.5);
+  font-style: italic;
+}
+
+.service-form__fields {
+  display: grid;
+  gap: map.get($spacing, 3);
+  margin: 0 0 map.get($spacing, 3);
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.service-form__row {
+  display: grid;
+  gap: map.get($spacing, 3);
+
+  @include respond-to(md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.service-form__privacy {
+  margin: 0 0 map.get($spacing, 3);
+  font-size: map.get($font-size-scale, xs);
+  color: $color-ink-500;
+}
+
+.service-form__field {
+  display: grid;
+  gap: map.get($spacing, 1);
+
+  label {
+    font-weight: 600;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid rgba($color-neutral-200, 0.9);
+    border-radius: map.get($radius, sm);
+    background: $color-surface-50;
+    color: $color-ink-700;
+    font: inherit;
+    font-size: map.get($font-size-scale, sm);
+  }
+
+  [aria-invalid='true'] {
+    border-color: $color-danger-600;
+  }
+}
+
+.service-form__error {
+  margin: 0;
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  color: $color-danger-700;
+}
+
+// The honeypot: readers never see it, bots fill it.
+.service-form__trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.service-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+.service-form__status {
+  margin: map.get($spacing, 3) 0 0;
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.1);
+  color: $color-ink-700;
+
+  form[data-state='success'] & {
+    background: rgba($color-success, 0.12);
+  }
+
+  form[data-state='error'] &,
+  form[data-state='invalid'] & {
+    background: rgba($color-danger-500, 0.1);
+    color: $color-danger-700;
+  }
+}
+
+form[data-state='pending'] .service-form__actions {
+  opacity: 0.7;
+}
+
+form[data-state='disabled'] .service-form__fields {
+  opacity: 0.6;
+}
+
+body.dark-mode {
+  .correction-report {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .correction-report__summary {
+    color: $dark-ink-900;
+  }
+
+  .service-form__intro,
+  .service-form__hint,
+  .service-form__privacy {
+    color: $dark-ink-500;
+  }
+
+  .contact-form__fallback {
+    background: rgba($dark-ink-500, 0.15);
+  }
+
+  .service-form__field {
+    input,
+    select,
+    textarea {
+      border-color: rgba($dark-ink-500, 0.35);
+      background: $dark-surface-300;
+      color: $dark-ink-700;
+    }
+  }
+
+  .service-form__error,
+  form[data-state='error'] .service-form__status,
+  form[data-state='invalid'] .service-form__status {
+    color: $color-danger-300;
+  }
+
+  .service-form__status {
+    background: rgba($dark-ink-500, 0.15);
+    color: $dark-ink-700;
+  }
+}
+
+@media print {
+  .correction-report {
+    display: none !important;
+  }
+}

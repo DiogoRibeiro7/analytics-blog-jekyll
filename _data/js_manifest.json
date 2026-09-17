@@ -3,6 +3,8 @@
   "loader": "/assets/js/dist/loader.js",
   "features": {
     "reading-state": "/assets/js/dist/reading-state.js",
+    "corrections": "/assets/js/dist/corrections.js",
+    "contact": "/assets/js/dist/contact.js",
     "search": "/assets/js/dist/search.js",
     "math": "/assets/js/dist/math.js",
     "visualizations": "/assets/js/dist/visualizations.js",
@@ -12,6 +14,8 @@
   },
   "entrypoints": {
     "reading-state": "/assets/js/dist/reading-state.js",
+    "corrections": "/assets/js/dist/corrections.js",
+    "contact": "/assets/js/dist/contact.js",
     "core": "/assets/js/dist/core.js",
     "loader": "/assets/js/dist/loader.js",
     "search": "/assets/js/dist/search.js",

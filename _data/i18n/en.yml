@@ -157,6 +157,64 @@ article:
     updated: Updated
     author: Author
     authors: Authors
+corrections:
+  summary: Report an error or suggest a correction
+  intro: "Spotted a mistake in the mathematics, the facts, a citation, the code or the reproducibility? Say what and where. The report goes to the author, not onto the page."
+  category: What kind of problem
+  section: Where
+  section_any: The whole article
+  message: What is wrong, and what should it say
+  message_hint: At least 20 characters. Quote the passage if you can.
+  contact_email: Your email (optional)
+  contact_hint: Only if you want a reply. It is never shown on the site.
+  send: Send the report
+  pending: Sending the report…
+  success: "Thank you. The report reached the author and stays private; a correction would appear in the article's revision history."
+  message_short: "Say a little more: at least {{min}} characters."
+  email_invalid: That does not look like an email address.
+  categories:
+    mathematical-error: Mathematical error
+    factual-error: Factual error
+    citation: Broken or wrong citation
+    code: Outdated or broken code
+    reproducibility: Reproducibility failure
+    typo: Typo that changes the meaning
+    accessibility: Accessibility problem
+    other: Something else
+contact:
+  legend: Contact
+  intro: "Say what you have in mind and how to reach you. The message goes to the author, not onto the site."
+  category: What is this about
+  name: Your name
+  email: Your email
+  affiliation: Affiliation (optional)
+  subject: Subject
+  message: Message
+  message_hint: At least 20 characters.
+  privacy: "Your message and your address go to the author and are never shown on the site."
+  send: Send the message
+  pending: Sending the message…
+  success: "Thank you. The message reached the author, who will reply to the address you gave."
+  name_required: Say who you are.
+  email_invalid: That does not look like an email address.
+  subject_required: Give the message a subject.
+  message_short: "Say a little more: at least {{min}} characters."
+  fallback: "This site has no message service; write to {{email}}."
+  categories:
+    research-collaboration: Research collaboration
+    consulting: Consulting or a project
+    speaking: Speaking or teaching
+    mentoring: Mentoring
+    reproducibility: A dataset or reproducibility question
+    media: Media or an interview
+    other: Something else
+  prompts:
+    research-collaboration: "Say which question, data or method you have in mind, and the timescale."
+    consulting: "Say what the project is, its scope, and when you need it."
+    speaking: "Say the event, the date, where (or online), the audience and the topic."
+    mentoring: "Say where you are now and what you want to get better at."
+    reproducibility: "Name the article or dataset, and what did not reproduce or is unclear."
+    media: "Say the outlet, the topic and your deadline."
 dynamic_services:
   errors:
     disabled: This feature is not set up on this site.

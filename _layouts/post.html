@@ -181,6 +181,9 @@ schema_type: TechnicalArticle
   {%- comment -%} The code, data and environment behind the analysis {%- endcomment -%}
   {% include components/reproducibility.html page=page %}
 
+  {%- comment -%} Report an error: structured feedback to the author, on a site with a backend {%- endcomment -%}
+  {% include components/correction-report.html %}
+
   {%- comment -%} What changed since publication (revisions in front matter) {%- endcomment -%}
   {% include components/revision-history.html page=page date_format=date_format %}
 

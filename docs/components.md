@@ -15,9 +15,11 @@ The `post` layout adds five components to every post: social sharing buttons, br
 9. [Reproducibility Panel](#reproducibility-panel)
 10. [Reading Mode and Print](#reading-mode-and-print)
 11. [Bookmarks, Progress and Private Highlights](#bookmarks-progress-and-private-highlights)
-12. [Front Matter](#front-matter)
-13. [Customization](#customization)
-14. [Troubleshooting](#troubleshooting)
+12. [Correction Reports](#correction-reports)
+13. [Contact Form](#contact-form)
+14. [Front Matter](#front-matter)
+15. [Customization](#customization)
+16. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -803,6 +805,145 @@ mark.reading-highlight { }        // a highlight, without it
 
 ---
 
+## Correction Reports
+
+### What It Does
+
+A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, as structured feedback apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history: a collapsed block with a category, the section (filled from the article's headings), the message, an optional email for a reply, and, when the reader had text selected as they opened it, that passage attached. The article's address and title go with the report.
+
+The report goes to the site's backend through the [dynamic services](dynamic-services.md) and is **never shown on the page**. It is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it. Nothing turns a report into a public notice on its own.
+
+### Usage
+
+The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`), and:
+
+```yaml
+corrections:
+  enabled: true                   # false removes the form from every post
+  categories:                     # the choices, in this order; the labels are in _data/i18n under corrections.categories
+    - mathematical-error
+    - factual-error
+    - citation
+    - code
+    - reproducibility
+    - typo
+    - accessibility
+    - other
+```
+
+A post opts out with `corrections: false` in its front matter. A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`.
+
+### What the Service Receives
+
+`POST /v1/corrections`, JSON, with an `Idempotency-Key` header per submission:
+
+```json
+{
+  "category": "code",
+  "section": "optimization-checklist",
+  "message": "The clustering step names purchase_ts but the table clusters on customer_id.",
+  "contact_email": "reader@example.org",
+  "quote": "Cluster the fact table on purchase_ts",
+  "article": { "url": "https://example.org/2024/04/05/sql-optimization-guide/", "title": "SQL Optimization Playbook" }
+}
+```
+
+`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the reference deployment in [dynamic-services.md](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) does the first.
+
+### States
+
+The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, `aria-busy`), `success` (the fields cleared, the message announced), `invalid` (the fields named by the site's checks or the service's `422` marked `aria-invalid` with their messages, the first focused), `error` (the message for the failure, as an alert, with "Reference: …" when the service gave a request id), and `disabled` (no backend, the feature off, the service not offering it, or an API version mismatch, each with its message). Before anything is sent, the message must be 20 characters long and an email, if given, look like one; a hidden honeypot field catches bots without a request.
+
+### From a Report to a Revision
+
+A report is private and unverified. The workflow the theme supports: the report arrives in the backend's store or inbox; the author checks it; if the article changes, the author edits it and adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which is what readers then see, dated, under the metadata and in the revision history. The reporter's email, if any, is for a reply; it never appears on the site.
+
+### Styling
+
+```scss
+.correction-report { }             // the collapsed block
+.service-form { }                  // the form, shared with the contact form; [data-state="…"]
+.service-form__field { }           // a label, its control, hint and error
+.service-form__status { }          // the announced state
+```
+
+---
+
+## Contact Form
+
+### What It Does
+
+A research site gets structured requests a `mailto:` link handles badly: a collaboration, a consulting project, an invitation to speak or teach, mentoring, a question about a dataset or something that did not reproduce, a media request. The contact form takes them as one message with a category, the sender's name, email and optional affiliation, a subject and the message, and sends it to the site's backend through the [dynamic services](dynamic-services.md). The page it was sent from goes with it as `source_url`. The hint under the message follows the category, so a collaboration request is asked for the question, data or method and the timescale, a media request for the outlet, topic and deadline; the prompts are short and can be changed or removed.
+
+Nothing the sender writes reaches the page, a feed or the comments: a message is private operational data for the author's inbox. Without a backend, or with the feature off, the form gives way to the site's email address (`contact_email`, else `author.email`), so the page is never empty; the demo's [/contact/](../_pages/contact.md) shows that.
+
+### Usage
+
+Any page rendered by the `page` layout gets the form after its content with:
+
+```yaml
+---
+title: Contact
+permalink: /contact/
+layout: page
+contact_form: true
+---
+```
+
+Other layouts include it where they want it: `{% include components/contact-form.html %}`. The site's settings:
+
+```yaml
+contact:
+  enabled: true                   # false removes the form and the fallback everywhere
+  categories:                     # the choices, in this order; labels under contact.categories in _data/i18n
+    - research-collaboration
+    - consulting
+    - speaking
+    - mentoring
+    - reproducibility
+    - media
+    - other
+  prompts:                        # optional: a prompt per category, over contact.prompts in _data/i18n
+    consulting: Say the scope, the budget range and when you need it.
+  privacy_notice: ""              # optional: over contact.privacy in _data/i18n
+  retention: ""                   # optional: appended to the notice, e.g. "Messages are deleted after a year."
+```
+
+The form renders when `dynamic_services.base_url` is set and `dynamic_services.features.contact` is not `false`. A site that adds a category adds its label under `contact.categories.<key>` and, if it wants one, its prompt under `contact.prompts.<key>` in `_data/i18n/<lang>.yml`.
+
+### What the Service Receives
+
+`POST /v1/contact`, JSON, with an `Idempotency-Key` header per submission:
+
+```json
+{
+  "category": "research-collaboration",
+  "name": "Jane Doe",
+  "email": "jane@example.org",
+  "affiliation": "Example University",
+  "subject": "Potential collaboration on longitudinal models",
+  "message": "We have adherence data over five years and would like to model it together.",
+  "source_url": "https://example.org/contact/"
+}
+```
+
+`affiliation` is present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, rate-limits, keeps the sender's address private, and may store the message, mail it to the author, send the sender a confirmation, or feed an inbox with its own access control; it never publishes a message. No mail, database or API credential is in the browser: the site holds only the service's address ([dynamic-services.md](dynamic-services.md#the-security-boundary)). Attachments are out of scope; a secure upload would be its own contract.
+
+### States
+
+The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, `aria-busy`), `success` (the fields cleared, the message announced), `invalid` (the fields the site's checks or the service's `422` name, marked `aria-invalid` with their messages, the first focused), `error` (the message for the failure, as an alert, with "Reference: …" when the service gave a request id), and `disabled` (the feature off on the service, or an API version mismatch, with its message). Before anything is sent, the name, a plausible email, the subject and a message of 20 characters are required; a hidden honeypot field catches bots without a request. The service is asked once whether it takes messages, the first time the reader reaches into the form.
+
+### Styling
+
+```scss
+.contact-form { }                  // the block; .contact-form--fallback holds the email address
+.service-form { }                  // the form, shared with the correction report; [data-state="…"]
+.service-form__row { }             // name and email side by side from the medium breakpoint
+.service-form__privacy { }         // the privacy notice
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -824,6 +965,7 @@ series:                # the article's series and its place in it; see Series Na
   order: 2
 reproducibility:       # the code, data and environment behind it; see Reproducibility Panel
   code: {url: https://github.com/example/missing-data, ref: 4f2c1ab}
+corrections: false     # no correction-report form on this post; see Correction Reports
 ---
 ```
 
