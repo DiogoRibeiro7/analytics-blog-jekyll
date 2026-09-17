@@ -322,7 +322,7 @@ datalog_plugins:
       width: 100%
       height: 620px
     datalog-comments:
-      provider: giscus
+      provider: giscus   # giscus, utterances, disqus, or api: the site's own backend (docs/components.md#comments)
       repo: DiogoRibeiro7/analytics-blog-jekyll
       repo_id: ""        # Get from https://giscus.app
       category: General

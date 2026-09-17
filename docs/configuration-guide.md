@@ -151,7 +151,7 @@ datalog_plugins:
     - datalog-comments
   options:
     datalog-comments:
-      provider: giscus   # giscus, utterances or disqus
+      provider: giscus   # giscus, utterances, disqus, or api: the site's own backend
       repo: owner/repo
       repo_id: ""        # from https://giscus.app
       category: General
@@ -160,7 +160,7 @@ datalog_plugins:
       enabled_by_default: false
 ```
 
-A page shows comments when its front matter sets `comments: true`, or on every page with `enabled_by_default: true`. `comments: false` turns them off for one page, and a `comments:` hash overrides these settings for that page. Giscus needs `repo`, `repo_id`, `category` and `category_id`; utterances needs `repo`; Disqus needs `shortname`.
+A page shows comments when its front matter sets `comments: true`, or on every page with `enabled_by_default: true`. `comments: false` turns them off for one page, and a `comments:` hash overrides these settings for that page. Giscus needs `repo`, `repo_id`, `category` and `category_id`; utterances needs `repo`; Disqus needs `shortname`. The `api` provider needs a backend, `dynamic_services.base_url` or its own `endpoint`, and is described in [components.md: Comments](components.md#comments), with the HTTP contract the backend implements.
 
 ### 6. Embedded content
 

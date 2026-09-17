@@ -98,6 +98,10 @@
 <link rel="modulepreload" href="{{ js_manifest.features.contact | relative_url }}" crossorigin="anonymous" />
   {% endif %}
 {% endif %}
+{%- comment -%} The comments thread of the api provider, on a page that shows comments that way. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.comments and page.datalog_comments.provider == 'api' %}
+<link rel="modulepreload" href="{{ js_manifest.features.comments | relative_url }}" crossorigin="anonymous" />
+{% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
 {% endif %}

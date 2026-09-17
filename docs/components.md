@@ -17,9 +17,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 11. [Bookmarks, Progress and Private Highlights](#bookmarks-progress-and-private-highlights)
 12. [Correction Reports](#correction-reports)
 13. [Contact Form](#contact-form)
-14. [Front Matter](#front-matter)
-15. [Customization](#customization)
-16. [Troubleshooting](#troubleshooting)
+14. [Comments](#comments)
+15. [Front Matter](#front-matter)
+16. [Customization](#customization)
+17. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -940,6 +941,104 @@ The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, 
 .service-form { }                  // the form, shared with the correction report; [data-state="…"]
 .service-form__row { }             // name and email side by side from the medium breakpoint
 .service-form__privacy { }         // the privacy notice
+```
+
+---
+
+## Comments
+
+### What It Does
+
+The `datalog-comments` plugin embeds Giscus, utterances or Disqus under a post ([configuration-guide.md](configuration-guide.md#5-analytics-and-comments)). Its fourth provider, `api`, keeps the discussion on the site's own backend: the thread is read from and written to the [dynamic services](dynamic-services.md), so the author owns the data, applies their own moderation and privacy policy, and ties comments to no GitHub account and no ad or tracking platform. MongoDB is one store such a backend can use ([reference model](#reference-model)); the theme knows only the HTTP contract below and needs no database.
+
+Under the article, the thread loads when the reader gets near it, not with the article. It shows loading, empty and error states (the error with a "Try again"), then the comments oldest first, replies nested under their parent when `replies` is on. Everything the service returns is put on the page as text: a comment's body is never parsed as HTML, an author's link is kept only when it is an `http(s)` address and carries `rel="nofollow noopener ugc"`, and a missing name reads "Anonymous". The form under the list posts a comment or a reply with a name, an optional email (never shown) and website, and the text; a comment the service holds for moderation appears to its author with an "Awaiting moderation" badge and to nobody else until it is approved.
+
+### Usage
+
+```yaml
+datalog_plugins:
+  enabled:
+    - datalog-search
+    - datalog-comments
+  options:
+    datalog-comments:
+      provider: api
+      replies: true             # replies nest under their parent; false lists every comment flat
+      moderation: true          # the note under the form says comments are read before they appear
+      # endpoint: https://comments.example.org   # only when comments live apart from dynamic_services.base_url
+      enabled_by_default: false
+
+dynamic_services:
+  base_url: https://api.example.org
+  features:
+    comments: true
+```
+
+A post shows the thread with `comments: true` in its front matter (or every post with `enabled_by_default: true`), hides it with `comments: false`, and can choose the provider for itself with a `comments:` hash (`provider: api` on a site that otherwise uses Giscus, or the reverse). The service keys the thread by the page's `url`. Without a backend (`endpoint` and `dynamic_services.base_url` both unset) the build warns and the post shows the plugin's "missing settings" note, as for a Giscus setup without a repository. `endpoint`, site-wide or on a page, is added to the Content Security Policy's `connect-src` by the theme; no other origin is reachable.
+
+### The Contract
+
+Reading, `GET /v1/comments?path=/2024/04/07/plotly-showcase/`:
+
+```json
+{
+  "comments": [
+    { "id": "c1", "parent_id": null, "author": { "name": "Alice", "url": "https://alice.example" }, "body": "Clear charts.", "created_at": "2026-09-16T15:30:00Z" },
+    { "id": "c2", "parent_id": "c1", "author": { "name": "Bob" }, "body": "Agreed.", "created_at": "2026-09-16T16:00:00Z" }
+  ]
+}
+```
+
+Only approved comments, and only public author fields: never the email, never an IP. `id` and `parent_id` are opaque strings; `created_at` is ISO 8601; a reply whose parent is gone is shown at the top level.
+
+Writing, `POST /v1/comments` with `Content-Type: application/json` and an `Idempotency-Key`:
+
+```json
+{
+  "path": "/2024/04/07/plotly-showcase/",
+  "parent_id": "c1",
+  "author": { "name": "Dana", "email": "dana@example.org", "url": "https://dana.example" },
+  "body": "One question about the export step."
+}
+```
+
+`email` and `url` are present only when given. The service answers `201` with `{ "comment": { … }, "status": "published" }` when the comment is up, or `202` with `"status": "pending"` when it is held for moderation (the theme then shows it to its author with the badge); a `422` with `error.errors` keyed `name`, `email`, `url` or `body` marks the fields; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), with the request id.
+
+What the backend does, and the theme cannot: validate and limit the size of every field; strip or escape markup (the theme renders text, but another consumer of the store may not); hash or drop the email; rate-limit by IP or token; restrict CORS to the site's origin; keep a `status` (`pending`, `approved`, `spam`, `deleted`) and serve only `approved` on `GET`; run whatever anti-spam challenge it likes before storing, the theme's own defence being a honeypot field that bots fill and readers never see.
+
+### Reference Model
+
+A document in MongoDB, or a row anywhere else:
+
+```json
+{
+  "_id": "c1",
+  "page_id": "/2024/04/07/plotly-showcase/",
+  "parent_id": null,
+  "author": { "name": "Alice", "email_hash": "sha256:…", "url": "https://alice.example" },
+  "body": "Clear charts.",
+  "created_at": "2026-09-16T15:30:00Z",
+  "updated_at": null,
+  "status": "approved",
+  "idempotency_key": "…"
+}
+```
+
+An index on `(page_id, status, created_at)` serves the `GET`; `idempotency_key` keeps a retried `POST` from storing twice. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows the handler shape and where the credential lives (in the function's environment, never in the site). MongoDB is not required: the contract is HTTP and JSON.
+
+### States
+
+The thread carries `data-state`: `idle` (before the reader gets near), `loading`, `loaded`, `empty`, `error` (the message as an alert, with a retry) and `disabled` (no backend, the feature off, the service not offering it, or an API version mismatch; the form is hidden). The form is a `.service-form` with the same states as the [contact form](#states-1); before anything is sent, a name and some text are required, and an email or a website, if given, must look like one.
+
+### Styling
+
+```scss
+.comments-thread { }               // the thread; [data-state="…"]
+.comments-thread__status { }       // loading, empty, error
+.comment { }                       // one comment; .comment--pending while held
+.comment__card, .comment__meta, .comment__author, .comment__time, .comment__body, .comment__reply { }
+.comments-thread__replies { }      // the nested list under a parent
+.comments-form { }                 // the form, a .service-form
 ```
 
 ---

@@ -181,6 +181,32 @@ corrections:
     typo: Errata que cambia el sentido
     accessibility: Problema de accesibilidad
     other: Otra cosa
+comments:
+  loading: Cargando la conversación…
+  empty: Aún no hay comentarios. Empieza la conversación.
+  noscript: La conversación necesita JavaScript para cargarse.
+  retry: Intentar de nuevo
+  reply: Responder
+  replying_to: "Respondiendo a {{name}}"
+  cancel_reply: Cancelar la respuesta
+  anonymous: Anónimo
+  pending: Pendiente de moderación
+  form_heading: Participa en la conversación
+  name: Tu nombre
+  email: Tu correo (opcional)
+  email_hint: Nunca se muestra. Solo si quieres saber de las respuestas.
+  url: Tu sitio web (opcional)
+  body: Tu comentario
+  send: Publicar el comentario
+  sending: Publicando el comentario…
+  posted: Gracias. Tu comentario está publicado.
+  posted_pending: Gracias. Tu comentario espera lectura y aparecerá cuando se apruebe.
+  moderated: Los comentarios se leen antes de aparecer. Tu correo nunca se muestra.
+  privacy: Tu correo nunca se muestra.
+  name_required: Di quién eres.
+  email_invalid: Eso no parece una dirección de correo.
+  url_invalid: Una dirección web empieza por http:// o https://.
+  body_short: Di un poco más.
 contact:
   legend: Contacto
   intro: "Di qué tienes en mente y cómo contactarte. El mensaje va al autor, no al sitio."

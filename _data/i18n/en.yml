@@ -181,6 +181,32 @@ corrections:
     typo: Typo that changes the meaning
     accessibility: Accessibility problem
     other: Something else
+comments:
+  loading: Loading the discussion…
+  empty: No comments yet. Start the discussion.
+  noscript: The discussion needs JavaScript to load.
+  retry: Try again
+  reply: Reply
+  replying_to: "Replying to {{name}}"
+  cancel_reply: Cancel the reply
+  anonymous: Anonymous
+  pending: Awaiting moderation
+  form_heading: Join the discussion
+  name: Your name
+  email: Your email (optional)
+  email_hint: Never shown. Only if you want to be told of replies.
+  url: Your website (optional)
+  body: Your comment
+  send: Post the comment
+  sending: Posting the comment…
+  posted: Thank you. Your comment is up.
+  posted_pending: Thank you. Your comment is waiting to be read and will appear once approved.
+  moderated: Comments are read before they appear. Your email is never shown.
+  privacy: Your email is never shown.
+  name_required: Say who you are.
+  email_invalid: That does not look like an email address.
+  url_invalid: A website address starts with http:// or https://.
+  body_short: Say a little more.
 contact:
   legend: Contact
   intro: "Say what you have in mind and how to reach you. The message goes to the author, not onto the site."
