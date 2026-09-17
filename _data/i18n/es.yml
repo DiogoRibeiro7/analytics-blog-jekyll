@@ -157,6 +157,9 @@ article:
     updated: Actualizado
     author: Autor
     authors: Autores
+references:
+  figure: Figura
+  table: Tabla
 post:
   provenance:
     heading: Nota del autor y de edición

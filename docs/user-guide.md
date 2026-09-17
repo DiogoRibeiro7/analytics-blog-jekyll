@@ -64,6 +64,42 @@ $$
 - Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog auto-numbers and links equations.
 - For chemical notation, rely on `mhchem` syntax: `\ce{H2O + CO2 ->[light] C6H12O6 + O2}`.
 
+### Figures, tables and cross-references
+
+Figures and tables are numbered within each page, in the order they appear, and a reference reads "Figure 2" or "Table 1" and links to its target. Give each an id that starts with a letter; the number follows the page, so reordering the figures renumbers every reference to them. A worked example, with an equation, a figure and a table referring to each other:
+
+```markdown
+The power of a two-sided test (equation \eqref{eq:power}) grows with the
+effect size $\delta$, as {% ref fig-power %} shows for the sample sizes in
+{% ref tab-samples %}.
+
+$$
+1 - \beta = \Phi\left(\delta \sqrt{n} - z_{1-\alpha/2}\right) \label{eq:power}
+$$
+
+{% figure id="fig-power" src="/assets/img/power-curve.png" alt="Power rising with effect size" %}
+Power as a function of effect size $\delta$ for $\alpha = 0.05$.
+{% endfigure %}
+
+{% table id="tab-samples" %}
+Sample sizes simulated, with the runs for each.
+
+| $n$ | Runs |
+|-----|------|
+| 20  | 5000 |
+| 50  | 5000 |
+{% endtable %}
+
+Beyond $n = 50$, {% ref fig-power %} flattens.
+```
+
+- `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. An `alt` that contains a double quote goes in single quotes: `alt='The "null" model'`.
+- `{% table %}` needs `id`. Its body is the caption, then one Markdown table; the caption goes into the table's `<caption>`.
+- `{% ref id %}` becomes a link reading "Figure 2" or "Table 1". It may come before its target. In a post's excerpt, on listings and in feeds, it links to the figure on the post's page.
+- A reference to an id no figure or table on the page has, or two figures or tables with the same id, stops the build and names the page.
+- The words come from `references.figure` and `references.table` in `_data/i18n`, so a page with `lang: pt` reads "Figura 2"; a site can change them there. Numbers do not carry across pages.
+- Markdown images and tables written without these tags are left as they are. In print, a numbered figure or table is kept on one page where it fits.
+
 ## 4. Interactive Visualization Embedding
 
 - **Plotly/D3/Bokeh**: Wrap serialized chart specs in `<div class="viz" data-viz-type="plotly" data-viz-src="/assets/plots/sample.json"></div>` and the visualization runtime handles lazy loading.

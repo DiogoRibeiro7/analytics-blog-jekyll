@@ -7,12 +7,13 @@ Find the guide for what you want to do.
 | I want to… | Read |
 | --- | --- |
 | Add the theme to a site and preview it | [install.md](install.md) |
-| Install changes that are not released yet | [install.md: Install from a Git Checkout](install.md#22-install-from-a-git-checkout-or-a-local-path) |
+| Install changes that are not released yet, or keep the theme in a Git submodule | [install.md: Install from Git or a Local Path](install.md#22-install-from-git-or-a-local-path) |
 | Publish the site with GitHub Pages | [install.md: Publish with GitHub Pages](install.md#23-publish-with-github-pages) |
 | Set the site's identity, author, features and integrations | [configuration-guide.md](configuration-guide.md), with every validated key in [configuration-reference.md](configuration-reference.md) |
 | Write a first post | [install.md: Creating Your First Post](install.md#4-creating-your-first-post) |
 | Use or restyle the post components: sharing buttons, breadcrumbs, author card, table of contents, difficulty badge | [components.md](components.md) |
 | Add math | [user-guide.md: Mathematical Expression Authoring](user-guide.md#3-mathematical-expression-authoring) |
+| Number figures and tables, and refer to them | [user-guide.md: Figures, tables and cross-references](user-guide.md#figures-tables-and-cross-references) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |
