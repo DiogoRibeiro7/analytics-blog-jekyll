@@ -3,6 +3,39 @@
 require "uri"
 
 module Datalog
+  # The dynamic-services settings are inlined into every page for the
+  # browser (docs/dynamic-services.md), so a key that names a secret is a
+  # leak whatever its value; the validator reports each one.
+  module PublicConfiguration
+    module_function
+
+    # `credentials` is fetch's cookie mode, not a secret, so "credential" is not in the list.
+    SECRET_KEY = /secret|token|password|passwd|api_key|apikey|private_key/i
+
+    def errors(config)
+      services = config["dynamic_services"]
+      return [] unless services.is_a?(Hash)
+
+      secret_keys(services, ["dynamic_services"]).map do |path|
+        {
+          headline: "Secret in public configuration '#{path.join('.')}'",
+          path: path,
+          expected: "no credential: dynamic_services is sent to every reader's browser, so a key, token or " \
+                    "password belongs on the server, never in _config.yml",
+          actual: "a key named '#{path.last}'"
+        }
+      end
+    end
+
+    def secret_keys(hash, path)
+      hash.flat_map do |key, value|
+        here = path + [key.to_s]
+        found = key.to_s.match?(SECRET_KEY) ? [here] : []
+        value.is_a?(Hash) ? found + secret_keys(value, here) : found
+      end
+    end
+  end
+
   class ConfigValidator < Jekyll::Generator
     safe true
     priority :highest
@@ -49,6 +82,14 @@ module Datalog
       code_license: LICENSE,
       # Which pages get scholarly discovery metadata: true for every post, or a list of collections and layouts.
       scholarly: { type: %i[boolean array string] },
+      dynamic_services: {
+        type: :hash,
+        schema: {
+          base_url: { type: :string, format: :url }, api_version: { type: %i[string integer] },
+          timeout_ms: { type: :integer }, credentials: { type: :string, enum: %w[omit same-origin include] },
+          features: { type: :hash }, paths: { type: :hash }, csrf_header: { type: :string }, csrf_cookie: { type: :string }
+        }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },
@@ -496,6 +537,8 @@ module Datalog
 
       validator = Validator.new(site.config)
       validator.run
+      # The Validator class is at its length limit; the public-configuration check lives beside it.
+      validator.errors.concat(PublicConfiguration.errors(site.config))
 
       (validator.warnings + ThemeDirectories.warnings(site.config)).each do |warning|
         logger.warn("config", warning)

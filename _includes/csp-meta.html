@@ -10,6 +10,12 @@
 {% assign extra_style_src = site.csp.style_src | join: ' ' %}
 {% assign extra_font_src = site.csp.font_src | join: ' ' %}
 {% assign extra_connect_src = site.csp.connect_src | join: ' ' %}
+{%- comment -%} The dynamic services' origin, so the browser may call the site's backend (docs/dynamic-services.md). {%- endcomment -%}
+{% assign services_origin = '' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' %}
+  {% assign services_parts = site.dynamic_services.base_url | split: '/' %}
+  {% assign services_origin = services_parts[0] | append: '//' | append: services_parts[2] %}
+{% endif %}
 {%- comment -%}
   Plotly, the Jupyter widget manager and MathJax can't run under the strict
   policy. Plotly inserts its rules into a <style> element it creates; the widget
@@ -113,7 +119,7 @@
   style-src 'self' {% if csp_inline_styles %}'unsafe-inline'{% else %}'nonce-{{ nonce_source }}'{% endif %} https://fonts.googleapis.com{{ cdn_styles }}{% if extra_style_src != '' %} {{ extra_style_src }}{% endif %};
   img-src 'self' data: https:;
   font-src 'self' https://fonts.gstatic.com data:{{ cdn_fonts }}{% if extra_font_src != '' %} {{ extra_font_src }}{% endif %};
-  connect-src 'self' https://api.github.com{{ cdn_connect }}{% if csp_analytics %} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com{% endif %}{% if extra_connect_src != '' %} {{ extra_connect_src }}{% endif %};
+  connect-src 'self' https://api.github.com{{ cdn_connect }}{% if csp_analytics %} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com{% endif %}{% if services_origin != '' %} {{ services_origin }}{% endif %}{% if extra_connect_src != '' %} {{ extra_connect_src }}{% endif %};
   frame-src 'self' https://observablehq.com https://old.observablehq.com{{ cdn_frames }}{% if frame_hosts != '' %} {{ frame_hosts }}{% endif %};
   object-src 'none';
   base-uri 'self';

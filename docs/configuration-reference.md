@@ -35,6 +35,15 @@ This guide documents the configuration keys validated by the automated configura
 | `code_license.holder` | String or list | A name, or a list of names |
 | `code_license.year` | Integer or string | A year |
 | `scholarly` | Boolean, list or string | `true` for every post, or the collections and layouts that get scholarly metadata |
+| `dynamic_services` | Map | Any; a key naming a secret stops the build |
+| `dynamic_services.base_url` | String | An HTTP or HTTPS URL, or `""` |
+| `dynamic_services.api_version` | String or integer | `v1`, `1`, … |
+| `dynamic_services.timeout_ms` | Integer | Any |
+| `dynamic_services.credentials` | String | `omit`, `same-origin`, `include` |
+| `dynamic_services.features` | Map | Feature name to `true` or `false` |
+| `dynamic_services.paths` | Map | Feature name to its path under the versioned base |
+| `dynamic_services.csrf_header` | String | Any |
+| `dynamic_services.csrf_cookie` | String | Any |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -175,6 +184,32 @@ This guide documents the configuration keys validated by the automated configura
 - **Example:**
   ```yaml
   code_license: MIT
+  ```
+
+## Dynamic Services
+
+### dynamic_services
+- **Required:** No
+- **Type:** Map
+- **Description:** The optional backend the browser calls for correction reports, the contact form and the other dynamic features, as [dynamic-services.md](dynamic-services.md) describes. The site stays static. These settings are inlined into every page for the browser, so they hold no credential: a key under `dynamic_services` whose name contains `secret`, `token`, `password`, `api_key` or `private_key` stops the build. An empty or absent `base_url` turns every dynamic feature off.
+- **Keys:**
+  - `base_url`: the service's address; its origin is allowed in the Content Security Policy's `connect-src`.
+  - `api_version`: the version segment of every path (`v1`) and the version the service must report in `GET /v1/capabilities`.
+  - `timeout_ms`: how long the browser waits for an answer (default 8000).
+  - `credentials`: `omit` (default), `same-origin` or `include`, for a service that authenticates with cookies.
+  - `features`: feature name to `true` or `false`; a feature off here is off whatever the service offers.
+  - `paths`: a feature's path under the versioned base when it is not `/<feature>`.
+  - `csrf_header` and `csrf_cookie`: for cookie-authenticated writes, the cookie whose value is sent in that header.
+- **Example:**
+  ```yaml
+  dynamic_services:
+    base_url: https://api.example.org
+    api_version: v1
+    timeout_ms: 8000
+    credentials: omit
+    features:
+      corrections: true
+      contact: true
   ```
 
 ## Scholarly Metadata

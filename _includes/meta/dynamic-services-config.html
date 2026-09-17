@@ -1,0 +1,14 @@
+{%- comment -%}
+---
+optional: []
+---
+The public settings of the site's dynamic services (`dynamic_services` in
+_config.yml), for assets/js/dynamic-services/client.js, on a site that sets
+a base URL. Every reader's browser reads this, so it holds no credential:
+the configuration validator stops the build on a key that names one.
+{%- endcomment -%}
+{%- if site.dynamic_services.base_url and site.dynamic_services.base_url != '' %}
+<script nonce="{{ page.csp_nonce }}">
+  window.DatalogDynamicServices = {{ site.dynamic_services | jsonify }};
+</script>
+{%- endif -%}

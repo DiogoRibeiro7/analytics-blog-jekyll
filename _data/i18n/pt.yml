@@ -157,6 +157,24 @@ article:
     updated: Atualizado
     author: Autor
     authors: Autores
+dynamic_services:
+  errors:
+    disabled: Esta funcionalidade não está configurada neste site.
+    unsupported: O serviço por trás deste site não oferece esta funcionalidade.
+    version: Este site e o seu serviço esperam versões diferentes da API; quem mantém o site precisa de atualizar um deles.
+    timeout: O serviço demorou demasiado a responder. Tente de novo dentro de momentos.
+    network: Não foi possível contactar o serviço. Verifique a ligação e tente de novo.
+    malformed: O serviço respondeu de uma forma que este site não conseguiu ler.
+    unauthorized: Precisa de iniciar sessão para isto.
+    forbidden: Não tem permissão para isto.
+    not_found: O serviço não tem nada nesse endereço.
+    conflict: Isto já foi feito, ou algo mudou entretanto.
+    invalid: Parte do que escreveu precisa de correção.
+    rate_limited: Demasiados pedidos por agora. Aguarde um pouco e tente de novo.
+    server: O serviço encontrou um problema. Tente mais tarde.
+    http: O serviço recusou o pedido.
+    aborted: O pedido foi cancelado.
+    reference: "Referência: {{id}}"
 references:
   figure: Figura
   table: Tabela
