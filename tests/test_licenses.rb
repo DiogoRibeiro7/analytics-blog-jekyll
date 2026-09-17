@@ -177,7 +177,9 @@ class LicensesTest < Minitest::Test
     refute_nil dataset, "expected a demo dataset licensed CC-BY-4.0"
     html = SiteBuilder.read(File.join(dataset.url, "index.html"))
 
-    assert_includes html, %(<strong>License:</strong> <a class="license-link" rel="license" href="#{CC_BY}">CC BY 4.0</a>)
+    linked = %(<strong>License:</strong> <a class="license-link" rel="license" href="#{CC_BY}">CC BY 4.0</a>)
+
+    assert_includes html, linked
   end
 
   def test_print_styles_keep_the_licence_address
