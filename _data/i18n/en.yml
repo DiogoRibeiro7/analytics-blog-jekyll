@@ -160,6 +160,16 @@ article:
 references:
   figure: Figure
   table: Table
+  theorem: Theorem
+  lemma: Lemma
+  proposition: Proposition
+  corollary: Corollary
+  definition: Definition
+  assumption: Assumption
+  example: Example
+  remark: Remark
+  proof: Proof
+  proof_of: "Proof of {{target}}"
 post:
   provenance:
     heading: Author and editorial note

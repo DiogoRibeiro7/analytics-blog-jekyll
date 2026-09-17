@@ -100,6 +100,50 @@ Beyond $n = 50$, {% ref fig-power %} flattens.
 - The words come from `references.figure` and `references.table` in `_data/i18n`, so a page with `lang: pt` reads "Figura 2"; a site can change them there. Numbers do not carry across pages.
 - Markdown images and tables written without these tags are left as they are. In print, a numbered figure or table is kept on one page where it fits.
 
+### Theorems, definitions and proofs
+
+Theorems, lemmas, propositions, corollaries, definitions, assumptions, examples and remarks are numbered and referred to like figures and tables. A proof names the statement it proves. A short article:
+
+```markdown
+Let $X_1, \dots, X_n$ be independent draws from a distribution with mean $\mu$.
+
+{% definition id="def-consistent" title="Consistency" %}
+An estimator $\hat\theta_n$ is *consistent* for $\theta$ when
+$\hat\theta_n \to \theta$ in probability as $n \to \infty$.
+{% enddefinition %}
+
+{% assumption id="as-variance" %}
+The variance $\sigma^2$ of each $X_i$ is finite.
+{% endassumption %}
+
+{% theorem id="thm-wlln" title="Weak law of large numbers" %}
+Under {% ref as-variance %}, the sample mean $\bar X_n$ is consistent for $\mu$
+in the sense of {% ref def-consistent %}.
+{% endtheorem %}
+
+{% proof for="thm-wlln" %}
+By Chebyshev's inequality, for every $\varepsilon > 0$,
+
+$$
+P\left(|\bar X_n - \mu| \ge \varepsilon\right) \le \frac{\sigma^2}{n \varepsilon^2},
+$$
+
+which tends to $0$ as $n \to \infty$.
+{% endproof %}
+
+{% remark id="rem-strong" %}
+The strong law gives almost sure convergence without {% ref as-variance %}:
+a finite mean is enough.
+{% endremark %}
+```
+
+- The tags are `theorem`, `lemma`, `proposition`, `corollary`, `definition`, `assumption`, `example` and `remark`, each closed by its `end` tag, such as `{% endtheorem %}`. Each needs `id` and takes an optional `title`, shown in parentheses after the number. The title is plain text; the body can hold Markdown, math, lists and code.
+- Each kind is numbered on its own, in page order: the first lemma is "Lemma 1" however many theorems come before it. `{% ref id %}` reads "Theorem 1" and links to the statement. Statements, figures and tables share the page's ids, so two with the same id stop the build.
+- `label="A"` shows "Theorem A" in place of a number, for a result named in an appendix or restated from elsewhere, and a statement with a label does not take a number. A label is letters and digits, with `.`, `'`, `*` or `-`.
+- `{% proof %}` is not numbered. With `for="thm-wlln"` its heading reads "Proof of Theorem 1" and links to the theorem, and the build stops when the page has no statement with that id. A proof ends with ∎; `qed="false"` leaves the mark out, for a proof that continues after it.
+- Theorems, lemmas, propositions and corollaries share one accent colour, definitions and assumptions another, and examples and remarks a neutral one. Screen readers announce each statement and proof as a group named by its heading, and skip the ∎. In print, a statement is kept on one page where it fits.
+- The words come from `references.theorem` to `references.remark`, `references.proof` and `references.proof_of` in `_data/i18n`, so a page with `lang: pt` reads "Teorema 1" and "Demonstração de Teorema 1".
+
 ## 4. Interactive Visualization Embedding
 
 - **Plotly/D3/Bokeh**: Wrap serialized chart specs in `<div class="viz" data-viz-type="plotly" data-viz-src="/assets/plots/sample.json"></div>` and the visualization runtime handles lazy loading.
