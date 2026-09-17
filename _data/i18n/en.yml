@@ -157,6 +157,24 @@ article:
     updated: Updated
     author: Author
     authors: Authors
+dynamic_services:
+  errors:
+    disabled: This feature is not set up on this site.
+    unsupported: The service behind this site does not offer this feature.
+    version: This site and its service expect different API versions; the site's maintainer needs to update one of them.
+    timeout: The service took too long to answer. Try again in a moment.
+    network: The service could not be reached. Check your connection and try again.
+    malformed: The service answered in a way this site could not read.
+    unauthorized: You need to sign in for this.
+    forbidden: You are not allowed to do this.
+    not_found: The service has nothing at that address.
+    conflict: This was already done, or something changed in the meantime.
+    invalid: Some of what you entered needs a correction.
+    rate_limited: Too many requests for now. Please wait a little and try again.
+    server: The service ran into a problem. Try again later.
+    http: The service refused the request.
+    aborted: The request was cancelled.
+    reference: "Reference: {{id}}"
 references:
   figure: Figure
   table: Table

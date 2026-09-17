@@ -34,4 +34,6 @@ highlighted by Rouge when the site builds, so the head renders nothing.
   <script nonce="{{ page.csp_nonce }}">
     window.DatalogIntegrations = {{ site.integrations | jsonify }};
   </script>
+  {%- comment -%} The dynamic services' public settings, on a site that has a backend. {%- endcomment -%}
+  {% include meta/dynamic-services-config.html %}
 {%- endif -%}

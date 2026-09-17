@@ -21,7 +21,7 @@ party integrations.
 | `script-src` | `'self'`, the page nonce | the math engine's directory on pages with math; Plotly, D3, BokehJS or Vega on pages with those blocks; Chart.js on the analytics dashboard; `https://*.disqus.com` and `https://*.disquscdn.com` on pages with Disqus comments; `https://*.googletagmanager.com` on a site that sets `google_analytics` |
 | `style-src` | `'self'`, the page nonce, Google Fonts | KaTeX's `dist/` directory on KaTeX pages; `https://*.disquscdn.com` on Disqus pages; `'unsafe-inline'` in place of the nonce on pages with MathJax, Plotly, a Jupyter widget or Disqus comments |
 | `font-src` | `'self'`, Google Fonts, `data:` | the math engine's directory on pages with math |
-| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; `https://*.disqus.com` on Disqus pages; Google's analytics hosts on a site that sets `google_analytics` |
+| `connect-src` | `'self'`, `https://api.github.com` | MathJax's directory on MathJax pages; `https://*.disqus.com` on Disqus pages; Google's analytics hosts on a site that sets `google_analytics`; the origin of `dynamic_services.base_url` on a site with a backend ([dynamic-services.md](dynamic-services.md)) |
 | `frame-src` | `'self'`, Observable (`observablehq.com` and `old.observablehq.com`, where its embeds redirect) | `https://disqus.com` on Disqus pages; the hosts in `csp.frame_src` |
 | `object-src` | `'none'` | |
 | `base-uri` | `'self'` | |

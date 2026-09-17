@@ -258,6 +258,21 @@ integrations:
 # above (repository, branch, binder.base_url, colab.base_url).
 
 # -----------------------------------------------------------------------------
+# Dynamic Services (docs/dynamic-services.md)
+# -----------------------------------------------------------------------------
+# The optional backend the browser calls for correction reports, contact,
+# comments and the like. The site stays static; these settings are public and
+# reach every reader, so they never hold a credential. Empty base_url: off.
+dynamic_services:
+  base_url: ""
+  api_version: v1
+  timeout_ms: 8000
+  credentials: omit        # or same-origin / include, for cookie-authenticated services
+  features:
+    corrections: true
+    contact: true
+
+# -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------
 datalog_plugins:
