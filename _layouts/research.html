@@ -19,7 +19,13 @@ schema_type: ScholarlyArticle
 {% assign methodology_content = page.methodology %}
 {% assign results_content = page.results %}
 {% assign data_availability = page.data_availability %}
-{% assign reproducibility = page.reproducibility | default: page.reproducibility_notes %}
+{%- comment -%} `reproducibility` is free text here, or a map of artifacts for the panel (components/reproducibility.html). {%- endcomment -%}
+{% capture reproducibility_shape %}{{ page.reproducibility | jsonify | slice: 0, 1 }}{% endcapture %}
+{% if reproducibility_shape == '{' %}
+  {% assign reproducibility = page.reproducibility_notes %}
+{% else %}
+  {% assign reproducibility = page.reproducibility | default: page.reproducibility_notes %}
+{% endif %}
 {% assign peer_review = page.peer_review | default: page.peer_review_notes %}
 {% assign version_history = page.version_history %}
 {% assign appendices = page.appendices %}
@@ -324,6 +330,8 @@ ER  -
       {% endif %}
     </section>
   {% endif %}
+
+  {% include components/reproducibility.html page=page %}
 
   {% if supplementary or appendices %}
     <section class="research-appendices" aria-labelledby="appendix-heading">

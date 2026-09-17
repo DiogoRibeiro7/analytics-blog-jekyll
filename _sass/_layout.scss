@@ -2025,6 +2025,93 @@ body.dark-mode {
   }
 }
 
+// The computational artifacts behind an article (_plugins/reproducibility.rb).
+.reproduce {
+  @include callout($color-accent-tertiary);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+
+  // Links keep their contrast on the tinted background.
+  a {
+    color: $color-accent-primary-text;
+
+    &:hover,
+    &:focus {
+      color: $color-accent-secondary-text;
+    }
+  }
+
+  code {
+    font-size: 0.9em;
+  }
+}
+
+.reproduce__heading {
+  margin: 0 0 map.get($spacing, 1);
+  font-size: map.get($font-size-scale, base);
+}
+
+.reproduce__intro {
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-500;
+}
+
+.reproduce__list {
+  display: grid;
+  gap: map.get($spacing, 2);
+  margin: 0;
+
+  > div {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: map.get($spacing, 1) map.get($spacing, 3);
+    align-items: baseline;
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: map.get($spacing, 1) map.get($spacing, 3);
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.reproduce__detail {
+  color: $color-ink-700;
+}
+
+body.dark-mode {
+  .reproduce {
+    border-left-color: $dark-accent-tertiary;
+  }
+
+  .reproduce__intro {
+    color: $dark-ink-500;
+  }
+
+  .reproduce__detail {
+    color: $dark-ink-700;
+  }
+}
+
+@media print {
+  .reproduce {
+    border-left-color: currentColor;
+    background: none;
+  }
+
+  // On paper, every artifact keeps its address.
+  .reproduce a[href]::after {
+    content: " (" attr(href) ")";
+  }
+}
+
 // Editorial provenance note (why_this_exists, evidence, methodology, reviewed_at).
 .content-provenance {
   @include callout($color-accent-secondary);

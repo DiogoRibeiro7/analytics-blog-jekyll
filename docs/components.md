@@ -12,9 +12,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 6. [Revision History](#revision-history)
 7. [License Notice](#license-notice)
 8. [Series Navigation](#series-navigation)
-9. [Front Matter](#front-matter)
-10. [Customization](#customization)
-11. [Troubleshooting](#troubleshooting)
+9. [Reproducibility Panel](#reproducibility-panel)
+10. [Front Matter](#front-matter)
+11. [Customization](#customization)
+12. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -614,6 +615,62 @@ series_order: 3
 
 ---
 
+## Reproducibility Panel
+
+### What It Does
+
+Gives an article one compact place for the computational artifacts behind it: the source code at the exact commit or tag, the data and its version or DOI, the notebook, the software environment, and the archived results. The panel shows what is given and claims nothing more; a link is a link and a ref is a ref, so link the immutable things (a commit, a tag, a DOI, a release) rather than a repository's home page, and readers can fetch the same versions.
+
+It complements the provenance note and the open science badges: provenance says why and how the article was made, the badges say which practices the site follows, and the panel says where the artifacts are.
+
+### Usage
+
+A reproducible analysis, as its front matter:
+
+```yaml
+---
+title: Imputation Accuracy and Inferential Validity
+reproducibility:
+  code:
+    url: https://github.com/example/missing-data
+    ref: 4f2c1ab                              # the commit, tag or branch the results came from
+  data:
+    doi: 10.5281/zenodo.1234567               # or url:; a DOI is linked at doi.org
+    version: v2
+  environment:
+    file: requirements.txt                    # in the repository at that ref
+    container: ghcr.io/example/missing-data:1.4.0
+    archive: https://doi.org/10.5281/zenodo.7654321
+  notebook:
+    url: /notebooks/imputation-accuracy/
+  results:
+    url: https://github.com/example/missing-data/releases/tag/results-v1
+    version: results-v1
+---
+```
+
+- Every artifact is optional; the panel lists the ones given, in the order above. An artifact that is only a URL can be written as one: `notebook: /notebooks/imputation-accuracy/`.
+- `code.ref` is shown apart from the URL, as `at 4f2c1ab`, and linked to that tree on GitHub or GitLab. `environment.file` is a path in the repository, linked at that ref (or at `HEAD` without one); a site path or a URL is linked as itself.
+- `data.doi` (or `results.doi`) is shown as `DOI 10.5281/zenodo.1234567` and, without a `url`, linked at `doi.org`. `version` is shown as `version v2`.
+- A `label` on any artifact replaces the link text, which is otherwise the address without its scheme.
+- A URL must be `http(s)://…`, a site path starting with `/` (which takes the site's baseurl) or `doi:…`; anything else, such as `github.com/example/missing-data` without its scheme or a `javascript:` address, stops the build and names the page and the field.
+- On a research page, `reproducibility` as free text is still the notes under "Code and reproducibility"; as a map it is the panel, and `reproducibility_notes` keeps the notes.
+
+### What Renders
+
+A `<section>` headed "Reproduce this analysis", after the article body (and the series links) and before the revision history, with a description list: "Source code", "Data", "Notebook", "Environment" and "Results", each with its link and identifiers. External links carry `rel="external noopener"`; refs, files and container images are in `<code>`. In print, every link keeps its address.
+
+### Styling
+
+```scss
+.reproduce { }                 // the panel
+.reproduce__item--code { }     // one artifact; --data, --notebook, --environment, --results
+.reproduce__link { }           // the artifact's link
+.reproduce__detail { }         // "at 4f2c1ab", "version v2", "DOI …"
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -633,6 +690,8 @@ code_license: MIT      # the reuse terms of the code samples
 series:                # the article's series and its place in it; see Series Navigation
   id: missing-data
   order: 2
+reproducibility:       # the code, data and environment behind it; see Reproducibility Panel
+  code: {url: https://github.com/example/missing-data, ref: 4f2c1ab}
 ---
 ```
 
