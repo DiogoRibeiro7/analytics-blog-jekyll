@@ -93,6 +93,10 @@ const FEATURE_CONFIG = [
   {
     name: "contact",
     test: () => document.querySelector("[data-contact-form]")
+  },
+  {
+    name: "comments",
+    test: () => document.querySelector("[data-comments-thread]")
   }
 ];
 

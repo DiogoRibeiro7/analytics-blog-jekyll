@@ -25,6 +25,7 @@ Find the guide for what you want to do.
 | Connect the optional dynamic features (correction reports, contact, comments) to a backend | [dynamic-services.md](dynamic-services.md) |
 | Let readers report errors and suggest corrections | [components.md: Correction Reports](components.md#correction-reports) |
 | Take structured contact and collaboration requests | [components.md: Contact Form](components.md#contact-form) |
+| Keep the comments on the site's own backend instead of Giscus, utterances or Disqus | [components.md: Comments](components.md#comments) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

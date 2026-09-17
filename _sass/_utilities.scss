@@ -328,6 +328,11 @@ body.dark-mode .analytics-alert {
   background: rgba($color-surface, 0.65);
 }
 
+// The intro's colour is the light ink; on the dark background it was invisible (1.02:1).
+body.dark-mode .post-comments-intro {
+  color: $dark-ink-700;
+}
+
 body.dark-mode .datalog-comments {
   background: rgba($color-surface-dark, 0.35);
   border-color: rgba($color-border-dark, 0.6);

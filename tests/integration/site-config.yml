@@ -1,7 +1,7 @@
 # Settings the browser suite layers over _config.yml (scripts/run_playwright_suite.js):
 # a backend at an address the specs intercept with page.route, so the forms that
-# post to the dynamic services can be exercised without a server. The deploy
-# workflow builds the site again for GitHub Pages without this file.
+# post to the dynamic services and the comments thread can be exercised without
+# a server. The deploy workflow builds the site again without this file.
 dynamic_services:
   base_url: https://api.example.test
   api_version: v1
@@ -9,3 +9,15 @@ dynamic_services:
   features:
     corrections: true
     contact: true
+    comments: true
+
+# The demo's comments come from Giscus, and its two posts with a comments key
+# name their provider themselves; here every other post shows the thread of
+# the site's own backend, at the same mocked address.
+datalog_plugins:
+  options:
+    datalog-comments:
+      provider: api
+      enabled_by_default: true
+      replies: true
+      moderation: true

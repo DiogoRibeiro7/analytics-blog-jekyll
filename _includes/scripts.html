@@ -49,6 +49,13 @@
   {% assign contact_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} The comments thread of the api provider (components/comments-thread.html), site-wide or for this page. {%- endcomment -%}
+{% assign comments_flag = 'false' %}
+{% assign comments_options = site.datalog_plugins.options['datalog-comments'] %}
+{% if comments_options.provider == 'api' or page.datalog_comments.provider == 'api' %}
+  {% assign comments_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -63,6 +70,7 @@
     body.dataset.featureReadingState = "{{ reading_state_flag }}";
     body.dataset.featureCorrections = "{{ corrections_flag }}";
     body.dataset.featureContact = "{{ contact_flag }}";
+    body.dataset.featureComments = "{{ comments_flag }}";
   })();
 </script>
 
