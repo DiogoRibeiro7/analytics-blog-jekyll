@@ -1,0 +1,64 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - compact
+---
+Navigation within an article series (`series` in front matter, resolved by
+_plugins/series.rb): the series title, "Part k of n", every part in order
+with the current one marked, and the previous and next parts. With
+`compact: true`, the previous and next parts alone, for the end of the
+article. Renders nothing for a page that is not part of a series.
+{%- endcomment -%}
+{%- assign series = include.page.series -%}
+{%- if series.id -%}
+{%- capture part_of -%}{% t 'post.series.part_of' part: series.position total: series.count %}{%- endcapture -%}
+{%- capture nav_label -%}{% t 'post.series.nav_label' title: series.title %}{%- endcapture -%}
+{%- capture series_links -%}
+{%- if series.previous or series.next %}
+  <div class="series-nav__links">
+    {%- if series.previous %}
+    <a class="series-nav__link series-nav__link--previous" rel="prev" href="{{ series.previous.url | relative_url }}">
+      <span class="series-nav__link-label">{% t 'post.series.previous' %}</span>
+      <span class="series-nav__link-title">{{ series.previous.title | escape }}</span>
+    </a>
+    {%- endif %}
+    {%- if series.next %}
+    <a class="series-nav__link series-nav__link--next" rel="next" href="{{ series.next.url | relative_url }}">
+      <span class="series-nav__link-label">{% t 'post.series.next' %}</span>
+      <span class="series-nav__link-title">{{ series.next.title | escape }}</span>
+    </a>
+    {%- endif %}
+  </div>
+{%- endif %}
+{%- endcapture -%}
+{%- if include.compact -%}
+{%- if series.previous or series.next -%}
+<nav class="series-nav series-nav--compact" aria-label="{{ nav_label | strip | escape }}">
+  <p class="series-nav__context">{{ series.title | escape }} · {{ part_of | strip }}</p>
+  {{- series_links }}
+</nav>
+{%- endif -%}
+{%- else -%}
+<nav class="series-nav" aria-labelledby="series-nav-heading">
+  <p class="series-nav__heading" id="series-nav-heading">
+    <span class="series-nav__label">{% t 'post.series.label' %}</span>
+    <span class="series-nav__title">{{ series.title | escape }}</span>
+    <span class="series-nav__position">{{ part_of | strip }}</span>
+  </p>
+  {%- if series.description %}
+  <p class="series-nav__description">{{ series.description | escape }}</p>
+  {%- endif %}
+  <progress class="series-nav__progress" value="{{ series.position }}" max="{{ series.count }}" aria-hidden="true"></progress>
+  <ol class="series-nav__list">
+    {%- for part in series.parts %}
+    <li class="series-nav__part{% if part.current %} series-nav__part--current{% endif %}">
+      <a href="{{ part.url | relative_url }}"{% if part.current %} aria-current="page"{% endif %}>{{ part.title | escape }}</a>
+    </li>
+    {%- endfor %}
+  </ol>
+  {{- series_links }}
+</nav>
+{%- endif -%}
+{%- endif -%}

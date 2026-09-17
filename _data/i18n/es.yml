@@ -193,6 +193,12 @@ post:
     content: "Texto y figuras bajo {{license}}."
     code: "Ejemplos de código bajo {{license}}."
     reserved: Todos los derechos reservados.
+  series:
+    label: Serie
+    part_of: "Parte {{part}} de {{total}}"
+    nav_label: "Serie: {{title}}"
+    previous: Parte anterior
+    next: Parte siguiente
   article_information: Información del artículo
   meta:
     published: Publicado
