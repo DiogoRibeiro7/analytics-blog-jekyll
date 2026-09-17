@@ -23,6 +23,10 @@ url: "https://diogoribeiro7.github.io"
 baseurl: ""
 theme_version: 0.8.0
 
+# The licence of the articles' text and figures (the repository's LICENSE covers
+# the theme's software). A page sets its own with `license:`, or none with `license: false`.
+content_license: CC-BY-4.0
+
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
   name: Diogo Ribeiro

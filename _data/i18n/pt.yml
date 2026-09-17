@@ -189,6 +189,10 @@ post:
       review: Revisão
       editorial: Editorial
       published: Publicado
+  license:
+    content: "Texto e figuras sob {{license}}."
+    code: "Exemplos de código sob {{license}}."
+    reserved: Todos os direitos reservados.
   article_information: Informações do artigo
   meta:
     published: Publicado

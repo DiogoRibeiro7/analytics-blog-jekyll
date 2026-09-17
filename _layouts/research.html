@@ -27,7 +27,8 @@ schema_type: ScholarlyArticle
 {% assign references = page.references %}
 {% assign references_array = references | arrayify %}
 {% assign funding = page.funding %}
-{% assign rights = page.rights | default: page.license %}
+{% assign rights = page.rights %}
+{% assign research_license = page | page_license %}
 {% assign show_publications = page.show_publications | default: false %}
 
 <div class="research-wrapper" itemscope itemtype="https://schema.org/ScholarlyArticle">
@@ -122,6 +123,11 @@ schema_type: ScholarlyArticle
         <div>
           <dt>Rights</dt>
           <dd>{{ rights }}</dd>
+        </div>
+      {% elsif research_license %}
+        <div>
+          <dt>Rights</dt>
+          <dd>{% include components/license-link.html license=research_license %}</dd>
         </div>
       {% endif %}
     </dl>

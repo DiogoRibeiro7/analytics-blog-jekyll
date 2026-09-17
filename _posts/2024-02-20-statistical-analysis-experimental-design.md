@@ -26,6 +26,7 @@ revisions:
   - date: 2024-04-02
     type: editorial
     summary: Reworded the planning checklist.
+code_license: MIT
 ---
 
 ## Planning experiments

@@ -1854,6 +1854,26 @@ body.dark-mode {
   }
 }
 
+// The reuse terms of an article: the copyright, the licence of the text and
+// figures, and of the code samples (_plugins/licenses.rb).
+.content-license {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  max-width: $max-width-reading;
+  margin: 0;
+}
+
+body.dark-mode .content-license {
+  color: $dark-ink-500;
+}
+
+@media print {
+  // On paper, the licence keeps its address.
+  .content-license a[href]::after {
+    content: " (" attr(href) ")";
+  }
+}
+
 // Editorial provenance note (why_this_exists, evidence, methodology, reviewed_at).
 .content-provenance {
   @include callout($color-accent-secondary);

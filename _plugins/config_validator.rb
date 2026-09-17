@@ -10,6 +10,18 @@ module Datalog
     # docs/ is not part of the built site, so errors link to the file on GitHub.
     DOCUMENTATION_URL = "https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md"
 
+    # A licence: an identifier such as CC-BY-4.0 or MIT, or a map naming one.
+    LICENSE = {
+      type: %i[string hash],
+      schema: {
+        id: { type: :string },
+        name: { type: :string },
+        url: { type: :string },
+        holder: { type: %i[string array] },
+        year: { type: %i[integer string] }
+      }
+    }.freeze
+
     SCHEMA = {
       title: { type: :string, required: true },
       url: { type: :string, required: true, format: :url },
@@ -32,6 +44,9 @@ module Datalog
           logo: { type: :string }
         }
       },
+      # The licence of the site's articles (text and figures) and of their code samples.
+      content_license: LICENSE,
+      code_license: LICENSE,
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },
