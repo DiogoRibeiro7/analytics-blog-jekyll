@@ -64,6 +64,7 @@ module MathPreprocessor
           "\x00#{code.size - 1}\x00"
         end
       end
+      processed = normalize_inline_dollars(processed)
       processed = apply_patterns(processed, DISPLAY_PATTERNS, display: true)
       processed = apply_patterns(processed, INLINE_PATTERNS, display: false)
       # A segment set aside can contain the placeholder of an earlier one.
@@ -72,6 +73,24 @@ module MathPreprocessor
     end
 
     private
+
+    # Kramdown accepts $$...$$ inside prose as inline math. A div there is
+    # escaped by Markdown and leaks its attributes into the visible article.
+    # Normalize before wrapping; code is already masked and standalone or
+    # multiline display equations retain their original delimiters.
+    def normalize_inline_dollars(text)
+      text.gsub(DISPLAY_PATTERNS.first[:regex]) do |expression|
+        match = Regexp.last_match
+        body = match[:body]
+        next expression if body.include?("\n")
+
+        before = match.pre_match.split("\n", -1).last.to_s
+        after = match.post_match.split("\n", 2).first.to_s
+        next expression unless before.match?(/\S/) || after.match?(/\S/)
+
+        "$#{body.strip}$"
+      end
+    end
 
     def apply_patterns(text, patterns, display: false)
       patterns.reduce(text) do |result, pattern|
