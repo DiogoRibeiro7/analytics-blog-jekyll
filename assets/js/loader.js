@@ -80,6 +80,40 @@ const FEATURE_CONFIG = [
   {
     name: "notebook",
     test: () => document.body?.dataset.featureNotebook === "true" || document.querySelector(".notebook-output")
+  },
+  {
+    name: "reading-state",
+    // A post with the reading-state panel, or a page listing the saved articles.
+    test: () => document.querySelector("[data-reading-state], [data-reading-list]")
+  },
+  {
+    name: "corrections",
+    test: () => document.querySelector("[data-correction-report]")
+  },
+  {
+    name: "contact",
+    test: () => document.querySelector("[data-contact-form]")
+  },
+  {
+    name: "comments",
+    test: () => document.querySelector("[data-comments-thread]")
+  },
+  {
+    name: "reactions",
+    test: () => document.querySelector("[data-reactions]")
+  },
+  {
+    name: "webmentions",
+    test: () => document.querySelector("[data-webmentions]")
+  },
+  {
+    name: "subscriptions",
+    // A subscribe form, or the page the newsletter's emails link to.
+    test: () => document.querySelector("[data-subscribe], [data-subscription-manage]")
+  },
+  {
+    name: "moderation",
+    test: () => document.querySelector("[data-moderation-inbox]")
   }
 ];
 

@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import { createHash } from "crypto";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs/promises";
@@ -18,7 +19,15 @@ const entryDefinitions = [
   { name: "visualizations", file: "visualizations.js", category: "feature" },
   { name: "notebook", file: "notebook.js", category: "feature" },
   { name: "academic", file: "academic.js", category: "feature" },
-  { name: "analytics-dashboard", file: "analytics-dashboard.js", category: "feature" }
+  { name: "analytics-dashboard", file: "analytics-dashboard.js", category: "feature" },
+  { name: "reading-state", file: "reading-state.js", category: "feature" },
+  { name: "corrections", file: "corrections.js", category: "feature" },
+  { name: "contact", file: "contact.js", category: "feature" },
+  { name: "comments", file: "comments.js", category: "feature" },
+  { name: "reactions", file: "reactions.js", category: "feature" },
+  { name: "webmentions", file: "webmentions.js", category: "feature" },
+  { name: "subscriptions", file: "subscriptions.js", category: "feature" },
+  { name: "moderation", file: "moderation.js", category: "feature" }
 ];
 
 const entryPoints = entryDefinitions.reduce((memo, definition) => {
@@ -81,9 +90,28 @@ async function writeIfChanged(filePath, contents) {
   await fs.writeFile(filePath, contents);
 }
 
+// The files the bundles were built from, with a SHA-256 of each: the project
+// sources esbuild read, this script, and the lockfile that pins what it read
+// from node_modules. A site using a checkout of the theme compares them with
+// the checkout's files (lib/datalog/theme/installed_files.rb), so bundles
+// built from other sources stop the build instead of serving old code.
+async function sourceDigests(meta) {
+  const inputs = Object.keys(meta.inputs)
+    .map((input) => path.relative(rootDir, path.resolve(input)).split(path.sep).join("/"))
+    .filter((input) => !input.startsWith("node_modules/") && !input.startsWith(".."));
+  const files = [...new Set([...inputs, "scripts/build_js.mjs", "package-lock.json"])].sort();
+  const digests = {};
+  for (const file of files) {
+    const contents = await fs.readFile(path.resolve(rootDir, file));
+    digests[file] = createHash("sha256").update(contents).digest("hex");
+  }
+  return digests;
+}
+
 async function writeOutputs(manifest, meta) {
   const manifestPath = path.resolve(outputDir, "manifest.json");
   const metaPath = path.resolve(outputDir, "meta.json");
+  const sourcesPath = path.resolve(outputDir, "sources.json");
   // The layouts read the manifest from _data, so that copy is committed. The
   // metafile is build output like the bundles it describes and stays in dist/:
   // a committed copy fell behind the sources.
@@ -92,9 +120,12 @@ async function writeOutputs(manifest, meta) {
   const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
   const metaJson = `${JSON.stringify(meta, null, 2)}\n`;
 
+  const sourcesJson = `${JSON.stringify({ sources: await sourceDigests(meta) }, null, 2)}\n`;
+
   await Promise.all([
     fs.writeFile(manifestPath, manifestJson),
     fs.writeFile(metaPath, metaJson),
+    fs.writeFile(sourcesPath, sourcesJson),
     writeIfChanged(dataManifestPath, manifestJson)
   ]);
 

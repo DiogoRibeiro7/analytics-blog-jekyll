@@ -1,0 +1,5 @@
+# Article series: the title and description of each, keyed by the id posts
+# name in `series:`. See docs/components.md, "Series Navigation".
+python-data-science:
+  title: Python for Data Science
+  description: From tidy data frames to a notebook-driven machine learning pipeline, in three parts.

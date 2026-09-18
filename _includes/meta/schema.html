@@ -10,12 +10,13 @@ Provides rich structured data for:
 - Article/BlogPosting/TechnicalArticle schema for posts
 - WebPage schema for standard pages
 - Author information with social profile links
-- Publisher organization with branding
+- Publisher: a Person or an Organization, from `publisher` in _config.yml
 - Images, keywords, and content metadata
 
 Defaults to TechnicalArticle for posts, WebPage for other pages.
 {%- endcomment -%}
 {%- assign schema_page = include.page -%}
+{%- include meta/publisher.html -%}
 {%- assign is_post = false -%}
 {%- if schema_page.layout == 'post' or schema_page.collection == 'posts' -%}
   {%- assign is_post = true -%}
@@ -30,7 +31,8 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
 {%- assign schema_nonce = schema_page.csp_nonce | default: page.csp_nonce | default: nonce_lookup[schema_page.path] | default: nonce_lookup[page.path] | default: nonce_lookup[page.url] -%}
 {%- assign description = schema_page.description | default: schema_page.excerpt | strip_html | strip_newlines | truncate: 300 -%}
 {%- assign page_url = schema_page.url | absolute_url -%}
-{%- assign author_name = schema_page.author | default: site.author.name -%}
+{%- assign schema_authors = schema_page | page_authors -%}
+{%- assign schema_contributors = schema_page | page_contributors -%}
 {%- assign word_count = schema_page.content | strip_html | number_of_words -%}
 {%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_page.date -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">
@@ -80,38 +82,35 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {%- if is_post -%}
   "inLanguage": "{{ schema_page.lang | default: site.locale | default: 'en' | split: '_' | first }}",
   {%- endif -%}
-  "author": {
-    "@type": "Person",
-    "name": {{ author_name | jsonify }},
-    "url": {{ site.url | jsonify }}
-    {%- if site.author.orcid -%},
-    "sameAs": [
-      {{ site.author.orcid | jsonify }}
-      {%- if site.author.github -%},
-      "https://github.com/{{ site.author.github }}"
-      {%- endif -%}
-      {%- if site.author.twitter -%},
-      "https://twitter.com/{{ site.author.twitter }}"
-      {%- endif -%}
-      {%- if site.author.linkedin -%},
-      "https://linkedin.com/in/{{ site.author.linkedin }}"
-      {%- endif -%}
-      {%- if site.author.researchgate -%},
-      {{ site.author.researchgate | jsonify }}
-      {%- endif -%}
-    ]
-    {%- endif -%}
-  },
+  {%- comment -%} One author is an object, as it always was; several are a list; a site without an author has none. {%- endcomment -%}
+  {%- if schema_authors.size > 0 -%}
+  "author": {% if schema_authors.size > 1 %}[{% endif %}
+  {%- for author in schema_authors -%}
+  {% include meta/person-json.html person=author %}{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  {% if schema_authors.size > 1 %}]{% endif %},
+  {%- endif -%}
+  {%- if schema_contributors.size > 0 -%}
+  "contributor": [
+  {%- for contributor in schema_contributors -%}
+  {% include meta/person-json.html person=contributor %}{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ],
+  {%- endif -%}
   "publisher": {
-    "@type": "Organization",
-    "name": {{ site.author.affiliation | default: site.title | jsonify }},
-    "url": {{ site.url | jsonify }},
+    "@type": {{ publisher_type | jsonify }},
+    "name": {{ publisher_name | jsonify }},
+    "url": {{ publisher_url | jsonify }}
+    {%- if publisher_logo -%},
     "logo": {
       "@type": "ImageObject",
-      "url": {{ '/assets/img/favicons/android-chrome-512x512.png' | absolute_url | jsonify }},
+      "url": {{ publisher_logo | jsonify }}
+      {%- if publisher_logo_default -%},
       "width": 512,
       "height": 512
+      {%- endif -%}
     }
+    {%- endif -%}
   }
   {%- if schema_page.doi -%},
   "identifier": {
@@ -122,6 +121,41 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {%- endif -%}
   {%- if schema_page.citation_key -%},
   "citation": {{ schema_page.citation_key | jsonify }}
+  {%- endif -%}
+  {%- comment -%} The licence of the text and figures, and who holds the copyright. {%- endcomment -%}
+  {%- assign content_license = schema_page | page_license -%}
+  {%- if content_license -%}
+  {%- if content_license.url -%},
+  "license": {{ content_license.url | jsonify }}
+  {%- endif -%}
+  {%- if content_license.year -%},
+  "copyrightYear": {{ content_license.year | jsonify }}
+  {%- endif -%}
+  {%- if content_license.holder -%},
+  "copyrightHolder": {% if content_license.people %}{% if content_license.holders.size > 1 %}[{% endif %}
+  {%- for holder in content_license.holders -%}
+  { "@type": "Person", "name": {{ holder | jsonify }} }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  {% if content_license.holders.size > 1 %}]{% endif %}{% else %}{ "@type": "Organization", "name": {{ content_license.holder | jsonify }} }{% endif %}
+  {%- endif -%}
+  {%- endif -%}
+  {%- comment -%} Each correction in the revision history, with its date, summary and link. {%- endcomment -%}
+  {%- assign corrections = schema_page.revisions | where: 'type', 'correction' -%}
+  {%- if corrections and corrections.size > 0 -%},
+  "correction": [
+  {%- for correction in corrections -%}
+  {
+    "@type": "CorrectionComment",
+    "datePublished": "{{ correction.date | date_to_xmlschema }}",
+    "text": {{ correction.summary | jsonify }}
+    {%- if correction.details_url -%}
+    {%- assign correction_url = correction.details_url -%}
+    {%- unless correction_url contains '://' -%}{%- assign correction_url = correction_url | absolute_url -%}{%- endunless -%},
+    "url": {{ correction_url | jsonify }}
+    {%- endif -%}
+  }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
   {%- endif -%}
 }
 </script>

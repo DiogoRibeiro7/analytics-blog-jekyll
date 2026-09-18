@@ -3,8 +3,7 @@ layout: default
 schema_type: ScholarlyArticle
 ---
 {% assign date_format = site.date_format | default: '%B %-d, %Y' %}
-{% assign authors_source = page.authors | default: page.author | default: site.author %}
-{% assign authors = authors_source | arrayify %}
+{% assign authors = page | page_authors %}
 {% assign publication_name = page.publication | default: page.journal | default: page.conference %}
 {% assign publication_status = page.publication_status | default: page.status %}
 {% assign doi = page.doi %}
@@ -20,7 +19,13 @@ schema_type: ScholarlyArticle
 {% assign methodology_content = page.methodology %}
 {% assign results_content = page.results %}
 {% assign data_availability = page.data_availability %}
-{% assign reproducibility = page.reproducibility | default: page.reproducibility_notes %}
+{%- comment -%} `reproducibility` is free text here, or a map of artifacts for the panel (components/reproducibility.html). {%- endcomment -%}
+{% capture reproducibility_shape %}{{ page.reproducibility | jsonify | slice: 0, 1 }}{% endcapture %}
+{% if reproducibility_shape == '{' %}
+  {% assign reproducibility = page.reproducibility_notes %}
+{% else %}
+  {% assign reproducibility = page.reproducibility | default: page.reproducibility_notes %}
+{% endif %}
 {% assign peer_review = page.peer_review | default: page.peer_review_notes %}
 {% assign version_history = page.version_history %}
 {% assign appendices = page.appendices %}
@@ -28,8 +33,8 @@ schema_type: ScholarlyArticle
 {% assign references = page.references %}
 {% assign references_array = references | arrayify %}
 {% assign funding = page.funding %}
-{% assign rights = page.rights | default: page.license %}
-{% assign affiliation_default = site.author.affiliation %}
+{% assign rights = page.rights %}
+{% assign research_license = page | page_license %}
 {% assign show_publications = page.show_publications | default: false %}
 
 <div class="research-wrapper" itemscope itemtype="https://schema.org/ScholarlyArticle">
@@ -57,9 +62,9 @@ schema_type: ScholarlyArticle
       <h2 class="visually-hidden">Authors</h2>
       <ul class="research-author-list">
         {% for author in authors %}
-          {% assign author_name = author.name | default: author %}
-          {% assign author_affiliation = author.affiliation | default: author.institution | default: affiliation_default %}
-          {% assign author_orcid = author.orcid | default: site.author.orcid %}
+          {% assign author_name = author.name | escape %}
+          {% assign author_affiliation = author.affiliation | escape %}
+          {% assign author_orcid = author.orcid %}
           {% assign author_email = author.email | default: author.contact %}
           <li class="research-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
             <span class="research-author-name" itemprop="name">{{ author_name }}</span>
@@ -124,6 +129,11 @@ schema_type: ScholarlyArticle
         <div>
           <dt>Rights</dt>
           <dd>{{ rights }}</dd>
+        </div>
+      {% elsif research_license %}
+        <div>
+          <dt>Rights</dt>
+          <dd>{% include components/license-link.html license=research_license %}</dd>
         </div>
       {% endif %}
     </dl>
@@ -320,6 +330,8 @@ ER  -
       {% endif %}
     </section>
   {% endif %}
+
+  {% include components/reproducibility.html page=page %}
 
   {% if supplementary or appendices %}
     <section class="research-appendices" aria-labelledby="appendix-heading">

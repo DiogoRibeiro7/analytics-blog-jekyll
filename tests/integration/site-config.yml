@@ -1,0 +1,43 @@
+# Settings the browser suite layers over _config.yml (scripts/run_playwright_suite.js):
+# a backend at an address the specs intercept with page.route, so the forms that
+# post to the dynamic services and the comments thread can be exercised without
+# a server. The deploy workflow builds the site again without this file.
+dynamic_services:
+  base_url: https://api.example.test
+  api_version: v1
+  timeout_ms: 3000
+  features:
+    corrections: true
+    contact: true
+    comments: true
+    reactions: true
+    webmentions: true
+    subscriptions: true
+    moderation: true
+
+# The moderation inbox, against the same mocked address; the specs play a
+# service that knows the moderator, or does not.
+moderation:
+  enabled: true
+  sign_in_url: https://api.example.test/auth/login
+
+# The newsletter form in the footer and at the end of posts.
+subscriptions:
+  placement:
+    - footer
+    - post
+
+# A receiver to advertise; the mentions shown come from the mocked services.
+webmentions:
+  endpoint: https://mentions.example.test/webmention
+
+# The demo's comments come from Giscus, and its two posts with a comments key
+# name their provider themselves; here every other post shows the thread of
+# the site's own backend, at the same mocked address.
+datalog_plugins:
+  options:
+    datalog-comments:
+      provider: api
+      enabled_by_default: true
+      replies: true
+      moderation: true

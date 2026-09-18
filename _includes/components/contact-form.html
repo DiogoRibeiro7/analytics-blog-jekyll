@@ -1,0 +1,120 @@
+{%- comment -%}
+---
+optional: []
+---
+The contact and collaboration form (assets/js/contact/form.js): a structured
+message to the author, research collaboration, consulting, speaking,
+mentoring, a reproducibility question, a media request or anything else,
+sent to the site's dynamic services (docs/dynamic-services.md). Rendered by
+the page layout when the page says `contact_form: true`, or included
+anywhere. Without a backend offering the feature it falls back to the
+site's email address, so the page is never empty. Categories come from
+`contact.categories`, their labels and prompts from `contact.categories.*`
+and `contact.prompts.*` in _data/i18n; `contact.prompts` in _config.yml
+overrides a prompt.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign contact = site.contact -%}
+{%- if contact.enabled != false -%}
+{%- assign mail = site.contact_email | default: site.author.email -%}
+{%- if services.base_url and services.base_url != '' and services.features.contact != false -%}
+{%- assign categories = contact.categories -%}
+{%- if categories == nil or categories.size == 0 -%}
+  {%- assign categories = "research-collaboration,consulting,speaking,mentoring,reproducibility,media,other" | split: "," -%}
+{%- endif -%}
+{%- capture labels_json -%}
+{
+  "pending": {{ 'contact.pending' | t | jsonify }},
+  "success": {{ 'contact.success' | t | jsonify }},
+  "name_required": {{ 'contact.name_required' | t | jsonify }},
+  "email_invalid": {{ 'contact.email_invalid' | t | jsonify }},
+  "subject_required": {{ 'contact.subject_required' | t | jsonify }},
+  "message_short": {{ 'contact.message_short' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+{%- capture prompts_json -%}
+{
+  {%- for category in categories -%}
+  {%- assign prompt = nil -%}
+  {%- if contact.prompts -%}{%- assign prompt = contact.prompts[category] -%}{%- endif -%}
+  {%- unless prompt -%}
+    {%- assign prompt_key = "contact.prompts." | append: category -%}
+    {%- assign prompt = prompt_key | t -%}
+    {%- if prompt == prompt_key -%}{%- assign prompt = nil -%}{%- endif -%}
+  {%- endunless -%}
+  {%- if prompt -%}{{ category | jsonify }}: {{ prompt | jsonify }},{%- endif -%}
+  {%- endfor -%}
+  "": ""
+}
+{%- endcapture -%}
+{%- assign privacy = contact.privacy_notice | default: nil -%}
+{%- unless privacy -%}{%- assign privacy = 'contact.privacy' | t -%}{%- endunless -%}
+<section class="contact-form" id="contact" data-contact-form data-source-url="{{ page.url | absolute_url }}">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-contact-labels>{{ labels_json | strip }}</script>
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-contact-prompts>{{ prompts_json | strip }}</script>
+  <form class="service-form contact-form__form" id="contact-form" data-state="idle" aria-busy="false" novalidate>
+    <p class="service-form__intro">{% t 'contact.intro' %}</p>
+    <fieldset class="service-form__fields">
+      <legend class="visually-hidden">{% t 'contact.legend' %}</legend>
+      <div class="service-form__field">
+        <label for="contact-category">{% t 'contact.category' %}</label>
+        <select id="contact-category" name="category">
+          {%- for category in categories %}
+          {%- assign category_key = "contact.categories." | append: category %}
+          <option value="{{ category | escape }}">{{ category_key | t }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="service-form__row">
+        <div class="service-form__field">
+          <label for="contact-name">{% t 'contact.name' %}</label>
+          <input id="contact-name" name="name" type="text" required autocomplete="name">
+          <p class="service-form__error" data-error-for="name" hidden></p>
+        </div>
+        <div class="service-form__field">
+          <label for="contact-email">{% t 'contact.email' %}</label>
+          <input id="contact-email" name="email" type="email" required autocomplete="email">
+          <p class="service-form__error" data-error-for="email" hidden></p>
+        </div>
+      </div>
+      <div class="service-form__field">
+        <label for="contact-affiliation">{% t 'contact.affiliation' %}</label>
+        <input id="contact-affiliation" name="affiliation" type="text" autocomplete="organization">
+      </div>
+      <div class="service-form__field">
+        <label for="contact-subject">{% t 'contact.subject' %}</label>
+        <input id="contact-subject" name="subject" type="text" required>
+        <p class="service-form__error" data-error-for="subject" hidden></p>
+      </div>
+      <div class="service-form__field">
+        <label for="contact-message">{% t 'contact.message' %}</label>
+        <textarea id="contact-message" name="message" rows="7" required minlength="20" aria-describedby="contact-message-hint"></textarea>
+        <p class="service-form__hint" id="contact-message-hint" data-contact-hint>{% t 'contact.message_hint' %}</p>
+        <p class="service-form__error" data-error-for="message" hidden></p>
+      </div>
+      <div class="service-form__trap" aria-hidden="true">
+        <label for="contact-website">Website</label>
+        <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+    </fieldset>
+    <p class="service-form__privacy">{{ privacy }}{% if contact.retention %} {{ contact.retention }}{% endif %}</p>
+    <div class="service-form__actions">
+      <button type="submit" class="post-tool">{% t 'contact.send' %}</button>
+    </div>
+    <p class="service-form__status" data-form-status role="status" aria-live="polite" hidden></p>
+  </form>
+</section>
+{%- elsif mail -%}
+{%- capture mail_link -%}<a href="mailto:{{ mail }}">{{ mail }}</a>{%- endcapture -%}
+<section class="contact-form contact-form--fallback" id="contact">
+  <p class="contact-form__fallback">{% t 'contact.fallback' email: mail_link %}</p>
+</section>
+{%- endif -%}
+{%- endif -%}

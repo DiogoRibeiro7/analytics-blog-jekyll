@@ -67,6 +67,9 @@
         <li><a href="{{ '/feed.xml' | relative_url }}">RSS feed</a></li>
         {% endif %}
       </ul>
+      {%- comment -%} The newsletter form, on a site with a backend that takes subscriptions {%- endcomment -%}
+      {% assign subscribe_placement = site.subscriptions.placement | default: 'footer' %}
+      {% if subscribe_placement contains 'footer' %}{% include components/subscribe-form.html where='footer' %}{% endif %}
     </section>
   </div>
   <div class="container footer-bottom">

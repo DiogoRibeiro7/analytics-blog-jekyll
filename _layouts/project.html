@@ -209,10 +209,10 @@ show_title: false # this layout renders the page's <h1>
   {% endif %}
 
   {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
-  {% assign citation_authors = page.authors | default: page.author | default: site.author.name %}
+  {% assign citation_authors = page | page_authors %}
   {% assign citation_date = page.date | default: page.last_updated %}
   {% assign citation_url = page.url | absolute_url %}
-  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key publisher=site.author.affiliation citation_type='software' doi=page.doi %}
+  {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key citation_type='software' doi=page.doi %}
 
   {% include components/open-science-badges.html %}
 

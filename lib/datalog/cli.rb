@@ -422,6 +422,14 @@ module Datalog
       end
     end
 
+    desc "critical-css", "Write the critical CSS a production build inlines, into _includes/critical-css"
+    method_option :critical, type: :array,
+                             desc: "Command that runs critical (default: node_modules/.bin/critical or npx critical@8)"
+    def critical_css
+      require_relative "critical_css"
+      CriticalCss.command(site_root, options[:critical], ->(*line) { say_status(*line) })
+    end
+
     register(New, "new", "new COMMAND", "Scaffold posts, notebooks, and portfolio projects")
 
     private
@@ -439,7 +447,7 @@ module Datalog
     end
 
     def ruby_supported?
-      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
+      Gem::Requirement.new(Datalog::Theme::RUBY_REQUIREMENT).satisfied_by?(Gem::Version.new(RUBY_VERSION))
     end
 
     def gemfile_path(root)

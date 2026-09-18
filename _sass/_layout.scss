@@ -1029,6 +1029,24 @@ body.dark-mode .post-author-affiliation {
   color: $dark-ink-500;
 }
 
+// Bylines list one or more people, side by side while they fit.
+.author-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-list__role {
+  color: $color-ink-500;
+}
+
+body.dark-mode .author-list__role {
+  color: $dark-ink-500;
+}
+
 .post-notebook-link {
   font-weight: 500;
 }
@@ -1090,6 +1108,12 @@ body.dark-mode .post-category {
   @include respond-to(lg) {
     grid-template-columns: 14rem minmax(0, 1fr);
   }
+}
+
+// Without a table of contents (no headings, or `toc: false`) the article is the
+// wrapper's first child and would land in the 14rem column meant for the contents.
+.post-body-wrapper > .post-content:first-child {
+  grid-column: 1 / -1;
 }
 
 .post-content {
@@ -1731,6 +1755,366 @@ body.wide .post-content {
   blockquote,
   .lead {
     max-width: none;
+  }
+}
+
+// The newest correction or update of an article, under its metadata, and its
+// revision history after the body (_plugins/revisions.rb).
+.revision-notice {
+  @include callout($color-accent-tertiary);
+  font-size: map.get($font-size-scale, sm);
+
+  p {
+    margin: 0;
+    max-width: $max-width-reading;
+  }
+
+  // Links keep their contrast on the tinted background.
+  a {
+    color: $color-accent-primary-text;
+
+    &:hover,
+    &:focus {
+      color: $color-accent-secondary-text;
+    }
+  }
+}
+
+.revision-notice--correction {
+  @include callout($color-warning);
+}
+
+body.dark-mode .revision-notice {
+  border-left-color: $dark-accent-tertiary;
+}
+
+body.dark-mode .revision-notice--correction {
+  border-left-color: $dark-warning;
+}
+
+.revision-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+.revision-history__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 1) map.get($spacing, 3);
+  max-width: $max-width-reading;
+  font-size: map.get($font-size-scale, sm);
+}
+
+.revision-history__date {
+  font-weight: 600;
+  color: $color-ink-700;
+}
+
+.revision-history__type {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.5rem;
+  border-radius: map.get($radius, sm);
+  background: rgba($color-accent-secondary, 0.1);
+  color: $color-accent-secondary-text;
+}
+
+.revision-history__item--correction .revision-history__type {
+  background: rgba($color-warning, 0.12);
+  color: $color-warning-text;
+}
+
+.revision-history__item--published .revision-history__type {
+  background: rgba($color-neutral-500, 0.12);
+  color: $color-ink-700;
+}
+
+.revision-history__summary {
+  flex-basis: 100%;
+}
+
+body.dark-mode {
+  .revision-history__date {
+    color: $dark-ink-700;
+  }
+
+  .revision-history__type {
+    background: rgba($dark-accent-secondary, 0.15);
+    color: $dark-accent-secondary;
+  }
+
+  .revision-history__item--correction .revision-history__type {
+    background: rgba($dark-warning, 0.15);
+    color: $dark-warning;
+  }
+
+  .revision-history__item--published .revision-history__type {
+    background: rgba($dark-ink-500, 0.15);
+    color: $dark-ink-700;
+  }
+}
+
+// The reuse terms of an article: the copyright, the licence of the text and
+// figures, and of the code samples (_plugins/licenses.rb).
+.content-license {
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+  max-width: $max-width-reading;
+  margin: 0;
+}
+
+body.dark-mode .content-license {
+  color: $dark-ink-500;
+}
+
+@media print {
+  // On paper, the licence keeps its address.
+  .content-license a[href]::after {
+    content: " (" attr(href) ")";
+  }
+}
+
+// Navigation within an article series (_plugins/series.rb): the parts in
+// order at the top of the article, the previous and next parts at its end.
+.series-nav {
+  @include callout($color-accent-secondary);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+
+  // Links keep their contrast on the tinted background.
+  a {
+    color: $color-accent-primary-text;
+
+    &:hover,
+    &:focus {
+      color: $color-accent-secondary-text;
+    }
+  }
+}
+
+.series-nav--compact {
+  margin-top: map.get($spacing, 5);
+}
+
+.series-nav__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 1) map.get($spacing, 3);
+  margin: 0 0 map.get($spacing, 2);
+}
+
+.series-nav__label,
+.series-nav__link-label {
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $color-ink-500;
+}
+
+.series-nav__title {
+  font-size: map.get($font-size-scale, base);
+  font-weight: 600;
+  color: $color-ink-900;
+}
+
+.series-nav__position,
+.series-nav__context,
+.series-nav__description {
+  margin: 0 0 map.get($spacing, 2);
+  color: $color-ink-500;
+}
+
+.series-nav__position {
+  margin: 0;
+}
+
+.series-nav__progress {
+  display: block;
+  width: 100%;
+  height: 0.375rem;
+  margin: 0 0 map.get($spacing, 3);
+  border: 0;
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.15);
+  appearance: none;
+
+  &::-webkit-progress-bar {
+    background: transparent;
+  }
+
+  &::-webkit-progress-value {
+    background: $color-accent-secondary;
+    border-radius: map.get($radius, sm);
+  }
+
+  &::-moz-progress-bar {
+    background: $color-accent-secondary;
+    border-radius: map.get($radius, sm);
+  }
+}
+
+.series-nav__list {
+  display: grid;
+  gap: map.get($spacing, 1);
+  margin: 0 0 map.get($spacing, 3);
+  padding-left: 1.5rem;
+}
+
+.series-nav__part--current a {
+  font-weight: 600;
+  color: $color-ink-900;
+  text-decoration: none;
+}
+
+.series-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: map.get($spacing, 2) map.get($spacing, 4);
+}
+
+.series-nav__link {
+  display: grid;
+  gap: 0;
+  font-weight: 600;
+}
+
+.series-nav__link--next {
+  margin-left: auto;
+  text-align: right;
+}
+
+body.dark-mode {
+  .series-nav {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .series-nav__label,
+  .series-nav__link-label,
+  .series-nav__position,
+  .series-nav__context,
+  .series-nav__description {
+    color: $dark-ink-500;
+  }
+
+  .series-nav__title,
+  .series-nav__part--current a {
+    color: $dark-ink-900;
+  }
+
+  .series-nav__progress {
+    background: rgba($dark-ink-500, 0.2);
+
+    &::-webkit-progress-value,
+    &::-moz-progress-bar {
+      background: $dark-accent-secondary;
+    }
+  }
+}
+
+@media print {
+  .series-nav {
+    border-left-color: currentColor;
+    background: none;
+  }
+
+  .series-nav__progress {
+    display: none;
+  }
+}
+
+// The computational artifacts behind an article (_plugins/reproducibility.rb).
+.reproduce {
+  @include callout($color-accent-tertiary);
+  font-size: map.get($font-size-scale, sm);
+  max-width: $max-width-reading;
+
+  // Links keep their contrast on the tinted background.
+  a {
+    color: $color-accent-primary-text;
+
+    &:hover,
+    &:focus {
+      color: $color-accent-secondary-text;
+    }
+  }
+
+  code {
+    font-size: 0.9em;
+  }
+}
+
+.reproduce__heading {
+  margin: 0 0 map.get($spacing, 1);
+  font-size: map.get($font-size-scale, base);
+}
+
+.reproduce__intro {
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-500;
+}
+
+.reproduce__list {
+  display: grid;
+  gap: map.get($spacing, 2);
+  margin: 0;
+
+  > div {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: map.get($spacing, 1) map.get($spacing, 3);
+    align-items: baseline;
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: map.get($spacing, 1) map.get($spacing, 3);
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.reproduce__detail {
+  color: $color-ink-700;
+}
+
+body.dark-mode {
+  .reproduce {
+    border-left-color: $dark-accent-tertiary;
+  }
+
+  .reproduce__intro {
+    color: $dark-ink-500;
+  }
+
+  .reproduce__detail {
+    color: $dark-ink-700;
+  }
+}
+
+@media print {
+  .reproduce {
+    border-left-color: currentColor;
+    background: none;
+  }
+
+  // On paper, every artifact keeps its address.
+  .reproduce a[href]::after {
+    content: " (" attr(href) ")";
   }
 }
 

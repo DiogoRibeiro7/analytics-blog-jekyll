@@ -19,8 +19,13 @@ module Datalog
       REQUIRED_FIELDS = {
         "giscus" => %w[repo repo_id category category_id],
         "utterances" => %w[repo],
-        "disqus" => %w[shortname]
+        "disqus" => %w[shortname],
+        "api" => []
       }.freeze
+
+      # The api provider's thread (components/comments-thread.html) is a Liquid
+      # include, so it shares the service forms' labels and states.
+      API_INCLUDE = "{% include components/comments-thread.html %}"
 
       def initialize(site, config = {})
         super
@@ -28,7 +33,9 @@ module Datalog
           "provider" => "giscus",
           "mapping" => "pathname",
           "theme" => "light",
-          "enabled_by_default" => false
+          "enabled_by_default" => false,
+          "replies" => true,
+          "moderation" => true
         }.merge(@config)
         @memo = {}
       end
@@ -67,9 +74,12 @@ module Datalog
         settings = @memo[key]
         return "" unless settings
 
+        embed = settings["embed"]
+        embed = render_api(context) if settings["provider"] == "api" && embed.to_s.empty?
+
         <<~HTML
           <div class="datalog-comments" aria-label="Comments">
-            #{settings['embed']}
+            #{embed}
           </div>
         HTML
       end
@@ -109,6 +119,8 @@ module Datalog
           render_utterances(settings)
         when "disqus"
           render_disqus(document, settings)
+        when "api"
+          "" # the thread is rendered by the tag, in its own context
         else
           %(<p class="datalog-comments-unsupported">Comments provider "#{settings['provider']}" is not supported.</p>)
         end
@@ -138,6 +150,12 @@ module Datalog
           theme="#{settings['theme']}"
           crossorigin="anonymous"
           async></script>)
+      end
+
+      # The thread of the site's own backend (#253), rendered in the tag's own
+      # context so the include sees the page and the site.
+      def render_api(context)
+        Liquid::Template.parse(API_INCLUDE).render(context)
       end
 
       def render_disqus(document, settings)
@@ -171,8 +189,20 @@ module Datalog
       end
 
       def missing_required_fields(provider, settings)
+        return api_missing(settings) if provider.to_s == "api"
+
         required = REQUIRED_FIELDS.fetch(provider.to_s, [])
         required.select { |key| settings[key].to_s.strip.empty? }
+      end
+
+      # The api provider needs a backend: its own endpoint, or the site's
+      # dynamic services (docs/dynamic-services.md).
+      def api_missing(settings)
+        services = site.config["dynamic_services"]
+        base = services.is_a?(Hash) ? services["base_url"].to_s.strip : ""
+        return [] unless settings["endpoint"].to_s.strip.empty? && base.empty?
+
+        ["endpoint (or dynamic_services.base_url)"]
       end
 
       def logger

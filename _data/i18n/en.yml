@@ -156,6 +156,228 @@ article:
     published: Published
     updated: Updated
     author: Author
+    authors: Authors
+corrections:
+  summary: Report an error or suggest a correction
+  intro: "Spotted a mistake in the mathematics, the facts, a citation, the code or the reproducibility? Say what and where. The report goes to the author, not onto the page."
+  category: What kind of problem
+  section: Where
+  section_any: The whole article
+  message: What is wrong, and what should it say
+  message_hint: At least 20 characters. Quote the passage if you can.
+  contact_email: Your email (optional)
+  contact_hint: Only if you want a reply. It is never shown on the site.
+  send: Send the report
+  pending: Sending the report…
+  success: "Thank you. The report reached the author and stays private; a correction would appear in the article's revision history."
+  message_short: "Say a little more: at least {{min}} characters."
+  email_invalid: That does not look like an email address.
+  categories:
+    mathematical-error: Mathematical error
+    factual-error: Factual error
+    citation: Broken or wrong citation
+    code: Outdated or broken code
+    reproducibility: Reproducibility failure
+    typo: Typo that changes the meaning
+    accessibility: Accessibility problem
+    other: Something else
+moderation:
+  unavailable: Moderation is not set up on this site.
+  boundary: "This page is only a window. Signing in, and what an account may do, are decided by the moderation service on every request; nothing here is protected by the page itself."
+  filters: Filters
+  type: What
+  status: Status
+  category: Report category
+  path: Page path
+  since: Since
+  search: Text
+  apply: Apply
+  reset: Reset
+  queue: Awaiting a decision
+  any_type: Everything
+  any_category: Any category
+  loading: Loading the queue…
+  empty: Nothing here.
+  more: Load more
+  working: Working…
+  done: "Done: {{action}}."
+  unauthorized: You are not signed in to the moderation service.
+  forbidden: This account may not moderate this site.
+  sign_in: Sign in
+  sign_in_hint: Sign in to the moderation service, then reload this page.
+  link_required: "Give the address of the issue, pull request or revision (http:// or https://)."
+  note: Note, kept with the action
+  link: Issue, pull request or revision
+  in_reply_to: In reply to
+  types:
+    comment: Comment
+    correction: Correction report
+    abuse: Abuse report
+  statuses:
+    pending: Pending
+    approved: Approved
+    spam: Spam
+    hidden: Hidden
+    deleted: Deleted
+    new: New
+    reviewed: Reviewed
+    accepted: Accepted
+    rejected: Rejected
+    resolved: Resolved
+    open: Open
+    dismissed: Dismissed
+  actions:
+    approve: Approve
+    spam: Mark as spam
+    hide: Hide
+    delete: Delete
+    reviewed: Mark reviewed
+    accept: Accept for editorial action
+    reject: Reject
+    resolve: Resolve with a link
+    dismiss: Dismiss
+subscriptions:
+  topics_legend: What to receive
+  topics:
+    new-articles: New articles
+    research-notes: Research notes
+    datasets: Datasets
+  consent: "You will get these emails and nothing else, and every one of them has an unsubscribe link."
+  consent_double: "You will get one email asking you to confirm; nothing else is sent until you do. Every email has an unsubscribe link."
+  privacy_link: Privacy policy
+  sending: Subscribing…
+  pending: Almost there. Check your inbox and follow the link to confirm.
+  confirmed: You are subscribed. Thank you.
+  duplicate: This address is already subscribed.
+  email_invalid: That does not look like an email address.
+  topics_required: Pick at least one.
+  manage:
+    idle: "This page confirms, changes or ends a newsletter subscription. Open it from the link in one of the emails."
+    unavailable: Subscriptions are not set up on this site.
+    confirming: Confirming your subscription…
+    confirmed: Your subscription is confirmed. Thank you.
+    invalid_link: This link is not valid any more. Subscribe again to get a new one.
+    unsubscribe_question: Stop all emails to this address?
+    unsubscribe: Unsubscribe
+    unsubscribing: Unsubscribing…
+    unsubscribed: You are unsubscribed. No more emails will be sent.
+    loading: Loading your preferences…
+    preferences: What you receive
+    save: Save
+    saving: Saving…
+    saved: Your preferences are saved.
+webmentions:
+  heading: Mentioned elsewhere
+  intro: "Links, replies and reposts from other websites, as the site's receiver verified them. These are not comments on this site."
+  loading: Looking for mentions from other websites…
+  empty: No mentions from other websites yet.
+  retry: Try again
+  types:
+    mention: Mention
+    reply: Reply
+    repost: Repost
+    like: Like
+reactions:
+  prompt: Was this useful?
+  sending: Sending your feedback…
+  thanks: Thank you. Your feedback was counted.
+  already: Your feedback was already counted.
+  types:
+    useful: Useful
+    clear: Clear
+    interesting: Interesting
+    needs-clarification: Needs clarification
+comments:
+  loading: Loading the discussion…
+  empty: No comments yet. Start the discussion.
+  noscript: The discussion needs JavaScript to load.
+  retry: Try again
+  reply: Reply
+  replying_to: "Replying to {{name}}"
+  cancel_reply: Cancel the reply
+  anonymous: Anonymous
+  pending: Awaiting moderation
+  form_heading: Join the discussion
+  name: Your name
+  email: Your email (optional)
+  email_hint: Never shown. Only if you want to be told of replies.
+  url: Your website (optional)
+  body: Your comment
+  send: Post the comment
+  sending: Posting the comment…
+  posted: Thank you. Your comment is up.
+  posted_pending: Thank you. Your comment is waiting to be read and will appear once approved.
+  moderated: Comments are read before they appear. Your email is never shown.
+  privacy: Your email is never shown.
+  name_required: Say who you are.
+  email_invalid: That does not look like an email address.
+  url_invalid: A website address starts with http:// or https://.
+  body_short: Say a little more.
+contact:
+  legend: Contact
+  intro: "Say what you have in mind and how to reach you. The message goes to the author, not onto the site."
+  category: What is this about
+  name: Your name
+  email: Your email
+  affiliation: Affiliation (optional)
+  subject: Subject
+  message: Message
+  message_hint: At least 20 characters.
+  privacy: "Your message and your address go to the author and are never shown on the site."
+  send: Send the message
+  pending: Sending the message…
+  success: "Thank you. The message reached the author, who will reply to the address you gave."
+  name_required: Say who you are.
+  email_invalid: That does not look like an email address.
+  subject_required: Give the message a subject.
+  message_short: "Say a little more: at least {{min}} characters."
+  fallback: "This site has no message service; write to {{email}}."
+  categories:
+    research-collaboration: Research collaboration
+    consulting: Consulting or a project
+    speaking: Speaking or teaching
+    mentoring: Mentoring
+    reproducibility: A dataset or reproducibility question
+    media: Media or an interview
+    other: Something else
+  prompts:
+    research-collaboration: "Say which question, data or method you have in mind, and the timescale."
+    consulting: "Say what the project is, its scope, and when you need it."
+    speaking: "Say the event, the date, where (or online), the audience and the topic."
+    mentoring: "Say where you are now and what you want to get better at."
+    reproducibility: "Name the article or dataset, and what did not reproduce or is unclear."
+    media: "Say the outlet, the topic and your deadline."
+dynamic_services:
+  errors:
+    disabled: This feature is not set up on this site.
+    unsupported: The service behind this site does not offer this feature.
+    version: This site and its service expect different API versions; the site's maintainer needs to update one of them.
+    timeout: The service took too long to answer. Try again in a moment.
+    network: The service could not be reached. Check your connection and try again.
+    malformed: The service answered in a way this site could not read.
+    unauthorized: You need to sign in for this.
+    forbidden: You are not allowed to do this.
+    not_found: The service has nothing at that address.
+    conflict: This was already done, or something changed in the meantime.
+    invalid: Some of what you entered needs a correction.
+    rate_limited: Too many requests for now. Please wait a little and try again.
+    server: The service ran into a problem. Try again later.
+    http: The service refused the request.
+    aborted: The request was cancelled.
+    reference: "Reference: {{id}}"
+references:
+  figure: Figure
+  table: Table
+  theorem: Theorem
+  lemma: Lemma
+  proposition: Proposition
+  corollary: Corollary
+  definition: Definition
+  assumption: Assumption
+  example: Example
+  remark: Remark
+  proof: Proof
+  proof_of: "Proof of {{target}}"
 post:
   provenance:
     heading: Author and editorial note
@@ -163,10 +385,85 @@ post:
     evidence: Evidence used
     method: Method
     reviewed: Reviewed
+  revisions:
+    heading: Revision history
+    corrected_on: "Corrected on {{date}}."
+    updated_on: "Updated on {{date}}."
+    details: Details
+    history_link: Revision history
+    types:
+      correction: Correction
+      update: Update
+      review: Review
+      editorial: Editorial
+      published: Published
+  license:
+    content: "Text and figures under {{license}}."
+    code: "Code samples under {{license}}."
+    reserved: All rights reserved.
+  series:
+    label: Series
+    part_of: "Part {{part}} of {{total}}"
+    nav_label: "Series: {{title}}"
+    previous: Previous part
+    next: Next part
+  reproduce:
+    heading: Reproduce this analysis
+    intro: The code, data and environment behind this article.
+    code: Source code
+    data: Data
+    notebook: Notebook
+    environment: Environment
+    results: Results
+    ref: "at {{ref}}"
+    version: "version {{version}}"
+    container: Container
+    archive: Archived environment
+  reading_mode:
+    enter: Reading mode
+    exit: Exit reading mode
+    hint: Hides the site's navigation and the panels around the article; press Escape to leave.
+  print:
+    source: Online at
+  reading_state:
+    save: Save for later
+    saved: Saved
+    saved_list: Saved articles
+    unavailable: This browser is not letting the site keep data, so saving, progress and highlights are off.
+    resume: Resume where you left off
+    progress: "{{percent}}% read"
+    resume_button: Resume
+    dismiss: Dismiss
+    highlight: Highlight
+    note: Highlight with a note
+    shortcuts: "With text selected, Alt+Shift+H highlights it and Alt+Shift+N adds a note."
+    highlights_heading: Your private highlights
+    data_heading: Your reading data
+    intro: Kept in this browser only and never sent anywhere. These are your notes, not comments.
+    empty: Select a passage of the article to highlight it.
+    note_label: Note
+    go_to: Go to
+    remove: Remove
+    lost: Not found in the current text
+    export: Export as JSON
+    exported: Your reading data was downloaded.
+    import: Import JSON
+    imported: "{{count}} articles imported."
+    import_failed: That file is not a reading data export.
+    erase_article: Erase this article's data
+    erased_article: This article's data was erased.
+    erase_all: Erase all reading data
+    erase_confirm: Erase every saved article, position and highlight in this browser?
+    erased_all: All reading data was erased.
+    list_empty: No saved articles yet. Save one with "Save for later" on a post.
+    highlights_count: "{{count}} highlights"
   article_information: Article information
   meta:
     published: Published
+    updated: Updated
     author: Author
+    authors: Authors
+    contributors: Contributors
     reading_time: Reading time
     difficulty: Difficulty
     runtime: Runtime

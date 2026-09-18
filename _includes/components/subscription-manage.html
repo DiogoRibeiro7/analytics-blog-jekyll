@@ -1,0 +1,68 @@
+{%- comment -%}
+---
+optional: []
+---
+The page the newsletter's emails link to (assets/js/subscriptions/manage.js):
+`?confirm=<token>` confirms a subscription, `?unsubscribe=<token>` ends one
+after a press of the button, `?manage=<token>` changes its topics. Rendered
+by the page layout when the page says `subscription_manage: true`. Without
+a backend offering the feature it says so, since a link in an old email
+may still lead here.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign subscriptions = site.subscriptions -%}
+{%- if services.base_url and services.base_url != '' and services.features.subscriptions != false and subscriptions.enabled != false -%}
+{%- assign topics = subscriptions.topics -%}
+{%- capture labels_json -%}
+{
+  "confirming": {{ 'subscriptions.manage.confirming' | t | jsonify }},
+  "confirmed": {{ 'subscriptions.manage.confirmed' | t | jsonify }},
+  "invalid_link": {{ 'subscriptions.manage.invalid_link' | t | jsonify }},
+  "unsubscribing": {{ 'subscriptions.manage.unsubscribing' | t | jsonify }},
+  "unsubscribed": {{ 'subscriptions.manage.unsubscribed' | t | jsonify }},
+  "loading": {{ 'subscriptions.manage.loading' | t | jsonify }},
+  "saving": {{ 'subscriptions.manage.saving' | t | jsonify }},
+  "saved": {{ 'subscriptions.manage.saved' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<section class="subscription-manage" id="subscription-manage" data-subscription-manage data-state="idle" aria-busy="false">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-manage-labels>{{ labels_json | strip }}</script>
+  <p class="subscription-manage__status" data-manage-status role="status" aria-live="polite" hidden></p>
+  <p class="subscription-manage__idle" data-manage-idle>{% t 'subscriptions.manage.idle' %}</p>
+  <div class="subscription-manage__panel" data-manage-unsubscribe-panel hidden>
+    <p>{% t 'subscriptions.manage.unsubscribe_question' %}</p>
+    <button type="button" class="post-tool" data-manage-unsubscribe>{% t 'subscriptions.manage.unsubscribe' %}</button>
+  </div>
+  <form class="service-form subscription-manage__panel" id="subscription-preferences" data-manage-preferences hidden novalidate>
+    {%- if topics and topics.size > 0 %}
+    <fieldset class="subscribe__topics">
+      <legend>{% t 'subscriptions.manage.preferences' %}</legend>
+      {%- for topic in topics %}
+      {%- assign topic_key = "subscriptions.topics." | append: topic %}
+      <label class="subscribe__topic" for="manage-topic-{{ topic | slugify }}">
+        <input id="manage-topic-{{ topic | slugify }}" type="checkbox" name="topics" value="{{ topic | escape }}">
+        {{ topic_key | t }}
+      </label>
+      {%- endfor %}
+    </fieldset>
+    {%- endif %}
+    <div class="service-form__actions">
+      {%- if topics and topics.size > 0 %}
+      <button type="submit" class="post-tool">{% t 'subscriptions.manage.save' %}</button>
+      {%- endif %}
+      <button type="button" class="post-tool" data-manage-unsubscribe>{% t 'subscriptions.manage.unsubscribe' %}</button>
+    </div>
+  </form>
+</section>
+{%- else -%}
+<section class="subscription-manage" id="subscription-manage">
+  <p class="subscription-manage__idle">{% t 'subscriptions.manage.unavailable' %}</p>
+</section>
+{%- endif -%}

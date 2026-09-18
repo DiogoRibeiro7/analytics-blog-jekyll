@@ -21,7 +21,16 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.8.0
+theme_version: 0.9.0
+
+# The licence of the articles' text and figures (the repository's LICENSE covers
+# the theme's software). A page sets its own with `license:`, or none with `license: false`.
+content_license: CC-BY-4.0
+
+# Scholarly discovery metadata (the meta tags Google Scholar and reference managers
+# read) on every post and research article. Without it, a page gets them only
+# with `scholarly: true` in its front matter.
+scholarly: true
 
 # Author (basic info for Jekyll - full profile in _data/config/author.yml)
 author:
@@ -32,6 +41,14 @@ author:
   github: DiogoRibeiro7
   twitter: DiogoRibeiro7
   linkedin: diogoribeiro
+
+# Who publishes the site in structured data and citations. Left out, the author
+# publishes it as a Person; the affiliation above stays on the author.
+# publisher:
+#   type: Organization
+#   name: Example Lab
+#   url: https://example.org/lab
+#   logo: /assets/img/lab-logo.png
 
 contact_email: diogo.debastos.ribeiro@gmail.com
 repository_url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
@@ -203,6 +220,17 @@ critical_css:
 # Theme Options
 # -----------------------------------------------------------------------------
 theme_options:
+  # The "Reading mode" control on posts: the article without the site around it.
+  reading_mode:
+    enabled: true
+    remember: false   # true keeps a reader's choice from one post to the next
+  # Bookmarks, reading progress and private highlights, kept in the reader's browser.
+  reading_state:
+    enabled: true
+    bookmarks: true
+    progress: true
+    highlights: true
+    list_url: /saved/  # the page that lists the saved articles (components/reading-list.html)
   math:
     engine: mathjax
     output: chtml
@@ -230,6 +258,101 @@ integrations:
 # above (repository, branch, binder.base_url, colab.base_url).
 
 # -----------------------------------------------------------------------------
+# Dynamic Services (docs/dynamic-services.md)
+# -----------------------------------------------------------------------------
+# The optional backend the browser calls for correction reports, contact,
+# comments and the like. The site stays static; these settings are public and
+# reach every reader, so they never hold a credential. Empty base_url: off.
+dynamic_services:
+  base_url: ""
+  api_version: v1
+  timeout_ms: 8000
+  credentials: omit        # or same-origin / include, for cookie-authenticated services
+  features:
+    corrections: true
+    contact: true
+
+# The correction-report form on posts: structured feedback to the author,
+# through the dynamic services above. Labels for the categories live in
+# _data/i18n under corrections.categories.
+corrections:
+  enabled: true
+  categories:
+    - mathematical-error
+    - factual-error
+    - citation
+    - code
+    - reproducibility
+    - typo
+    - accessibility
+    - other
+
+# The contact and collaboration form (a page with `contact_form: true`; the
+# demo's /contact/): structured messages to the author through the dynamic
+# services above. Without them the page shows contact_email instead.
+contact:
+  enabled: true
+  categories:
+    - research-collaboration
+    - consulting
+    - speaking
+    - mentoring
+    - reproducibility
+    - media
+    - other
+  # prompts:                       # a prompt per category, over the ones in _data/i18n
+  #   consulting: Say the scope, the budget range and when you need it.
+  # privacy_notice: ""             # over contact.privacy in _data/i18n
+  # retention: ""                  # e.g. Messages are deleted after a year.
+
+# "Was this useful?" after every post: a reaction without a comment, through
+# the dynamic services above. The counts are the service's own; none is invented.
+reactions:
+  enabled: true
+  counts: true
+  types:
+    - useful
+    - clear
+    - interesting
+    - needs-clarification
+
+# Webmentions: links and replies from other websites. endpoint is the
+# receiver advertised in every page's head (<link rel="webmention">); the
+# mentions shown under a post are read through the dynamic services above.
+# Empty: nothing is advertised, nothing is shown.
+webmentions:
+  enabled: true
+  endpoint: ""
+  types:                # mention, reply, repost, like: the kinds shown; likes are off by default
+    - mention
+    - reply
+
+# Newsletter subscriptions through the dynamic services above: a compact form
+# where placement says (footer, post), and /subscriptions/, the page the
+# emails link to for confirming, changing topics and unsubscribing.
+subscriptions:
+  enabled: true
+  double_opt_in: true   # the consent wording says a confirmation email comes first
+  placement:
+    - footer
+  topics:               # optional; labels under subscriptions.topics in _data/i18n
+    - new-articles
+    - research-notes
+    - datasets
+  privacy_url: /privacy/
+
+# The moderation inbox (docs/moderation.md): a page with moderation_inbox: true
+# (the demo's /admin/moderation/) lists what the self-hosted features received
+# and acts on it through the moderation API. Off by default. These settings are
+# public and the page protects nothing: signing in and permissions are the
+# service's, or an identity-aware proxy's, on every request. Never a password here.
+moderation:
+  enabled: false
+  endpoint: ""            # only when the moderation API lives apart from dynamic_services.base_url
+  credentials: include    # how the browser sends the moderator's session: include, same-origin or omit
+  sign_in_url: ""         # where a moderator signs in; linked when the service answers 401
+
+# -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------
 datalog_plugins:
@@ -246,7 +369,7 @@ datalog_plugins:
       width: 100%
       height: 620px
     datalog-comments:
-      provider: giscus
+      provider: giscus   # giscus, utterances, disqus, or api: the site's own backend (docs/components.md#comments)
       repo: DiogoRibeiro7/analytics-blog-jekyll
       repo_id: ""        # Get from https://giscus.app
       category: General

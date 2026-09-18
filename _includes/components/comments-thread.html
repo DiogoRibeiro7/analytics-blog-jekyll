@@ -1,0 +1,90 @@
+{%- comment -%}
+---
+optional: []
+---
+The comments thread of the `api` provider (lib/datalog/plugins/comments.rb
+renders it through the datalog_comments tag; assets/js/comments/thread.js
+fills it): the discussion under an article, read from and written to the
+site's own backend through the dynamic services (docs/dynamic-services.md).
+Reads `page.datalog_comments` (the plugin's resolved settings: `replies`,
+`moderation`, `endpoint`) and `page.url`, which keys the thread.
+{%- endcomment -%}
+{%- assign settings = page.datalog_comments -%}
+{%- capture labels_json -%}
+{
+  "loading": {{ 'comments.loading' | t | jsonify }},
+  "empty": {{ 'comments.empty' | t | jsonify }},
+  "retry": {{ 'comments.retry' | t | jsonify }},
+  "reply": {{ 'comments.reply' | t | jsonify }},
+  "replying_to": {{ 'comments.replying_to' | t | jsonify }},
+  "anonymous": {{ 'comments.anonymous' | t | jsonify }},
+  "pending": {{ 'comments.pending' | t | jsonify }},
+  "sending": {{ 'comments.sending' | t | jsonify }},
+  "posted": {{ 'comments.posted' | t | jsonify }},
+  "posted_pending": {{ 'comments.posted_pending' | t | jsonify }},
+  "name_required": {{ 'comments.name_required' | t | jsonify }},
+  "email_invalid": {{ 'comments.email_invalid' | t | jsonify }},
+  "url_invalid": {{ 'comments.url_invalid' | t | jsonify }},
+  "body_short": {{ 'comments.body_short' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<div class="comments-thread" id="comments" data-comments-thread data-comments-path="{{ page.url }}" data-comments-replies="{% if settings.replies == false %}false{% else %}true{% endif %}"{% if settings.endpoint and settings.endpoint != '' %} data-comments-endpoint="{{ settings.endpoint }}"{% endif %} data-state="idle">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-comments-labels>{{ labels_json | strip }}</script>
+  <p class="comments-thread__status" data-comments-status role="status" aria-live="polite">{% t 'comments.loading' %}</p>
+  <noscript><p class="comments-thread__noscript">{% t 'comments.noscript' %}</p></noscript>
+  <ol class="comments-thread__list" data-comments-list hidden></ol>
+  <form class="service-form comments-form" id="comments-form" data-comments-form data-state="idle" aria-busy="false" aria-labelledby="comments-form-heading" novalidate>
+    <h3 class="comments-form__heading" id="comments-form-heading">{% t 'comments.form_heading' %}</h3>
+    <p class="comments-form__replying" data-comments-replying hidden>
+      <span data-comments-replying-to></span>
+      <button type="button" class="post-tool" data-comments-cancel-reply>{% t 'comments.cancel_reply' %}</button>
+    </p>
+    <fieldset class="service-form__fields">
+      <legend class="visually-hidden">{% t 'comments.form_heading' %}</legend>
+      <div class="service-form__row">
+        <div class="service-form__field">
+          <label for="comments-name">{% t 'comments.name' %}</label>
+          <input id="comments-name" name="name" type="text" required autocomplete="name">
+          <p class="service-form__error" data-error-for="name" hidden></p>
+        </div>
+        <div class="service-form__field">
+          <label for="comments-email">{% t 'comments.email' %}</label>
+          <input id="comments-email" name="email" type="email" autocomplete="email" aria-describedby="comments-email-hint">
+          <p class="service-form__hint" id="comments-email-hint">{% t 'comments.email_hint' %}</p>
+          <p class="service-form__error" data-error-for="email" hidden></p>
+        </div>
+      </div>
+      <div class="service-form__field">
+        <label for="comments-url">{% t 'comments.url' %}</label>
+        <input id="comments-url" name="url" type="url" autocomplete="url">
+        <p class="service-form__error" data-error-for="url" hidden></p>
+      </div>
+      <div class="service-form__field">
+        <label for="comments-body">{% t 'comments.body' %}</label>
+        <textarea id="comments-body" name="body" rows="5" required></textarea>
+        <p class="service-form__error" data-error-for="body" hidden></p>
+      </div>
+      <input type="hidden" name="parent_id" value="">
+      <div class="service-form__trap" aria-hidden="true">
+        <label for="comments-website">Website</label>
+        <input id="comments-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+    </fieldset>
+    {%- if settings.moderation != false %}
+    <p class="service-form__privacy">{% t 'comments.moderated' %}</p>
+    {%- else %}
+    <p class="service-form__privacy">{% t 'comments.privacy' %}</p>
+    {%- endif %}
+    <div class="service-form__actions">
+      <button type="submit" class="post-tool">{% t 'comments.send' %}</button>
+    </div>
+    <p class="service-form__status" data-form-status role="status" aria-live="polite" hidden></p>
+  </form>
+</div>

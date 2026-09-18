@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "open3"
 require "ostruct"
+require "rbconfig"
+require "tmpdir"
 
 class ConfigValidatorTest < Minitest::Test
   def test_required_field_validation
@@ -30,6 +33,18 @@ class ConfigValidatorTest < Minitest::Test
     assert_includes error.message, "Invalid value for 'theme_options.math.engine'"
     assert_includes error.message, '"mathjax" or "katex"'
     assert_includes error.message, 'Did you mean "mathjax"?'
+  end
+
+  def test_publisher_type_is_person_or_organization
+    config = base_config
+    config["publisher"] = { "type" => "Company", "name" => "Example Lab" }
+
+    error = assert_raises(Jekyll::Errors::FatalException) { run_generator(config) }
+    assert_includes error.message, "Invalid value for 'publisher.type'"
+    assert_includes error.message, '"Person" or "Organization"'
+
+    config["publisher"]["type"] = "Organization"
+    assert_nil run_generator(config)
   end
 
   def test_nested_schema_validation
@@ -200,6 +215,14 @@ class ConfigValidatorTest < Minitest::Test
     assert_nil run_generator(config)
   end
 
+  # jekyll-sass-converter replaces sass.style with a Symbol in the site's own
+  # configuration when it converts a stylesheet.
+  def test_accepts_a_sass_style_the_converter_made_a_symbol
+    config = base_config
+    config["sass"] = { "style" => :compressed }
+    assert_nil run_generator(config)
+  end
+
   # --- Plugins array ---
 
   def test_plugins_must_be_array
@@ -273,7 +296,31 @@ class ConfigValidatorTest < Minitest::Test
     assert_nil run_generator(config)
   end
 
+  # --- Documentation link ---
+
+  # Errors linked to a documentation site that was never published.
+  def test_errors_link_to_a_reference_that_lists_every_checked_key
+    config = base_config
+    config["paginate"] = "ten"
+
+    error = assert_raises(Jekyll::Errors::FatalException) { run_generator(config) }
+    assert_equal "https://github.com/DiogoRibeiro7/analytics-blog-jekyll/blob/main/docs/configuration-reference.md",
+                 error.message[/Documentation: (\S+)/, 1]
+
+    reference = File.read(File.expand_path("../docs/configuration-reference.md", __dir__))
+    schema_paths(Datalog::ConfigValidator::SCHEMA).each do |path|
+      assert_includes reference, "| `#{path}` |", "docs/configuration-reference.md should list #{path}"
+    end
+  end
+
   private
+
+  def schema_paths(schema, prefix = nil)
+    schema.flat_map do |key, rules|
+      path = [prefix, key].compact.join(".")
+      [path, *(rules[:schema] ? schema_paths(rules[:schema], path) : [])]
+    end
+  end
 
   def run_generator(config)
     validator = Datalog::ConfigValidator.new
@@ -296,5 +343,115 @@ class ConfigValidatorTest < Minitest::Test
         }
       }
     }
+  end
+end
+
+# `jekyll serve` stopped regenerating after its first build: the validator ran
+# again on the Symbol jekyll-sass-converter had left in sass.style and stopped
+# every rebuild with "Invalid type for 'sass.style'". The site is built in a
+# separate process so its hooks and plugins stay out of the other tests.
+class ConfigValidatorRebuildTest < Minitest::Test
+  VALIDATOR = File.expand_path("../_plugins/config_validator.rb", __dir__)
+
+  # Processes one site twice, as `jekyll serve` does when a file changes, and
+  # prints sass.style as the second build left it.
+  REBUILD = <<~'RUBY'
+    require "jekyll"
+
+    source, validator = ARGV
+    require validator
+
+    File.write(File.join(source, "style.scss"), "---\n---\nbody { color: red; }\n")
+    config = Jekyll.configuration(
+      "source" => source,
+      "destination" => File.join(source, "_site"),
+      "disable_disk_cache" => true,
+      "quiet" => true,
+      "title" => "Test Site",
+      "url" => "https://example.com",
+      "author" => { "name" => "Test Author" },
+      "sass" => { "style" => "compressed" }
+    )
+    site = Jekyll::Site.new(config)
+    2.times { site.process }
+    puts site.config["sass"]["style"].inspect
+  RUBY
+
+  def test_a_site_that_sets_sass_style_rebuilds
+    Dir.mktmpdir do |dir|
+      stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", REBUILD, dir, VALIDATOR)
+
+      assert status.success?, "the second build should succeed:\n#{stdout}#{stderr}"
+      assert_equal ":compressed", stdout.lines.last&.strip, "the converter should have rewritten sass.style"
+    end
+  end
+end
+
+# A `mathjax: true` in front matter defaults loaded MathJax on every page in its
+# scope, and theme_options.math.enabled, which the user guide's troubleshooting
+# table pointed to, does nothing. The build said neither.
+class ConfigValidatorMathSettingsTest < Minitest::Test
+  def test_warns_when_defaults_load_math_on_every_page_under_auto
+    %w[math mathjax].each do |key|
+      warnings = warnings_for(
+        "theme_options" => { "math" => { "render_on_load" => "auto" } },
+        "defaults" => [
+          { "scope" => { "path" => "", "type" => "posts" }, "values" => { "layout" => "post", key => true } }
+        ]
+      )
+
+      assert_equal 1, warnings.size, warnings.inspect
+      assert_includes warnings.first, "'#{key}: true' for the pages of type 'posts'"
+    end
+  end
+
+  def test_no_warning_for_defaults_that_turn_math_off_or_without_auto
+    defaults = [{ "scope" => { "path" => "_pages" }, "values" => { "mathjax" => false } }]
+    assert_empty warnings_for("theme_options" => { "math" => { "render_on_load" => "auto" } }, "defaults" => defaults)
+
+    defaults = [{ "scope" => { "path" => "" }, "values" => { "mathjax" => true } }]
+    assert_empty warnings_for("theme_options" => { "math" => { "render_on_load" => true } }, "defaults" => defaults)
+  end
+
+  def test_warns_that_math_enabled_has_no_effect
+    [true, false].each do |value|
+      warnings = warnings_for("theme_options" => { "math" => { "enabled" => value } })
+
+      warned = warnings.any? do |warning|
+        warning.include?("theme_options.math.enabled") && warning.include?("render_on_load")
+      end
+      assert warned, "enabled: #{value} should warn: #{warnings.inspect}"
+    end
+  end
+
+  private
+
+  def test_warns_when_theme_directories_point_into_a_theme_checkout
+    Dir.mktmpdir do |site|
+      checkout = File.join(site, "vendor", "datalog")
+      FileUtils.mkdir_p(checkout)
+      File.write(File.join(checkout, "datalog-theme.gemspec"), "")
+
+      directories = Datalog::ConfigValidator::ThemeDirectories
+      warnings = directories.warnings(
+        "source" => site, "layouts_dir" => "vendor/datalog/_layouts", "plugins_dir" => "vendor/datalog/_plugins",
+        "sass" => { "sass_dir" => "vendor/datalog/_sass" }
+      )
+
+      assert_equal 1, warnings.size, warnings.inspect
+      assert_includes warnings.first, "layouts_dir, plugins_dir, sass.sass_dir point into a copy of datalog-theme"
+      assert_includes warnings.first, "install.md#keep-the-theme-in-a-git-submodule"
+      # The theme's own repository keeps its directories where Jekyll looks by default.
+      assert_empty directories.warnings("source" => checkout, "layouts_dir" => "_layouts")
+    end
+  end
+
+  def warnings_for(overrides)
+    config = { "title" => "Test Site", "url" => "https://example.com", "author" => "Test Author" }.merge(overrides)
+    validator = Datalog::ConfigValidator::Validator.new(config)
+    validator.run
+
+    assert_empty validator.errors
+    validator.warnings
   end
 end

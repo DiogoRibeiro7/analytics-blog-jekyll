@@ -1,17 +1,13 @@
 # frozen_string_literal: true
 
+require "digest"
 require "fastimage"
-require "nokogiri"
-require "tempfile"
-require "English"
 require "fileutils"
 require "json"
-
-begin
-  require "mini_magick"
-rescue LoadError
-  MiniMagick = nil
-end
+require "nokogiri"
+require "open3"
+require "tmpdir"
+require "tempfile"
 
 module Jekyll
   module ImageOptimizer
@@ -33,6 +29,10 @@ module Jekyll
       "png" => "image/png"
     }.freeze
     RASTER_EXTENSIONS = %w[.jpg .jpeg .png].freeze
+    SOURCE_FORMATS = %w[avif webp].freeze
+    # ImageMagick's names for the formats it writes itself, as `-list format` prints them.
+    CODERS = { "jpeg" => "JPEG", "png" => "PNG", "webp" => "WEBP" }.freeze
+    CACHE_DIR = "datalog-images"
 
     # The one image a page fetches early: the first in its post or page content,
     # unless the author made it lazy or the page already preloads an image, as
@@ -51,12 +51,19 @@ module Jekyll
       return if document.output.nil? || document.output.empty?
 
       full_document = document.output.lstrip.match?(/\A(?:<!DOCTYPE|<html)/i)
-      fragment = full_document ? Nokogiri::HTML5::Document.parse(document.output) : Nokogiri::HTML::DocumentFragment.parse(document.output)
+      # Fragments use the HTML5 parser too: the HTML4 serializer writes a
+      # </source> end tag after each void <source> that offer_variants adds.
+      fragment = if full_document
+                   Nokogiri::HTML5::Document.parse(document.output)
+                 else
+                   Nokogiri::HTML5::DocumentFragment.parse(document.output)
+                 end
       return if fragment.nil?
 
       site = document.respond_to?(:site) ? document.site : nil
       manifest = site&.data&.fetch("datalog_responsive_images", {}) || {}
       image_config = site&.config&.fetch("datalog_image_config", {}) || {}
+      baseurl = site.respond_to?(:baseurl) ? site.baseurl.to_s : ""
       optimized = false
       priority = priority_image(fragment)
 
@@ -74,9 +81,7 @@ module Jekyll
         picture_entry = manifest[normalized_src]
 
         if picture_entry
-          fallback_variants = picture_entry.dig("fallback", "variants") || []
-          img["srcset"] = build_srcset(fallback_variants) unless img["srcset"]
-          img["sizes"] ||= image_config.fetch("default_sizes", "100vw")
+          offer_variants(img, picture_entry, image_config, baseurl)
           img["width"] ||= picture_entry["width"].to_s if picture_entry["width"]
           img["height"] ||= picture_entry["height"].to_s if picture_entry["height"]
         else
@@ -101,12 +106,42 @@ module Jekyll
       document.output = fragment.to_html
     end
 
+    # Offers an image's generated variants: the resized copies as the <img>'s
+    # srcset, and each modern format as a <source> in a <picture> around it.
+    # Markup the author chose, a srcset of their own or a <picture>, is left
+    # alone, and so is an image with nothing generated besides the original.
+    def offer_variants(img, entry, image_config, baseurl)
+      return if img["srcset"] || img.parent&.name == "picture"
+
+      fallback = entry.dig("fallback", "variants") || []
+      sources = entry.fetch("sources", []).select { |source| source["type"] && source["variants"]&.any? }
+      return if fallback.size < 2 && sources.empty?
+
+      sizes = img["sizes"] || image_config.fetch("default_sizes", "100vw")
+      img["srcset"] = build_srcset(fallback, baseurl) if fallback.size > 1
+      img["sizes"] = sizes
+      return if sources.empty?
+
+      picture = Nokogiri::XML::Node.new("picture", img.document)
+      sources.each do |source|
+        element = Nokogiri::XML::Node.new("source", img.document)
+        element["type"] = source["type"]
+        element["srcset"] = build_srcset(source["variants"], baseurl)
+        element["sizes"] = sizes
+        picture.add_child(element)
+      end
+      img.add_previous_sibling(picture)
+      picture.add_child(img)
+    end
+
     def prepare_site(site)
       config = image_config(site)
+      encoders = config["variants"] ? tools : {}
+      counts = Hash.new(0)
       manifest = {}
 
       responsive_candidates(site).each do |static_file|
-        entry = manifest_entry_for(site, static_file, config)
+        entry = manifest_entry_for(site, static_file, config, encoders, counts)
         next unless entry
 
         manifest[entry.delete("source")] = entry
@@ -114,6 +149,15 @@ module Jekyll
 
       site.data["datalog_responsive_images"] = manifest
       site.config["datalog_image_config"] = config
+      report(encoders, counts)
+    end
+
+    def report(encoders, counts)
+      if counts[:created].positive? || counts[:cached].positive?
+        Jekyll.logger.info "Images:", "#{counts[:created]} variants created, #{counts[:cached]} reused from the cache"
+      elsif encoders.any? && encoders["imagemagick"].nil?
+        Jekyll.logger.debug "ImageOptimizer", "ImageMagick was not found, so no image variants were created"
+      end
     end
 
     def image_source_path(site, src)
@@ -140,44 +184,39 @@ module Jekyll
       end
     end
 
-    def manifest_entry_for(site, static_file, config)
+    def manifest_entry_for(site, static_file, config, encoders, counts)
       source_path = static_file.path
       width, height = FastImage.size(source_path)
       return unless width && height
 
       normalized_src = normalize_src(static_file.relative_path, site)
-      sizes = normalized_sizes(config["sizes"], width)
       fallback_format = normalize_format(File.extname(source_path))
       fallback_variants = []
       source_variants = Hash.new { |hash, key| hash[key] = [] }
+      image = { site: site, file: static_file, width: width, height: height, config: config,
+                encoders: encoders, counts: counts }
 
-      sizes.each do |target_width|
-        target_height = scaled_height(width, height, target_width)
-
+      normalized_sizes(config["sizes"], width).each do |target_width|
         if fallback_format && target_width < width
-          variant = build_variant(site, static_file, target_width, target_height, fallback_format, config,
-                                  fallback_format, width)
+          variant = build_variant(image, target_width, fallback_format)
           fallback_variants << variant if variant
         end
 
-        %w[avif webp].each do |format|
-          variant = build_variant(site, static_file, target_width, target_height, format, config, fallback_format,
-                                  width)
+        SOURCE_FORMATS.each do |format|
+          variant = build_variant(image, target_width, format)
           source_variants[format] << variant if variant
         end
       end
 
       fallback_variants.sort_by! { |variant| variant["width"] }
-      fallback_variants << original_variant(normalized_src, width, height) unless fallback_variants.any? do |variant|
-        variant["width"] >= width
-      end
+      fallback_variants << original_variant(normalized_src, width, height)
 
-      sources = %w[avif webp].map do |format|
-        variants = source_variants[format].compact.sort_by { |variant| variant["width"] }
+      sources = SOURCE_FORMATS.filter_map do |format|
+        variants = source_variants[format].sort_by { |variant| variant["width"] }
         next if variants.empty?
 
         { "type" => MIME_TYPES[format], "format" => format, "variants" => variants }
-      end.compact
+      end
 
       {
         "source" => normalized_src,
@@ -185,73 +224,162 @@ module Jekyll
         "height" => height,
         "sources" => sources,
         "fallback" => {
-          "type" => MIME_TYPES[fallback_format] || MIME_TYPES[normalize_format(File.extname(source_path))] || "image/jpeg",
+          "type" => MIME_TYPES[fallback_format] || "image/jpeg",
           "format" => fallback_format,
           "variants" => fallback_variants
         }
       }
     end
 
-    def build_variant(site, static_file, target_width, target_height, format, config, original_format, original_width)
-      return unless format
+    # Encodes one variant into the cache, unless an earlier build already did,
+    # and adds it to the files the site writes. Returns nil when this machine
+    # cannot encode the format or the encoder fails, so the manifest only names
+    # files that exist.
+    def build_variant(image, target_width, format)
+      return unless can_encode?(format, image[:encoders])
 
-      if MiniMagick.nil?
-        if original_format != format
-          Jekyll.logger.debug "ImageOptimizer",
-                              "Skipping #{format} variant for #{static_file.relative_path} because MiniMagick is unavailable"
-          return
-        end
+      static_file = image[:file]
 
-        if original_width && target_width < original_width
-          Jekyll.logger.debug "ImageOptimizer",
-                              "Skipping #{format} #{target_width}w variant for #{static_file.relative_path} because MiniMagick is unavailable"
-          return
-        end
-
-        return
+      quality = image[:config]["quality"][format]
+      cached = cached_variant_path(image, target_width, format, quality)
+      if File.exist?(cached)
+        image[:counts][:cached] += 1
+      else
+        encode_into_cache(static_file.path, cached, target_width, format, quality, image[:encoders])
+        image[:counts][:created] += 1
       end
 
-      quality_map = config["quality"] || {}
-      quality = quality_map[format] || quality_map[format&.downcase] || quality_map[format&.upcase]
-      encoder_path = avif_encoder
-      if format == "avif" && encoder_path.nil?
-        Jekyll.logger.debug "ImageOptimizer",
-                            "Skipping AVIF variant for #{static_file.relative_path} because avifenc is unavailable"
-        return
-      end
-
-      relative_path = static_file.relative_path.sub(%r{^/}, "")
-      dir = File.dirname(relative_path)
-      dir = "" if dir == "."
-      responsive_dir = File.join(dir, "responsive")
-
-      base = File.basename(relative_path, File.extname(relative_path))
-      ext = extension_for(format)
-      filename = "#{base}-#{target_width}w.#{ext}"
-
-      responsive_file = ResponsiveImageStaticFile.new(
-        site: site,
-        relative_dir: responsive_dir,
-        name: filename,
-        original_path: static_file.path,
-        width: target_width,
-        height: target_height,
-        format: format,
-        quality: quality,
-        avif_encoder: encoder_path
-      )
-
-      site.static_files << responsive_file
+      variant_file = variant_static_file(image[:site], static_file, target_width, format, cached)
+      image[:site].static_files << variant_file
 
       {
-        "url" => responsive_file.url,
+        "url" => variant_file.url,
         "width" => target_width,
-        "height" => target_height,
+        "height" => scaled_height(image[:width], image[:height], target_width),
         "format" => format
       }
     rescue StandardError => e
-      Jekyll.logger.debug "ImageOptimizer",
-                          "Unable to generate variant for #{static_file.relative_path}: #{e.message}"
+      Jekyll.logger.warn "ImageOptimizer:",
+                         "Could not create a #{target_width}px #{format} of #{image[:file].relative_path}: #{e.message}"
+      nil
+    end
+
+    # Published next to the original, in a responsive/ folder:
+    # /assets/img/plot.png gives /assets/img/responsive/plot-640w.webp.
+    def variant_static_file(site, static_file, target_width, format, cached)
+      relative_path = static_file.relative_path.sub(%r{^/}, "")
+      dir = File.dirname(relative_path)
+      responsive_dir = dir == "." ? "responsive" : File.join(dir, "responsive")
+      base = File.basename(relative_path, File.extname(relative_path))
+      Jekyll::ResponsiveImageStaticFile.new(site, responsive_dir, "#{base}-#{target_width}w.#{extension_for(format)}",
+                                            cached)
+    end
+
+    # Keyed by the image's content rather than its file time, which a fresh
+    # checkout resets.
+    def cached_variant_path(image, target_width, format, quality)
+      image[:digest] ||= Digest::SHA256.file(image[:file].path).hexdigest
+      key = Digest::SHA256.hexdigest([image[:digest], target_width, format, quality].join("|"))
+      File.join(cache_root(image[:site]), "#{key}.#{extension_for(format)}")
+    end
+
+    # Jekyll's cache directory. A site that sets disable_disk_cache gets a
+    # temporary directory instead, which `jekyll serve` reuses between builds
+    # and which is removed when Jekyll exits.
+    def cache_root(site)
+      return site.in_cache_dir(CACHE_DIR) unless site.config["disable_disk_cache"]
+
+      @cache_root ||= Dir.mktmpdir(CACHE_DIR).tap { |dir| at_exit { FileUtils.rm_rf(dir) } }
+    end
+
+    # Encodes beside the cache entry and renames it into place, so a failed or
+    # interrupted encode never leaves a file that a later build takes for done.
+    def encode_into_cache(source, cached, target_width, format, quality, encoders)
+      partial = cached.sub(/(\.\w+)\z/, '.partial\1')
+      FileUtils.mkdir_p(File.dirname(cached))
+      if format == "avif"
+        Tempfile.create(["datalog-image", ".png"]) do |png|
+          png.close
+          resize(source, png.path, target_width, nil, encoders)
+          run!(*encoders["avifenc"], "-q", avif_quality(quality).to_s, "-s", "6", png.path, partial)
+        end
+      else
+        resize(source, partial, target_width, quality, encoders)
+      end
+      File.rename(partial, cached)
+    ensure
+      FileUtils.rm_f(partial)
+    end
+
+    def resize(source, destination, target_width, quality, encoders)
+      command = [*encoders["imagemagick"], source, "-auto-orient", "-resize", "#{target_width}x>", "-strip"]
+      command += ["-quality", quality.to_s] if quality
+      run!(*command, destination)
+    end
+
+    def run!(*command)
+      output, status = Open3.capture2e(*command)
+      return if status.success?
+
+      raise "#{File.basename(command.first)} exited with #{status.exitstatus}: #{output.strip.lines.last(3).join.strip}"
+    end
+
+    def avif_quality(quality)
+      value = quality.to_i
+      value.positive? ? value.clamp(1, 100) : 50
+    end
+
+    def can_encode?(format, encoders)
+      return false unless encoders["imagemagick"]
+      return encoders["writable"].include?("PNG") && !encoders["avifenc"].nil? if format == "avif"
+
+      encoders["writable"].include?(CODERS.fetch(format, format.upcase))
+    end
+
+    # The encoders on this machine, looked up once per process. ImageMagick 7
+    # is `magick`. ImageMagick 6 is `convert`, looked for only off Windows,
+    # where C:\Windows\System32\convert.exe converts file systems. AVIF also
+    # needs avifenc, from libavif.
+    def tools
+      @tools ||= detect_tools
+    end
+
+    def detect_tools(windows: Gem.win_platform?)
+      magick = which("magick")
+      convert = which("convert") unless magick || windows
+      imagemagick = [magick || convert].compact
+      imagemagick = nil if imagemagick.empty?
+
+      avifenc = which("avifenc")
+
+      {
+        "imagemagick" => imagemagick,
+        "writable" => imagemagick ? writable_formats(imagemagick) : [],
+        "avifenc" => avifenc && [avifenc]
+      }
+    end
+
+    def writable_formats(command)
+      output, status = Open3.capture2e(*command, "-list", "format")
+      status.success? ? parse_writable_formats(output) : []
+    rescue SystemCallError
+      []
+    end
+
+    # A line of `-list format` reads "     WEBP* rw+   WebP Image Format" in
+    # ImageMagick 7. ImageMagick 6 adds the module: "     WEBP* WEBP      rw+".
+    def parse_writable_formats(listing)
+      listing.each_line.filter_map { |line| line[/\A\s*([A-Z0-9-]+)\*?\s+(?:[A-Z0-9-]+\s+)?[r-]w[+-]\s/, 1] }
+    end
+
+    def which(command)
+      extensions = ENV["PATHEXT"] ? ENV["PATHEXT"].split(";") : [""]
+      ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).each do |dir|
+        extensions.each do |extension|
+          path = File.join(dir, "#{command}#{extension}")
+          return path if File.file?(path) && File.executable?(path)
+        end
+      end
       nil
     end
 
@@ -287,14 +415,7 @@ module Jekyll
     end
 
     def extension_for(format)
-      case format
-      when "jpeg"
-        "jpg"
-      when "jpg"
-        "jpg"
-      else
-        format
-      end
+      format == "jpeg" ? "jpg" : format
     end
 
     def original_variant(src, width, height)
@@ -306,11 +427,15 @@ module Jekyll
       }
     end
 
-    def build_srcset(variants)
+    # Variant URLs are site paths. A site served below a baseurl needs it in
+    # front of them, as relative_url adds it in templates.
+    def build_srcset(variants, baseurl = "")
       variants.map do |variant|
         next unless variant["url"] && variant["width"]
 
-        "#{variant['url']} #{variant['width']}w"
+        url = variant["url"]
+        url = "#{baseurl}#{url}" if url.start_with?("/") && !url.start_with?("//")
+        "#{url} #{variant['width']}w"
       end.compact.join(", ")
     end
 
@@ -332,102 +457,29 @@ module Jekyll
       qualities = DEFAULT_QUALITY.merge((options["quality"] || {}).transform_keys { |key| key.to_s.downcase })
 
       {
+        "variants" => options.fetch("variants", true) != false,
         "sizes" => options["sizes"] || options["breakpoints"] || DEFAULT_SIZES,
         "quality" => qualities,
         "lazy_loading" => options["lazy_loading"] || "lazy",
         "default_sizes" => options["default_sizes"] || "100vw"
       }
     end
-
-    def avif_encoder
-      @avif_encoder ||= (Jekyll::Utils.which("avifenc") if defined?(Jekyll::Utils))
-    end
   end
 end
 
+# A variant kept in the image cache. Jekyll copies it into the site from there,
+# as it copies any static file from the source.
 class Jekyll::ResponsiveImageStaticFile < Jekyll::StaticFile
   attr_reader :url
 
-  def initialize(site:, relative_dir:, name:, original_path:, width:, height:, format:, quality:, avif_encoder: nil)
-    @site = site
-    @original_path = original_path
-    @target_width = width
-    @target_height = height
-    @format = format
-    @quality = quality
-    @avif_encoder = avif_encoder
-
-    sanitized_dir = relative_dir.to_s.sub(%r{^/}, "")
-    super(site, site.source, sanitized_dir, name)
-
-    relative = File.join(sanitized_dir, name).gsub(File::SEPARATOR, "/")
-    @url = relative.empty? ? "/#{name}" : "/#{relative}"
+  def initialize(site, relative_dir, name, cached_path)
+    @cached_path = cached_path
+    super(site, site.source, "/#{relative_dir}", name)
+    @url = "/#{relative_dir}/#{name}"
   end
 
-  def write(dest)
-    dest_path = destination(dest)
-    return false unless needs_write?(dest_path)
-
-    FileUtils.mkdir_p(File.dirname(dest_path))
-    generate_variant(dest_path)
-    true
-  rescue StandardError => e
-    Jekyll.logger.warn "ImageOptimizer", "Failed to generate #{relative_path}: #{e.message}"
-    false
-  end
-
-  private
-
-  def needs_write?(dest_path)
-    return true unless File.exist?(dest_path)
-
-    File.mtime(dest_path) < File.mtime(@original_path)
-  rescue Errno::ENOENT
-    true
-  end
-
-  def generate_variant(dest_path)
-    if MiniMagick.nil?
-      FileUtils.cp(@original_path, dest_path)
-      return
-    end
-
-    case @format
-    when "avif"
-      generate_avif(dest_path)
-    else
-      generate_with_mini_magick(dest_path, @format)
-    end
-  end
-
-  def generate_with_mini_magick(dest_path, format)
-    image = MiniMagick::Image.open(@original_path)
-    image.auto_orient
-    image.resize "#{@target_width}x#{@target_height}>" if @target_width.positive? && @target_width < image.width
-    image.strip
-    image.format(format)
-    image.quality(@quality.to_i) if @quality
-    image.write(dest_path)
-  ensure
-    image&.destroy!
-  end
-
-  def generate_avif(dest_path)
-    raise "avifenc encoder not available" unless @avif_encoder
-
-    Tempfile.create(["responsive", ".png"]) do |tempfile|
-      generate_with_mini_magick(tempfile.path, "png")
-      args = [@avif_encoder, "-q", avif_quality.to_s, "-s", "6", tempfile.path, dest_path]
-      system(*args)
-      raise "avifenc failed" unless $CHILD_STATUS&.success?
-    end
-  end
-
-  def avif_quality
-    quality = @quality.to_i
-    return 50 if quality <= 0
-
-    [[quality, 100].min, 0].max
+  def path
+    @cached_path
   end
 end
 

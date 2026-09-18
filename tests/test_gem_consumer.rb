@@ -2,6 +2,7 @@
 
 require "minitest/autorun"
 require "fileutils"
+require "json"
 require "open3"
 require "rbconfig"
 require "rubygems/specification"
@@ -39,6 +40,15 @@ class GemConsumerTest < Minitest::Test
     Jekyll::Site.new(config).process
   RUBY
 
+  CRITICAL_CSS = <<~'RUBY'
+    require "jekyll"
+    require "datalog/cli"
+
+    source, theme_root, critical = ARGV
+    Jekyll::Theme.prepend(Module.new { define_method(:root) { theme_root } })
+    Datalog::CLI.start(["critical-css", "--root", source, "--critical", critical])
+  RUBY
+
   def test_packaged_theme_builds_a_site_without_the_demo_content
     Dir.mktmpdir do |dir|
       theme = package_into(File.join(dir, "theme"))
@@ -52,6 +62,35 @@ class GemConsumerTest < Minitest::Test
 
       stylesheet = File.read(File.join(site, "_site", "assets", "css", "main.css"))
       refute_includes stylesheet, ".search-app", "a site without features.search should not carry the search styles"
+    end
+  end
+
+  # critical_css.enabled did nothing for a site installed from the gem, whose
+  # critical CSS files are empty (#238). `datalog critical-css` writes its own.
+  def test_critical_css_command_gives_a_packaged_theme_site_its_critical_css
+    critical = File.join(ROOT, "node_modules", ".bin", Gem.win_platform? ? "critical.cmd" : "critical")
+    unless File.file?(critical)
+      flunk "critical is not installed" if ENV["DATALOG_CRITICAL_CSS"] == "required"
+      skip "critical is not installed; run `npm ci` first"
+    end
+
+    Dir.mktmpdir do |dir|
+      theme = package_into(File.join(dir, "theme"))
+      site = write_site(File.join(dir, "site"), "critical_css:\n  enabled: true\n")
+
+      output, status = build(site, theme, CRITICAL_CSS, critical)
+      assert status.success?, "datalog critical-css should write the site's critical CSS:\n#{output}"
+      output, status = build(site, theme, BUILD, env: { "JEKYLL_ENV" => "production" })
+      assert status.success?, output
+
+      { "index.html" => "home", "about.html" => "default", "2026/01/01/hello.html" => "post" }.each do |page, target|
+        html = File.read(File.join(site, "_site", page))
+        css = html[%r{<style data-critical-css="#{target}"[^>]*>(.*?)</style>}m, 1].to_s
+        refute_empty css.strip, "#{page} should inline the #{target} critical CSS"
+        refute_includes css, "{% raw %}"
+        assert_match(/<link rel="stylesheet" href="[^"]*main\.css" media="print" data-async-style/, html)
+        assert_match(%r{<noscript>\s*<link rel="stylesheet" href="[^"]*main\.css" />}, html)
+      end
     end
   end
 
@@ -78,7 +117,90 @@ class GemConsumerTest < Minitest::Test
     end
   end
 
+  # A Git submodule at vendor/datalog, installed as a path gem and named as the
+  # theme (docs/install.md). Before it, a site pointed layouts_dir and the rest
+  # into the submodule and copied the theme's assets and _data in by hand.
+  def test_theme_in_a_git_submodule_builds_the_site_from_the_submodule
+    Dir.mktmpdir do |dir|
+      site, theme = write_submodule_site(dir)
+
+      output, status = build(site, theme)
+
+      assert status.success?, "a site using the theme from a submodule should build:\n#{output}"
+      assert_published_pages(site)
+      assert_no_demo_content(site)
+      published = File.join(site, "_site")
+      %w[assets/js/dist/core.js assets/js/loader.js assets/css/main.css].each do |file|
+        assert File.exist?(File.join(published, file)), "#{file} should be published from the submodule"
+      end
+      refute File.exist?(File.join(published, "assets/js/core/navigation.js")), "no page loads the script sources"
+      refute Dir.exist?(File.join(published, "vendor")), "the submodule itself should not be published"
+    end
+  end
+
+  def test_bundles_built_from_other_sources_stop_the_build
+    Dir.mktmpdir do |dir|
+      site, theme = write_submodule_site(dir)
+      File.write(File.join(theme, "assets/js/core/navigation.js"), "// updated\n", mode: "a")
+
+      output, status = build(site, theme)
+      refute status.success?, "bundles older than the submodule's sources should stop the build"
+      assert_includes output, "assets/js/core/navigation.js has changed"
+      assert_includes output, "npm run build:js"
+
+      FileUtils.rm_rf(File.join(theme, "assets/js/dist"))
+      output, status = build(site, theme)
+      refute status.success?, "a submodule whose bundles were never built should stop the build"
+      assert_includes output, "assets/js/dist/sources.json is missing"
+    end
+  end
+
+  def test_copies_of_theme_files_that_differ_from_the_theme_stop_the_build
+    Dir.mktmpdir do |dir|
+      site, theme = write_submodule_site(dir)
+      FileUtils.mkdir_p(File.join(site, "assets/js/dist"))
+      FileUtils.mkdir_p(File.join(site, "_data"))
+      FileUtils.cp(File.join(theme, "assets/js/dist/core.js"), File.join(site, "assets/js/dist/core.js"))
+      File.write(File.join(site, "assets/js/dist/search.js"), "// a bundle from an earlier version\n")
+      File.write(File.join(site, "_data/js_manifest.json"), JSON.generate("core" => "/assets/js/dist/core-0.7.js"))
+
+      output, status = build(site, theme)
+
+      refute status.success?, "copies that differ from the theme's files should stop the build"
+      listed = output[/differ from the theme's: (.*?)\. A site's file/, 1].to_s.split(", ")
+      assert_includes listed, "assets/js/dist/search.js"
+      assert_includes listed, "_data/js_manifest.json"
+      refute_includes listed, "assets/js/dist/core.js", "a copy identical to the theme's does no harm"
+    end
+  end
+
   private
+
+  def write_submodule_site(dir)
+    unless File.file?(File.join(ROOT, "assets/js/dist/sources.json"))
+      skip "browser bundles are not built; run `npm run build:js` first"
+    end
+
+    site = write_site(File.join(dir, "site"), "ignore_theme_config: true\nexclude:\n  - vendor\n")
+    theme = File.join(site, "vendor", "datalog")
+    checkout_into(theme)
+    [site, theme]
+  end
+
+  # What `git submodule add` checks out, and the bundles `npm run build:js`
+  # then builds in it.
+  def checkout_into(theme)
+    tracked, = Open3.capture2("git", "ls-files", "-z", chdir: ROOT)
+    built = Dir.glob("assets/js/dist/**/*", base: ROOT)
+    (tracked.split("\x0") + built).each do |file|
+      source = File.join(ROOT, file)
+      next unless File.file?(source)
+
+      target = File.join(theme, file)
+      FileUtils.mkdir_p(File.dirname(target))
+      FileUtils.cp(source, target)
+    end
+  end
 
   def package_into(theme)
     spec = Gem::Specification.load(File.join(ROOT, "datalog-theme.gemspec"))
@@ -112,8 +234,8 @@ class GemConsumerTest < Minitest::Test
     site
   end
 
-  def build(site, theme_root)
-    stdout, stderr, status = Open3.capture3(RbConfig.ruby, "-e", BUILD, site, theme_root, chdir: site)
+  def build(site, theme_root, script = BUILD, *, env: {})
+    stdout, stderr, status = Open3.capture3(env, RbConfig.ruby, "-e", script, site, theme_root, *, chdir: site)
     ["#{stdout}#{stderr}", status]
   end
 

@@ -11,6 +11,21 @@ layout: default
     {% endif %}
     <div class="page-content">
       {{ content }}
+      {%- if page.contact_form %}
+      {%- comment -%} The contact and collaboration form, or the email address without a backend {%- endcomment %}
+      {% include components/contact-form.html %}
+      {%- endif %}
+      {%- if page.subscription_manage %}
+      {%- comment -%} Where the newsletter's emails lead: confirm, change topics, unsubscribe {%- endcomment %}
+      {% include components/subscription-manage.html %}
+      {%- endif %}
+      {%- if page.subscribe_form %}
+      {% include components/subscribe-form.html where='page' %}
+      {%- endif %}
+      {%- if page.moderation_inbox %}
+      {%- comment -%} The moderation inbox: a shell; the service authenticates every request {%- endcomment %}
+      {% include components/moderation-inbox.html %}
+      {%- endif %}
     </div>
   </div>
 </section>

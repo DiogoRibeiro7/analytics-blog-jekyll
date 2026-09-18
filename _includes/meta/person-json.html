@@ -1,0 +1,27 @@
+{%- comment -%}
+---
+required:
+  - person
+---
+One schema.org Person, as JSON, for a record from `page | page_authors` or
+`page | page_contributors`. The site's own author links to the site when the
+record names no url of its own.
+{%- endcomment -%}
+{%- assign person_url = include.person.url -%}
+{%- if person_url == nil and include.person.site_author -%}{%- assign person_url = site.url -%}{%- endif -%}
+{
+    "@type": "Person",
+    "name": {{ include.person.name | jsonify }}
+    {%- if person_url -%},
+    "url": {{ person_url | absolute_url | jsonify }}
+    {%- endif -%}
+    {%- if include.person.affiliation -%},
+    "affiliation": {
+      "@type": "Organization",
+      "name": {{ include.person.affiliation | jsonify }}
+    }
+    {%- endif -%}
+    {%- if include.person.same_as.size > 0 -%},
+    "sameAs": {{ include.person.same_as | jsonify }}
+    {%- endif -%}
+  }

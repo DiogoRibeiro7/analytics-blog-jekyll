@@ -34,6 +34,15 @@
 @if features.$packages {
   @include meta.load-css('package-docs');
 }
+@include meta.load-css('reading-state');
+@include meta.load-css('service-forms');
+@include meta.load-css('comments-thread');
+@include meta.load-css('reactions');
+@include meta.load-css('webmentions');
+@include meta.load-css('subscriptions');
+@include meta.load-css('moderation');
+// Reading mode and print come last, so their rules win.
+@include meta.load-css('print');
 
 // 2) CSS rules AFTER the partials
 :root {
@@ -52,6 +61,7 @@
 
   // Accent colors
   --color-accent: #{$color-accent-primary};
+  --color-accent-text: #{$color-accent-primary-text};
   --color-accent-secondary: #{$color-accent-secondary};
   --color-accent-dark: #{color.adjust($color-accent-primary, $lightness: -10%)};
 
@@ -90,6 +100,7 @@ body.dark-mode {
 
   // Accent colors
   --color-accent: #{$dark-accent-primary};
+  --color-accent-text: #{$dark-accent-primary};
   --color-accent-secondary: #{$dark-accent-secondary};
   --color-accent-dark: #{color.adjust($dark-accent-primary, $lightness: -10%)};
 

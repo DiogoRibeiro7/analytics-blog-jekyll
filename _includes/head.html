@@ -24,7 +24,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0b1d3d" />
 <meta name="description" content="{{ page_description | strip_html | normalize_whitespace }}" />
-<meta name="author" content="{{ page.author | default: site.author.name }}" />
+{% assign head_authors = page | page_authors %}
+<meta name="author" content="{{ head_authors | map: 'name' | join: ', ' | escape }}" />
 {% if keyword_list %}
 <meta name="keywords" content="{{ keyword_list | join: ', ' | strip }}" />
 {% endif %}
@@ -60,6 +61,9 @@
 <meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
 <link rel="canonical" href="{{ canonical_url }}" />
+{% include meta/webmention-discovery.html %}
+{%- assign head_license = page | page_license %}
+{% if head_license.url %}<link rel="license" href="{{ head_license.url | escape }}" />{% endif %}
 {% if js_manifest and js_manifest.core %}
 <link rel="modulepreload" href="{{ js_manifest.core | relative_url }}" crossorigin="anonymous" />
 {%- comment -%} Only a page that renders the search app uses the search bundle. {%- endcomment -%}
@@ -76,6 +80,50 @@
 {%- endcomment -%}
 {% if js_manifest.features and js_manifest.features.visualizations and site.features.visualizations and content contains 'data-viz-type' %}
 <link rel="modulepreload" href="{{ js_manifest.features.visualizations | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{%- comment -%} Posts carry the reading-state panel; a page with the saved-articles list carries data-reading-list. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features['reading-state'] and site.theme_options.reading_state.enabled != false %}
+  {% if page.layout == 'post' or content contains 'data-reading-list' %}
+<link rel="modulepreload" href="{{ js_manifest.features['reading-state'] | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The correction-report form renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.corrections and page.layout == 'post' and page.corrections != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.corrections != false and site.corrections.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.corrections | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The contact form renders on a page that asks for it, on a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.contact and page.contact_form %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.contact != false and site.contact.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.contact | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The comments thread of the api provider, on a page that shows comments that way. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.comments and page.datalog_comments.provider == 'api' %}
+<link rel="modulepreload" href="{{ js_manifest.features.comments | relative_url }}" crossorigin="anonymous" />
+{% endif %}
+{%- comment -%} "Was this useful?" renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.reactions and page.layout == 'post' and page.reactions != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.reactions != false and site.reactions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.reactions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} "Mentioned elsewhere" renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.webmentions and page.layout == 'post' and page.webmentions != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.webmentions != false and site.webmentions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.webmentions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The page the newsletter's emails link to acts as soon as it loads; the footer form loads on demand. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.subscriptions and page.subscription_manage %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.subscriptions != false and site.subscriptions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.subscriptions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} The moderation inbox loads its queue as soon as the page opens. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.moderation and page.moderation_inbox and site.moderation.enabled == true %}
+<link rel="modulepreload" href="{{ js_manifest.features.moderation | relative_url }}" crossorigin="anonymous" />
 {% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
@@ -304,45 +352,8 @@
   {% endif %}
 {% endif %}
 
-{% assign citation_source = page.citation_authors | default: page.authors %}
-{% if page.title or page.citation_title %}
-<meta name="citation_title" content="{{ page.citation_title | default: page_title | strip_html | normalize_whitespace }}" />
-{% endif %}
-{% if citation_source %}
-  {% capture citation_source_json %}{{ citation_source | jsonify }}{% endcapture %}
-  {% assign citation_source_first = citation_source_json | slice: 0, 1 %}
-  {% if citation_source_first == '[' %}
-    {% assign citation_author_list = citation_source %}
-  {% else %}
-    {% assign citation_author_list = citation_source | replace: ';', ',' | split: ',' %}
-  {% endif %}
-  {% for author in citation_author_list %}
-<meta name="citation_author" content="{{ author | strip | escape }}" />
-  {% endfor %}
-{% elsif page.author or site.author.name %}
-<meta name="citation_author" content="{{ page.author | default: site.author.name | strip | escape }}" />
-{% endif %}
-{% if page.date %}
-<meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />
-{% endif %}
-{% if page.doi %}
-<meta name="citation_doi" content="{{ page.doi }}" />
-{% endif %}
-{% if page.journal %}
-<meta name="citation_journal_title" content="{{ page.journal }}" />
-{% endif %}
-{% if page.conference %}
-<meta name="citation_conference_title" content="{{ page.conference }}" />
-{% endif %}
-{% if page.orcid or site.author.orcid %}
-<meta name="citation_orcid" content="{{ page.orcid | default: site.author.orcid }}" />
-{% endif %}
-{% if page.dataset_doi %}
-<meta name="citation_dataset_doi" content="{{ page.dataset_doi }}" />
-{% endif %}
-{% if page.citation_pdf %}
-<link rel="citation_pdf_url" href="{{ page.citation_pdf | absolute_url }}" />
-{% endif %}
+{%- comment -%} Highwire and Dublin Core tags, for a page read as a research article; the include decides which. {%- endcomment -%}
+{% include meta/scholarly.html %}
 
 <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
 <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />

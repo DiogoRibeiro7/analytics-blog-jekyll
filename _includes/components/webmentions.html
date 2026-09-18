@@ -1,0 +1,48 @@
+{%- comment -%}
+---
+optional: []
+---
+"Mentioned elsewhere" (assets/js/webmentions/list.js): the links, replies
+and reposts other websites sent about this article, read through the
+site's dynamic services (docs/dynamic-services.md) from what the
+Webmention receiver verified. Apart from the comments, which are hosted
+here. Renders only when the site has a backend with the webmentions
+feature on, `webmentions.enabled` is not false, and the page does not say
+`webmentions: false`. The kinds shown come from `webmentions.types`.
+The receiver itself is advertised by meta/webmention-discovery.html.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign webmentions = site.webmentions -%}
+{%- if services.base_url and services.base_url != '' and services.features.webmentions != false and webmentions.enabled != false and page.webmentions != false -%}
+{%- assign types = webmentions.types -%}
+{%- if types == nil or types.size == 0 -%}
+  {%- assign types = "mention,reply" | split: "," -%}
+{%- endif -%}
+{%- capture labels_json -%}
+{
+  "loading": {{ 'webmentions.loading' | t | jsonify }},
+  "empty": {{ 'webmentions.empty' | t | jsonify }},
+  "retry": {{ 'webmentions.retry' | t | jsonify }},
+  "types": {
+    "mention": {{ 'webmentions.types.mention' | t | jsonify }},
+    "reply": {{ 'webmentions.types.reply' | t | jsonify }},
+    "repost": {{ 'webmentions.types.repost' | t | jsonify }},
+    "like": {{ 'webmentions.types.like' | t | jsonify }}
+  },
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<section class="webmentions" id="webmentions" data-webmentions data-webmentions-target="{{ page.url | absolute_url }}" data-webmentions-types="{{ types | join: ',' }}" data-state="idle" aria-labelledby="webmentions-heading">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-webmentions-labels>{{ labels_json | strip }}</script>
+  <h2 class="webmentions__heading" id="webmentions-heading">{% t 'webmentions.heading' %}</h2>
+  <p class="webmentions__intro">{% t 'webmentions.intro' %}</p>
+  <p class="webmentions__status" data-webmentions-status role="status" aria-live="polite">{% t 'webmentions.loading' %}</p>
+  <ul class="webmentions__list" data-webmentions-list hidden></ul>
+</section>
+{%- endif -%}

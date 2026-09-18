@@ -1,0 +1,39 @@
+{%- comment -%}
+---
+required:
+  - page
+optional:
+  - date_format
+---
+The revision history of an article (`revisions`, sorted newest first by
+_plugins/revisions.rb), after its body, ending with the publication date.
+Renders nothing for a page without revisions.
+{%- endcomment -%}
+{%- assign revisions = include.page.revisions -%}
+{%- if revisions and revisions.size > 0 -%}
+<section class="revision-history" id="revision-history" aria-labelledby="revision-history-heading">
+  <h2 id="revision-history-heading">{% t 'post.revisions.heading' %}</h2>
+  <ul class="revision-history__list">
+    {%- for revision in revisions -%}
+    {%- assign type_key = 'post.revisions.types.' | append: revision.type -%}
+    <li class="revision-history__item revision-history__item--{{ revision.type }}">
+      <time class="revision-history__date" datetime="{{ revision.date | date: '%Y-%m-%d' }}">{% include helpers/date-format.html date=revision.date format=include.date_format %}</time>
+      <span class="revision-history__type">{{ type_key | t }}</span>
+      <span class="revision-history__summary">{{ revision.summary | escape }}
+        {%- if revision.details_url -%}
+        {%- assign details_url = revision.details_url -%}
+        {%- unless details_url contains '://' -%}{%- assign details_url = details_url | relative_url -%}{%- endunless %}
+        <a class="revision-history__details" href="{{ details_url | escape }}">{% t 'post.revisions.details' %}</a>
+        {%- endif -%}
+      </span>
+    </li>
+    {%- endfor -%}
+    {%- if include.page.date -%}
+    <li class="revision-history__item revision-history__item--published">
+      <time class="revision-history__date" datetime="{{ include.page.date | date: '%Y-%m-%d' }}">{% include helpers/date-format.html date=include.page.date format=include.date_format %}</time>
+      <span class="revision-history__type">{% t 'post.revisions.types.published' %}</span>
+    </li>
+    {%- endif -%}
+  </ul>
+</section>
+{%- endif -%}

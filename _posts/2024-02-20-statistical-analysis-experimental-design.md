@@ -18,6 +18,15 @@ keywords:
   - statistical analysis
   - power analysis
   - experimental design
+revisions:
+  - date: 2024-09-10
+    type: correction
+    summary: "Corrected the power calculation: pwr.2p.test returns the sample size per arm, which the text read as the total."
+    details_url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
+  - date: 2024-04-02
+    type: editorial
+    summary: Reworded the planning checklist.
+code_license: MIT
 ---
 
 ## Planning experiments

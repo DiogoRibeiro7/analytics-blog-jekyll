@@ -1,0 +1,159 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+
+// The comments thread of the `api` provider (components/comments-thread.html,
+// assets/js/comments/thread.js). The form itself is a .service-form
+// (_service-forms.scss).
+
+.comments-thread {
+  max-width: $max-width-reading;
+}
+
+.comments-thread__status {
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-500;
+  font-size: map.get($font-size-scale, sm);
+
+  .comments-thread[data-state='error'] & {
+    color: $color-danger-700;
+  }
+}
+
+.comments-thread__noscript {
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-500;
+}
+
+.comments-thread__list,
+.comments-thread__replies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.comments-thread__list {
+  display: grid;
+  gap: map.get($spacing, 3);
+  margin-bottom: map.get($spacing, 5);
+}
+
+// display: grid and display: flex would override the hidden attribute.
+.comments-thread__list[hidden],
+.comments-form__replying[hidden] {
+  display: none;
+}
+
+.comments-thread__replies {
+  display: grid;
+  gap: map.get($spacing, 3);
+  margin-top: map.get($spacing, 3);
+  padding-left: map.get($spacing, 4);
+  border-left: 2px solid rgba($color-neutral-500, 0.25);
+}
+
+.comment__card {
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-radius: map.get($radius, md);
+  background: rgba($color-neutral-500, 0.06);
+}
+
+.comment--pending > .comment__card {
+  border: 1px dashed rgba($color-neutral-500, 0.5);
+  background: transparent;
+}
+
+.comment__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 2);
+  margin-bottom: map.get($spacing, 2);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.comment__author {
+  font-weight: 600;
+  color: $color-ink-900;
+}
+
+.comment__time {
+  color: $color-ink-500;
+}
+
+.comment__pending {
+  padding: 0 map.get($spacing, 2);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.15);
+  color: $color-ink-700;
+  font-size: map.get($font-size-scale, xs);
+}
+
+.comment__body {
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0 0 map.get($spacing, 2);
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.comment__reply {
+  margin-top: map.get($spacing, 2);
+}
+
+.comments-form__heading {
+  margin: 0 0 map.get($spacing, 2);
+  font-size: map.get($font-size-scale, md);
+}
+
+.comments-form__replying {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: map.get($spacing, 2);
+  margin: 0 0 map.get($spacing, 3);
+  color: $color-ink-700;
+  font-size: map.get($font-size-scale, sm);
+}
+
+body.dark-mode {
+  .comments-thread__status,
+  .comments-thread__noscript,
+  .comment__time {
+    color: $dark-ink-500;
+  }
+
+  .comments-thread[data-state='error'] .comments-thread__status {
+    color: $color-danger-300;
+  }
+
+  .comment__card {
+    background: rgba($dark-ink-500, 0.12);
+  }
+
+  .comment--pending > .comment__card {
+    border-color: rgba($dark-ink-500, 0.5);
+    background: transparent;
+  }
+
+  .comment__author {
+    color: $dark-ink-900;
+  }
+
+  .comment__pending,
+  .comments-form__replying {
+    color: $dark-ink-700;
+  }
+
+  .comment__pending {
+    background: rgba($dark-ink-500, 0.2);
+  }
+
+  .comments-thread__replies {
+    border-left-color: rgba($dark-ink-500, 0.35);
+  }
+}

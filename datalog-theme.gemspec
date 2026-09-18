@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   # The sass-embedded and nokogiri releases the theme is tested with need Ruby
   # 3.2; the gemspec said 3.0.
-  spec.required_ruby_version = ">= 3.2"
+  spec.required_ruby_version = Datalog::Theme::RUBY_REQUIREMENT
   spec.require_paths = ["lib"]
   spec.bindir = "bin"
   spec.executables = ["datalog"]
@@ -79,7 +79,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "fastimage", "~> 2.2"
   spec.add_runtime_dependency "loofah", "~> 2.19"
   spec.add_runtime_dependency "nokogiri", "~> 1.15"
-  spec.add_runtime_dependency "mini_magick", ">= 4.12", "< 6"
   spec.add_runtime_dependency "logger", "~> 1.6"
   spec.add_runtime_dependency "thor", "~> 1.3"
   # googleauth, with the Google Cloud gems it brings, is needed only by the

@@ -64,6 +64,86 @@ $$
 - Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog auto-numbers and links equations.
 - For chemical notation, rely on `mhchem` syntax: `\ce{H2O + CO2 ->[light] C6H12O6 + O2}`.
 
+### Figures, tables and cross-references
+
+Figures and tables are numbered within each page, in the order they appear, and a reference reads "Figure 2" or "Table 1" and links to its target. Give each an id that starts with a letter; the number follows the page, so reordering the figures renumbers every reference to them. A worked example, with an equation, a figure and a table referring to each other:
+
+```markdown
+The power of a two-sided test (equation \eqref{eq:power}) grows with the
+effect size $\delta$, as {% ref fig-power %} shows for the sample sizes in
+{% ref tab-samples %}.
+
+$$
+1 - \beta = \Phi\left(\delta \sqrt{n} - z_{1-\alpha/2}\right) \label{eq:power}
+$$
+
+{% figure id="fig-power" src="/assets/img/power-curve.png" alt="Power rising with effect size" %}
+Power as a function of effect size $\delta$ for $\alpha = 0.05$.
+{% endfigure %}
+
+{% table id="tab-samples" %}
+Sample sizes simulated, with the runs for each.
+
+| $n$ | Runs |
+|-----|------|
+| 20  | 5000 |
+| 50  | 5000 |
+{% endtable %}
+
+Beyond $n = 50$, {% ref fig-power %} flattens.
+```
+
+- `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. An `alt` that contains a double quote goes in single quotes: `alt='The "null" model'`.
+- `{% table %}` needs `id`. Its body is the caption, then one Markdown table; the caption goes into the table's `<caption>`.
+- `{% ref id %}` becomes a link reading "Figure 2" or "Table 1". It may come before its target. In a post's excerpt, on listings and in feeds, it links to the figure on the post's page.
+- A reference to an id no figure or table on the page has, or two figures or tables with the same id, stops the build and names the page.
+- The words come from `references.figure` and `references.table` in `_data/i18n`, so a page with `lang: pt` reads "Figura 2"; a site can change them there. Numbers do not carry across pages.
+- Markdown images and tables written without these tags are left as they are. In print, a numbered figure or table is kept on one page where it fits.
+
+### Theorems, definitions and proofs
+
+Theorems, lemmas, propositions, corollaries, definitions, assumptions, examples and remarks are numbered and referred to like figures and tables. A proof names the statement it proves. A short article:
+
+```markdown
+Let $X_1, \dots, X_n$ be independent draws from a distribution with mean $\mu$.
+
+{% definition id="def-consistent" title="Consistency" %}
+An estimator $\hat\theta_n$ is *consistent* for $\theta$ when
+$\hat\theta_n \to \theta$ in probability as $n \to \infty$.
+{% enddefinition %}
+
+{% assumption id="as-variance" %}
+The variance $\sigma^2$ of each $X_i$ is finite.
+{% endassumption %}
+
+{% theorem id="thm-wlln" title="Weak law of large numbers" %}
+Under {% ref as-variance %}, the sample mean $\bar X_n$ is consistent for $\mu$
+in the sense of {% ref def-consistent %}.
+{% endtheorem %}
+
+{% proof for="thm-wlln" %}
+By Chebyshev's inequality, for every $\varepsilon > 0$,
+
+$$
+P\left(|\bar X_n - \mu| \ge \varepsilon\right) \le \frac{\sigma^2}{n \varepsilon^2},
+$$
+
+which tends to $0$ as $n \to \infty$.
+{% endproof %}
+
+{% remark id="rem-strong" %}
+The strong law gives almost sure convergence without {% ref as-variance %}:
+a finite mean is enough.
+{% endremark %}
+```
+
+- The tags are `theorem`, `lemma`, `proposition`, `corollary`, `definition`, `assumption`, `example` and `remark`, each closed by its `end` tag, such as `{% endtheorem %}`. Each needs `id` and takes an optional `title`, shown in parentheses after the number. The title is plain text; the body can hold Markdown, math, lists and code.
+- Each kind is numbered on its own, in page order: the first lemma is "Lemma 1" however many theorems come before it. `{% ref id %}` reads "Theorem 1" and links to the statement. Statements, figures and tables share the page's ids, so two with the same id stop the build.
+- `label="A"` shows "Theorem A" in place of a number, for a result named in an appendix or restated from elsewhere, and a statement with a label does not take a number. A label is letters and digits, with `.`, `'`, `*` or `-`.
+- `{% proof %}` is not numbered. With `for="thm-wlln"` its heading reads "Proof of Theorem 1" and links to the theorem, and the build stops when the page has no statement with that id. A proof ends with ∎; `qed="false"` leaves the mark out, for a proof that continues after it.
+- Theorems, lemmas, propositions and corollaries share one accent colour, definitions and assumptions another, and examples and remarks a neutral one. Screen readers announce each statement and proof as a group named by its heading, and skip the ∎. In print, a statement is kept on one page where it fits.
+- The words come from `references.theorem` to `references.remark`, `references.proof` and `references.proof_of` in `_data/i18n`, so a page with `lang: pt` reads "Teorema 1" and "Demonstração de Teorema 1".
+
 ## 4. Interactive Visualization Embedding
 
 - **Plotly/D3/Bokeh**: Wrap serialized chart specs in `<div class="viz" data-viz-type="plotly" data-viz-src="/assets/plots/sample.json"></div>` and the visualization runtime handles lazy loading.
@@ -126,7 +206,7 @@ $$
 | --- | --- |
 | `jekyll` command missing | Install Ruby via rbenv/rvm or Conda and rerun `bundle install`. |
 | Notebook conversion fails | Ensure the notebook has been executed and contains JSON metadata; check `_plugins/notebook_converter.rb` logs. |
-| Math not rendering | Verify `theme_options.math.enabled` is `true` and there are no LaTeX syntax errors (MathJax will log them in the console). |
+| Math not rendering | With `theme_options.math.render_on_load: auto`, MathJax loads only on pages that contain math. Inline math with spaces inside the dollars counts only when it holds a TeX command, `^` or `_`, so write `$ x $` as `$x$`, or add `math: true` to the page's front matter to load MathJax regardless. Check the browser console for LaTeX errors. |
 | Visualizations not loading | Confirm data attributes (`data-viz-type`, `data-viz-src`) are set and the referenced files exist. |
 | GitHub API rate limiting | Configure a `github_token` in `_config.yml` or as an environment variable for authenticated requests. |
 

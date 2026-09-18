@@ -1,0 +1,13 @@
+{%- comment -%}
+---
+required:
+  - license
+---
+A licence's name (from the page_license or page_code_license filter), linked
+with rel="license" when the licence has a URL.
+{%- endcomment -%}
+{%- if include.license.url -%}
+<a class="license-link" rel="license" href="{{ include.license.url | escape }}">{{ include.license.name | escape }}</a>
+{%- else -%}
+<span class="license-link">{{ include.license.name | escape }}</span>
+{%- endif -%}

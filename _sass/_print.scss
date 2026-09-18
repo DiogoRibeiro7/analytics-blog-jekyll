@@ -1,0 +1,291 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// Reading mode and print (_includes/components/reading-mode-toggle.html).
+//
+// Reading mode hides the site's chrome and the panels around an article and
+// leaves the article, its metadata and its table of contents. Print does the
+// same on paper: black on white whatever the theme, the addresses of links,
+// no interactive controls, and no figure, table, code block or equation cut
+// across pages where the browser can help it.
+
+// ---------------------------------------------------------------------------
+// The control
+// ---------------------------------------------------------------------------
+.reading-mode-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// Shared by the reading-mode control and the reading-state buttons (_reading-state.scss).
+.post-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: map.get($spacing, 2);
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba($color-neutral-200, 0.9);
+  border-radius: map.get($radius, md);
+  background: $color-surface-50;
+  color: $color-ink-700;
+  font: inherit;
+  font-size: map.get($font-size-scale, sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-accent-primary;
+    color: $color-accent-primary-text;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $color-accent-primary;
+    background: $color-accent-primary;
+    color: #fff;
+  }
+
+  svg {
+    flex: none;
+  }
+}
+
+body.dark-mode .post-tool {
+  border-color: rgba($dark-ink-500, 0.35);
+  background: $dark-surface-300;
+  color: $dark-ink-700;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $dark-accent-primary;
+    color: $dark-accent-primary;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $dark-accent-primary;
+    background: $dark-accent-primary;
+    color: $dark-surface-100;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reading mode: the article alone, and the way back
+// ---------------------------------------------------------------------------
+body.reading-mode {
+  .site-header,
+  .site-footer,
+  .breadcrumbs,
+  .social-share,
+  .post-interactive,
+  .post-comments,
+  .citation-tools,
+  .open-science-badges,
+  .author-bio,
+  .post-related,
+  .post-pagination,
+  .back-to-top,
+  [data-back-to-top] {
+    display: none !important;
+  }
+
+  .site-main {
+    padding-top: map.get($spacing, 4);
+  }
+
+  // The tools stay in reach while the article scrolls.
+  .post-tools {
+    position: sticky;
+    top: map.get($spacing, 3);
+    z-index: 5;
+  }
+
+  .post-content {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Print
+// ---------------------------------------------------------------------------
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+
+  body,
+  body.dark-mode {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  // The chrome and the controls that only work on a screen
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .breadcrumbs,
+  .social-share,
+  .post-interactive,
+  .post-comments,
+  .post-slides,
+  .open-science-badges,
+  .author-bio,
+  .post-related,
+  .post-pagination,
+  .post-tools,
+  .reading-mode-bar,
+  .back-to-top,
+  [data-back-to-top],
+  .code-copy,
+  .citation-tools__exports,
+  .viz-table-toggle,
+  [aria-live] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .site-main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .post-body-wrapper {
+    display: block;
+  }
+
+  // Black on white, whatever the theme
+  body.dark-mode :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, code, pre, span, a,
+    strong, em, time, small, summary, label, caption, kbd) {
+    color: #000 !important;
+  }
+
+  body.dark-mode :where(section, aside, div, nav, article, figure, p, li, ul, ol, dl, dt, dd, blockquote, pre, code,
+    table, th, td, kbd) {
+    background: transparent !important;
+    border-color: #999 !important;
+  }
+
+  blockquote {
+    background: none !important;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  .datalog-statement,
+  .datalog-proof,
+  .revision-notice,
+  .series-nav,
+  .reproduce,
+  .content-provenance,
+  .content-license,
+  .citation-tools,
+  .enhanced-toc {
+    background: none !important;
+    border-color: #000;
+    box-shadow: none;
+  }
+
+  // Links keep their addresses, other than anchors within the page
+  .post-content a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+
+  // Page breaks
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  pre,
+  figure,
+  table,
+  tr,
+  blockquote,
+  img,
+  svg,
+  .code-block-wrapper,
+  .highlight,
+  .datalog-statement,
+  .datalog-proof,
+  mjx-container[display='true'],
+  .katex-display {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  img,
+  svg,
+  mjx-container,
+  .katex-display {
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  // Code without a dark background, wrapped to the page
+  pre,
+  pre.highlight,
+  .highlight pre,
+  pre[class*='language-'],
+  .code-block-wrapper {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #999;
+    box-shadow: none;
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+    word-break: break-word;
+    overflow: visible !important;
+  }
+
+  body.dark-mode .highlight span {
+    color: #000 !important;
+    background: none !important;
+  }
+
+  // Interactive embeds become a note; a visualization's table fallback is shown
+  iframe,
+  canvas,
+  video,
+  [data-viz-type] > *,
+  .interactive-embed > * {
+    display: none !important;
+  }
+
+  [data-viz-type]::before,
+  .interactive-embed::before {
+    content: 'Interactive content, available in the online article.';
+    display: block;
+    padding: map.get($spacing, 3);
+    border: 1px dashed #999;
+    font-style: italic;
+  }
+
+  .viz-table-wrapper[hidden] {
+    display: block !important;
+  }
+}

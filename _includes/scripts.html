@@ -31,6 +31,55 @@
   {% assign academic_flag = 'false' %}
 {% endif %}
 
+{% if site.theme_options.reading_state.enabled == false %}
+  {% assign reading_state_flag = 'false' %}
+{% else %}
+  {% assign reading_state_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} The correction-report form needs a backend with the feature on (components/correction-report.html). {%- endcomment -%}
+{% assign corrections_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.corrections != false and site.corrections.enabled != false %}
+  {% assign corrections_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} The contact form likewise (components/contact-form.html). {%- endcomment -%}
+{% assign contact_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.contact != false and site.contact.enabled != false %}
+  {% assign contact_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} The comments thread of the api provider (components/comments-thread.html), site-wide or for this page. {%- endcomment -%}
+{% assign comments_flag = 'false' %}
+{% assign comments_options = site.datalog_plugins.options['datalog-comments'] %}
+{% if comments_options.provider == 'api' or page.datalog_comments.provider == 'api' %}
+  {% assign comments_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} "Was this useful?" needs a backend with the feature on (components/reactions.html). {%- endcomment -%}
+{% assign reactions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.reactions != false and site.reactions.enabled != false %}
+  {% assign reactions_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} "Mentioned elsewhere" needs a backend with the feature on (components/webmentions.html). {%- endcomment -%}
+{% assign webmentions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.webmentions != false and site.webmentions.enabled != false %}
+  {% assign webmentions_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} The newsletter form and its manage page need a backend with the feature on (components/subscribe-form.html). {%- endcomment -%}
+{% assign subscriptions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.subscriptions != false and site.subscriptions.enabled != false %}
+  {% assign subscriptions_flag = 'auto' %}
+{% endif %}
+
+{%- comment -%} The moderation inbox is off unless the site turns it on (components/moderation-inbox.html). {%- endcomment -%}
+{% assign moderation_flag = 'false' %}
+{% if site.moderation.enabled == true %}
+  {% assign moderation_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -42,6 +91,14 @@
     body.dataset.featureMath = "{{ math_flag }}";
     body.dataset.featureNotebook = "{{ notebook_flag }}";
     body.dataset.featureAcademic = "{{ academic_flag }}";
+    body.dataset.featureReadingState = "{{ reading_state_flag }}";
+    body.dataset.featureCorrections = "{{ corrections_flag }}";
+    body.dataset.featureContact = "{{ contact_flag }}";
+    body.dataset.featureComments = "{{ comments_flag }}";
+    body.dataset.featureReactions = "{{ reactions_flag }}";
+    body.dataset.featureWebmentions = "{{ webmentions_flag }}";
+    body.dataset.featureSubscriptions = "{{ subscriptions_flag }}";
+    body.dataset.featureModeration = "{{ moderation_flag }}";
   })();
 </script>
 

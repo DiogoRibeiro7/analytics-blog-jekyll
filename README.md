@@ -208,8 +208,10 @@ Data-driven configuration allows you to publish or reorder projects, datasets, s
 Add the theme gem to your Jekyll site:
 
 ```ruby
-gem "datalog-theme", "~> 0.7"
+gem "datalog-theme", "~> 0.9.0"
 ```
+
+The constraint takes the patch releases of the current minor series. Until 1.0 a minor release may include breaking changes, listed in the [changelog](CHANGELOG.md).
 
 Then enable it in `_config.yml`. Naming the theme under `plugins:` registers its Liquid tags, and the build needs an author name:
 
@@ -221,7 +223,7 @@ author:
   name: Your Name
 ```
 
-The [installation guide](docs/install.md) covers the files a site supplies itself, installing from a Git checkout, and publishing to GitHub Pages. GitHub Pages cannot build a site that uses this theme by itself, so the guide publishes it with GitHub Actions.
+The [installation guide](docs/install.md) covers the files a site supplies itself, installing from Git (a release tag, `main` for the latest release, or `develop` for unreleased work), and publishing to GitHub Pages. GitHub Pages cannot build a site that uses this theme by itself, so the guide publishes it with GitHub Actions.
 
 ## Continuous Integration & Testing
 

@@ -80,7 +80,7 @@ footer:
     url: /archives/topics/
   - title: Contact
     title_key: navigation.footer.contact
-    url: mailto:dfr@esmad.ipp.pt
+    url: /contact/
 
 content_overview:
   research_areas:

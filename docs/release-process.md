@@ -4,11 +4,13 @@
 
 Releases promote `develop` to `main` via a validated workflow. The gem-release workflow then publishes to RubyGems when the version tag is pushed.
 
+`main` is the stable release branch: it changes only when a release is merged, and every merge is tagged `vX.Y.Z`. `develop` holds the work since the last release. [branch-trigger-policy.md](branch-trigger-policy.md#release-channels) lists the channels a site can install from.
+
 ## Pre-release Checklist
 
 1. Everything to ship is merged into `develop` and CI is green there.
 2. `CHANGELOG.md` has a `## [Unreleased]` section listing the changes. The release turns it into the version heading; do not add the version yourself.
-3. Pick the version: patch for fixes only, minor when the section has an `### Added` entry, major for breaking changes.
+3. Pick the version: patch for fixes only, minor when the section has an `### Added` entry, major for breaking changes. Before 1.0, breaking changes go in a minor release, as they did in 0.8.0.
 
 ## Creating a Release
 
@@ -18,7 +20,7 @@ Releases promote `develop` to `main` via a validated workflow. The gem-release w
 2. Enter the version (e.g. `0.6.2`). Tick **Dry run** first if you want to see the bump without side effects.
 3. Click **Run workflow**.
 
-The workflow validates the version (format, not already tagged, `[Unreleased]` has entries), bumps `CHANGELOG.md`, `lib/datalog/theme/version.rb`, `CITATION.cff` and `theme_version` in `_config.yml`, verifies the gem builds, pushes that commit to `develop`, and opens (or refreshes) the pull request from `develop` into `main` with the release notes as its body.
+The workflow validates the version (format, not already tagged, `[Unreleased]` has entries), bumps `CHANGELOG.md`, `lib/datalog/theme/version.rb`, `CITATION.cff` and `theme_version` in `_config.yml`, and updates the install examples in `README.md`, `docs/install.md` and `template/Gemfile` (the gem constraint names the new minor series, the Git example the new tag). It verifies the gem builds, runs `tests/test_install_versions.rb`, pushes that commit to `develop` and a `release/vX.Y.Z` branch, and opens (or refreshes) the pull request from that branch into `main` with the release notes as its body.
 
 4. Review the PR and merge it with **Create a merge commit**. Squash or rebase merges detach `main` from `develop`'s history and make the next promotion conflict.
 
@@ -36,7 +38,9 @@ Requirements this flow relies on:
 ```bash
 git checkout develop && git pull
 # bump CHANGELOG.md ([Unreleased] -> [X.Y.Z] - YYYY-MM-DD), lib/datalog/theme/version.rb,
-# CITATION.cff (version, date-released) and theme_version in _config.yml, then:
+# CITATION.cff (version, date-released) and theme_version in _config.yml, set the
+# install examples in README.md, docs/install.md and template/Gemfile to "~> X.Y.0"
+# and tag "vX.Y.Z", check them with `bundle exec ruby tests/test_install_versions.rb`, then:
 git commit -am "chore(release): bump version to X.Y.Z"
 git push origin develop
 # Promote from a branch named for the release, not from develop, so the pull
@@ -80,3 +84,5 @@ This project follows [Semantic Versioning](https://semver.org/):
 - **Patch** (0.2.x): Bug fixes, dependency updates, doc improvements
 - **Minor** (0.x.0): New features, non-breaking layout/config changes
 - **Major** (x.0.0): Breaking changes to config, layouts, or plugin APIs
+
+Before 1.0, a breaking change takes a minor release instead, and the installation guide constrains the gem to a minor series (`~> 0.Y.0`) so sites take only patch releases until they upgrade.

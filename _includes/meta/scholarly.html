@@ -1,0 +1,121 @@
+{%- comment -%}
+---
+optional: []
+---
+Scholarly discovery metadata for a page read as a research article: the
+Highwire meta tags Google Scholar and reference managers read, and their
+Dublin Core equivalents. Only a page the `scholarly` filter accepts gets them
+(_plugins/scholarly.rb): a research article, a page with `scholarly: true`,
+or every post when _config.yml sets `scholarly: true`. A field the page
+lacks leaves its tag out. The authors are the page's (page_authors), as in
+the byline, the JSON-LD and the citation exports; `citation_authors` names
+the indexed authors alone.
+{%- endcomment -%}
+{%- assign is_scholarly = page | scholarly -%}
+{%- if is_scholarly and page.title -%}
+{%- include meta/publisher.html -%}
+{%- assign scholarly_title = page.citation_title | default: page.title | strip_html | normalize_whitespace -%}
+{%- assign scholarly_url = page.url | absolute_url -%}
+{%- assign scholarly_authors = page | page_authors -%}
+{%- assign scholarly_names = scholarly_authors | map: 'name' -%}
+{%- assign scholarly_override = false -%}
+{%- if page.citation_authors -%}
+  {%- assign scholarly_override = true -%}
+  {%- capture citation_source_json -%}{{ page.citation_authors | jsonify }}{%- endcapture -%}
+  {%- assign citation_source_first = citation_source_json | slice: 0, 1 -%}
+  {%- if citation_source_first == '[' -%}
+    {%- assign scholarly_names = page.citation_authors -%}
+  {%- else -%}
+    {%- assign scholarly_names = page.citation_authors | replace: ';', ',' | split: ',' -%}
+  {%- endif -%}
+{%- endif -%}
+{%- assign scholarly_pdf = page.pdf_url | default: page.citation_pdf -%}
+{%- assign scholarly_journal = page.journal | default: page.publication -%}
+{%- assign scholarly_issue = page.issue | default: page.number -%}
+{%- assign scholarly_keywords = page.keywords | default: page.tags -%}
+{%- assign scholarly_publisher = page.publisher | default: publisher_name -%}
+{%- assign scholarly_language = page.lang | default: site.locale | default: 'en' | split: '_' | first | split: '-' | first -%}
+{%- assign scholarly_license = page | page_license -%}
+{%- assign scholarly_description = page.description | default: page.excerpt | strip_html | normalize_whitespace | truncate: 300 -%}
+<meta name="citation_title" content="{{ scholarly_title | escape }}" />
+{%- if scholarly_override %}
+{%- for name in scholarly_names %}
+<meta name="citation_author" content="{{ name | strip | escape }}" />
+{%- endfor %}
+{%- else %}
+{%- for author in scholarly_authors %}
+<meta name="citation_author" content="{{ author.name | strip | escape }}" />
+{%- if author.affiliation %}
+<meta name="citation_author_institution" content="{{ author.affiliation | strip | escape }}" />
+{%- endif %}
+{%- if author.orcid %}
+<meta name="citation_author_orcid" content="{{ author.orcid | escape }}" />
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+{%- if page.date %}
+<meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />
+{%- endif %}
+<meta name="citation_public_url" content="{{ scholarly_url }}" />
+<meta name="citation_fulltext_html_url" content="{{ scholarly_url }}" />
+{%- if scholarly_pdf %}
+<meta name="citation_pdf_url" content="{{ scholarly_pdf | absolute_url }}" />
+{%- endif %}
+{%- if page.doi %}
+<meta name="citation_doi" content="{{ page.doi | escape }}" />
+{%- endif %}
+{%- if scholarly_journal %}
+<meta name="citation_journal_title" content="{{ scholarly_journal | escape }}" />
+{%- endif %}
+{%- if page.conference %}
+<meta name="citation_conference_title" content="{{ page.conference | escape }}" />
+{%- endif %}
+{%- if page.volume %}
+<meta name="citation_volume" content="{{ page.volume | escape }}" />
+{%- endif %}
+{%- if scholarly_issue %}
+<meta name="citation_issue" content="{{ scholarly_issue | escape }}" />
+{%- endif %}
+{%- if page.pages %}
+{%- assign page_range = page.pages | append: '' | replace: '–', '-' | replace: '—', '-' | split: '-' %}
+<meta name="citation_firstpage" content="{{ page_range[0] | strip | escape }}" />
+{%- if page_range.size > 1 %}
+<meta name="citation_lastpage" content="{{ page_range[1] | strip | escape }}" />
+{%- endif %}
+{%- endif %}
+{%- if page.issn %}
+<meta name="citation_issn" content="{{ page.issn | escape }}" />
+{%- endif %}
+{%- if page.isbn %}
+<meta name="citation_isbn" content="{{ page.isbn | escape }}" />
+{%- endif %}
+<meta name="citation_publisher" content="{{ scholarly_publisher | escape }}" />
+<meta name="citation_language" content="{{ scholarly_language }}" />
+{%- if scholarly_keywords and scholarly_keywords.size > 0 %}
+<meta name="citation_keywords" content="{{ scholarly_keywords | join: '; ' | escape }}" />
+{%- endif %}
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+<meta name="DC.title" content="{{ scholarly_title | escape }}" />
+{%- for name in scholarly_names %}
+<meta name="DC.creator" content="{{ name | strip | escape }}" />
+{%- endfor %}
+{%- if page.date %}
+<meta name="DC.date" content="{{ page.date | date: '%Y-%m-%d' }}" />
+{%- endif %}
+{%- if page.doi %}
+{%- assign scholarly_identifier = page.doi -%}
+{%- unless scholarly_identifier contains '://' -%}{%- assign scholarly_identifier = 'https://doi.org/' | append: page.doi -%}{%- endunless %}
+<meta name="DC.identifier" content="{{ scholarly_identifier | escape }}" />
+{%- else %}
+<meta name="DC.identifier" content="{{ scholarly_url }}" />
+{%- endif %}
+<meta name="DC.type" content="Text" />
+<meta name="DC.language" content="{{ scholarly_language }}" />
+<meta name="DC.publisher" content="{{ scholarly_publisher | escape }}" />
+{%- if scholarly_license.url %}
+<meta name="DC.rights" content="{{ scholarly_license.url | escape }}" />
+{%- endif %}
+{%- if scholarly_description and scholarly_description != '' %}
+<meta name="DC.description" content="{{ scholarly_description | escape }}" />
+{%- endif %}
+{%- endif -%}

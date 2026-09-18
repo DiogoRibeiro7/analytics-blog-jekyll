@@ -69,4 +69,34 @@ class FeatureLoadingTest < Minitest::Test
     assert_includes rendered, "window.DatalogAcademic ="
     assert_includes rendered, "window.DatalogPublications ="
   end
+
+  # `mathjax` was read before `math`, so under a `mathjax: true` in front
+  # matter defaults a page could not opt out with `math: false`.
+  def test_math_front_matter_wins_over_mathjax
+    assert_equal "false", math_enabled("mathjax" => true, "math" => false),
+                 "math: false should keep MathJax off under a mathjax: true default"
+    assert_equal "true", math_enabled("mathjax" => false, "math" => true)
+    assert_equal "true", math_enabled("mathjax" => true), "mathjax should still load MathJax when math is unset"
+  end
+
+  # The math preprocessor followed Pandoc's rule for inline math and left out
+  # `$ … $` with spaces inside the dollars, which MathJax renders, so a page
+  # whose only math was written that way loaded no MathJax.
+  def test_loads_mathjax_where_the_only_math_is_padded
+    padded = MathPreprocessor::Processor.new('Precision is $ \frac{TP}{TP + FP} $.')
+    content = padded.process
+    assert_equal "true", math_enabled({ "math_expressions" => padded.expressions }, content)
+
+    prices = MathPreprocessor::Processor.new("It costs $ 5 a month, or $ 50 a year.")
+    content = prices.process
+    assert_equal "false", math_enabled({ "math_expressions" => prices.expressions }, content)
+  end
+
+  private
+
+  def math_enabled(page, content = "")
+    template = Liquid::Template.parse("{% include meta/math-config.html page=page %}{{ math_enabled }}")
+    context = { "site" => SiteBuilder.payload["site"], "page" => page, "content" => content }
+    template.render!(context, registers: { site: SiteBuilder.site }).strip
+  end
 end

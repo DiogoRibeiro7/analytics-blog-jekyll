@@ -224,13 +224,14 @@ show_title: false # this layout renders the page's <h1>
     observer.observe(heading);
   });
 
-  // Smooth scroll for anchor links
+  // Scroll to anchor targets. The stylesheet's scroll-behavior decides whether
+  // the scroll is smooth, so reduced-motion preferences are respected.
   document.querySelectorAll('.package-nav__link[href^="#"]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const target = document.querySelector(link.getAttribute('href'));
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.scrollIntoView({ block: 'start' });
         history.pushState(null, null, link.getAttribute('href'));
       }
     });

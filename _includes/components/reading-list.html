@@ -1,0 +1,31 @@
+{%- comment -%}
+---
+optional: []
+---
+The articles a reader saved, with their reading progress and highlights, on
+a page of the site (assets/js/reading-state/ui.js): `{% include
+components/reading-list.html %}` on a page, named in
+theme_options.reading_state.list_url so posts link to it. Filled from this
+browser's storage; nothing comes from a server.
+{%- endcomment -%}
+{%- capture progress_label %}{% t 'post.reading_state.progress' %}{% endcapture -%}
+{%- capture highlights_label %}{% t 'post.reading_state.highlights_count' %}{% endcapture -%}
+{%- capture saved_label %}{% t 'post.reading_state.saved' %}{% endcapture -%}
+{%- capture remove_label %}{% t 'post.reading_state.remove' %}{% endcapture -%}
+{%- capture erase_confirm %}{% t 'post.reading_state.erase_confirm' %}{% endcapture -%}
+{%- capture imported %}{% t 'post.reading_state.imported' %}{% endcapture -%}
+{%- capture import_failed %}{% t 'post.reading_state.import_failed' %}{% endcapture -%}
+{%- capture exported %}{% t 'post.reading_state.exported' %}{% endcapture -%}
+{%- capture erased_all %}{% t 'post.reading_state.erased_all' %}{% endcapture -%}
+<div class="reading-list" data-reading-list data-progress-label="{{ progress_label | strip | escape }}" data-highlights-label="{{ highlights_label | strip | escape }}" data-saved-label="{{ saved_label | strip | escape }}" data-remove-label="{{ remove_label | strip | escape }}">
+  <p class="reading-notes__intro">{% t 'post.reading_state.intro' %}</p>
+  <p class="reading-notes__unavailable" data-reading-unavailable hidden>{% t 'post.reading_state.unavailable' %}</p>
+  <p class="reading-list__empty" data-reading-list-empty>{% t 'post.reading_state.list_empty' %}</p>
+  <ul class="reading-list__items" data-reading-list-items></ul>
+  <div class="reading-data__actions">
+    <button type="button" class="post-tool" data-reading-export data-done="{{ exported | strip | escape }}">{% t 'post.reading_state.export' %}</button>
+    <label class="post-tool reading-data__import">{% t 'post.reading_state.import' %}<input type="file" accept="application/json,.json" data-reading-import data-done="{{ imported | strip | escape }}" data-failed="{{ import_failed | strip | escape }}"></label>
+    <button type="button" class="post-tool" data-reading-erase-all data-confirm="{{ erase_confirm | strip | escape }}" data-done="{{ erased_all | strip | escape }}">{% t 'post.reading_state.erase_all' %}</button>
+  </div>
+  <p class="reading-data__status" data-reading-status aria-live="polite"></p>
+</div>

@@ -156,6 +156,228 @@ article:
     published: Publicado
     updated: Actualizado
     author: Autor
+    authors: Autores
+corrections:
+  summary: Informar de un error o sugerir una corrección
+  intro: "¿Has visto un error en las matemáticas, los hechos, una cita, el código o la reproducibilidad? Di qué y dónde. El informe va al autor, no a la página."
+  category: Qué tipo de problema
+  section: Dónde
+  section_any: El artículo entero
+  message: Qué está mal, y qué debería decir
+  message_hint: Al menos 20 caracteres. Cita el pasaje si puedes.
+  contact_email: Tu correo (opcional)
+  contact_hint: Solo si quieres una respuesta. Nunca se muestra en el sitio.
+  send: Enviar el informe
+  pending: Enviando el informe…
+  success: "Gracias. El informe llegó al autor y sigue siendo privado; una corrección aparecería en el historial de revisiones del artículo."
+  message_short: "Di un poco más: al menos {{min}} caracteres."
+  email_invalid: Eso no parece una dirección de correo.
+  categories:
+    mathematical-error: Error matemático
+    factual-error: Error factual
+    citation: Cita rota o incorrecta
+    code: Código obsoleto o roto
+    reproducibility: Fallo de reproducibilidad
+    typo: Errata que cambia el sentido
+    accessibility: Problema de accesibilidad
+    other: Otra cosa
+moderation:
+  unavailable: La moderación no está configurada en este sitio.
+  boundary: "Esta página es solo una ventana. El inicio de sesión, y lo que una cuenta puede hacer, los decide el servicio de moderación en cada petición; nada aquí está protegido por la propia página."
+  filters: Filtros
+  type: Qué
+  status: Estado
+  category: Categoría del informe
+  path: Ruta de la página
+  since: Desde
+  search: Texto
+  apply: Aplicar
+  reset: Limpiar
+  queue: Pendiente de decisión
+  any_type: Todo
+  any_category: Cualquier categoría
+  loading: Cargando la cola…
+  empty: Nada aquí.
+  more: Cargar más
+  working: Trabajando…
+  done: "Hecho: {{action}}."
+  unauthorized: No has iniciado sesión en el servicio de moderación.
+  forbidden: Esta cuenta no puede moderar este sitio.
+  sign_in: Iniciar sesión
+  sign_in_hint: Inicia sesión en el servicio de moderación y recarga esta página.
+  link_required: "Indica la dirección del issue, pull request o revisión (http:// o https://)."
+  note: Nota, guardada con la acción
+  link: Issue, pull request o revisión
+  in_reply_to: En respuesta a
+  types:
+    comment: Comentario
+    correction: Informe de corrección
+    abuse: Denuncia
+  statuses:
+    pending: Pendiente
+    approved: Aprobado
+    spam: Spam
+    hidden: Oculto
+    deleted: Borrado
+    new: Nuevo
+    reviewed: Revisado
+    accepted: Aceptado
+    rejected: Rechazado
+    resolved: Resuelto
+    open: Abierto
+    dismissed: Descartado
+  actions:
+    approve: Aprobar
+    spam: Marcar como spam
+    hide: Ocultar
+    delete: Borrar
+    reviewed: Marcar como revisado
+    accept: Aceptar para acción editorial
+    reject: Rechazar
+    resolve: Resolver con un enlace
+    dismiss: Descartar
+subscriptions:
+  topics_legend: Qué recibir
+  topics:
+    new-articles: Artículos nuevos
+    research-notes: Notas de investigación
+    datasets: Conjuntos de datos
+  consent: "Recibirás estos correos y nada más, y todos llevan un enlace para darte de baja."
+  consent_double: "Recibirás un correo para confirmar; no se envía nada más hasta que lo hagas. Todos los correos llevan un enlace para darte de baja."
+  privacy_link: Política de privacidad
+  sending: Suscribiendo…
+  pending: Casi. Mira tu bandeja de entrada y sigue el enlace para confirmar.
+  confirmed: Ya estás suscrito. Gracias.
+  duplicate: Esta dirección ya está suscrita.
+  email_invalid: Eso no parece una dirección de correo.
+  topics_required: Elige al menos uno.
+  manage:
+    idle: "Esta página confirma, cambia o termina una suscripción al boletín. Ábrela desde el enlace de uno de los correos."
+    unavailable: Las suscripciones no están configuradas en este sitio.
+    confirming: Confirmando tu suscripción…
+    confirmed: Tu suscripción está confirmada. Gracias.
+    invalid_link: Este enlace ya no es válido. Suscríbete de nuevo para recibir otro.
+    unsubscribe_question: ¿Dejar de enviar correos a esta dirección?
+    unsubscribe: Darse de baja
+    unsubscribing: Dando de baja…
+    unsubscribed: Te has dado de baja. No se enviarán más correos.
+    loading: Cargando tus preferencias…
+    preferences: Qué recibes
+    save: Guardar
+    saving: Guardando…
+    saved: Tus preferencias se han guardado.
+webmentions:
+  heading: Mencionado en otros sitios
+  intro: "Enlaces, respuestas y reposts de otros sitios, tal como los verificó el receptor de este sitio. No son comentarios en este sitio."
+  loading: Buscando menciones en otros sitios…
+  empty: Aún no hay menciones de otros sitios.
+  retry: Intentar de nuevo
+  types:
+    mention: Mención
+    reply: Respuesta
+    repost: Repost
+    like: Me gusta
+reactions:
+  prompt: ¿Te ha sido útil?
+  sending: Enviando tu opinión…
+  thanks: Gracias. Tu opinión se ha contado.
+  already: Tu opinión ya se había contado.
+  types:
+    useful: Útil
+    clear: Claro
+    interesting: Interesante
+    needs-clarification: Necesita aclaración
+comments:
+  loading: Cargando la conversación…
+  empty: Aún no hay comentarios. Empieza la conversación.
+  noscript: La conversación necesita JavaScript para cargarse.
+  retry: Intentar de nuevo
+  reply: Responder
+  replying_to: "Respondiendo a {{name}}"
+  cancel_reply: Cancelar la respuesta
+  anonymous: Anónimo
+  pending: Pendiente de moderación
+  form_heading: Participa en la conversación
+  name: Tu nombre
+  email: Tu correo (opcional)
+  email_hint: Nunca se muestra. Solo si quieres saber de las respuestas.
+  url: Tu sitio web (opcional)
+  body: Tu comentario
+  send: Publicar el comentario
+  sending: Publicando el comentario…
+  posted: Gracias. Tu comentario está publicado.
+  posted_pending: Gracias. Tu comentario espera lectura y aparecerá cuando se apruebe.
+  moderated: Los comentarios se leen antes de aparecer. Tu correo nunca se muestra.
+  privacy: Tu correo nunca se muestra.
+  name_required: Di quién eres.
+  email_invalid: Eso no parece una dirección de correo.
+  url_invalid: Una dirección web empieza por http:// o https://.
+  body_short: Di un poco más.
+contact:
+  legend: Contacto
+  intro: "Di qué tienes en mente y cómo contactarte. El mensaje va al autor, no al sitio."
+  category: De qué se trata
+  name: Tu nombre
+  email: Tu correo
+  affiliation: Afiliación (opcional)
+  subject: Asunto
+  message: Mensaje
+  message_hint: Al menos 20 caracteres.
+  privacy: "Tu mensaje y tu dirección van al autor y nunca se muestran en el sitio."
+  send: Enviar el mensaje
+  pending: Enviando el mensaje…
+  success: "Gracias. El mensaje llegó al autor, que responderá a la dirección indicada."
+  name_required: Di quién eres.
+  email_invalid: Eso no parece una dirección de correo.
+  subject_required: Pon un asunto al mensaje.
+  message_short: "Di un poco más: al menos {{min}} caracteres."
+  fallback: "Este sitio no tiene servicio de mensajes; escribe a {{email}}."
+  categories:
+    research-collaboration: Colaboración en investigación
+    consulting: Consultoría o un proyecto
+    speaking: Charla o docencia
+    mentoring: Mentoría
+    reproducibility: Una pregunta sobre datos o reproducibilidad
+    media: Prensa o una entrevista
+    other: Otra cosa
+  prompts:
+    research-collaboration: "Di qué pregunta, datos o método tienes en mente, y el plazo."
+    consulting: "Di cuál es el proyecto, su alcance y cuándo lo necesitas."
+    speaking: "Di el evento, la fecha, el lugar (o en línea), el público y el tema."
+    mentoring: "Di dónde estás ahora y en qué quieres mejorar."
+    reproducibility: "Indica el artículo o el conjunto de datos, y qué no se reprodujo o no está claro."
+    media: "Di el medio, el tema y tu plazo."
+dynamic_services:
+  errors:
+    disabled: Esta función no está configurada en este sitio.
+    unsupported: El servicio detrás de este sitio no ofrece esta función.
+    version: Este sitio y su servicio esperan versiones distintas de la API; quien mantiene el sitio debe actualizar uno de los dos.
+    timeout: El servicio tardó demasiado en responder. Inténtalo de nuevo en un momento.
+    network: No se pudo contactar con el servicio. Comprueba la conexión e inténtalo de nuevo.
+    malformed: El servicio respondió de una forma que este sitio no pudo leer.
+    unauthorized: Necesitas iniciar sesión para esto.
+    forbidden: No tienes permiso para esto.
+    not_found: El servicio no tiene nada en esa dirección.
+    conflict: Esto ya se hizo, o algo cambió entretanto.
+    invalid: Parte de lo que escribiste necesita una corrección.
+    rate_limited: Demasiadas solicitudes por ahora. Espera un poco e inténtalo de nuevo.
+    server: El servicio tuvo un problema. Inténtalo más tarde.
+    http: El servicio rechazó la solicitud.
+    aborted: La solicitud se canceló.
+    reference: "Referencia: {{id}}"
+references:
+  figure: Figura
+  table: Tabla
+  theorem: Teorema
+  lemma: Lema
+  proposition: Proposición
+  corollary: Corolario
+  definition: Definición
+  assumption: Supuesto
+  example: Ejemplo
+  remark: Observación
+  proof: Demostración
+  proof_of: "Demostración de {{target}}"
 post:
   provenance:
     heading: Nota del autor y de edición
@@ -163,10 +385,85 @@ post:
     evidence: Evidencia utilizada
     method: Método
     reviewed: Revisado
+  revisions:
+    heading: Historial de revisiones
+    corrected_on: "Corregido el {{date}}."
+    updated_on: "Actualizado el {{date}}."
+    details: Detalles
+    history_link: Historial de revisiones
+    types:
+      correction: Corrección
+      update: Actualización
+      review: Revisión
+      editorial: Editorial
+      published: Publicado
+  license:
+    content: "Texto y figuras bajo {{license}}."
+    code: "Ejemplos de código bajo {{license}}."
+    reserved: Todos los derechos reservados.
+  series:
+    label: Serie
+    part_of: "Parte {{part}} de {{total}}"
+    nav_label: "Serie: {{title}}"
+    previous: Parte anterior
+    next: Parte siguiente
+  reproduce:
+    heading: Reproducir este análisis
+    intro: El código, los datos y el entorno detrás de este artículo.
+    code: Código fuente
+    data: Datos
+    notebook: Notebook
+    environment: Entorno
+    results: Resultados
+    ref: "en {{ref}}"
+    version: "versión {{version}}"
+    container: Contenedor
+    archive: Entorno archivado
+  reading_mode:
+    enter: Modo de lectura
+    exit: Salir del modo de lectura
+    hint: Oculta la navegación del sitio y los paneles alrededor del artículo; pulsa Escape para salir.
+  print:
+    source: En línea en
+  reading_state:
+    save: Guardar para después
+    saved: Guardado
+    saved_list: Artículos guardados
+    unavailable: Este navegador no deja que el sitio guarde datos, así que guardar, el progreso y los resaltados están desactivados.
+    resume: Continuar donde lo dejaste
+    progress: "{{percent}}% leído"
+    resume_button: Continuar
+    dismiss: Descartar
+    highlight: Resaltar
+    note: Resaltar con una nota
+    shortcuts: "Con texto seleccionado, Alt+Shift+H lo resalta y Alt+Shift+N añade una nota."
+    highlights_heading: Tus resaltados privados
+    data_heading: Tus datos de lectura
+    intro: Guardados solo en este navegador y nunca enviados. Son tus notas, no comentarios.
+    empty: Selecciona un pasaje del artículo para resaltarlo.
+    note_label: Nota
+    go_to: Ir a
+    remove: Quitar
+    lost: No se encuentra en el texto actual
+    export: Exportar como JSON
+    exported: Tus datos de lectura se han descargado.
+    import: Importar JSON
+    imported: "{{count}} artículos importados."
+    import_failed: Ese archivo no es una exportación de datos de lectura.
+    erase_article: Borrar los datos de este artículo
+    erased_article: Los datos de este artículo se han borrado.
+    erase_all: Borrar todos los datos de lectura
+    erase_confirm: ¿Borrar todos los artículos guardados, posiciones y resaltados de este navegador?
+    erased_all: Todos los datos de lectura se han borrado.
+    list_empty: Aún no hay artículos guardados. Guarda uno con "Guardar para después" en un artículo.
+    highlights_count: "{{count}} resaltados"
   article_information: Información del artículo
   meta:
     published: Publicado
+    updated: Actualizado
     author: Autor
+    authors: Autores
+    contributors: Colaboradores
     reading_time: Tiempo de lectura
     difficulty: Dificultad
     runtime: Duración

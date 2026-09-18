@@ -99,6 +99,15 @@ jobs:
       - name: Check the committed script manifest matches the build
         run: git diff --exit-code -- _data/js_manifest.json
 
+      # The image optimizer creates resized, AVIF and WebP copies only where
+      # ImageMagick and avifenc are installed. tests/test_image_variants.rb
+      # encodes with them, and DATALOG_IMAGE_TOOLS=required makes the tests
+      # that need them fail instead of skipping.
+      - name: Install image encoders
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends imagemagick libavif-bin
+
       - name: Build site
         env:
           JEKYLL_ENV: test
@@ -107,7 +116,12 @@ jobs:
       # Also `bundle exec rake test`. The suite replaced `rake ci:verify`, whose
       # scripts checked source files for strings; Python was only set up here
       # for one of them.
+      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and the
+      # Chrome it runs, so its consumer test must not skip here.
       - name: Run Minitest suite
+        env:
+          DATALOG_IMAGE_TOOLS: required
+          DATALOG_CRITICAL_CSS: required
         run: bundle exec ruby -Itests -e "Dir['tests/test_*.rb'].sort.each { |file| require_relative file }"
 
       - name: Upload build artifacts

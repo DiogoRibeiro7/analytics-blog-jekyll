@@ -1,0 +1,65 @@
+{%- comment -%}
+---
+optional: []
+---
+The reading-mode control of a post: a button that hides the site's chrome
+and the panels around the article (`body.reading-mode`, styled in
+_sass/_print.scss) and leaves the article with its metadata, its table of
+contents and the way back. Nothing is duplicated: the same article is shown
+with less around it. Escape leaves the mode. `theme_options.reading_mode.enabled:
+false` removes the control; `remember: true` keeps the choice in localStorage
+from one page to the next.
+{%- endcomment -%}
+{%- assign reading_mode = site.theme_options.reading_mode -%}
+{%- unless reading_mode.enabled == false -%}
+{%- capture reading_enter %}{% t 'post.reading_mode.enter' %}{% endcapture -%}
+{%- capture reading_exit %}{% t 'post.reading_mode.exit' %}{% endcapture -%}
+<div class="reading-mode-bar">
+  <button type="button" class="post-tool reading-mode-toggle" data-reading-mode-toggle aria-pressed="false" aria-describedby="reading-mode-hint"
+          data-label-enter="{{ reading_enter | strip | escape }}" data-label-exit="{{ reading_exit | strip | escape }}"{% if reading_mode.remember %} data-reading-mode-remember{% endif %}>
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"></path>
+      <path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"></path>
+    </svg>
+    <span data-reading-mode-label>{{ reading_enter | strip }}</span>
+  </button>
+  <span class="visually-hidden" id="reading-mode-hint">{% t 'post.reading_mode.hint' %}</span>
+</div>
+<script nonce="{{ page.csp_nonce }}">
+  // Reading mode: a class on the body, the button's state and label, Escape to
+  // leave, and the choice remembered only when the site asks for it.
+  (function () {
+    var toggle = document.querySelector('[data-reading-mode-toggle]');
+    if (!toggle) return;
+    var label = toggle.querySelector('[data-reading-mode-label]');
+    var remember = toggle.hasAttribute('data-reading-mode-remember');
+    var key = 'datalog-reading-mode';
+
+    function apply(on) {
+      document.body.classList.toggle('reading-mode', on);
+      toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+      label.textContent = toggle.getAttribute(on ? 'data-label-exit' : 'data-label-enter');
+      if (!remember) return;
+      try {
+        if (on) localStorage.setItem(key, 'on');
+        else localStorage.removeItem(key);
+      } catch (error) {}
+    }
+
+    toggle.addEventListener('click', function () {
+      apply(!document.body.classList.contains('reading-mode'));
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.body.classList.contains('reading-mode')) {
+        apply(false);
+        toggle.focus();
+      }
+    });
+    if (remember) {
+      try {
+        if (localStorage.getItem(key) === 'on') apply(true);
+      } catch (error) {}
+    }
+  })();
+</script>
+{%- endunless -%}

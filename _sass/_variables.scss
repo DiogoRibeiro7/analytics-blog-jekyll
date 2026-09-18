@@ -45,9 +45,15 @@ $color-accent-secondary: #0d9488; // teal — fills, borders and other non-text 
 // #0d9488 reaches only 3.1:1 to 3.7:1 against white and against its own
 // tinted backgrounds, so it fails WCAG AA wherever it is used as text.
 $color-accent-secondary-text: #115e59; // teal — the same accent as readable text
+// #2563eb reaches only 4.4:1 against its own 8% tint on the page background,
+// where a theorem's links sit.
+$color-accent-primary-text: #1d4ed8;   // blue — links on a tinted background
 $color-accent-tertiary: #7c3aed;  // purple — charts, visual accents
 $color-success: #16a34a;
+$color-success-text: #166534; // green — the success colour as readable text
 $color-warning: #d97706;
+$color-warning-text: #92400e; // amber — the warning colour as readable text
+$dark-warning: #fbbf24;       // lighter amber for dark bg
 $color-critical: #dc2626;
 $color-neutral-50: #fafaf9 !default;
 $color-neutral-100: #f5f5f4;

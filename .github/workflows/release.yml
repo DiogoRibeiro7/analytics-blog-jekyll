@@ -92,6 +92,13 @@ jobs:
           sed -i "s/VERSION = \"[0-9.]*\"/VERSION = \"$VERSION\"/" lib/datalog/theme/version.rb
           sed -i "s/^version: .*/version: $VERSION/; s/^date-released: .*/date-released: $DATE/" CITATION.cff
           sed -i "s/^theme_version: .*/theme_version: $VERSION/" _config.yml
+          # The install examples in the docs and the starter template: the gem
+          # constraint names the minor series, and the Git example the tag.
+          SERIES="$(echo "$VERSION" | cut -d. -f1,2).0"
+          INSTALL_DOCS=$(grep -rlE 'gem "datalog-theme", ("~>|github: .*tag: )' README.md docs template --exclude-dir=history)
+          sed -i -e "s/gem \"datalog-theme\", \"~> [0-9.]*\"/gem \"datalog-theme\", \"~> $SERIES\"/" \
+                 -e "s/\(gem \"datalog-theme\", github: \"[^\"]*\", tag: \"\)v[0-9.]*\"/\1v$VERSION\"/" $INSTALL_DOCS
+          echo "INSTALL_DOCS=$(echo $INSTALL_DOCS)" >> "$GITHUB_ENV"
           git --no-pager diff --stat
 
       - name: Set up Ruby
@@ -105,6 +112,7 @@ jobs:
           ruby -e 'load "lib/datalog/theme/version.rb"; abort "version.rb reads #{Datalog::Theme::VERSION}" unless Datalog::Theme::VERSION == ENV["VERSION"]'
           gem build datalog-theme.gemspec
           grep -q "^## \[$VERSION\]" CHANGELOG.md
+          bundle exec ruby tests/test_install_versions.rb
 
       - name: Release notes
         run: |
@@ -122,7 +130,7 @@ jobs:
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml
+          git add CHANGELOG.md lib/datalog/theme/version.rb CITATION.cff _config.yml $INSTALL_DOCS
           git commit -m "chore(release): bump version to $VERSION"
 
           # develop keeps the bump so it stays current for the next release.

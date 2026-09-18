@@ -1,0 +1,49 @@
+{%- comment -%}
+---
+optional: []
+---
+"Was this useful?" (assets/js/reactions/widget.js): a small set of
+reactions a reader can give an article without writing a comment, read
+from and sent to the site's dynamic services (docs/dynamic-services.md).
+Renders only when the site has a backend with the reactions feature on,
+`reactions.enabled` is not false, and the page does not say
+`reactions: false`. The set comes from `reactions.types`, the labels from
+`reactions.types.*` in _data/i18n. The counts on the buttons are filled by
+the script from the service's answer, never here.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign reactions = site.reactions -%}
+{%- if services.base_url and services.base_url != '' and services.features.reactions != false and reactions.enabled != false and page.reactions != false -%}
+{%- assign types = reactions.types -%}
+{%- if types == nil or types.size == 0 -%}
+  {%- assign types = "useful,clear,interesting,needs-clarification" | split: "," -%}
+{%- endif -%}
+{%- capture labels_json -%}
+{
+  "sending": {{ 'reactions.sending' | t | jsonify }},
+  "thanks": {{ 'reactions.thanks' | t | jsonify }},
+  "already": {{ 'reactions.already' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<section class="reactions" id="reactions" data-reactions data-reactions-path="{{ page.url }}" data-reactions-counts="{% if reactions.counts == false %}false{% else %}true{% endif %}" data-state="idle" aria-busy="false" aria-labelledby="reactions-prompt">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-reactions-labels>{{ labels_json | strip }}</script>
+  <p class="reactions__prompt" id="reactions-prompt">{% t 'reactions.prompt' %}</p>
+  <div class="reactions__choices" role="group" aria-labelledby="reactions-prompt">
+    {%- for type in types %}
+    {%- assign type_key = "reactions.types." | append: type %}
+    <button type="button" class="reactions__choice post-tool" data-reaction="{{ type | escape }}" aria-pressed="false">
+      <span class="reactions__label">{{ type_key | t }}</span>
+      <span class="reactions__count" data-reaction-count hidden></span>
+    </button>
+    {%- endfor %}
+  </div>
+  <p class="reactions__status" data-reactions-status role="status" aria-live="polite" hidden></p>
+</section>
+{%- endif -%}
