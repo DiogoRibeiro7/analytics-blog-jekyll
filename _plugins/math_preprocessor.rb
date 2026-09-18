@@ -94,7 +94,7 @@ module MathPreprocessor
       text.gsub(DISPLAY_PATTERNS.first[:regex]) do |expression|
         match = Regexp.last_match
         body = match[:body]
-        next expression if body.include?("\n")
+        next expression if body.include?("\n") || body.strip.empty?
 
         before = match.pre_match.split("\n", -1).last.to_s
         after = match.post_match.split("\n", 2).first.to_s
