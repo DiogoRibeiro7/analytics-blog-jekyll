@@ -181,6 +181,36 @@ corrections:
     typo: Errata que cambia el sentido
     accessibility: Problema de accesibilidad
     other: Otra cosa
+subscriptions:
+  topics_legend: Qué recibir
+  topics:
+    new-articles: Artículos nuevos
+    research-notes: Notas de investigación
+    datasets: Conjuntos de datos
+  consent: "Recibirás estos correos y nada más, y todos llevan un enlace para darte de baja."
+  consent_double: "Recibirás un correo para confirmar; no se envía nada más hasta que lo hagas. Todos los correos llevan un enlace para darte de baja."
+  privacy_link: Política de privacidad
+  sending: Suscribiendo…
+  pending: Casi. Mira tu bandeja de entrada y sigue el enlace para confirmar.
+  confirmed: Ya estás suscrito. Gracias.
+  duplicate: Esta dirección ya está suscrita.
+  email_invalid: Eso no parece una dirección de correo.
+  topics_required: Elige al menos uno.
+  manage:
+    idle: "Esta página confirma, cambia o termina una suscripción al boletín. Ábrela desde el enlace de uno de los correos."
+    unavailable: Las suscripciones no están configuradas en este sitio.
+    confirming: Confirmando tu suscripción…
+    confirmed: Tu suscripción está confirmada. Gracias.
+    invalid_link: Este enlace ya no es válido. Suscríbete de nuevo para recibir otro.
+    unsubscribe_question: ¿Dejar de enviar correos a esta dirección?
+    unsubscribe: Darse de baja
+    unsubscribing: Dando de baja…
+    unsubscribed: Te has dado de baja. No se enviarán más correos.
+    loading: Cargando tus preferencias…
+    preferences: Qué recibes
+    save: Guardar
+    saving: Guardando…
+    saved: Tus preferencias se han guardado.
 webmentions:
   heading: Mencionado en otros sitios
   intro: "Enlaces, respuestas y reposts de otros sitios, tal como los verificó el receptor de este sitio. No son comentarios en este sitio."

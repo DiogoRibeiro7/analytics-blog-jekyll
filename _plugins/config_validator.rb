@@ -113,6 +113,14 @@ module Datalog
         type: :hash,
         schema: { enabled: { type: :boolean }, endpoint: { type: :string }, types: { type: :array } }
       },
+      # The newsletter form and the page its emails link to (components/subscribe-form.html).
+      subscriptions: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean }, double_opt_in: { type: :boolean }, placement: { type: :array },
+          topics: { type: :array }, privacy_url: { type: :string }
+        }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

@@ -181,6 +181,36 @@ corrections:
     typo: Gralha que muda o sentido
     accessibility: Problema de acessibilidade
     other: Outra coisa
+subscriptions:
+  topics_legend: O que receber
+  topics:
+    new-articles: Novos artigos
+    research-notes: Notas de investigação
+    datasets: Conjuntos de dados
+  consent: "Vai receber estes emails e nada mais, e todos têm uma ligação para cancelar."
+  consent_double: "Vai receber um email a pedir confirmação; nada mais é enviado até confirmar. Todos os emails têm uma ligação para cancelar."
+  privacy_link: Política de privacidade
+  sending: A subscrever…
+  pending: Quase. Veja a sua caixa de entrada e siga a ligação para confirmar.
+  confirmed: Está subscrito. Obrigado.
+  duplicate: Este endereço já está subscrito.
+  email_invalid: Isso não parece um endereço de email.
+  topics_required: Escolha pelo menos um.
+  manage:
+    idle: "Esta página confirma, altera ou termina uma subscrição da newsletter. Abra-a a partir da ligação num dos emails."
+    unavailable: As subscrições não estão configuradas neste site.
+    confirming: A confirmar a sua subscrição…
+    confirmed: A sua subscrição está confirmada. Obrigado.
+    invalid_link: Esta ligação já não é válida. Subscreva de novo para receber outra.
+    unsubscribe_question: Parar todos os emails para este endereço?
+    unsubscribe: Cancelar a subscrição
+    unsubscribing: A cancelar a subscrição…
+    unsubscribed: A subscrição foi cancelada. Não serão enviados mais emails.
+    loading: A carregar as suas preferências…
+    preferences: O que recebe
+    save: Guardar
+    saving: A guardar…
+    saved: As suas preferências foram guardadas.
 webmentions:
   heading: Mencionado noutros sites
   intro: "Ligações, respostas e partilhas de outros sites, tal como o recetor deste site as verificou. Não são comentários neste site."

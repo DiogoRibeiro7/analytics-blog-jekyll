@@ -272,6 +272,10 @@ schema_type: TechnicalArticle
     {% endfor %}
   {% endunless %}
 
+  {%- comment -%} The newsletter form at the end of the article, when subscriptions.placement says so {%- endcomment -%}
+  {% assign subscribe_placement = site.subscriptions.placement | default: 'footer' %}
+  {% if subscribe_placement contains 'post' %}{% include components/subscribe-form.html where='post' %}{% endif %}
+
   {%- comment -%} ===== Robust related posts (no where_exp, no nil sort) ===== {%- endcomment -%}
   {% include post/related-posts.html page=page date_format=date_format %}
 

@@ -1,0 +1,88 @@
+{%- comment -%}
+---
+optional:
+  - where
+---
+The newsletter subscribe form (assets/js/subscriptions/form.js): an email
+address and, when `subscriptions.topics` lists any, what to receive, sent
+to the site's dynamic services (docs/dynamic-services.md). Renders only
+when the site has a backend with the subscriptions feature on and
+`subscriptions.enabled` is not false; the footer and the post layout
+include it where `subscriptions.placement` says. `where` ("footer",
+"post" or "page", the default) keeps the ids apart when a page carries
+more than one, and picks the heading level.
+
+The footer is an include_cached, rendered once per language and reused on
+every page, so the footer form carries nothing of the page: the script
+reads the page's address from its canonical link and its language from
+<html lang>. For the same reason the block has no accessible name of its
+own, which would make two same-named landmarks on a post.
+{%- endcomment -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign subscriptions = site.subscriptions -%}
+{%- if services.base_url and services.base_url != '' and services.features.subscriptions != false and subscriptions.enabled != false -%}
+{%- assign where = include.where | default: 'page' -%}
+{%- assign topics = subscriptions.topics -%}
+{%- assign privacy_url = subscriptions.privacy_url | default: nil -%}
+{%- capture labels_json -%}
+{
+  "sending": {{ 'subscriptions.sending' | t | jsonify }},
+  "pending": {{ 'subscriptions.pending' | t | jsonify }},
+  "confirmed": {{ 'subscriptions.confirmed' | t | jsonify }},
+  "duplicate": {{ 'subscriptions.duplicate' | t | jsonify }},
+  "email_invalid": {{ 'subscriptions.email_invalid' | t | jsonify }},
+  "topics_required": {{ 'subscriptions.topics_required' | t | jsonify }},
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<section class="subscribe subscribe--{{ where }}" data-subscribe{% unless where == 'footer' %} data-subscribe-source="{{ page.url | absolute_url }}" data-subscribe-locale="{{ page.lang | default: site.lang | default: 'en' }}"{% endunless %} data-subscribe-double-opt-in="{% if subscriptions.double_opt_in == false %}false{% else %}true{% endif %}">
+  <script type="application/json" data-subscribe-labels>{{ labels_json | strip }}</script>
+  {%- if where == 'footer' %}
+  <h3 class="subscribe__heading" id="subscribe-heading-{{ where }}">{% t 'footer.subscribe_title' %}</h3>
+  {%- else %}
+  <h2 class="subscribe__heading" id="subscribe-heading-{{ where }}">{% t 'footer.subscribe_title' %}</h2>
+  {%- endif %}
+  <p class="subscribe__description">{% t 'footer.subscribe_description' %}</p>
+  <form class="service-form subscribe__form" id="subscribe-form-{{ where }}" data-state="idle" aria-busy="false" novalidate>
+    <fieldset class="service-form__fields">
+      <legend class="visually-hidden">{% t 'footer.subscribe_title' %}</legend>
+      <div class="service-form__field">
+        <label for="subscribe-email-{{ where }}">{% t 'footer.newsletter_label' %}</label>
+        <input id="subscribe-email-{{ where }}" name="email" type="email" required autocomplete="email">
+        <p class="service-form__error" data-error-for="email" hidden></p>
+      </div>
+      {%- if topics and topics.size > 0 %}
+      <fieldset class="subscribe__topics">
+        <legend>{% t 'subscriptions.topics_legend' %}</legend>
+        {%- for topic in topics %}
+        {%- assign topic_key = "subscriptions.topics." | append: topic %}
+        <label class="subscribe__topic" for="subscribe-topic-{{ where }}-{{ topic | slugify }}">
+          <input id="subscribe-topic-{{ where }}-{{ topic | slugify }}" type="checkbox" name="topics" value="{{ topic | escape }}" checked>
+          {{ topic_key | t }}
+        </label>
+        {%- endfor %}
+        <p class="service-form__error" data-error-for="topics" hidden></p>
+      </fieldset>
+      {%- endif %}
+      <div class="service-form__trap" aria-hidden="true">
+        <label for="subscribe-website-{{ where }}">Website</label>
+        <input id="subscribe-website-{{ where }}" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+    </fieldset>
+    <p class="service-form__privacy">
+      {%- if subscriptions.double_opt_in == false %}{% t 'subscriptions.consent' %}{% else %}{% t 'subscriptions.consent_double' %}{% endif %}
+      {%- if privacy_url %} <a href="{{ privacy_url | relative_url }}">{% t 'subscriptions.privacy_link' %}</a>{% endif -%}
+    </p>
+    <div class="service-form__actions">
+      <button type="submit" class="post-tool">{% t 'footer.newsletter_button' %}</button>
+    </div>
+    <p class="service-form__status" data-form-status role="status" aria-live="polite" hidden></p>
+  </form>
+</section>
+{%- endif -%}

@@ -12,6 +12,13 @@ dynamic_services:
     comments: true
     reactions: true
     webmentions: true
+    subscriptions: true
+
+# The newsletter form in the footer and at the end of posts.
+subscriptions:
+  placement:
+    - footer
+    - post
 
 # A receiver to advertise; the mentions shown come from the mocked services.
 webmentions:

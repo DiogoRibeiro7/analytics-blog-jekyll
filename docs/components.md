@@ -20,9 +20,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 14. [Comments](#comments)
 15. [Reactions](#reactions)
 16. [Webmentions](#webmentions)
-17. [Front Matter](#front-matter)
-18. [Customization](#customization)
-19. [Troubleshooting](#troubleshooting)
+17. [Newsletter Subscriptions](#newsletter-subscriptions)
+18. [Front Matter](#front-matter)
+19. [Customization](#customization)
+20. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1187,6 +1188,99 @@ The section carries `data-state`: `idle` (before the reader gets near), `loading
 .webmentions__intro, .webmentions__status { }
 .webmention { }                    // one mention; .webmention--reply, --mention, --repost, --like
 .webmention__type, .webmention__title, .webmention__meta, .webmention__author, .webmention__host, .webmention__time, .webmention__excerpt { }
+```
+
+---
+
+## Newsletter Subscriptions
+
+### What It Does
+
+The theme once shipped a newsletter box with nothing behind it and removed it. This is the honest version: a compact subscribe form that posts to the site's backend through the [dynamic services](dynamic-services.md), and the page the newsletter's emails link to. The theme knows nothing of the store or the mail provider; MongoDB, PostgreSQL or a mailing-list service all fit behind the contract below.
+
+- **The form**: an email address and, when the site lists `subscriptions.topics`, what to receive (all ticked to begin with). It sits in the footer, at the end of posts, or both (`subscriptions.placement`), and anywhere a layout includes it. Under it, the consent wording (with double opt-in: one email asking to confirm, nothing else until then) and a link to the privacy policy.
+- **The manage page**: a page with `subscription_manage: true` (the demo's `/subscriptions/`, kept out of search results and the sitemap). `?confirm=<token>` confirms a subscription, `?unsubscribe=<token>` ends one after a press of the button (never by merely opening the link, which mail scanners do), `?manage=<token>` loads the topics and saves a change. The token stands for the subscriber: no account, the address is never shown, and the token is taken out of the address bar as soon as it is read so it does not travel in a referrer.
+
+Addresses are private backend data: nothing is written into the generated site, no analytics event carries one, and without a backend or with the feature off there is no form at all.
+
+### Usage
+
+```yaml
+subscriptions:
+  enabled: true                   # false removes the form everywhere
+  double_opt_in: true             # the consent wording, and what "no status in the answer" means
+  placement:                      # footer (default), post, or both; [] leaves it to your own includes
+    - footer
+  topics:                         # optional; labels under subscriptions.topics in _data/i18n
+    - new-articles
+    - research-notes
+    - datasets
+  privacy_url: /privacy/          # linked from the consent line
+
+dynamic_services:
+  base_url: https://api.example.org
+  features:
+    subscriptions: true
+```
+
+The manage page is any page of the `page` layout with `subscription_manage: true`; give it `robots: noindex,follow` and `sitemap: false`, as the demo's does. A page gets the form with `subscribe_form: true`; another layout includes `{% include components/subscribe-form.html where='page' %}` (`where` keeps the ids apart when a page carries more than one form).
+
+### The Contract
+
+Subscribing, `POST /v1/subscriptions` with an `Idempotency-Key`:
+
+```json
+{ "email": "reader@example.org", "topics": ["new-articles", "datasets"], "source_url": "https://example.org/", "locale": "en" }
+```
+
+`topics` is present only when the site lists topics. The service answers `202` with `{ "status": "pending" }` when it has sent a confirmation email (double opt-in), or `201` with `{ "status": "confirmed" }`; without a `status` the form goes by `double_opt_in`. A `409` means the address is already subscribed, shown as such and not as an error; a service that would rather not disclose membership answers `202` instead, and the form cannot tell the difference. A `422` with `error.errors.email` (or `.topics`) marks the field; `429` and `5xx` show as in the [error model](dynamic-services.md#the-error-model).
+
+From the emails, all keyed by the token the backend put in the link:
+
+| Link | Request | Answer |
+| --- | --- | --- |
+| `/subscriptions/?confirm=<token>` | `POST /v1/subscriptions/confirm` with `{ "token": "…" }` | `200` `{ "status": "confirmed" }` |
+| `/subscriptions/?unsubscribe=<token>` | `DELETE /v1/subscriptions/<token>`, after the button | `200` or `204` |
+| `/subscriptions/?manage=<token>` | `GET /v1/subscriptions/<token>`, then `PATCH` with `{ "topics": [...] }` | `{ "status": "confirmed", "topics": [...] }` |
+
+A `404` or a `410` reads "This link is not valid any more". The backend's CORS policy must allow `PATCH` and `DELETE` as well as `GET` and `POST`. For mail clients' one-click unsubscribe ([RFC 8058](https://www.rfc-editor.org/rfc/rfc8058)) the backend adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers pointing at its own route; that does not pass through the site.
+
+What the backend does, and the theme cannot: validate the address and rate-limit by address and by origin; send the confirmation and treat an unconfirmed address as not subscribed; sign or randomize tokens and expire the confirmation ones; honour unsubscribes at once; keep the mail provider's and the database's credentials in its own environment; restrict CORS to the site's origin. Nothing here reports to an analytics product.
+
+### Reference Model
+
+A document in MongoDB, or a row anywhere else:
+
+```json
+{
+  "_id": "…",
+  "email": "reader@example.org",
+  "status": "pending",
+  "topics": ["new-articles", "datasets"],
+  "locale": "en",
+  "source_url": "https://example.org/",
+  "confirm_token_hash": "sha256:…",
+  "confirm_expires_at": "2026-09-20T09:00:00Z",
+  "manage_token_hash": "sha256:…",
+  "created_at": "2026-09-18T09:00:00Z",
+  "confirmed_at": null,
+  "unsubscribed_at": null
+}
+```
+
+A unique index on `email` makes the duplicate a `409`; tokens are stored hashed and compared in constant time. `status` moves `pending` → `confirmed` → `unsubscribed`. MongoDB is not required: a mailing-list provider's API behind the same four routes works as well.
+
+### States
+
+The form is a `.service-form` with `data-state` as the other forms (`idle`, `pending`, `success`, `invalid`, `error`, `disabled`) and, on success, `data-result`: `pending` (check your inbox), `confirmed` or `duplicate`. The manage page carries `data-state`: `idle`, `pending`, `confirmed`, `loading`, `loaded`, `saved`, `unsubscribed`, `error` (as an alert) and `disabled`, with `aria-busy` while a request is on its way.
+
+### Styling
+
+```scss
+.subscribe { }                     // the form's block; .subscribe--footer, --post, --page
+.subscribe__topics, .subscribe__topic { }
+.subscription-manage { }           // the manage page's block; [data-state="…"]
+.subscription-manage__status, .subscription-manage__panel { }
 ```
 
 ---

@@ -334,6 +334,8 @@ export function createClient(config = readConfig(), deps = {}) {
     request,
     get: (path, options) => request("GET", path, options),
     post: (path, body, options = {}) => request("POST", path, { ...options, body }),
+    patch: (path, body, options = {}) => request("PATCH", path, { ...options, body }),
+    delete: (path, options) => request("DELETE", path, options),
     capabilities,
     feature,
     health: () => request("GET", HEALTH_PATH).then(({ data }) => data)

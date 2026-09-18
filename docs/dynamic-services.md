@@ -91,7 +91,7 @@ const { data, requestId } = await client.post(client.pathFor("corrections"), pay
 });
 ```
 
-- `request(method, path, { body, headers, idempotencyKey, signal, retries })`, with `get` and `post` as shorthands; `urlFor(path)` and `pathFor(feature)` build addresses.
+- `request(method, path, { body, headers, idempotencyKey, signal, retries })`, with `get`, `post`, `patch` and `delete` as shorthands; `urlFor(path)` and `pathFor(feature)` build addresses.
 - **Timeouts** through `AbortController`, `timeout_ms` per request.
 - **Retries** for idempotent reads only (GET, HEAD, OPTIONS; twice), on a timeout, a network failure, a `429` or a `5xx`, after `Retry-After` when the service sends one and it is under ten seconds. A write is never retried unless the feature passes `retries`, since it carries an idempotency key or it does not.
 - **Every failure is a `ServiceError`** with a `kind`: `disabled`, `unsupported`, `version`, `timeout`, `network`, `malformed` (a 2xx that is not JSON), `unauthorized` (401), `forbidden` (403), `not_found` (404), `conflict` (409), `invalid` (422, with `errors`), `rate_limited` (429, with `retryAfter` in seconds), `server` (5xx), `http` (anything else) and `aborted` (the feature's own signal). It also carries `status`, `code`, `requestId` and `retryable`.
@@ -169,7 +169,7 @@ export default async function handler(request, response) {
 
 function cors(request, response) {
   response.setHeader("Access-Control-Allow-Origin", "https://example.org");   // the site's origin, not *
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");   // PATCH and DELETE for subscriptions
   response.setHeader("Access-Control-Allow-Headers", "Content-Type, Idempotency-Key");
   response.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After");
 }
@@ -184,4 +184,4 @@ Notes for that deployment:
 
 ## Relationship to the feature issues
 
-This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261), [comments](components.md#comments) (#253), [reactions](components.md#reactions) (#255) and [Webmentions](components.md#webmentions) (#258) define what they send and show; subscriptions (#254) and moderation (#257) would do the same, each with its own paths, payloads and error codes, and none with its own client.
+This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261), [comments](components.md#comments) (#253), [reactions](components.md#reactions) (#255), [Webmentions](components.md#webmentions) (#258) and [newsletter subscriptions](components.md#newsletter-subscriptions) (#254) define what they send and show; moderation (#257) would do the same, with its own paths, payloads and error codes, and no client of its own.

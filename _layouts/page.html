@@ -15,6 +15,13 @@ layout: default
       {%- comment -%} The contact and collaboration form, or the email address without a backend {%- endcomment %}
       {% include components/contact-form.html %}
       {%- endif %}
+      {%- if page.subscription_manage %}
+      {%- comment -%} Where the newsletter's emails lead: confirm, change topics, unsubscribe {%- endcomment %}
+      {% include components/subscription-manage.html %}
+      {%- endif %}
+      {%- if page.subscribe_form %}
+      {% include components/subscribe-form.html where='page' %}
+      {%- endif %}
     </div>
   </div>
 </section>

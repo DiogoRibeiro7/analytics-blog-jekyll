@@ -90,9 +90,9 @@ test.describe('Contact form', () => {
 
     await expect(form).toHaveAttribute('data-state', 'invalid');
     await expect(page.locator('#contact-name')).toBeFocused();
-    await expect(page.locator('[data-error-for="name"]')).toBeVisible();
-    await expect(page.locator('[data-error-for="email"]')).toContainText('email');
-    await expect(page.locator('[data-error-for="message"]')).toContainText('20 characters');
+    await expect(page.locator('#contact-form [data-error-for="name"]')).toBeVisible();
+    await expect(page.locator('#contact-form [data-error-for="email"]')).toContainText('email');
+    await expect(page.locator('#contact-form [data-error-for="message"]')).toContainText('20 characters');
     expect(calls.filter((call) => call.path === '/contact')).toHaveLength(0);
   });
 
@@ -104,7 +104,7 @@ test.describe('Contact form', () => {
     const form = await openAndFill(page);
     await form.locator('button[type=submit]').click();
     await expect(form).toHaveAttribute('data-state', 'invalid');
-    await expect(page.locator('[data-error-for="email"]')).toHaveText('Use an institutional address.');
+    await expect(page.locator('#contact-form [data-error-for="email"]')).toHaveText('Use an institutional address.');
     await expect(page.locator('#contact-message')).not.toHaveValue('');
 
     await page.unroute(`${api}**`);
