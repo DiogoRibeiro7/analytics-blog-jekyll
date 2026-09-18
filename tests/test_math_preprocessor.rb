@@ -13,12 +13,50 @@ class MathPreprocessorTest < Minitest::Test
   end
 
   def test_display_dollar_math_wrapped_in_div
-    processor = MathPreprocessor::Processor.new("Consider $$E=mc^2$$ here.")
+    processor = MathPreprocessor::Processor.new("Consider the equation:\n\n$$E=mc^2$$\n")
     result = processor.process
     assert_match(/<div [^>]*class="math-expression[^"]*"[^>]*>.*E=mc\^2.*<\/div>/, result,
                  "Display dollar math should be wrapped in a div")
     refute_match(/<p>.*\$\$E=mc\^2\$\$.*<\/p>/, result,
                  "Raw display math should not survive without wrapping")
+  end
+
+  def test_inline_double_dollar_math_survives_markdown_without_visible_html
+    source = 'Consider $$X_t$$ where $$t \\leq \\tau$$ and $$X_t \\sim F_0$$.'
+    processor = MathPreprocessor::Processor.new(source)
+    html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(processor.process)
+    document = Nokogiri::HTML.fragment(html)
+
+    assert_equal 3, document.css("p > span.math-expression-inline").size
+    assert_equal 3, processor.expressions.size
+    assert_empty document.css("div.math-expression")
+    refute_includes document.text, "<div"
+    refute_includes document.text, "<span"
+    assert_includes document.text, '$t \\leq \\tau$'
+  end
+
+  def test_inline_double_dollars_at_sentence_boundaries_and_in_lists
+    ["$$x$$ is the value.", "The value is $$x$$", "- $$x$$", "### Variable $$x$$"].each do |source|
+      result = MathPreprocessor::Processor.new(source).process
+      assert_match(/<span [^>]*class="math-expression-inline/, result)
+      assert_includes result, "$x$"
+      refute_includes result, "<div"
+    end
+  end
+
+  def test_inline_double_dollars_do_not_consume_display_equations_or_code
+    source = "At $$x$$ we have:\n\n$$\nx+y=z\n$$\n\nThen $$y$$.\n\n```tex\n$$literal$$\n```\n"
+    processor = MathPreprocessor::Processor.new(source)
+    result = processor.process
+    html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(result)
+    document = Nokogiri::HTML.fragment(html)
+
+    assert_equal 2, document.css("span.math-expression-inline").size
+    assert_equal 1, document.css("div.math-expression").size
+    assert_equal 3, processor.expressions.size
+    assert_includes document.at_css("code").text, "$$literal$$"
+    assert_includes result, "$$\nx+y=z\n$$"
+    refute_includes document.text, "<div"
   end
 
   def test_inline_paren_syntax_wrapped_in_span
