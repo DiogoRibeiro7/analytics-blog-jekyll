@@ -87,6 +87,49 @@
       } else {
         this.decorateInline(container, latex);
       }
+
+      this.exposeReferenceLinks(container);
+    },
+
+    /**
+     * MathJax draws \eqref and \ref as a link inside its visual output, which
+     * is aria-hidden: a link the Tab key reaches and a screen reader cannot
+     * name. The drawn link leaves the tab order (a mouse still follows it),
+     * and the same address is offered right after the expression as a real
+     * link, shown when it takes the focus. Its text comes from the assistive
+     * MathML, since the drawn glyphs are CSS content and have none.
+     */
+    /** Every expression under `root`; safe to run again, each drawn link is handled once. */
+    exposeAllReferenceLinks(root) {
+      const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+      scope.querySelectorAll('mjx-container').forEach((container) => this.exposeReferenceLinks(container));
+    },
+
+    exposeReferenceLinks(container) {
+      if (!container || typeof container.querySelectorAll !== 'function') {
+        return;
+      }
+
+      const assistive = Array.from(container.querySelectorAll('mjx-assistive-mml [href]'));
+      let after = container;
+
+      container.querySelectorAll('[aria-hidden="true"] a[href]').forEach((drawn) => {
+        drawn.setAttribute('tabindex', '-1');
+        const href = drawn.getAttribute('href') || '';
+        if (!href.startsWith('#') || drawn.dataset.mathReferenceExposed === 'true') {
+          return;
+        }
+        drawn.dataset.mathReferenceExposed = 'true';
+
+        const source = assistive.find((node) => node.getAttribute('href') === href);
+        const text = ((source && source.textContent) || drawn.textContent || '').replace(/\s+/g, ' ').trim();
+        const link = document.createElement('a');
+        link.className = 'math-reference-link';
+        link.href = href;
+        link.textContent = text ? `Equation ${text}` : 'Equation';
+        after.insertAdjacentElement('afterend', link);
+        after = link;
+      });
     },
 
     decorateInline(container, latex) {
@@ -800,6 +843,14 @@
 
   if (typeof globalThis !== 'undefined') {
     globalThis.__DATALOG_MATH_INTERNALS__ = MathToolkit;
+  }
+
+  // MathJax's pass over the page is over when this event fires (head.html), and
+  // may have been over before this script arrived; both cases are covered, and
+  // neither waits on the toolkit's own start.
+  if (typeof document !== 'undefined') {
+    document.addEventListener('datalog:math-ready', () => MathToolkit.exposeAllReferenceLinks(document));
+    MathToolkit.exposeAllReferenceLinks(document);
   }
 
   window.DatalogMath = {

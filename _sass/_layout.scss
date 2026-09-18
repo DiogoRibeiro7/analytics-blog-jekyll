@@ -1110,6 +1110,12 @@ body.dark-mode .post-category {
   }
 }
 
+// Without a table of contents (no headings, or `toc: false`) the article is the
+// wrapper's first child and would land in the 14rem column meant for the contents.
+.post-body-wrapper > .post-content:first-child {
+  grid-column: 1 / -1;
+}
+
 .post-content {
   min-width: 0;
 

@@ -40,9 +40,9 @@ class TocifyFilterTest < Minitest::Test
 
   def test_rendered_post_toc_lists_headings_not_content
     html = SiteBuilder.read(File.join(SiteBuilder.site.posts.docs.find { |doc| doc.data["title"] == "Python Data Wrangling Foundations" }.url, "index.html"))
-    start = html.index('<aside class="enhanced-toc')
+    start = html.index('<nav class="enhanced-toc')
     refute_nil start, "expected the enhanced table of contents on a post with headings"
-    aside = html[start...html.index("</aside>", start)]
+    aside = html[start...html.index("</nav>", start)]
     assert_includes aside, 'class="toc-list"'
     assert_match(%r{<a href="#[^"]+">}, aside)
     refute_includes aside, "<h2 id=", "the table of contents must list headings, not repeat the article"
