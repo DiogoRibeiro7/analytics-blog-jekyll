@@ -115,6 +115,12 @@
 <link rel="modulepreload" href="{{ js_manifest.features.webmentions | relative_url }}" crossorigin="anonymous" />
   {% endif %}
 {% endif %}
+{%- comment -%} The page the newsletter's emails link to acts as soon as it loads; the footer form loads on demand. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.subscriptions and page.subscription_manage %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.subscriptions != false and site.subscriptions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.subscriptions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}
 <link rel="modulepreload" href="{{ js_manifest.features.notebook | relative_url }}" crossorigin="anonymous" />
 {% endif %}

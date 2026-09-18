@@ -61,6 +61,12 @@ This guide documents the configuration keys validated by the automated configura
 | `webmentions.enabled` | Boolean | `true` (default), `false` |
 | `webmentions.endpoint` | String | The receiver's URL, or `""` |
 | `webmentions.types` | List | `mention`, `reply`, `repost`, `like` |
+| `subscriptions` | Map | Any |
+| `subscriptions.enabled` | Boolean | `true` (default), `false` |
+| `subscriptions.double_opt_in` | Boolean | `true` (default), `false` |
+| `subscriptions.placement` | List | `footer` (default), `post` |
+| `subscriptions.topics` | List | The topics a reader can pick, in order |
+| `subscriptions.privacy_url` | String | A path on the site, or a URL |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -276,6 +282,20 @@ This guide documents the configuration keys validated by the automated configura
     enabled: true
     endpoint: https://mentions.example.org/webmention
     types: [mention, reply]
+  ```
+
+### subscriptions
+- **Required:** No
+- **Type:** Map
+- **Description:** The newsletter subscribe form and the page its emails link to ([components.md: Newsletter Subscriptions](components.md#newsletter-subscriptions)), on a site whose dynamic services offer the `subscriptions` feature; without them no form renders. `placement` puts the form in the `footer` (the default), at the end of every `post`, or both; `topics` lists what a reader can choose to receive, with labels under `subscriptions.topics` in `_data/i18n`; `double_opt_in` sets the consent wording and how an answer without a status is read; `privacy_url` is linked from the consent line. `enabled: false` removes the form everywhere.
+- **Example:**
+  ```yaml
+  subscriptions:
+    enabled: true
+    double_opt_in: true
+    placement: [footer, post]
+    topics: [new-articles, research-notes, datasets]
+    privacy_url: /privacy/
   ```
 
 ## Scholarly Metadata

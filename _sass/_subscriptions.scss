@@ -1,0 +1,140 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+
+// Newsletter subscriptions (components/subscribe-form.html and
+// subscription-manage.html). The forms are .service-form (_service-forms.scss).
+
+.subscribe {
+  max-width: $max-width-reading;
+  margin-top: map.get($spacing, 6);
+}
+
+.subscribe__heading {
+  margin: 0 0 map.get($spacing, 2);
+  font-size: map.get($font-size-scale, lg);
+}
+
+.subscribe__description {
+  margin: 0 0 map.get($spacing, 3);
+  font-size: map.get($font-size-scale, sm);
+}
+
+// In the footer the form sits in a column next to the feeds: smaller, no top gap.
+.subscribe--footer {
+  max-width: none;
+  margin-top: map.get($spacing, 4);
+
+  .subscribe__heading {
+    font-size: map.get($font-size-scale, md);
+  }
+}
+
+// The footer is dark in both themes, so the form's inks are the footer's.
+.site-footer .subscribe {
+  .subscribe__heading {
+    color: #fff;
+  }
+
+  .service-form__privacy,
+  .service-form__hint {
+    color: rgba(#fff, 0.75);
+  }
+
+  .service-form__privacy a {
+    color: #fff;
+  }
+
+  .service-form__error,
+  form[data-state='error'] .service-form__status,
+  form[data-state='invalid'] .service-form__status {
+    color: $color-danger-300;
+  }
+
+  .service-form__status {
+    background: rgba(#fff, 0.1);
+    color: #fff;
+  }
+}
+
+.subscribe__topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 1) map.get($spacing, 4);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  font-size: map.get($font-size-scale, sm);
+
+  legend {
+    width: 100%;
+    margin-bottom: map.get($spacing, 1);
+    padding: 0;
+    font-weight: 600;
+  }
+
+  .service-form__error {
+    width: 100%;
+  }
+}
+
+.subscribe__topic {
+  display: inline-flex;
+  align-items: center;
+  gap: map.get($spacing, 2);
+  font-weight: 400;
+
+  input {
+    width: auto;
+  }
+}
+
+.subscription-manage {
+  max-width: $max-width-reading;
+  margin-top: map.get($spacing, 5);
+}
+
+.subscription-manage__status {
+  margin: 0 0 map.get($spacing, 3);
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.1);
+
+  .subscription-manage[data-state='error'] & {
+    background: rgba($color-danger-500, 0.1);
+    color: $color-danger-700;
+  }
+
+  .subscription-manage[data-state='confirmed'] &,
+  .subscription-manage[data-state='saved'] & {
+    background: rgba($color-success, 0.12);
+  }
+}
+
+.subscription-manage__panel {
+  display: grid;
+  gap: map.get($spacing, 3);
+  justify-items: start;
+}
+
+// display: grid would override the hidden attribute.
+.subscription-manage__panel[hidden] {
+  display: none;
+}
+
+body.dark-mode {
+  .subscription-manage__status {
+    background: rgba($dark-ink-500, 0.15);
+  }
+
+  .subscription-manage[data-state='error'] .subscription-manage__status {
+    color: $color-danger-300;
+  }
+}
+
+@media print {
+  .subscribe {
+    display: none !important;
+  }
+}

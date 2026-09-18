@@ -34,7 +34,7 @@
       {% include components/math-fallback.html expressions=page.math_expressions %}
       {% include layouts/default/article.html page=page content=content date_format=date_format %}
     </main>
-    {% include_cached footer.html %}
+    {% include_cached footer.html lang=page.lang %}
     <div class="visually-hidden" aria-live="polite" id="{{ math_status_id }}">{% t 'global.math_loading' %}</div>
     {% include meta/scripts-loader.html location='body' %}
   </body>

@@ -105,6 +105,11 @@ const FEATURE_CONFIG = [
   {
     name: "webmentions",
     test: () => document.querySelector("[data-webmentions]")
+  },
+  {
+    name: "subscriptions",
+    // A subscribe form, or the page the newsletter's emails link to.
+    test: () => document.querySelector("[data-subscribe], [data-subscription-manage]")
   }
 ];
 

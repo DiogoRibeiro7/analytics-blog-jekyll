@@ -327,6 +327,20 @@ webmentions:
     - mention
     - reply
 
+# Newsletter subscriptions through the dynamic services above: a compact form
+# where placement says (footer, post), and /subscriptions/, the page the
+# emails link to for confirming, changing topics and unsubscribing.
+subscriptions:
+  enabled: true
+  double_opt_in: true   # the consent wording says a confirmation email comes first
+  placement:
+    - footer
+  topics:               # optional; labels under subscriptions.topics in _data/i18n
+    - new-articles
+    - research-notes
+    - datasets
+  privacy_url: /privacy/
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

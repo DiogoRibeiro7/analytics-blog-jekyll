@@ -68,6 +68,12 @@
   {% assign webmentions_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} The newsletter form and its manage page need a backend with the feature on (components/subscribe-form.html). {%- endcomment -%}
+{% assign subscriptions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.subscriptions != false and site.subscriptions.enabled != false %}
+  {% assign subscriptions_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -85,6 +91,7 @@
     body.dataset.featureComments = "{{ comments_flag }}";
     body.dataset.featureReactions = "{{ reactions_flag }}";
     body.dataset.featureWebmentions = "{{ webmentions_flag }}";
+    body.dataset.featureSubscriptions = "{{ subscriptions_flag }}";
   })();
 </script>
 

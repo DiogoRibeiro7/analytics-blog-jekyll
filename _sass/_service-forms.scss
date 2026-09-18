@@ -76,6 +76,10 @@
   margin: 0 0 map.get($spacing, 3);
   font-size: map.get($font-size-scale, xs);
   color: $color-ink-500;
+
+  a {
+    text-decoration: underline;
+  }
 }
 
 .service-form__field {

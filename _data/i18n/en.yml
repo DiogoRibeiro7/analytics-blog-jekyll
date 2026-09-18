@@ -181,6 +181,36 @@ corrections:
     typo: Typo that changes the meaning
     accessibility: Accessibility problem
     other: Something else
+subscriptions:
+  topics_legend: What to receive
+  topics:
+    new-articles: New articles
+    research-notes: Research notes
+    datasets: Datasets
+  consent: "You will get these emails and nothing else, and every one of them has an unsubscribe link."
+  consent_double: "You will get one email asking you to confirm; nothing else is sent until you do. Every email has an unsubscribe link."
+  privacy_link: Privacy policy
+  sending: Subscribing…
+  pending: Almost there. Check your inbox and follow the link to confirm.
+  confirmed: You are subscribed. Thank you.
+  duplicate: This address is already subscribed.
+  email_invalid: That does not look like an email address.
+  topics_required: Pick at least one.
+  manage:
+    idle: "This page confirms, changes or ends a newsletter subscription. Open it from the link in one of the emails."
+    unavailable: Subscriptions are not set up on this site.
+    confirming: Confirming your subscription…
+    confirmed: Your subscription is confirmed. Thank you.
+    invalid_link: This link is not valid any more. Subscribe again to get a new one.
+    unsubscribe_question: Stop all emails to this address?
+    unsubscribe: Unsubscribe
+    unsubscribing: Unsubscribing…
+    unsubscribed: You are unsubscribed. No more emails will be sent.
+    loading: Loading your preferences…
+    preferences: What you receive
+    save: Save
+    saving: Saving…
+    saved: Your preferences are saved.
 webmentions:
   heading: Mentioned elsewhere
   intro: "Links, replies and reposts from other websites, as the site's receiver verified them. These are not comments on this site."
