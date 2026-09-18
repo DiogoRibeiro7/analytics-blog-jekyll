@@ -11,6 +11,11 @@ dynamic_services:
     contact: true
     comments: true
     reactions: true
+    webmentions: true
+
+# A receiver to advertise; the mentions shown come from the mocked services.
+webmentions:
+  endpoint: https://mentions.example.test/webmention
 
 # The demo's comments come from Giscus, and its two posts with a comments key
 # name their provider themselves; here every other post shows the thread of

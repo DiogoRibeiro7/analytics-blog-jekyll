@@ -19,9 +19,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 13. [Contact Form](#contact-form)
 14. [Comments](#comments)
 15. [Reactions](#reactions)
-16. [Front Matter](#front-matter)
-17. [Customization](#customization)
-18. [Troubleshooting](#troubleshooting)
+16. [Webmentions](#webmentions)
+17. [Front Matter](#front-matter)
+18. [Customization](#customization)
+19. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1106,6 +1107,86 @@ The strip carries `data-state`: `idle` (before the reader gets near), `loading`,
 .reactions__choice { }             // a button; [aria-pressed="true"] is the reader's choice
 .reactions__count { }              // the service's count, hidden when there is none
 .reactions__status { }             // the announced state
+```
+
+---
+
+## Webmentions
+
+### What It Does
+
+[Webmention](https://www.w3.org/TR/webmention/) is the W3C standard by which one website tells another that it linked to it. For a research site, a mention from elsewhere is often worth more than a reaction: another article cites a post, a researcher answers from their own site, a tutorial links to a derivation, a replication note references an analysis. The theme does two things with it, both optional and both independent of any one receiver or store:
+
+- **Discovery.** With `webmentions.endpoint` set, every page's head carries `<link rel="webmention" href="…">`, the HTML form of the standard's discovery (GitHub Pages cannot send the HTTP `Link` header form). A site that links here can then notify that receiver: the site's own, or a hosted one such as webmention.io.
+- **"Mentioned elsewhere."** On a site whose [dynamic services](dynamic-services.md) offer the feature, a post carries a section after its comments that reads the mentions of its canonical URL from `GET /v1/webmentions?target=…` and lists them: the kind (mention, reply, repost, like), the source's title as a link, the author, the source's host, the date and a short excerpt. It is kept apart from the comments, which are hosted here, and says so.
+
+Inbound mentions are untrusted external content. The theme shows only entries the receiver marked `verified`, only from `http(s)` sources, only of the kinds the site lists, and everything as text: no markup from the source is ever parsed, titles and excerpts are trimmed and cut, and links carry `rel="nofollow noopener ugc"`. Likes are off by default; the emphasis is on mentions, citations and replies, not on counts.
+
+### Usage
+
+```yaml
+webmentions:
+  enabled: true                   # false removes the discovery link and the section
+  endpoint: https://mentions.example.org/webmention   # the receiver to advertise; empty advertises nothing
+  types:                          # the kinds shown; likes and reposts are opt-in
+    - mention
+    - reply
+
+dynamic_services:
+  base_url: https://api.example.org
+  features:
+    webmentions: true
+```
+
+The section renders on posts when the services offer the feature; a post opts out with `webmentions: false` in its front matter. The discovery link needs only `endpoint`.
+
+### The Contract
+
+`GET /v1/webmentions?target=https://example.org/2024/04/05/sql-optimization-guide/`:
+
+```json
+{
+  "mentions": [
+    {
+      "id": "m1",
+      "source": "https://example.org/bootstrap-uncertainty",
+      "target": "https://example.org/2024/04/05/sql-optimization-guide/",
+      "type": "reply",
+      "author": { "name": "Jane Doe", "url": "https://example.org" },
+      "title": "Bootstrap uncertainty in small samples",
+      "excerpt": "Building on the clustering notes here…",
+      "published_at": "2026-09-16T14:00:00Z",
+      "verified": true
+    }
+  ]
+}
+```
+
+`type` is `mention` (the default), `reply`, `repost` or `like`. An entry without `verified: true`, without an `http(s)` `source`, or of a kind the site does not list is not shown; an answer of another shape is treated as no mentions. Mentions are listed newest first by `published_at`.
+
+The receiver and the read API, not the theme, verify that the source really links to the target (and re-verify when told of an update or a deletion), extract and sanitize the title, author and excerpt into plain text, reject targets outside the site, rate-limit submissions, hold entries for moderation when the site wants (`verified: false`, or not returned at all, keeps them off the page), and never proxy the source's HTML. "Moderation-hidden" is therefore the receiver's `verified` flag or its absence from the answer, and the page shows nothing about it.
+
+### Reference Deployment
+
+One shape, none of it required: a receiver route (`POST /webmention` with `source` and `target`, answering `202` and queueing the check) that fetches the source, confirms the link to the target, extracts the [h-entry](https://microformats.org/wiki/h-entry) or the page title and a text excerpt, and stores a document such as
+
+```json
+{ "_id": "m1", "source": "…", "target": "…", "type": "reply", "author": { "name": "…", "url": "…" }, "title": "…", "excerpt": "…", "published_at": "…", "received_at": "…", "verified": true, "status": "approved" }
+```
+
+in MongoDB or any store, with an index on `(target, status, published_at)`; and a read route under the dynamic services that returns the approved, verified entries of a target in the shape above. A hosted receiver (webmention.io) with a small read proxy that normalizes its answer into that shape works just as well. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows where the credentials live.
+
+### States
+
+The section carries `data-state`: `idle` (before the reader gets near), `loading`, `loaded`, `empty` ("No mentions from other websites yet"), `error` (the message as an alert, with a retry) and `disabled` (no backend, the feature off or not offered, or an API version mismatch: the section hides itself, having nothing to say to the reader).
+
+### Styling
+
+```scss
+.webmentions { }                   // the section; [data-state="…"]
+.webmentions__intro, .webmentions__status { }
+.webmention { }                    // one mention; .webmention--reply, --mention, --repost, --like
+.webmention__type, .webmention__title, .webmention__meta, .webmention__author, .webmention__host, .webmention__time, .webmention__excerpt { }
 ```
 
 ---

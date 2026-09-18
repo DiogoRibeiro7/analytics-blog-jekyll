@@ -181,6 +181,17 @@ corrections:
     typo: Errata que cambia el sentido
     accessibility: Problema de accesibilidad
     other: Otra cosa
+webmentions:
+  heading: Mencionado en otros sitios
+  intro: "Enlaces, respuestas y reposts de otros sitios, tal como los verificó el receptor de este sitio. No son comentarios en este sitio."
+  loading: Buscando menciones en otros sitios…
+  empty: Aún no hay menciones de otros sitios.
+  retry: Intentar de nuevo
+  types:
+    mention: Mención
+    reply: Respuesta
+    repost: Repost
+    like: Me gusta
 reactions:
   prompt: ¿Te ha sido útil?
   sending: Enviando tu opinión…

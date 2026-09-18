@@ -237,6 +237,9 @@ schema_type: TechnicalArticle
     </section>
   {% endif %}
 
+  {%- comment -%} What other websites said about this article, apart from the comments hosted here {%- endcomment -%}
+  {% include components/webmentions.html %}
+
   {%- comment -%} Reuse terms: the licence of the text and figures, and of the code samples {%- endcomment -%}
   {% include components/license-notice.html page=page %}
 

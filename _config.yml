@@ -316,6 +316,17 @@ reactions:
     - interesting
     - needs-clarification
 
+# Webmentions: links and replies from other websites. endpoint is the
+# receiver advertised in every page's head (<link rel="webmention">); the
+# mentions shown under a post are read through the dynamic services above.
+# Empty: nothing is advertised, nothing is shown.
+webmentions:
+  enabled: true
+  endpoint: ""
+  types:                # mention, reply, repost, like: the kinds shown; likes are off by default
+    - mention
+    - reply
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

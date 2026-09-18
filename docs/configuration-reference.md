@@ -57,6 +57,10 @@ This guide documents the configuration keys validated by the automated configura
 | `reactions.enabled` | Boolean | `true` (default), `false` |
 | `reactions.counts` | Boolean | `true` (default), `false` |
 | `reactions.types` | List | The reactions, in order |
+| `webmentions` | Map | Any |
+| `webmentions.enabled` | Boolean | `true` (default), `false` |
+| `webmentions.endpoint` | String | The receiver's URL, or `""` |
+| `webmentions.types` | List | `mention`, `reply`, `repost`, `like` |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -260,6 +264,18 @@ This guide documents the configuration keys validated by the automated configura
     enabled: true
     counts: true
     types: [useful, clear, interesting, needs-clarification]
+  ```
+
+### webmentions
+- **Required:** No
+- **Type:** Map
+- **Description:** Webmention support ([components.md: Webmentions](components.md#webmentions)). `endpoint` is the receiver advertised in every page's head as `<link rel="webmention">`; empty, nothing is advertised. On a site whose dynamic services offer the `webmentions` feature, posts carry a "Mentioned elsewhere" section listing the verified mentions of the kinds in `types` (`mention` and `reply` by default; `repost` and `like` are opt-in). `enabled: false` removes both; a post opts out of the section with `webmentions: false`.
+- **Example:**
+  ```yaml
+  webmentions:
+    enabled: true
+    endpoint: https://mentions.example.org/webmention
+    types: [mention, reply]
   ```
 
 ## Scholarly Metadata

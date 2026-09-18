@@ -62,6 +62,12 @@
   {% assign reactions_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} "Mentioned elsewhere" needs a backend with the feature on (components/webmentions.html). {%- endcomment -%}
+{% assign webmentions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.webmentions != false and site.webmentions.enabled != false %}
+  {% assign webmentions_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -78,6 +84,7 @@
     body.dataset.featureContact = "{{ contact_flag }}";
     body.dataset.featureComments = "{{ comments_flag }}";
     body.dataset.featureReactions = "{{ reactions_flag }}";
+    body.dataset.featureWebmentions = "{{ webmentions_flag }}";
   })();
 </script>
 

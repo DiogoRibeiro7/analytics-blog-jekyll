@@ -181,6 +181,17 @@ corrections:
     typo: Gralha que muda o sentido
     accessibility: Problema de acessibilidade
     other: Outra coisa
+webmentions:
+  heading: Mencionado noutros sites
+  intro: "Ligações, respostas e partilhas de outros sites, tal como o recetor deste site as verificou. Não são comentários neste site."
+  loading: A procurar menções noutros sites…
+  empty: Ainda não há menções de outros sites.
+  retry: Tentar de novo
+  types:
+    mention: Menção
+    reply: Resposta
+    repost: Partilha
+    like: Gosto
 reactions:
   prompt: Foi útil?
   sending: A enviar a sua opinião…
