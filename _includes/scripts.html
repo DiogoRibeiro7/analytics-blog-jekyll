@@ -74,6 +74,12 @@
   {% assign subscriptions_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} The moderation inbox is off unless the site turns it on (components/moderation-inbox.html). {%- endcomment -%}
+{% assign moderation_flag = 'false' %}
+{% if site.moderation.enabled == true %}
+  {% assign moderation_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -92,6 +98,7 @@
     body.dataset.featureReactions = "{{ reactions_flag }}";
     body.dataset.featureWebmentions = "{{ webmentions_flag }}";
     body.dataset.featureSubscriptions = "{{ subscriptions_flag }}";
+    body.dataset.featureModeration = "{{ moderation_flag }}";
   })();
 </script>
 

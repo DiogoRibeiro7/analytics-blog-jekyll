@@ -67,6 +67,11 @@ This guide documents the configuration keys validated by the automated configura
 | `subscriptions.placement` | List | `footer` (default), `post` |
 | `subscriptions.topics` | List | The topics a reader can pick, in order |
 | `subscriptions.privacy_url` | String | A path on the site, or a URL |
+| `moderation` | Map | Any; a key naming a secret stops the build |
+| `moderation.enabled` | Boolean | `true`, `false` (default) |
+| `moderation.endpoint` | String | The moderation API's URL, or `""` |
+| `moderation.credentials` | String | `omit`, `same-origin`, `include` (default) |
+| `moderation.sign_in_url` | String | Any |
 | `markdown` | String | `kramdown`, `commonmark` |
 | `highlighter` | String | `rouge`, `pygments` |
 | `permalink` | String | Any |
@@ -296,6 +301,17 @@ This guide documents the configuration keys validated by the automated configura
     placement: [footer, post]
     topics: [new-articles, research-notes, datasets]
     privacy_url: /privacy/
+  ```
+
+### moderation
+- **Required:** No
+- **Type:** Map
+- **Description:** The moderation inbox on a page with `moderation_inbox: true` ([moderation.md](moderation.md)): comments awaiting approval or flagged as spam, correction reports and abuse reports, with the actions a moderator can take. Off unless `enabled: true`. It talks to `endpoint` when set, and otherwise to `dynamic_services.base_url`; `credentials` is how the browser sends the moderator's session (`include` by default); `sign_in_url` is linked when the service answers `401`. **These settings are public and the page protects nothing**: authentication and authorization are the service's, or an identity-aware proxy's, on every request, and the build stops on a key named like a secret (`password`, `token`, `secret`, `api_key`, `private_key`).
+- **Example:**
+  ```yaml
+  moderation:
+    enabled: true
+    sign_in_url: https://api.example.org/auth/login
   ```
 
 ## Scholarly Metadata

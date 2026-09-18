@@ -1,0 +1,139 @@
+{%- comment -%}
+---
+optional: []
+---
+The moderation inbox (assets/js/moderation/inbox.js, docs/moderation.md):
+what the self-hosted features received, comments awaiting approval or
+flagged as spam, correction reports, abuse reports, with the actions a
+moderator can take. Rendered by the page layout when the page says
+`moderation_inbox: true`, and only when `moderation.enabled` is true and
+there is a moderation API to talk to (`moderation.endpoint`, or the
+dynamic services' base_url).
+
+This markup is a shell and protects nothing: a static site cannot hold an
+admin secret. Every request is authenticated and authorized by the service
+or the identity-aware proxy in front of it; the settings here (an address,
+a fetch credentials mode, a sign-in link) are public.
+{%- endcomment -%}
+{%- assign moderation = site.moderation -%}
+{%- assign services = site.dynamic_services -%}
+{%- assign endpoint = moderation.endpoint | default: '' -%}
+{%- assign has_api = false -%}
+{%- if endpoint != '' -%}{%- assign has_api = true -%}{%- endif -%}
+{%- if services.base_url and services.base_url != '' and services.features.moderation != false -%}{%- assign has_api = true -%}{%- endif -%}
+{%- if moderation.enabled == true and has_api -%}
+{%- assign categories = site.corrections.categories -%}
+{%- if categories == nil or categories.size == 0 -%}
+  {%- assign categories = "mathematical-error,factual-error,citation,code,reproducibility,typo,accessibility,other" | split: "," -%}
+{%- endif -%}
+{%- assign statuses = "pending,approved,spam,hidden,deleted,new,reviewed,accepted,rejected,resolved,open,dismissed" | split: "," -%}
+{%- assign actions = "approve,spam,hide,delete,reviewed,accept,reject,resolve,dismiss" | split: "," -%}
+{%- assign types = "comment,correction,abuse" | split: "," -%}
+{%- capture labels_json -%}
+{
+  "loading": {{ 'moderation.loading' | t | jsonify }},
+  "empty": {{ 'moderation.empty' | t | jsonify }},
+  "working": {{ 'moderation.working' | t | jsonify }},
+  "done": {{ 'moderation.done' | t | jsonify }},
+  "unauthorized": {{ 'moderation.unauthorized' | t | jsonify }},
+  "forbidden": {{ 'moderation.forbidden' | t | jsonify }},
+  "link_required": {{ 'moderation.link_required' | t | jsonify }},
+  "note": {{ 'moderation.note' | t | jsonify }},
+  "link": {{ 'moderation.link' | t | jsonify }},
+  "in_reply_to": {{ 'moderation.in_reply_to' | t | jsonify }},
+  "types": {
+    {%- for type in types -%}{%- assign key = "moderation.types." | append: type -%}
+    {{ type | jsonify }}: {{ key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  },
+  "statuses": {
+    {%- for status in statuses -%}{%- assign key = "moderation.statuses." | append: status -%}
+    {{ status | jsonify }}: {{ key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  },
+  "actions": {
+    {%- for action in actions -%}{%- assign key = "moderation.actions." | append: action -%}
+    {{ action | jsonify }}: {{ key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  },
+  "categories": {
+    {%- for category in categories -%}{%- assign key = "corrections.categories." | append: category -%}
+    {{ category | jsonify }}: {{ key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  },
+  "errors": {
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- for kind in kinds -%}
+    {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
+    {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+}
+{%- endcapture -%}
+<section class="moderation" id="moderation" data-moderation-inbox data-moderation-site="{{ '' | absolute_url }}"{% if endpoint != '' %} data-moderation-endpoint="{{ endpoint }}"{% endif %} data-moderation-credentials="{{ moderation.credentials | default: 'include' }}" data-state="idle" aria-busy="false">
+  <script type="application/json" nonce="{{ page.csp_nonce }}" data-moderation-labels>{{ labels_json | strip }}</script>
+  <p class="moderation__boundary">{% t 'moderation.boundary' %}</p>
+  <form class="service-form moderation__filters" id="moderation-filters" data-moderation-filters>
+    <fieldset class="service-form__fields moderation__filter-grid">
+      <legend class="visually-hidden">{% t 'moderation.filters' %}</legend>
+      <div class="service-form__field">
+        <label for="moderation-type">{% t 'moderation.type' %}</label>
+        <select id="moderation-type" name="type">
+          <option value="">{% t 'moderation.any_type' %}</option>
+          {%- for type in types %}{%- assign key = "moderation.types." | append: type %}
+          <option value="{{ type }}">{{ key | t }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="service-form__field">
+        <label for="moderation-status">{% t 'moderation.status' %}</label>
+        <select id="moderation-status" name="status">
+          <option value="">{% t 'moderation.queue' %}</option>
+          {%- for status in statuses %}{%- assign key = "moderation.statuses." | append: status %}
+          <option value="{{ status }}">{{ key | t }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="service-form__field">
+        <label for="moderation-category">{% t 'moderation.category' %}</label>
+        <select id="moderation-category" name="category">
+          <option value="">{% t 'moderation.any_category' %}</option>
+          {%- for category in categories %}{%- assign key = "corrections.categories." | append: category %}
+          <option value="{{ category | escape }}">{{ key | t }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="service-form__field">
+        <label for="moderation-path">{% t 'moderation.path' %}</label>
+        <input id="moderation-path" name="path" type="text" autocomplete="off">
+      </div>
+      <div class="service-form__field">
+        <label for="moderation-since">{% t 'moderation.since' %}</label>
+        <input id="moderation-since" name="since" type="date">
+      </div>
+      <div class="service-form__field">
+        <label for="moderation-search">{% t 'moderation.search' %}</label>
+        <input id="moderation-search" name="q" type="search" autocomplete="off">
+      </div>
+    </fieldset>
+    <div class="service-form__actions">
+      <button type="submit" class="post-tool">{% t 'moderation.apply' %}</button>
+      <button type="reset" class="post-tool">{% t 'moderation.reset' %}</button>
+    </div>
+  </form>
+  <p class="moderation__status" data-moderation-status role="status" aria-live="polite" hidden></p>
+  <p class="moderation__sign-in" data-moderation-sign-in hidden>
+    {%- if moderation.sign_in_url and moderation.sign_in_url != '' %}
+    <a href="{{ moderation.sign_in_url }}" rel="noopener">{% t 'moderation.sign_in' %}</a>
+    {%- else %}
+    {% t 'moderation.sign_in_hint' %}
+    {%- endif %}
+  </p>
+  <ol class="moderation__list" data-moderation-list></ol>
+  <button type="button" class="post-tool moderation__more" data-moderation-more hidden>{% t 'moderation.more' %}</button>
+</section>
+{%- else -%}
+<section class="moderation" id="moderation">
+  <p class="moderation__boundary">{% t 'moderation.unavailable' %}</p>
+</section>
+{%- endif -%}

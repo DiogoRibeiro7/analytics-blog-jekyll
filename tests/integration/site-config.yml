@@ -13,6 +13,13 @@ dynamic_services:
     reactions: true
     webmentions: true
     subscriptions: true
+    moderation: true
+
+# The moderation inbox, against the same mocked address; the specs play a
+# service that knows the moderator, or does not.
+moderation:
+  enabled: true
+  sign_in_url: https://api.example.test/auth/login
 
 # The newsletter form in the footer and at the end of posts.
 subscriptions:

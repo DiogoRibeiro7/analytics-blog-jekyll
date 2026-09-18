@@ -181,6 +181,61 @@ corrections:
     typo: Errata que cambia el sentido
     accessibility: Problema de accesibilidad
     other: Otra cosa
+moderation:
+  unavailable: La moderación no está configurada en este sitio.
+  boundary: "Esta página es solo una ventana. El inicio de sesión, y lo que una cuenta puede hacer, los decide el servicio de moderación en cada petición; nada aquí está protegido por la propia página."
+  filters: Filtros
+  type: Qué
+  status: Estado
+  category: Categoría del informe
+  path: Ruta de la página
+  since: Desde
+  search: Texto
+  apply: Aplicar
+  reset: Limpiar
+  queue: Pendiente de decisión
+  any_type: Todo
+  any_category: Cualquier categoría
+  loading: Cargando la cola…
+  empty: Nada aquí.
+  more: Cargar más
+  working: Trabajando…
+  done: "Hecho: {{action}}."
+  unauthorized: No has iniciado sesión en el servicio de moderación.
+  forbidden: Esta cuenta no puede moderar este sitio.
+  sign_in: Iniciar sesión
+  sign_in_hint: Inicia sesión en el servicio de moderación y recarga esta página.
+  link_required: "Indica la dirección del issue, pull request o revisión (http:// o https://)."
+  note: Nota, guardada con la acción
+  link: Issue, pull request o revisión
+  in_reply_to: En respuesta a
+  types:
+    comment: Comentario
+    correction: Informe de corrección
+    abuse: Denuncia
+  statuses:
+    pending: Pendiente
+    approved: Aprobado
+    spam: Spam
+    hidden: Oculto
+    deleted: Borrado
+    new: Nuevo
+    reviewed: Revisado
+    accepted: Aceptado
+    rejected: Rechazado
+    resolved: Resuelto
+    open: Abierto
+    dismissed: Descartado
+  actions:
+    approve: Aprobar
+    spam: Marcar como spam
+    hide: Ocultar
+    delete: Borrar
+    reviewed: Marcar como revisado
+    accept: Aceptar para acción editorial
+    reject: Rechazar
+    resolve: Resolver con un enlace
+    dismiss: Descartar
 subscriptions:
   topics_legend: Qué recibir
   topics:

@@ -29,6 +29,7 @@ Find the guide for what you want to do.
 | Ask readers whether an article was useful, with counts that are real | [components.md: Reactions](components.md#reactions) |
 | Advertise a Webmention receiver and show what other websites said about an article | [components.md: Webmentions](components.md#webmentions) |
 | Take newsletter subscriptions, with double opt-in and an unsubscribe page | [components.md: Newsletter Subscriptions](components.md#newsletter-subscriptions) |
+| Review comments, correction reports and abuse reports in one place | [moderation.md](moderation.md) |
 | Publish Jupyter notebooks | [user-guide.md: Jupyter Notebook Integration](user-guide.md#2-jupyter-notebook-integration-tutorial) |
 | Embed interactive visualizations | [user-guide.md: Interactive Visualization Embedding](user-guide.md#4-interactive-visualization-embedding) |
 | Show Google Scholar metrics | [google-scholar-setup.md](google-scholar-setup.md) |

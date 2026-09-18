@@ -24,6 +24,12 @@
   {% assign comments_parts = comments_endpoint | split: '/' %}
   {% assign comments_origin = comments_parts[0] | append: '//' | append: comments_parts[2] %}
 {% endif %}
+{%- comment -%} The moderation API, when it lives apart from the services, and only on the inbox page (docs/moderation.md). {%- endcomment -%}
+{% assign moderation_origin = '' %}
+{% if page.moderation_inbox and site.moderation.enabled == true and site.moderation.endpoint and site.moderation.endpoint != '' %}
+  {% assign moderation_parts = site.moderation.endpoint | split: '/' %}
+  {% assign moderation_origin = moderation_parts[0] | append: '//' | append: moderation_parts[2] %}
+{% endif %}
 {%- comment -%}
   Plotly, the Jupyter widget manager and MathJax can't run under the strict
   policy. Plotly inserts its rules into a <style> element it creates; the widget
@@ -127,7 +133,7 @@
   style-src 'self' {% if csp_inline_styles %}'unsafe-inline'{% else %}'nonce-{{ nonce_source }}'{% endif %} https://fonts.googleapis.com{{ cdn_styles }}{% if extra_style_src != '' %} {{ extra_style_src }}{% endif %};
   img-src 'self' data: https:;
   font-src 'self' https://fonts.gstatic.com data:{{ cdn_fonts }}{% if extra_font_src != '' %} {{ extra_font_src }}{% endif %};
-  connect-src 'self' https://api.github.com{{ cdn_connect }}{% if csp_analytics %} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com{% endif %}{% if services_origin != '' %} {{ services_origin }}{% endif %}{% if comments_origin != '' and comments_origin != services_origin %} {{ comments_origin }}{% endif %}{% if extra_connect_src != '' %} {{ extra_connect_src }}{% endif %};
+  connect-src 'self' https://api.github.com{{ cdn_connect }}{% if csp_analytics %} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com{% endif %}{% if services_origin != '' %} {{ services_origin }}{% endif %}{% if comments_origin != '' and comments_origin != services_origin %} {{ comments_origin }}{% endif %}{% if moderation_origin != '' and moderation_origin != services_origin %} {{ moderation_origin }}{% endif %}{% if extra_connect_src != '' %} {{ extra_connect_src }}{% endif %};
   frame-src 'self' https://observablehq.com https://old.observablehq.com{{ cdn_frames }}{% if frame_hosts != '' %} {{ frame_hosts }}{% endif %};
   object-src 'none';
   base-uri 'self';
