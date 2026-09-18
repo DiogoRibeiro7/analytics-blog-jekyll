@@ -27,7 +27,8 @@ Parameters:
 {%- endcapture -%}
 
 {%- if toc_markup contains '<li' -%}
-<aside class="enhanced-toc{% if collapsible %} enhanced-toc--collapsible{% endif %}"
+{%- comment -%} A <nav>: doc-toc refines the navigation landmark, and is not a role an <aside> may carry. {%- endcomment -%}
+<nav class="enhanced-toc{% if collapsible %} enhanced-toc--collapsible{% endif %}"
        data-toc-enhanced
        aria-label="{{ toc_heading }}"
        role="doc-toc">
@@ -87,7 +88,7 @@ Parameters:
       <span data-progress-percent>0</span>% complete
     </span>
   </div>
-</aside>
+</nav>
 
 <script>
   (function() {

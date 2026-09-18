@@ -43,6 +43,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- A post without a table of contents, because it has no headings or says `toc: false`, was laid out in the 14rem column meant for the contents at the large breakpoint, 224px wide; the article now spans the wrapper. The demo's first post was one.
+- The table of contents is a `<nav role="doc-toc">`: an `<aside>` may not carry that role (axe `aria-allowed-role`). Its active entry uses the accent as readable text (`--color-accent-text`; the plain accent was 4.12:1 on the entry's tint) and its reading-progress line the secondary ink (the tertiary one was 2.41:1 in the light theme and 3.73:1 in the dark one).
+- Strings, attributes and insertions in code blocks used the success green and regular expressions and tracebacks the warning amber, both about 3:1 on the code background in the light theme; they use `$color-success-text` and `$color-warning-text` now, as the teal and the warning notices already did.
+- MathJax draws `\eqref` and `\ref` as a link inside its `aria-hidden` output, which the Tab key reached and a screen reader could not name (axe `aria-hidden-focus`). The drawn link leaves the tab order and the same address follows the expression as a real link, "Equation (3)", shown when it takes the focus.
+- The axe spec now scans a post with a table of contents and code blocks and one with equation references, in both themes; the post it scanned had neither, which is how these went unnoticed.
 - The Pa11y workflow failed now and then in "Install Pa11y CI", when Puppeteer could not download its browser ("All providers failed for chrome-headless-shell"), with nothing wrong with the pages. It installs pa11y-ci without that download and points Puppeteer at the Chrome the runner image ships.
 - `docs/README.md` linked to the installation guide's "Install from a Git Checkout" section by its old anchor, which #242 renamed (#250).
 - `author: jane_smith` put "jane_smith" in the post's byline, JSON-LD and meta tags; only the author card looked the key up in `_data/authors.yml`. The research layout gave every author the site author's ORCID and affiliation, and the JSON-LD gave any author the site author's GitHub, Twitter and LinkedIn profiles, and only when an ORCID was set. Each author now has their own details (#252).

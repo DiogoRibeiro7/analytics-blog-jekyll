@@ -27,7 +27,16 @@ const PAGES = [
   '/portfolio/',
   '/search/',
   '/2024/01/01/introducing-datalog/',
+  // A table of contents, SQL code blocks, and the end-of-article components.
+  '/2024/04/05/sql-optimization-guide/',
+  // Numbered equations and \eqref links, once MathJax has drawn them.
+  '/2024/04/08/mathematical-proof-numbered-equations/',
 ];
+
+// What a page shows once its scripts have finished what the scan is about.
+const READY = {
+  '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
+};
 
 // axe has to be injected as an inline script, which the site's Content Security
 // Policy forbids. The policy itself is covered by tests/test_csp.rb.
@@ -44,6 +53,9 @@ for (const theme of ['light', 'dark']) {
 
         await page.goto(`${baseUrl}${path}`, { waitUntil: 'load' });
         await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
+        if (READY[path]) {
+          await page.locator(READY[path]).first().waitFor({ state: 'attached' });
+        }
 
         await page.addScriptTag({ content: axeSource });
         const results = await page.evaluate(async () => window.axe.run(document));
