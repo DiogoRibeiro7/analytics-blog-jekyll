@@ -56,6 +56,12 @@
   {% assign comments_flag = 'auto' %}
 {% endif %}
 
+{%- comment -%} "Was this useful?" needs a backend with the feature on (components/reactions.html). {%- endcomment -%}
+{% assign reactions_flag = 'false' %}
+{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.reactions != false and site.reactions.enabled != false %}
+  {% assign reactions_flag = 'auto' %}
+{% endif %}
+
 <script nonce="{{ page.csp_nonce }}">
   (function () {
     const body = document.body;
@@ -71,6 +77,7 @@
     body.dataset.featureCorrections = "{{ corrections_flag }}";
     body.dataset.featureContact = "{{ contact_flag }}";
     body.dataset.featureComments = "{{ comments_flag }}";
+    body.dataset.featureReactions = "{{ reactions_flag }}";
   })();
 </script>
 

@@ -181,6 +181,16 @@ corrections:
     typo: Errata que cambia el sentido
     accessibility: Problema de accesibilidad
     other: Otra cosa
+reactions:
+  prompt: ¿Te ha sido útil?
+  sending: Enviando tu opinión…
+  thanks: Gracias. Tu opinión se ha contado.
+  already: Tu opinión ya se había contado.
+  types:
+    useful: Útil
+    clear: Claro
+    interesting: Interesante
+    needs-clarification: Necesita aclaración
 comments:
   loading: Cargando la conversación…
   empty: Aún no hay comentarios. Empieza la conversación.

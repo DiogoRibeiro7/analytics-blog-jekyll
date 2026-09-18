@@ -181,6 +181,16 @@ corrections:
     typo: Typo that changes the meaning
     accessibility: Accessibility problem
     other: Something else
+reactions:
+  prompt: Was this useful?
+  sending: Sending your feedback…
+  thanks: Thank you. Your feedback was counted.
+  already: Your feedback was already counted.
+  types:
+    useful: Useful
+    clear: Clear
+    interesting: Interesting
+    needs-clarification: Needs clarification
 comments:
   loading: Loading the discussion…
   empty: No comments yet. Start the discussion.
