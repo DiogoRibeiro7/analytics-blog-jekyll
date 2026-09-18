@@ -42,12 +42,31 @@ jobs:
         run: bundle exec jekyll build --trace
 
       # http-server and wait-on are devDependencies. pa11y-ci is installed here,
-      # pinned, because it downloads its own Chromium, which every `npm ci`
-      # would otherwise fetch too.
+      # pinned, and without Puppeteer's own browser. That download failed this
+      # job more than once with "All providers failed for chrome-headless-shell"
+      # while nothing was wrong with the pages, and a rerun passed. The runner
+      # image ships Google Chrome, so Puppeteer is pointed at it instead.
       - name: Install Pa11y CI
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
         run: npm install --no-save pa11y-ci@4.1.1
 
+      - name: Find the runner's Chrome
+        id: chrome
+        run: |
+          for candidate in google-chrome google-chrome-stable chromium-browser chromium; do
+            if path="$(command -v "$candidate")"; then
+              echo "path=$path" >> "$GITHUB_OUTPUT"
+              "$path" --version
+              exit 0
+            fi
+          done
+          echo "::error::No Chrome on the runner. Remove PUPPETEER_SKIP_DOWNLOAD from the install step to let Puppeteer fetch its own."
+          exit 1
+
       - name: Run Pa11y CI
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ steps.chrome.outputs.path }}
         run: |
           npx http-server _site -p 4000 --silent &
           SERVER_PID=$!
