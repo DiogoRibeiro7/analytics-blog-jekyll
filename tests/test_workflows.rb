@@ -55,6 +55,20 @@ class WorkflowsTest < Minitest::Test
     end
   end
 
+  # Puppeteer's own browser download failed this job more than once with nothing
+  # wrong with the pages ("All providers failed for chrome-headless-shell").
+  def test_pa11y_uses_the_runners_chrome_instead_of_downloading_one
+    job = workflow("accessibility.yml").dig("jobs", "pa11y")
+    steps = job.fetch("steps")
+    install = steps.find { |step| step["name"] == "Install Pa11y CI" }
+    audit = steps.find { |step| step["name"] == "Run Pa11y CI" }
+    names = step_names(job)
+
+    assert_equal "true", install.dig("env", "PUPPETEER_SKIP_DOWNLOAD").to_s
+    assert_includes audit.dig("env", "PUPPETEER_EXECUTABLE_PATH"), "steps.chrome.outputs.path"
+    assert_operator names.index("Find the runner's Chrome"), :<, names.index("Run Pa11y CI")
+  end
+
   # Nothing built the Dockerfiles, so both stopped working unnoticed.
   def test_both_docker_images_are_built
     images = workflow("docker.yml").dig("jobs", "build", "strategy", "matrix", "image")

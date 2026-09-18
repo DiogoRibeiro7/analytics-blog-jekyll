@@ -30,7 +30,7 @@ which run in the background.
 | Workflow | Config files | Purpose |
 | --- | --- | --- |
 | `test.yml` | `vitest.config.js`, `Rakefile`, `eslint.config.js`, `.rubocop.yml` | JS + Ruby unit tests, lint |
-| `accessibility.yml` | `pa11yci.json` | Pa11y a11y audit |
+| `accessibility.yml` | `pa11yci.json` | Pa11y a11y audit, in the runner's own Chrome |
 | `lighthouse.yml` | `lighthouserc.json` | Performance budgets |
 | `codeql.yml` | — | Static security analysis |
 | `dependency-review.yml` | — | New-deps vulnerability check |

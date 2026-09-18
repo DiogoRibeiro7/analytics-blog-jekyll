@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- The Pa11y workflow failed now and then in "Install Pa11y CI", when Puppeteer could not download its browser ("All providers failed for chrome-headless-shell"), with nothing wrong with the pages. It installs pa11y-ci without that download and points Puppeteer at the Chrome the runner image ships.
 - `docs/README.md` linked to the installation guide's "Install from a Git Checkout" section by its old anchor, which #242 renamed (#250).
 - `author: jane_smith` put "jane_smith" in the post's byline, JSON-LD and meta tags; only the author card looked the key up in `_data/authors.yml`. The research layout gave every author the site author's ORCID and affiliation, and the JSON-LD gave any author the site author's GitHub, Twitter and LinkedIn profiles, and only when an ORCID was set. Each author now has their own details (#252).
 - The EndNote export wrote each author as `%A  - Name`, since it rewrote the RIS `AU  - Name` lines, and with several authors the BibTeX author field and the RIS author lines held stray line breaks (#252).
