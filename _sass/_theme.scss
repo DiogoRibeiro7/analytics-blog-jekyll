@@ -38,6 +38,7 @@
 @include meta.load-css('service-forms');
 @include meta.load-css('comments-thread');
 @include meta.load-css('reactions');
+@include meta.load-css('webmentions');
 // Reading mode and print come last, so their rules win.
 @include meta.load-css('print');
 

@@ -1,0 +1,125 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+
+// "Mentioned elsewhere" (components/webmentions.html, assets/js/webmentions/list.js):
+// what other websites said about the article, apart from the comments hosted here.
+
+.webmentions {
+  max-width: $max-width-reading;
+  margin-top: map.get($spacing, 6);
+  padding-top: map.get($spacing, 4);
+  border-top: 1px solid rgba($color-neutral-500, 0.25);
+}
+
+.webmentions__heading {
+  margin: 0 0 map.get($spacing, 2);
+  font-size: map.get($font-size-scale, lg);
+}
+
+.webmentions__intro,
+.webmentions__status {
+  margin: 0 0 map.get($spacing, 3);
+  font-size: map.get($font-size-scale, sm);
+  color: $color-ink-500;
+}
+
+.webmentions[data-state='error'] .webmentions__status {
+  color: $color-danger-700;
+}
+
+.webmentions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: map.get($spacing, 3);
+}
+
+// display: grid would override the hidden attribute.
+.webmentions__list[hidden] {
+  display: none;
+}
+
+.webmention {
+  padding-left: map.get($spacing, 4);
+  border-left: 3px solid rgba($color-neutral-500, 0.35);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.webmention--reply {
+  border-left-color: $color-accent-secondary;
+}
+
+.webmention__type {
+  display: inline-block;
+  margin-right: map.get($spacing, 2);
+  padding: 0 map.get($spacing, 2);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.15);
+  color: $color-ink-700;
+  font-size: map.get($font-size-scale, xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.webmention__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.webmention__meta {
+  display: block;
+  margin-top: map.get($spacing, 1);
+  color: $color-ink-500;
+
+  > * + *::before {
+    content: '·';
+    margin: 0 map.get($spacing, 1);
+  }
+}
+
+.webmention__excerpt {
+  margin: map.get($spacing, 2) 0 0;
+  color: $color-ink-700;
+  overflow-wrap: anywhere;
+}
+
+body.dark-mode {
+  .webmentions {
+    border-top-color: rgba($dark-ink-500, 0.35);
+  }
+
+  .webmentions__intro,
+  .webmentions__status,
+  .webmention__meta {
+    color: $dark-ink-500;
+  }
+
+  .webmentions[data-state='error'] .webmentions__status {
+    color: $color-danger-300;
+  }
+
+  .webmention {
+    border-left-color: rgba($dark-ink-500, 0.45);
+  }
+
+  .webmention--reply {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .webmention__type {
+    background: rgba($dark-ink-500, 0.2);
+    color: $dark-ink-700;
+  }
+
+  .webmention__excerpt {
+    color: $dark-ink-700;
+  }
+}
+
+@media print {
+  .webmentions {
+    display: none !important;
+  }
+}

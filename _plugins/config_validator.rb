@@ -108,6 +108,11 @@ module Datalog
         type: :hash,
         schema: { enabled: { type: :boolean }, counts: { type: :boolean }, types: { type: :array } }
       },
+      # Webmentions: the receiver advertised in the head, the mentions shown under a post.
+      webmentions: {
+        type: :hash,
+        schema: { enabled: { type: :boolean }, endpoint: { type: :string }, types: { type: :array } }
+      },
       markdown: { type: :string, enum: %w[kramdown commonmark] },
       highlighter: { type: :string, enum: %w[rouge pygments] },
       permalink: { type: :string },

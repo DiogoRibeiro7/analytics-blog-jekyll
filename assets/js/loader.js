@@ -101,6 +101,10 @@ const FEATURE_CONFIG = [
   {
     name: "reactions",
     test: () => document.querySelector("[data-reactions]")
+  },
+  {
+    name: "webmentions",
+    test: () => document.querySelector("[data-webmentions]")
   }
 ];
 

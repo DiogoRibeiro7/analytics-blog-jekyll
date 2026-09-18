@@ -61,6 +61,7 @@
 <meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
 <link rel="canonical" href="{{ canonical_url }}" />
+{% include meta/webmention-discovery.html %}
 {%- assign head_license = page | page_license %}
 {% if head_license.url %}<link rel="license" href="{{ head_license.url | escape }}" />{% endif %}
 {% if js_manifest and js_manifest.core %}
@@ -106,6 +107,12 @@
 {% if js_manifest.features and js_manifest.features.reactions and page.layout == 'post' and page.reactions != false %}
   {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.reactions != false and site.reactions.enabled != false %}
 <link rel="modulepreload" href="{{ js_manifest.features.reactions | relative_url }}" crossorigin="anonymous" />
+  {% endif %}
+{% endif %}
+{%- comment -%} "Mentioned elsewhere" renders on posts of a site with a backend. {%- endcomment -%}
+{% if js_manifest.features and js_manifest.features.webmentions and page.layout == 'post' and page.webmentions != false %}
+  {% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.webmentions != false and site.webmentions.enabled != false %}
+<link rel="modulepreload" href="{{ js_manifest.features.webmentions | relative_url }}" crossorigin="anonymous" />
   {% endif %}
 {% endif %}
 {% if js_manifest.features and js_manifest.features.notebook and page.notebook_post %}

@@ -1,0 +1,14 @@
+{%- comment -%}
+---
+optional: []
+---
+Webmention discovery (W3C Webmention, section 3.1.2): the receiver a site
+names in `webmentions.endpoint` is advertised in every page's head, so a
+website that links here can notify it. GitHub Pages cannot send the HTTP
+Link header form, so the <link> form is the one the theme uses. Nothing is
+advertised without an endpoint or with `webmentions.enabled: false`.
+{%- endcomment -%}
+{%- assign webmentions = site.webmentions -%}
+{%- if webmentions.enabled != false and webmentions.endpoint and webmentions.endpoint != '' -%}
+<link rel="webmention" href="{{ webmentions.endpoint }}" />
+{%- endif -%}
