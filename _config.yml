@@ -341,6 +341,17 @@ subscriptions:
     - datasets
   privacy_url: /privacy/
 
+# The moderation inbox (docs/moderation.md): a page with moderation_inbox: true
+# (the demo's /admin/moderation/) lists what the self-hosted features received
+# and acts on it through the moderation API. Off by default. These settings are
+# public and the page protects nothing: signing in and permissions are the
+# service's, or an identity-aware proxy's, on every request. Never a password here.
+moderation:
+  enabled: false
+  endpoint: ""            # only when the moderation API lives apart from dynamic_services.base_url
+  credentials: include    # how the browser sends the moderator's session: include, same-origin or omit
+  sign_in_url: ""         # where a moderator signs in; linked when the service answers 401
+
 # -----------------------------------------------------------------------------
 # DataLog Plugins
 # -----------------------------------------------------------------------------

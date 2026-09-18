@@ -1,0 +1,222 @@
+@use 'sass:map';
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// The moderation inbox (components/moderation-inbox.html, assets/js/moderation/inbox.js).
+
+.moderation {
+  margin-top: map.get($spacing, 5);
+}
+
+.moderation__boundary {
+  margin: 0 0 map.get($spacing, 4);
+  padding: map.get($spacing, 3) map.get($spacing, 4);
+  border-left: 3px solid $color-accent-secondary;
+  background: rgba($color-neutral-500, 0.08);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.moderation__filter-grid {
+  @include respond-to(md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.moderation__status,
+.moderation__sign-in {
+  margin: map.get($spacing, 4) 0;
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.1);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.moderation[data-state='error'] .moderation__status,
+.moderation[data-state='unauthorized'] .moderation__status,
+.moderation[data-state='forbidden'] .moderation__status {
+  background: rgba($color-danger-500, 0.1);
+  color: $color-danger-700;
+}
+
+.moderation__sign-in a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.moderation__list {
+  list-style: none;
+  margin: map.get($spacing, 4) 0;
+  padding: 0;
+  display: grid;
+  gap: map.get($spacing, 4);
+}
+
+.moderation-item__card {
+  padding: map.get($spacing, 4);
+  border: 1px solid rgba($color-neutral-200, 0.9);
+  border-left-width: 4px;
+  border-radius: map.get($radius, md);
+  font-size: map.get($font-size-scale, sm);
+}
+
+.moderation-item--correction .moderation-item__card {
+  border-left-color: $color-accent-secondary;
+}
+
+.moderation-item--abuse .moderation-item__card {
+  border-left-color: $color-danger-600;
+}
+
+.moderation-item[aria-busy='true'] {
+  opacity: 0.7;
+}
+
+.moderation-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: map.get($spacing, 2);
+  margin-bottom: map.get($spacing, 2);
+}
+
+.moderation-item__type,
+.moderation-item__status,
+.moderation-item__category {
+  padding: 0 map.get($spacing, 2);
+  border-radius: map.get($radius, sm);
+  background: rgba($color-neutral-500, 0.15);
+  color: $color-ink-700;
+  font-size: map.get($font-size-scale, xs);
+  font-weight: 600;
+}
+
+.moderation-item__type {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.moderation-item__time,
+.moderation-item__author,
+.moderation-item__where {
+  margin: 0 0 map.get($spacing, 1);
+  color: $color-ink-500;
+}
+
+.moderation-item__body {
+  margin: map.get($spacing, 3) 0;
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0 0 map.get($spacing, 2);
+  }
+}
+
+.moderation-item__context,
+.moderation-item__quote {
+  margin: map.get($spacing, 2) 0;
+  padding: 0 0 0 map.get($spacing, 3);
+  border-left: 3px solid rgba($color-neutral-500, 0.4);
+  color: $color-ink-500;
+
+  p {
+    margin: 0;
+  }
+}
+
+.moderation-item__history {
+  margin: map.get($spacing, 2) 0;
+  padding-left: map.get($spacing, 5);
+  color: $color-ink-500;
+  font-size: map.get($font-size-scale, xs);
+}
+
+.moderation-item__actions {
+  display: grid;
+  gap: map.get($spacing, 2);
+  margin-top: map.get($spacing, 3);
+  padding-top: map.get($spacing, 3);
+  border-top: 1px solid rgba($color-neutral-500, 0.2);
+}
+
+.moderation-item__note-label {
+  font-weight: 600;
+}
+
+.moderation-item__note {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba($color-neutral-200, 0.9);
+  border-radius: map.get($radius, sm);
+  background: $color-surface-50;
+  color: $color-ink-700;
+  font: inherit;
+}
+
+.moderation-item__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 2);
+}
+
+.moderation-item__message {
+  margin: map.get($spacing, 2) 0 0;
+  font-weight: 600;
+
+  &[role='alert'] {
+    color: $color-danger-700;
+  }
+}
+
+body.dark-mode {
+  .moderation__boundary {
+    border-left-color: $dark-accent-secondary;
+    background: rgba($dark-ink-500, 0.12);
+  }
+
+  .moderation__status,
+  .moderation__sign-in {
+    background: rgba($dark-ink-500, 0.15);
+  }
+
+  .moderation[data-state='error'] .moderation__status,
+  .moderation[data-state='unauthorized'] .moderation__status,
+  .moderation[data-state='forbidden'] .moderation__status,
+  .moderation-item__message[role='alert'] {
+    color: $color-danger-300;
+  }
+
+  .moderation-item__card {
+    border-color: rgba($dark-ink-500, 0.35);
+  }
+
+  .moderation-item--correction .moderation-item__card {
+    border-left-color: $dark-accent-secondary;
+  }
+
+  .moderation-item--abuse .moderation-item__card {
+    border-left-color: $color-danger-300;
+  }
+
+  .moderation-item__type,
+  .moderation-item__status,
+  .moderation-item__category {
+    background: rgba($dark-ink-500, 0.2);
+    color: $dark-ink-700;
+  }
+
+  .moderation-item__time,
+  .moderation-item__author,
+  .moderation-item__where,
+  .moderation-item__context,
+  .moderation-item__quote,
+  .moderation-item__history {
+    color: $dark-ink-500;
+  }
+
+  .moderation-item__note {
+    border-color: rgba($dark-ink-500, 0.35);
+    background: $dark-surface-300;
+    color: $dark-ink-700;
+  }
+}

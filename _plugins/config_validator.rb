@@ -12,19 +12,28 @@ module Datalog
     # `credentials` is fetch's cookie mode, not a secret, so "credential" is not in the list.
     SECRET_KEY = /secret|token|password|passwd|api_key|apikey|private_key/i
 
-    def errors(config)
-      services = config["dynamic_services"]
-      return [] unless services.is_a?(Hash)
+    # The blocks of _config.yml that reach the browser as they are. `moderation`
+    # is where an admin password is most tempting and least use: a static page
+    # cannot keep one (docs/moderation.md).
+    PUBLIC_BLOCKS = %w[dynamic_services moderation].freeze
 
-      secret_keys(services, ["dynamic_services"]).map do |path|
-        {
-          headline: "Secret in public configuration '#{path.join('.')}'",
-          path: path,
-          expected: "no credential: dynamic_services is sent to every reader's browser, so a key, token or " \
-                    "password belongs on the server, never in _config.yml",
-          actual: "a key named '#{path.last}'"
-        }
+    def errors(config)
+      PUBLIC_BLOCKS.flat_map do |block|
+        settings = config[block]
+        next [] unless settings.is_a?(Hash)
+
+        secret_keys(settings, [block]).map { |path| secret_error(block, path) }
       end
+    end
+
+    def secret_error(block, path)
+      {
+        headline: "Secret in public configuration '#{path.join('.')}'",
+        path: path,
+        expected: "no credential: #{block} is sent to every reader's browser, so a key, token or " \
+                  "password belongs on the server, never in _config.yml",
+        actual: "a key named '#{path.last}'"
+      }
     end
 
     def secret_keys(hash, path)
@@ -112,6 +121,14 @@ module Datalog
       webmentions: {
         type: :hash,
         schema: { enabled: { type: :boolean }, endpoint: { type: :string }, types: { type: :array } }
+      },
+      # The moderation inbox (docs/moderation.md): public settings only, never a credential.
+      moderation: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean }, endpoint: { type: :string }, sign_in_url: { type: :string },
+          credentials: { type: :string, enum: %w[omit same-origin include] }
+        }
       },
       # The newsletter form and the page its emails link to (components/subscribe-form.html).
       subscriptions: {

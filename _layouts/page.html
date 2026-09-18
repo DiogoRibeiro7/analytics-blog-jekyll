@@ -22,6 +22,10 @@ layout: default
       {%- if page.subscribe_form %}
       {% include components/subscribe-form.html where='page' %}
       {%- endif %}
+      {%- if page.moderation_inbox %}
+      {%- comment -%} The moderation inbox: a shell; the service authenticates every request {%- endcomment %}
+      {% include components/moderation-inbox.html %}
+      {%- endif %}
     </div>
   </div>
 </section>

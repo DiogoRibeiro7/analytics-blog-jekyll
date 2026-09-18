@@ -184,4 +184,4 @@ Notes for that deployment:
 
 ## Relationship to the feature issues
 
-This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261), [comments](components.md#comments) (#253), [reactions](components.md#reactions) (#255), [Webmentions](components.md#webmentions) (#258) and [newsletter subscriptions](components.md#newsletter-subscriptions) (#254) define what they send and show; moderation (#257) would do the same, with its own paths, payloads and error codes, and no client of its own.
+This contract is the transport. [Correction reports](components.md#correction-reports) (#256), the [contact form](components.md#contact-form) (#261), [comments](components.md#comments) (#253), [reactions](components.md#reactions) (#255), [Webmentions](components.md#webmentions) (#258) and [newsletter subscriptions](components.md#newsletter-subscriptions) (#254) define what they send and show. The [moderation inbox](moderation.md) (#257) is the one authenticated feature: it uses the same client with `credentials: include`, and its document says why the page itself protects nothing.

@@ -110,6 +110,10 @@ const FEATURE_CONFIG = [
     name: "subscriptions",
     // A subscribe form, or the page the newsletter's emails link to.
     test: () => document.querySelector("[data-subscribe], [data-subscription-manage]")
+  },
+  {
+    name: "moderation",
+    test: () => document.querySelector("[data-moderation-inbox]")
   }
 ];
 

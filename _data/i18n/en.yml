@@ -181,6 +181,61 @@ corrections:
     typo: Typo that changes the meaning
     accessibility: Accessibility problem
     other: Something else
+moderation:
+  unavailable: Moderation is not set up on this site.
+  boundary: "This page is only a window. Signing in, and what an account may do, are decided by the moderation service on every request; nothing here is protected by the page itself."
+  filters: Filters
+  type: What
+  status: Status
+  category: Report category
+  path: Page path
+  since: Since
+  search: Text
+  apply: Apply
+  reset: Reset
+  queue: Awaiting a decision
+  any_type: Everything
+  any_category: Any category
+  loading: Loading the queue…
+  empty: Nothing here.
+  more: Load more
+  working: Working…
+  done: "Done: {{action}}."
+  unauthorized: You are not signed in to the moderation service.
+  forbidden: This account may not moderate this site.
+  sign_in: Sign in
+  sign_in_hint: Sign in to the moderation service, then reload this page.
+  link_required: "Give the address of the issue, pull request or revision (http:// or https://)."
+  note: Note, kept with the action
+  link: Issue, pull request or revision
+  in_reply_to: In reply to
+  types:
+    comment: Comment
+    correction: Correction report
+    abuse: Abuse report
+  statuses:
+    pending: Pending
+    approved: Approved
+    spam: Spam
+    hidden: Hidden
+    deleted: Deleted
+    new: New
+    reviewed: Reviewed
+    accepted: Accepted
+    rejected: Rejected
+    resolved: Resolved
+    open: Open
+    dismissed: Dismissed
+  actions:
+    approve: Approve
+    spam: Mark as spam
+    hide: Hide
+    delete: Delete
+    reviewed: Mark reviewed
+    accept: Accept for editorial action
+    reject: Reject
+    resolve: Resolve with a link
+    dismiss: Dismiss
 subscriptions:
   topics_legend: What to receive
   topics:
