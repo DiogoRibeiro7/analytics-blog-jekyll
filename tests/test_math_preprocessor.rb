@@ -44,6 +44,11 @@ class MathPreprocessorTest < Minitest::Test
     end
   end
 
+  def test_empty_double_dollar_pair_stays_literal
+    source = "Keep $$   $$ as text."
+    assert_equal source, MathPreprocessor::Processor.new(source).process
+  end
+
   def test_inline_double_dollars_do_not_consume_display_equations_or_code
     source = "At $$x$$ we have:\n\n$$\nx+y=z\n$$\n\nThen $$y$$.\n\n```tex\n$$literal$$\n```\n"
     processor = MathPreprocessor::Processor.new(source)
