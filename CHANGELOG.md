@@ -20,7 +20,7 @@ Planned patch release: **0.9.1**. This release contains bug fixes only.
 - Supply missing notebook labels in English, Spanish and Portuguese and validate literal translation keys (#312).
 - Validate author and licence shapes, resolve author names and profile handles, inherit partial licence settings, preserve year ranges, normalize repository and DOI links, prevent image variant collisions, handle encoded image paths, and propagate `updated` to feeds and sitemaps (#313).
 - Preserve visualization fallback tables and live content in print and hide code line-number gutters (#314).
-- Default omitted math loading settings to automatic detection and preserve inline parenthesis TeX through Markdown conversion (#315, #316).
+- Default omitted math loading settings to automatic detection and preserve inline parenthesis and double-dollar TeX through Markdown conversion, and leave empty delimiters literal (#315, #316, #320).
 - Render tag and category links only when their archive page exists, removing broken links without adding archive features (#293).
 
 ## [0.9.0] - 2026-09-18
