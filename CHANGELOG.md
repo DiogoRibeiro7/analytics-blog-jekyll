@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Give the installation panel real tab semantics, so the arrow keys move between pip, conda and Git, the selected one is announced, and each panel is named by its tab. Its id is the package's rather than `installation`, which a page's own heading already had; its buttons carry a type; its labels are translated; and it copies through the core bundle's copy button instead of a second clipboard implementation. The tab labels meet the AA contrast ratio (#332).
+- Fall back to the older copy route where the clipboard API is unavailable or refused, and let a template pass the words shown after a copy (#332).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed

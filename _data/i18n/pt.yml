@@ -757,3 +757,10 @@ analytics:
       users: Usuários
       new_users: Novos usuários
       page_views: Visualizações de página
+package_install:
+  title: Instalação
+  terminal: Terminal
+  r_console: Consola do R
+  copy: Copiar
+  copied: Copiado!
+  copy_error: Não foi possível copiar

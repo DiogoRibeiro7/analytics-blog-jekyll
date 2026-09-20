@@ -8,6 +8,10 @@
 
 // Color scheme - ReadTheDocs inspired
 $pkg-primary: #2980b9;
+// Text colours for the installation tabs: $pkg-primary and #6c757d read at
+// 4.08:1 and 4.45:1 on the panel, both short of WCAG AA's 4.5:1.
+$pkg-primary-text: #2471a3;
+$pkg-muted-text: #5a6268;
 $pkg-success: #27ae60;
 $pkg-warning: #f39c12;
 $pkg-danger: #e74c3c;
@@ -393,15 +397,15 @@ $pkg-border: #e1e4e5;
     margin-bottom: -2px;
     cursor: pointer;
     font-weight: 500;
-    color: #6c757d;
+    color: $pkg-muted-text;
     transition: all 0.2s ease;
 
     &:hover {
-      color: $pkg-primary;
+      color: $pkg-primary-text;
     }
 
     &--active {
-      color: $pkg-primary;
+      color: $pkg-primary-text;
       border-bottom-color: $pkg-primary;
     }
   }
