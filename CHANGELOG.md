@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed
