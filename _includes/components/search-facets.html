@@ -18,24 +18,24 @@ Parameters:
 
 <div class="search-facets" data-search-facets>
   <div class="search-facets__header">
-    <h2 class="search-facets__title">Filter & Search</h2>
+    <h2 class="search-facets__title">{% t 'search_facets.title' %}</h2>
     <button type="button"
             class="search-facets__reset"
             data-reset-filters
-            aria-label="Reset all filters">
-      Reset
+            aria-label="{% t 'search_facets.reset' %}">
+      {% t 'search_facets.reset_button' %}
     </button>
   </div>
 
   {%- comment -%} Search input {%- endcomment -%}
   <div class="search-facets__search">
-    <label for="search-input" class="visually-hidden">Search posts</label>
+    <label for="search-input" class="visually-hidden">{% t 'search_facets.query_label' %}</label>
     <input type="search"
            id="search-input"
            class="search-facets__input"
-           placeholder="Search posts..."
+           placeholder="{% t 'search_facets.query_placeholder' %}"
            data-search-input
-           aria-label="Search posts">
+           aria-label="{% t 'search_facets.query_label' %}">
     <svg class="search-facets__search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8"></circle>
       <path d="m21 21-4.35-4.35"></path>
@@ -62,7 +62,7 @@ Parameters:
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
               <line x1="7" y1="7" x2="7.01" y2="7"></line>
             </svg>
-            Tags
+            {% t 'search_facets.tags' %}
           </summary>
           <div class="search-facets__options">
             {%- for tag in unique_tags limit: 20 -%}
@@ -70,7 +70,7 @@ Parameters:
                 <input type="checkbox"
                        value="{{ tag | slugify }}"
                        data-filter="tag"
-                       aria-label="Filter by {{ tag }}">
+                       aria-label="{% t 'search_facets.filter_by' name: tag %}">
                 <span>{{ tag }}</span>
               </label>
             {%- endfor -%}
@@ -95,7 +95,7 @@ Parameters:
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
             </svg>
-            Categories
+            {% t 'search_facets.categories' %}
           </summary>
           <div class="search-facets__options">
             {%- for category in unique_categories -%}
@@ -103,7 +103,7 @@ Parameters:
                 <input type="checkbox"
                        value="{{ category | slugify }}"
                        data-filter="category"
-                       aria-label="Filter by {{ category }}">
+                       aria-label="{% t 'search_facets.filter_by' name: category %}">
                 <span>{{ category }}</span>
               </label>
             {%- endfor -%}
@@ -118,24 +118,24 @@ Parameters:
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
           </svg>
-          Difficulty
+          {% t 'search_facets.difficulty_title' %}
         </summary>
         <div class="search-facets__options">
           <label class="search-facets__checkbox">
-            <input type="checkbox" value="beginner" data-filter="difficulty" aria-label="Filter by beginner">
-            <span>Beginner</span>
+            <input type="checkbox" value="beginner" data-filter="difficulty" aria-label="{% t 'search_facets.filter_by' name: 'beginner' %}">
+            <span>{% t 'search_facets.beginner' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="checkbox" value="intermediate" data-filter="difficulty" aria-label="Filter by intermediate">
-            <span>Intermediate</span>
+            <input type="checkbox" value="intermediate" data-filter="difficulty" aria-label="{% t 'search_facets.filter_by' name: 'intermediate' %}">
+            <span>{% t 'search_facets.intermediate' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="checkbox" value="advanced" data-filter="difficulty" aria-label="Filter by advanced">
-            <span>Advanced</span>
+            <input type="checkbox" value="advanced" data-filter="difficulty" aria-label="{% t 'search_facets.filter_by' name: 'advanced' %}">
+            <span>{% t 'search_facets.advanced' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="checkbox" value="expert" data-filter="difficulty" aria-label="Filter by expert">
-            <span>Expert</span>
+            <input type="checkbox" value="expert" data-filter="difficulty" aria-label="{% t 'search_facets.filter_by' name: 'expert' %}">
+            <span>{% t 'search_facets.expert' %}</span>
           </label>
         </div>
       </details>
@@ -150,24 +150,24 @@ Parameters:
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
-          Date Range
+          {% t 'search_facets.date_range' %}
         </summary>
         <div class="search-facets__options">
           <label class="search-facets__checkbox">
-            <input type="radio" name="date-range" value="week" data-filter="date" aria-label="Past week">
-            <span>Past week</span>
+            <input type="radio" name="date-range" value="week" data-filter="date" aria-label="{% t 'search_facets.past_week' %}">
+            <span>{% t 'search_facets.past_week' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="radio" name="date-range" value="month" data-filter="date" aria-label="Past month">
-            <span>Past month</span>
+            <input type="radio" name="date-range" value="month" data-filter="date" aria-label="{% t 'search_facets.past_month' %}">
+            <span>{% t 'search_facets.past_month' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="radio" name="date-range" value="year" data-filter="date" aria-label="Past year">
-            <span>Past year</span>
+            <input type="radio" name="date-range" value="year" data-filter="date" aria-label="{% t 'search_facets.past_year' %}">
+            <span>{% t 'search_facets.past_year' %}</span>
           </label>
           <label class="search-facets__checkbox">
-            <input type="radio" name="date-range" value="all" data-filter="date" checked aria-label="All time">
-            <span>All time</span>
+            <input type="radio" name="date-range" value="all" data-filter="date" checked aria-label="{% t 'search_facets.all_time' %}">
+            <span>{% t 'search_facets.all_time' %}</span>
           </label>
         </div>
       </details>
@@ -176,7 +176,7 @@ Parameters:
 
   {%- comment -%} Results count {%- endcomment -%}
   <div class="search-facets__results" data-results-count aria-live="polite">
-    <span class="search-facets__count">{{ site.posts.size }}</span> posts found
+    <span class="search-facets__count">{{ site.posts.size }}</span> {% t 'search_facets.results' %}
   </div>
 </div>
 

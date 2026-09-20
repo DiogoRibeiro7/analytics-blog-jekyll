@@ -150,7 +150,6 @@ defaults:
     values:
       layout: post
       toc: true
-      toc_label: On this page
       author: Diogo Ribeiro
   - scope:
       path: ""
