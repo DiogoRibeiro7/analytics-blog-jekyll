@@ -103,6 +103,17 @@ class ReferencesTest < Minitest::Test
     end
   end
 
+  def test_literal_and_variable_attributes_remain_distinct
+    context = Liquid::Context.new("page" => { "figure_id" => "fig-variable", "title" => "From page" })
+    attributes = Datalog::References.attributes(<<~LIQUID, context)
+      id="fig-literal" title='Literal title' ref=page.figure_id
+      caption=page.title alt="" label=''
+    LIQUID
+
+    assert_equal({ "id" => "fig-literal", "title" => "Literal title", "ref" => "fig-variable",
+                   "caption" => "From page", "alt" => "", "label" => "" }, attributes)
+  end
+
   def test_a_reference_to_nothing_stops_the_build
     error = assert_raises(Jekyll::Errors::FatalException) { build("{% ref fig-missing %}\n\n#{figure('fig-a')}") }
     assert_includes error.message, "refers to \"fig-missing\", which no numbered figure, table or statement"

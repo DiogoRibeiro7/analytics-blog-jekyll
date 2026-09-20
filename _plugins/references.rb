@@ -160,7 +160,9 @@ module Datalog
           raise Liquid::ArgumentError,
                 "#{page['path'] || page['url']} {% #{tag} %} has invalid attributes near #{scanner.rest.inspect}"
         end
-        key, double, single, variable = scanner.captures
+        # Ruby 3.2's StringScanner#captures returns "" for unmatched groups.
+        # values_at preserves nil so quoted literals stay distinct from variables.
+        key, double, single, variable = scanner.values_at(1, 2, 3, 4)
         result[key] = variable ? context[variable].to_s : (double || single).gsub(/\\([\\"'])/, '\\1')
       end
       result
