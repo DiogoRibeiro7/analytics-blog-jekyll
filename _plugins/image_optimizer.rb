@@ -422,11 +422,17 @@ module Jekyll
 
     def original_variant(src, width, height)
       {
-        "url" => src,
+        "url" => encode_image_path(src),
         "width" => width,
         "height" => height,
         "format" => normalize_format(File.extname(src))
       }
+    end
+
+    # These are filesystem paths, not already escaped URLs. Encode them once
+    # when creating the manifest so both Markdown and the include use valid srcsets.
+    def encode_image_path(path)
+      path.split("/", -1).map { |part| URI.encode_www_form_component(part).gsub("+", "%20") }.join("/")
     end
 
     # Variant URLs are site paths. A site served below a baseurl needs it in
@@ -477,7 +483,7 @@ class Jekyll::ResponsiveImageStaticFile < Jekyll::StaticFile
   def initialize(site, relative_dir, name, cached_path)
     @cached_path = cached_path
     super(site, site.source, "/#{relative_dir}", name)
-    @url = "/#{relative_dir}/#{name}"
+    @url = Jekyll::ImageOptimizer.encode_image_path("/#{relative_dir}/#{name}")
   end
 
   def path

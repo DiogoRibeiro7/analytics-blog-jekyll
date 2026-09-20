@@ -74,6 +74,7 @@ export function initSubscriptionManage(root, deps = {}) {
   root.appendChild(retry);
 
   const setState = (state, message = "", alert = false) => {
+    if (state !== "error") retryAction = null;
     root.dataset.state = state;
     retry.hidden = state !== "error" || !retryAction;
     if (status) {
@@ -183,6 +184,7 @@ export function initSubscriptionManage(root, deps = {}) {
         setState("saved", labels.saved || "");
         return answer;
       } catch (error) {
+        retryAction = error?.retryable ? () => controller.save() : null;
         setState("error", describeError(error, errorLabels), true);
         return null;
       } finally {

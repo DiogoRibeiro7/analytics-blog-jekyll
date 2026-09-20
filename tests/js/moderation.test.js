@@ -177,6 +177,57 @@ describe('the inbox', () => {
     mount();
   });
 
+  it.each([false, true])('refreshes a stale response after approval, preserving pagination (append=%s)', async (append) => {
+    let finishRead;
+    const client = fakeClient({ get: vi.fn().mockResolvedValueOnce({ data: { items: [COMMENT], next_cursor: 'page2' } }) });
+    const controller = initModerationInbox(root, { client });
+    await flush();
+    client.get.mockImplementationOnce(() => new Promise((resolve) => { finishRead = resolve; }));
+    client.get.mockResolvedValueOnce({ data: { items: [REPORT] } });
+    const refresh = controller.load(append);
+    await flush();
+    await controller.act(normalizeItem(COMMENT), 'approve');
+    expect(ids()).toEqual([]);
+
+    // Editing an unapplied filter must not change the read being retried.
+    root.querySelector('[name=status]').value = 'spam';
+    finishRead({ data: { items: [COMMENT] } });
+    await refresh;
+    expect(ids()).toEqual(['r_17']);
+    expect(client.get).toHaveBeenLastCalledWith(append ? '/moderation/items?cursor=page2' : '/moderation/items');
+    expect(root.getAttribute('aria-busy')).toBe('false');
+    expect(root.querySelector('[data-moderation-more]').hidden).toBe(true);
+  });
+
+  it('updates the replacement row when a refresh completes before approval', async () => {
+    let finishPost;
+    const client = fakeClient({ post: vi.fn().mockImplementationOnce(() => new Promise((resolve) => { finishPost = resolve; })) });
+    const controller = initModerationInbox(root, { client });
+    await flush();
+    const action = controller.act(normalizeItem(COMMENT), 'approve');
+    await flush();
+    await controller.load();
+    finishPost({ data: { item: { ...COMMENT, status: 'approved' } } });
+    await action;
+    expect(ids()).toEqual(['r_17']);
+  });
+
+  it('does not let a stale read failure erase a completed moderation action', async () => {
+    let failRead;
+    const client = fakeClient();
+    const controller = initModerationInbox(root, { client });
+    await flush();
+    client.get.mockImplementationOnce(() => new Promise((_resolve, reject) => { failRead = reject; }));
+    client.get.mockResolvedValueOnce({ data: { items: [REPORT] } });
+    const refresh = controller.load();
+    await flush();
+    await controller.act(normalizeItem(COMMENT), 'approve');
+    failRead(new ServiceError('server', 'Old read failed'));
+    await refresh;
+    expect(ids()).toEqual(['r_17']);
+    expect(root.dataset.state).toBe('loaded');
+  });
+
   it('loads the queue, drops what it does not know, and reloads under the filters', async () => {
     const client = fakeClient();
     initModerationInbox(root, { client });

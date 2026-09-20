@@ -311,6 +311,7 @@ export function initModerationInbox(root, deps = {}) {
   let loading = false;
   let sequence = 0;
   let activeFilters = {};
+  let revision = 0;
 
   const setState = (state, message = "", alert = false) => {
     root.dataset.state = state;
@@ -371,12 +372,12 @@ export function initModerationInbox(root, deps = {}) {
     client,
 
     /** Loads the queue under the current filters; `append` continues from the cursor. */
-    async load(append = false) {
+    async load(append = false, requestedFilters = append ? activeFilters : filters()) {
       if (loading && append) {
         return null;
       }
       const request = ++sequence;
-      const requestedFilters = append ? activeFilters : filters();
+      const readRevision = revision;
       loading = true;
       if (!append) {
         cursor = "";
@@ -386,6 +387,12 @@ export function initModerationInbox(root, deps = {}) {
         await client.feature(FEATURE);
         const answer = await client.get(`${client.pathFor(FEATURE)}/items${buildQuery(requestedFilters, append ? cursor : "")}`);
         if (request !== sequence) return null;
+        // An action completed after this read began. Fetch the same page again
+        // so its filters and cursor remain valid without restoring stale items.
+        if (readRevision !== revision) {
+          loading = false;
+          return controller.load(append, requestedFilters);
+        }
         activeFilters = requestedFilters;
         const data = answer && answer.data && typeof answer.data === "object" ? answer.data : {};
         const items = (Array.isArray(data.items) ? data.items : []).map(normalizeItem).filter(Boolean);
@@ -402,6 +409,10 @@ export function initModerationInbox(root, deps = {}) {
         return items;
       } catch (error) {
         if (request !== sequence) return null;
+        if (readRevision !== revision) {
+          loading = false;
+          return controller.load(append, requestedFilters);
+        }
         refuse(error);
         return null;
       } finally {
@@ -441,16 +452,19 @@ export function initModerationInbox(root, deps = {}) {
           idempotencyKey: submission.key(payload, item.id)
         });
         submission.clear(item.id);
+        revision += 1;
         const returned = normalizeItem(answer && answer.data && answer.data.item);
         const updated = returned || { ...item, status: RESULT[action] || item.status };
-        if (!list.contains(element)) return updated;
+        // A refresh can replace the node while the action is in flight.
+        const current = Array.from(list.children).find((child) => child.dataset.itemId === item.id);
+        if (!current) return updated;
         const done = (labels.done || "{{action}}").split("{{action}}").join((labels.actions || {})[action] || action);
         if (matchesFilter(updated)) {
           const fresh = renderItem(doc, updated, { labels, lang, siteUrl, onAction: controller.act });
-          list.replaceChild(fresh, element);
+          list.replaceChild(fresh, current);
           itemMessage(fresh, done);
         } else {
-          element.remove();
+          current.remove();
           setState(list.children.length > 0 ? "loaded" : "empty", list.children.length > 0 ? done : `${done} ${labels.empty || ""}`.trim());
         }
         return updated;

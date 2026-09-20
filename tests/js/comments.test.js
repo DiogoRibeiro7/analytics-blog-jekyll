@@ -342,6 +342,48 @@ describe('the thread', () => {
 });
 
 describe('patch comment regressions', () => {
+  it('keeps a posted reply when an older initial read arrives, then accepts server confirmation', async () => {
+    const root = mount();
+    let finishRead;
+    const posted = { id: 'c9', parent_id: 'c1', author: { name: 'Dana' }, body: 'New reply.' };
+    const client = fakeClient({
+      get: vi.fn().mockImplementationOnce(() => new Promise((resolve) => { finishRead = resolve; })),
+      post: vi.fn().mockResolvedValue({ data: { comment: posted, status: 'pending' } }),
+    });
+    const controller = initCommentsThread(root, { client, immediate: true });
+    await flush();
+    fill(controller.form, { name: 'Dana', body: 'New reply.', parent_id: 'c1' });
+    await controller.submit();
+    expect(root.querySelector('#comment-c9')).not.toBeNull();
+
+    finishRead({ data: { comments: COMMENTS } });
+    await flush();
+    expect(root.querySelector('#comment-c1 > ol > #comment-c9 .comment__pending')).not.toBeNull();
+    expect(root.dataset.state).toBe('loaded');
+
+    client.get.mockResolvedValueOnce({ data: { comments: [...COMMENTS, { ...posted, status: 'published' }] } });
+    await controller.load();
+    expect(root.querySelectorAll('#comment-c9')).toHaveLength(1);
+    expect(root.querySelector('#comment-c9 .comment__pending')).toBeNull();
+  });
+
+  it('does not duplicate a post whose GET response arrives before its POST response', async () => {
+    const root = mount();
+    let finishPost;
+    const posted = { id: 'c9', parent_id: null, author: { name: 'Dana' }, body: 'New comment.' };
+    const client = fakeClient({ post: vi.fn().mockImplementation(() => new Promise((resolve) => { finishPost = resolve; })) });
+    const controller = initCommentsThread(root, { client, immediate: true });
+    await flush();
+    fill(controller.form, { name: 'Dana', body: 'New comment.' });
+    const submission = controller.submit();
+    await flush();
+    client.get.mockResolvedValueOnce({ data: { comments: [...COMMENTS, posted] } });
+    await controller.load();
+    finishPost({ data: { comment: posted, status: 'published' } });
+    await submission;
+    expect(root.querySelectorAll('#comment-c9')).toHaveLength(1);
+  });
+
   it('reuses a failed comment submission key and rotates it after a successful post', async () => {
     const root = mount();
     const client = fakeClient();

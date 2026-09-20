@@ -146,6 +146,61 @@ class MathPreprocessorTest < Minitest::Test
     assert_equal source, MathPreprocessor::Processor.new(source).process
   end
 
+  def test_indented_shell_code_stays_literal_while_following_math_is_rendered
+    ["    ", "\t"].each do |indent|
+      source = "Code example:\n\n#{indent}echo \"$HOME:$PATH\"\n\nThen $x^2$.\n"
+      processor = MathPreprocessor::Processor.new(source)
+      html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(processor.process)
+      document = Nokogiri::HTML.fragment(html)
+
+      assert_equal code_text(source), document.at_css("code").text
+      assert_equal ["x^2"], latex_of(processor)
+      assert_equal 1, document.css(".math-expression-inline").size
+    end
+  end
+
+  def test_indentation_in_paragraphs_and_lists_does_not_hide_math
+    source = <<~TEXT
+      A continued paragraph
+          with $x^2$.
+
+      - List item
+
+          Prose $y^2$.
+
+              echo "$HOME:$PATH"
+    TEXT
+    processor = MathPreprocessor::Processor.new(source)
+    html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(processor.process)
+    document = Nokogiri::HTML.fragment(html)
+
+    assert_equal %w[x^2 y^2], latex_of(processor)
+    assert_equal code_text(source), document.at_css("li code").text
+    assert_equal 2, document.css(".math-expression-inline").size
+  end
+
+  def test_longer_closing_fences_do_not_mask_following_math
+    ["`", "~"].each do |marker|
+      source = "#{marker * 4}bash\necho \"$HOME:$PATH\"\n#{marker * 5}\n\nThen $x^2$.\n"
+      processor = MathPreprocessor::Processor.new(source)
+      html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(processor.process)
+      document = Nokogiri::HTML.fragment(html)
+
+      assert_equal code_text(source), document.at_css("code").text
+      assert_equal ["x^2"], latex_of(processor)
+      assert_equal 1, document.css("p > .math-expression-inline").size
+    end
+  end
+
+  def test_shorter_and_different_fences_do_not_close_a_code_block
+    source = "````text\n```\n~~~~\n$x^2$\n`````\n\nThen $y^2$.\n"
+    processor = MathPreprocessor::Processor.new(source)
+    result = processor.process
+
+    assert_includes result, "```\n~~~~\n$x^2$\n`````"
+    assert_equal ["y^2"], latex_of(processor)
+  end
+
   def test_dollar_signs_in_highlight_blocks_stay_literal
     source = "{% highlight r %}\ndf$col + df$other\n{% endhighlight %}"
     assert_equal source, MathPreprocessor::Processor.new(source).process
@@ -196,6 +251,11 @@ class MathPreprocessorTest < Minitest::Test
   end
 
   private
+
+  def code_text(source)
+    html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(source)
+    Nokogiri::HTML.fragment(html).at_css("code").text
+  end
 
   def page_with(content, data)
     Struct.new(:content, :data, :output_ext).new(content, data, ".html")
