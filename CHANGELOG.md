@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Name a scaffolded post after its title, accents and all: `datalog new post` now slugifies the way Jekyll does, so "Análise de Séries Temporais" becomes `analise-de-series-temporais` rather than `an-lise-de-s-ries-temporais`, a title in a script no transliteration covers keeps its own characters, and a title the console tagged as something other than UTF-8 no longer raises (#333).
+- Stop `datalog update` where `npm install` fails, instead of reporting that the theme's dependencies are up to date (#333).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed

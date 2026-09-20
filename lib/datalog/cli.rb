@@ -9,6 +9,7 @@ require "tmpdir"
 require "yaml"
 require "thor"
 
+require_relative "slug"
 require_relative "theme/version"
 
 module Datalog
@@ -116,19 +117,17 @@ module Datalog
       gemfile = gemfile_path(root)
 
       if File.exist?(gemfile)
-        say_status :bundle, "bundle update datalog-theme", :blue
-        unless system({ "BUNDLE_GEMFILE" => gemfile }, "bundle update datalog-theme", chdir: root)
-          say_error "Bundler could not update datalog-theme."
-          exit 1
-        end
+        run_or_exit(:bundle, "bundle update datalog-theme", root, "Bundler could not update datalog-theme.",
+                    { "BUNDLE_GEMFILE" => gemfile })
       else
         say_status :skip, "No Gemfile detected—skipping Bundler update", :yellow
       end
 
       package_json = File.join(root, "package.json")
       if File.exist?(package_json) && command_available?("npm")
-        say_status :npm, "npm install", :blue
-        system("npm install", chdir: root)
+        # npm's exit status used to be dropped, so a failed install still ended
+        # with "Theme dependencies are up to date!".
+        run_or_exit(:npm, "npm install", root, "npm could not install the site's packages.")
       elsif File.exist?(package_json)
         say_status :warn, "Node.js tooling not available—skipping npm install", :yellow
       end
@@ -157,7 +156,7 @@ module Datalog
         end
 
         def slugify(text)
-          text.downcase.strip.gsub(/[^a-z0-9]+/, "-").gsub(/^-|-$/, "")
+          Datalog::Slug.of(text)
         end
 
         def ask_with_default(prompt, default)
@@ -433,6 +432,16 @@ module Datalog
     register(New, "new", "new COMMAND", "Scaffold posts, notebooks, and portfolio projects")
 
     private
+
+    # Announces one dependency command, runs it, and stops the update where it
+    # fails rather than carrying on to report success.
+    def run_or_exit(label, command, root, message, env = {})
+      say_status label, command, :blue
+      return if system(env, command, chdir: root)
+
+      say_error message
+      exit 1
+    end
 
     def site_root
       File.expand_path(options[:root])
