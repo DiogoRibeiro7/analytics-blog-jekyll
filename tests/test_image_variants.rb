@@ -70,6 +70,32 @@ class ImageVariantsTest < Minitest::Test
     assert Nokogiri::HTML5(read("index.html")).at_css("picture source"), "The rebuilt page should keep its sources"
   end
 
+  def test_image_paths_with_spaces_are_encoded_once_in_the_manifest_and_markup
+    site = build(encoders: fake_encoders, filename: "my plot.png", image_url: "/blog/assets/img/my%20plot.png")
+    picture = Nokogiri::HTML5(read("index.html")).at_css("picture")
+    urls = picture.css("source, img").flat_map { |node| srcset_urls(node) }
+
+    assert_includes urls, "/blog/assets/img/responsive/my%20plot.png-320w.webp"
+    assert_includes urls, "/blog/assets/img/my%20plot.png"
+    urls.each do |url|
+      refute_match(/\s|%2520/, url)
+      path = URI::DEFAULT_PARSER.unescape(url.delete_prefix("/blog"))
+      assert File.exist?(File.join(@dir, "_site", path)), "#{url} must point to a written image"
+    end
+    manifest = JSON.parse(read("assets/img/responsive/manifest.json"))
+    entry = manifest.fetch("/assets/img/my plot.png")
+    assert_equal "/assets/img/my%20plot.png", entry.dig("fallback", "variants").last["url"]
+
+    source = File.read(File.join(SiteBuilder.root, "_includes/components/responsive-image.html"))
+    template = Liquid::Template.parse(source)
+    rendered = template.render!({ "site" => site.site_payload["site"],
+                                  "include" => { "src" => "/assets/img/my plot.png", "alt" => "A plot" } },
+                                registers: { site: site })
+    included = Nokogiri::HTML5.fragment(rendered)
+    included_urls = included.css("source, img").flat_map { |node| srcset_urls(node) }
+    assert_equal urls, included_urls
+  end
+
   # An image offered a variant that was never written would break: a browser
   # does not fall back from a <source> whose file is missing.
   def test_an_encoder_that_fails_leaves_the_image_as_it_was
@@ -187,14 +213,14 @@ class ImageVariantsTest < Minitest::Test
 
   # A site at /blog whose Markdown shows /assets/img/plot.png, once in a layout
   # and once without one.
-  def build(encoders: nil, config: {})
+  def build(encoders: nil, config: {}, filename: "plot.png", image_url: "/blog/assets/img/plot.png")
     FileUtils.mkdir_p(File.join(@dir, "assets/img"))
     FileUtils.mkdir_p(File.join(@dir, "_layouts"))
-    FileUtils.cp(PLOT, File.join(@dir, "assets/img/plot.png"))
+    FileUtils.cp(PLOT, File.join(@dir, "assets/img", filename))
     File.write(File.join(@dir, "_layouts/default.html"),
                "<!DOCTYPE html><html><body><main class=\"post-content\">{{ content }}</main></body></html>")
-    File.write(File.join(@dir, "index.md"), "---\nlayout: default\n---\n\n![A plot](/blog/assets/img/plot.png)\n")
-    File.write(File.join(@dir, "bare.md"), "---\nlayout: null\n---\n\n![A plot](/blog/assets/img/plot.png)\n")
+    File.write(File.join(@dir, "index.md"), "---\nlayout: default\n---\n\n![A plot](#{image_url})\n")
+    File.write(File.join(@dir, "bare.md"), "---\nlayout: null\n---\n\n![A plot](#{image_url})\n")
 
     site_config = Jekyll.configuration(
       "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "baseurl" => "/blog",
@@ -202,6 +228,7 @@ class ImageVariantsTest < Minitest::Test
     ).merge(config)
     site = Jekyll::Site.new(site_config)
     encoders ? replacing(:tools, -> { encoders }) { site.process } : site.process
+    site
   end
 
   # Writes the last argument, as ImageMagick and avifenc write their output.
