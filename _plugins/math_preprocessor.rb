@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cgi"
+require "kramdown"
+require "kramdown-parser-gfm"
 
 module MathPreprocessor
   DISPLAY_PATTERNS = [
@@ -46,7 +48,7 @@ module MathPreprocessor
   # so fenced blocks, highlight tags, <pre>/<code> elements and inline code
   # spans are set aside before looking for math and put back afterwards.
   CODE_PATTERNS = [
-    /^([ \t]*)(`{3,}|~{3,})[^\n]*\n.*?(?:^\1\2[ \t]*$|\z)/m,
+    /^[ \t]*(?<fence>(?<marker>`|~)\k<marker>{2,})[^\n]*\n.*?(?:^[ \t]*\k<fence>\k<marker>*[ \t]*$|\z)/m,
     /\{%-?\s*highlight\b.*?\{%-?\s*endhighlight\s*-?%\}/m,
     %r{<(pre|code)\b[^>]*>.*?</\1>}mi,
     /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n).)+?(?<!`)\1(?!`)/m
@@ -55,6 +57,31 @@ module MathPreprocessor
   # NUL marks masked code, since page content never contains it. It is written as
   # an escape: a raw NUL byte in the source stopped RuboCop from parsing the file.
   PLACEHOLDER = /\x00(\d+)\x00/
+
+  # Indentation alone does not identify code: list continuations and continued
+  # paragraphs can have the same indentation. Let the Markdown parser identify
+  # the code blocks, retaining their original source lines for masking.
+  class IndentedCodeParser < Kramdown::Parser::GFM
+    attr_reader :code_ranges
+
+    def initialize(source, options)
+      super
+      @code_ranges = []
+    end
+
+    def parse_codeblock
+      first = @src.current_line_number - 1
+      super.tap do |parsed|
+        @code_ranges << (first...(@src.current_line_number - 1)) if parsed
+      end
+    end
+
+    def self.ranges(source)
+      parser = new(source, {})
+      parser.parse
+      parser.code_ranges
+    end
+  end
 
   class Processor
     attr_reader :expressions
@@ -68,7 +95,7 @@ module MathPreprocessor
       return @content unless @content&.match?(/\$|\\\(|\\\[|\\begin\{/)
 
       @segments = []
-      processed = CODE_PATTERNS.reduce(@content.dup) do |text, pattern|
+      processed = CODE_PATTERNS.reduce(mask_indented_code(@content)) do |text, pattern|
         text.gsub(pattern) { |match| mask(match) }
       end
       processed = normalize_inline_dollars(processed)
@@ -84,6 +111,19 @@ module MathPreprocessor
     def mask(segment)
       @segments << segment
       "\x00#{@segments.size - 1}\x00"
+    end
+
+    def mask_indented_code(text)
+      return text unless text.match?(/^(?: {4}|\t)/)
+
+      lines = text.lines
+      IndentedCodeParser.ranges(text).reverse_each do |range|
+        block = lines[range].join
+        # Keep the final line boundary visible to subsequent block patterns.
+        ending = block.end_with?("\n") ? "\n" : ""
+        lines[range] = [mask(block.delete_suffix(ending)) + ending]
+      end
+      lines.join
     end
 
     # Kramdown accepts $$...$$ inside prose as inline math. A div there is

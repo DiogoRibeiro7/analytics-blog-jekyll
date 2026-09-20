@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Keep newly posted comments visible when an older thread read finishes, and refresh moderation reads that overlap completed actions without losing their filters or pagination.
+- Retry subscription preference saves with the edited topics, clearing retry handlers left by earlier loading failures.
+- Preserve indented code blocks during math preprocessing, distinguish them from indented prose, and accept longer closing code fences so following math is still detected.
+- Percent-encode generated image paths once in the responsive manifest so filenames containing spaces produce valid image candidates in Markdown and responsive-image includes.
+
 ## [0.9.1] - 2026-09-20
 
 Planned patch release: **0.9.1**. This release contains bug fixes only.

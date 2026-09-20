@@ -248,6 +248,7 @@ export function initCommentsThread(root, deps = {}) {
   let availability = null;
   let loading = false;
   let loaded = false;
+  const submitted = new Map();
 
   const setState = (state, message = "", options = {}) => {
     root.dataset.state = state;
@@ -310,6 +311,13 @@ export function initCommentsThread(root, deps = {}) {
 
   /** Puts a new comment where it belongs: under its parent, or at the end. */
   const place = (item, parentId) => {
+    const existing = item.id ? doc.getElementById(item.id) : null;
+    if (existing && list.contains(existing)) {
+      const replies = existing.querySelector(":scope > .comments-thread__replies");
+      if (replies) item.appendChild(replies);
+      existing.replaceWith(item);
+      return;
+    }
     const parent =
       replies && parentId !== null && parentId !== undefined ? list.querySelector(`#comment-${CSS.escape(String(parentId))}`) : null;
     (parent ? repliesList(doc, parent) : list).appendChild(item);
@@ -335,7 +343,13 @@ export function initCommentsThread(root, deps = {}) {
       try {
         await ensureAvailable();
         const answer = await client.get(`${client.pathFor(FEATURE)}?path=${encodeURIComponent(path)}`);
-        const comments = answer && answer.data && Array.isArray(answer.data.comments) ? answer.data.comments : [];
+        const comments = answer && answer.data && Array.isArray(answer.data.comments) ? [...answer.data.comments] : [];
+        // Keep successful submissions until a read includes them. An older GET
+        // may finish after the POST, including on the thread's first load.
+        comments.forEach((comment) => {
+          if (comment?.id != null) submitted.delete(String(comment.id));
+        });
+        comments.push(...submitted.values());
         list.textContent = "";
         const nodes = threadOf(comments, replies);
         fill(doc, list, nodes, renderOptions);
@@ -381,7 +395,9 @@ export function initCommentsThread(root, deps = {}) {
         const posted = data.comment && typeof data.comment === "object" ? data.comment : null;
         const pending = data.status === "pending" || (posted !== null && posted.status === "pending");
         if (posted) {
-          place(renderComment(doc, pending ? { ...posted, status: "pending" } : posted, renderOptions), posted.parent_id);
+          const visible = pending ? { ...posted, status: "pending" } : posted;
+          if (visible.id != null) submitted.set(String(visible.id), visible);
+          place(renderComment(doc, visible, renderOptions), posted.parent_id);
         }
         submission.clear();
         form.reset();

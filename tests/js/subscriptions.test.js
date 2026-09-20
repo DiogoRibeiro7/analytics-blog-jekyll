@@ -444,6 +444,35 @@ describe('the manage page', () => {
     expect(root.dataset.state).toBe('unsubscribed');
   });
 
+  it('retries saving edited topics after recovering from an earlier load failure', async () => {
+    const client = fakeClient();
+    client.get.mockRejectedValueOnce(new ServiceError('network', 'Load failed'));
+    const { controller } = open('?manage=tok_manage_1234', client);
+    await flush();
+    const retry = root.querySelector('[data-manage-retry]');
+    retry.click();
+    await flush();
+    const preferences = root.querySelector('[data-manage-preferences]');
+    preferences.querySelectorAll('[name=topics]').forEach((box) => { box.checked = box.value === 'research-notes'; });
+    client.patch.mockRejectedValueOnce(new ServiceError('network', 'Save failed'));
+    await controller.save();
+    expect(retry.hidden).toBe(false);
+    expect(preferences.hidden).toBe(false);
+    retry.click();
+    await flush();
+
+    expect(client.patch).toHaveBeenCalledTimes(2);
+    expect(client.patch).toHaveBeenLastCalledWith('/subscriptions/tok_manage_1234', { topics: ['research-notes'] });
+    expect(client.get).toHaveBeenCalledTimes(2);
+    expect(preferences.querySelector('[value="research-notes"]').checked).toBe(true);
+    expect(root.dataset.state).toBe('saved');
+    expect(retry.hidden).toBe(true);
+
+    client.patch.mockRejectedValueOnce(new ServiceError('invalid', 'Bad input'));
+    await controller.save();
+    expect(retry.hidden).toBe(true);
+  });
+
   it('wires every manage block on the page', () => {
     document.body.innerHTML = MANAGE;
     window.DatalogDynamicServices = { base_url: 'https://api.example.test', features: { subscriptions: true } };
