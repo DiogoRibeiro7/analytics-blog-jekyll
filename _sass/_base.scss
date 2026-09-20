@@ -47,6 +47,11 @@ iframe {
   max-width: 100%;
 }
 
+img,
+video {
+  height: auto;
+}
+
 a {
   color: $color-accent-primary;
   text-decoration-thickness: 0.12em;

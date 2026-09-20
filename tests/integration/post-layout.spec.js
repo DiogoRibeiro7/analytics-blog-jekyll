@@ -32,4 +32,42 @@ test.describe('Post layout', () => {
     expect(Math.round(contents.width)).toBe(224);
     expect(content.x).toBeGreaterThan(contents.x + contents.width);
   });
+
+  test('narrow articles contain wide content and preserve image proportions', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(new URL('/test-regressions/rendering/', baseUrl).href);
+    await expect(page.locator('.math-expression-inline mjx-container').first()).toBeVisible();
+    await expect(page.locator('.math-expression mjx-container').first()).toBeVisible();
+    const measurements = await page.evaluate(() => {
+      const article = document.querySelector('.post-content');
+      const img = article.querySelector('img');
+      const box = img.getBoundingClientRect();
+      const table = article.querySelector('.content-table');
+      return {
+        width: document.documentElement.scrollWidth,
+        viewport: window.innerWidth,
+        ratio: box.width / box.height,
+        naturalRatio: img.naturalWidth / img.naturalHeight,
+        tableOverflow: table.scrollWidth > table.clientWidth,
+        tableTabindex: table.tabIndex,
+        gutter: parseFloat(getComputedStyle(article.querySelector('.rouge-gutter')).paddingRight),
+        stickyNotes: [...document.querySelectorAll('.content-provenance, .revision-notice, .author-bio')]
+          .filter((node) => getComputedStyle(node).position === 'sticky').length,
+      };
+    });
+    expect(measurements.width).toBeLessThanOrEqual(measurements.viewport);
+    expect(measurements.ratio).toBeCloseTo(measurements.naturalRatio, 2);
+    expect(measurements.tableOverflow).toBe(true);
+    expect(measurements.tableTabindex).toBe(0);
+    expect(measurements.gutter).toBeGreaterThan(0);
+    expect(measurements.stickyNotes).toBe(0);
+  });
+
+  test('print retains visualization tables and live content without code gutters', async ({ page }) => {
+    await page.goto(new URL('/test-regressions/rendering/', baseUrl).href);
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('.viz-table-wrapper table')).toBeVisible();
+    await expect(page.locator('.project-case__github-stats')).toBeVisible();
+    await expect(page.locator('.rouge-gutter').first()).toBeHidden();
+  });
 });

@@ -93,7 +93,7 @@ Sample sizes simulated, with the runs for each.
 Beyond $n = 50$, {% ref fig-power %} flattens.
 ```
 
-- `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. An `alt` that contains a double quote goes in single quotes: `alt='The "null" model'`.
+- `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. Attributes accept either quote style, with `\"`, `\'` and `\\` for literal quotes and backslashes: `alt="The \"null\" model"`. Malformed attributes stop the build and identify the page and tag. Tables, statements and proofs use the same syntax.
 - `{% table %}` needs `id`. Its body is the caption, then one Markdown table; the caption goes into the table's `<caption>`.
 - `{% ref id %}` becomes a link reading "Figure 2" or "Table 1". It may come before its target. In a post's excerpt, on listings and in feeds, it links to the figure on the post's page.
 - A reference to an id no figure or table on the page has, or two figures or tables with the same id, stops the build and names the page.

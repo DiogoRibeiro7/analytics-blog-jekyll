@@ -76,16 +76,27 @@ module Datalog
     # The page's own value, else the site's; `false` declines the site's.
     def setting(page, page_key, site, site_key)
       value = Authors.value(page, page_key)
-      return value unless value.nil?
-      return if OWN_LICENSE.include?(Authors.value(page, "collection").to_s)
+      own_only = OWN_LICENSE.include?(Authors.value(page, "collection").to_s)
+      fallback = Authors.value(site, site_key) unless own_only
+      return fallback if value.nil? || value == true
 
-      Authors.value(site, site_key)
+      if value.is_a?(Hash) && !Authors.present(value).keys.intersect?(%w[id name url])
+        defaults = fallback.is_a?(Hash) ? Authors.present(fallback) : { "name" => fallback }
+        return defaults.merge(Authors.present(value))
+      end
+
+      value
     end
 
     def resolve(value, page, site)
       return if value.nil? || value == false || (value.is_a?(String) && value.strip.empty?)
+      unless value.is_a?(String) || value.is_a?(Hash)
+        raise Jekyll::Errors::FatalException, "#{Authors.value(page, 'path')} license must be a name, a map or false"
+      end
 
       given = value.is_a?(Hash) ? Authors.present(value) : { "name" => value.to_s.strip }
+      return unless given.keys.intersect?(%w[id name url])
+
       id = LOOKUP[key(given["id"] || given["name"])]
       name, url = KNOWN[id] if id
       # A name that is not itself an identifier is the label the page chose.
@@ -114,6 +125,7 @@ module Datalog
 
       text = value.to_s.strip
       return text.to_i if text.match?(/\A\d{4}\z/)
+      return text if text.match?(/\A\d{4}[-–]\d{4}\z/)
 
       Time.parse(text).year unless text.empty?
     rescue ArgumentError

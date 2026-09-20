@@ -73,6 +73,15 @@ class MathPreprocessorTest < Minitest::Test
                     "Original delimiters should be preserved inside the wrapper"
   end
 
+  def test_inline_tex_survives_markdown_conversion
+    source = 'A value \(x<y\), \(\mu\), and $a_b_c$.'
+    wrapped = MathPreprocessor::Processor.new(source).process
+    html = SiteBuilder.site.find_converter_instance(Jekyll::Converters::Markdown).convert(wrapped)
+    nodes = Nokogiri::HTML.fragment(html).css(".math-expression-inline")
+    assert_equal ['\(x<y\)', '\(\mu\)', "$a_b_c$"], nodes.map(&:text)
+    assert_empty nodes.css("em, strong")
+  end
+
   def test_display_bracket_syntax_wrapped_in_div
     processor = MathPreprocessor::Processor.new('Formula: \[a+b=c\] end.')
     result = processor.process

@@ -14,6 +14,7 @@
  */
 
 import { createClient, describeError } from "../dynamic-services/client.js";
+import { createSubmission } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "moderation";
 export const TYPES = ["comment", "correction", "abuse"];
@@ -72,12 +73,7 @@ function jsonIn(root, selector) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
+
 
 function text(value) {
   return typeof value === "string" ? value : "";
@@ -297,9 +293,11 @@ export function initModerationInbox(root, deps = {}) {
     deps.client ||
     createClient({
       ...settings,
+      features: endpoint ? {} : settings.features,
       base_url: endpoint || settings.base_url || "",
       credentials: root.dataset.moderationCredentials || "include"
     });
+  const submission = createSubmission();
   const labels = jsonIn(root, "[data-moderation-labels]");
   const errorLabels = labels.errors || {};
   const lang = doc.documentElement.lang || undefined;
@@ -311,6 +309,8 @@ export function initModerationInbox(root, deps = {}) {
   const signIn = root.querySelector("[data-moderation-sign-in]");
   let cursor = "";
   let loading = false;
+  let sequence = 0;
+  let activeFilters = {};
 
   const setState = (state, message = "", alert = false) => {
     root.dataset.state = state;
@@ -362,7 +362,7 @@ export function initModerationInbox(root, deps = {}) {
 
   /** Whether an item still belongs in the listing on screen: the status asked for, or the queue. */
   const matchesFilter = (item) => {
-    const wanted = text(filters().status).trim();
+    const wanted = text(activeFilters.status).trim();
     return wanted ? wanted === item.status : (QUEUE[item.type] || []).includes(item.status);
   };
 
@@ -372,9 +372,11 @@ export function initModerationInbox(root, deps = {}) {
 
     /** Loads the queue under the current filters; `append` continues from the cursor. */
     async load(append = false) {
-      if (loading) {
+      if (loading && append) {
         return null;
       }
+      const request = ++sequence;
+      const requestedFilters = append ? activeFilters : filters();
       loading = true;
       if (!append) {
         cursor = "";
@@ -382,7 +384,9 @@ export function initModerationInbox(root, deps = {}) {
       setState("loading", labels.loading || "");
       try {
         await client.feature(FEATURE);
-        const answer = await client.get(`${client.pathFor(FEATURE)}/items${buildQuery(filters(), append ? cursor : "")}`);
+        const answer = await client.get(`${client.pathFor(FEATURE)}/items${buildQuery(requestedFilters, append ? cursor : "")}`);
+        if (request !== sequence) return null;
+        activeFilters = requestedFilters;
         const data = answer && answer.data && typeof answer.data === "object" ? answer.data : {};
         const items = (Array.isArray(data.items) ? data.items : []).map(normalizeItem).filter(Boolean);
         if (!append) {
@@ -397,10 +401,11 @@ export function initModerationInbox(root, deps = {}) {
         setState(shown > 0 ? "loaded" : "empty", shown > 0 ? "" : labels.empty || "");
         return items;
       } catch (error) {
+        if (request !== sequence) return null;
         refuse(error);
         return null;
       } finally {
-        loading = false;
+        if (request === sequence) loading = false;
       }
     },
 
@@ -433,10 +438,12 @@ export function initModerationInbox(root, deps = {}) {
       }
       try {
         const answer = await client.post(`${client.pathFor(FEATURE)}/items/${encodeURIComponent(item.id)}/actions`, payload, {
-          idempotencyKey: newKey()
+          idempotencyKey: submission.key(payload, item.id)
         });
+        submission.clear(item.id);
         const returned = normalizeItem(answer && answer.data && answer.data.item);
         const updated = returned || { ...item, status: RESULT[action] || item.status };
+        if (!list.contains(element)) return updated;
         const done = (labels.done || "{{action}}").split("{{action}}").join((labels.actions || {})[action] || action);
         if (matchesFilter(updated)) {
           const fresh = renderItem(doc, updated, { labels, lang, siteUrl, onAction: controller.act });

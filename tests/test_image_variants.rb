@@ -45,13 +45,13 @@ class ImageVariantsTest < Minitest::Test
       assert_equal %w[image/avif image/webp], sources.keys
       sources.each do |type, urls|
         extension = type.delete_prefix("image/")
-        assert_equal(WIDTHS.map { |width| "/blog/assets/img/responsive/plot-#{width}w.#{extension}" }, urls)
+        assert_equal(WIDTHS.map { |width| "/blog/assets/img/responsive/plot.png-#{width}w.#{extension}" }, urls)
       end
 
       img = picture.at_css("img")
       assert_equal "A plot", img["alt"]
       assert_equal %w[1200 630], [img["width"], img["height"]]
-      assert_equal WIDTHS.first(3).map { |width| "/blog/assets/img/responsive/plot-#{width}w.png" } +
+      assert_equal WIDTHS.first(3).map { |width| "/blog/assets/img/responsive/plot.png-#{width}w.png" } +
                    ["/blog/assets/img/plot.png"], srcset_urls(img)
       refute_includes html, "</source>", "#{page} should write <source> as a void element"
 
@@ -78,7 +78,7 @@ class ImageVariantsTest < Minitest::Test
     img = Nokogiri::HTML5(read("index.html")).at_css("img")
     refute_equal "picture", img.parent.name
     assert_nil img["srcset"]
-    refute File.exist?(File.join(@dir, "_site/assets/img/responsive/plot-320w.webp"))
+    refute File.exist?(File.join(@dir, "_site/assets/img/responsive/plot.png-320w.webp"))
     assert_empty Dir.glob(File.join(@dir, ".jekyll-cache", "**", "*.*")), "A failed encode should leave nothing cached"
   end
 
@@ -89,7 +89,7 @@ class ImageVariantsTest < Minitest::Test
     refute_equal "picture", img.parent.name
     assert_nil img["srcset"]
     assert_equal %w[1200 630], [img["width"], img["height"]]
-    refute Dir.exist?(File.join(@dir, "_site/assets/img/responsive/plot-320w.png"))
+    refute Dir.exist?(File.join(@dir, "_site/assets/img/responsive/plot.png-320w.png"))
   end
 
   def test_variants_false_turns_the_encoders_off

@@ -490,6 +490,9 @@
       statusNode.textContent = status;
       statusNode.dataset.tone = tone;
     }
+    if (status === 'Interactive' || status === 'Embedded') {
+      queueMicrotask(() => document.dispatchEvent(new CustomEvent('datalog:viz-rendered', { detail: { element } })));
+    }
   };
 
   const annotateVersionMetadata = (element) => {

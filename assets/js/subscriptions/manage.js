@@ -63,9 +63,19 @@ export function initSubscriptionManage(root, deps = {}) {
   const preferences = root.querySelector("[data-manage-preferences]");
   const request = readAction(location.search);
   const path = request ? `${client.pathFor(FEATURE)}/${encodeURIComponent(request.token)}` : "";
+  let retryAction = null;
+  const retry = doc.createElement("button");
+  retry.type = "button";
+  retry.className = "post-tool";
+  retry.dataset.manageRetry = "";
+  retry.textContent = labels.retry || "Try again";
+  retry.hidden = true;
+  retry.addEventListener("click", () => retryAction?.());
+  root.appendChild(retry);
 
   const setState = (state, message = "", alert = false) => {
     root.dataset.state = state;
+    retry.hidden = state !== "error" || !retryAction;
     if (status) {
       status.textContent = message;
       status.hidden = message === "";
@@ -81,8 +91,9 @@ export function initSubscriptionManage(root, deps = {}) {
     });
   };
 
-  const fail = (error) => {
-    const gone = error && (error.kind === "not_found" || error.status === 410);
+  const fail = (error, tokenRoute, action) => {
+    const gone = tokenRoute && error && (error.kind === "not_found" || error.status === 410);
+    retryAction = error?.retryable ? action : null;
     show(null);
     setState("error", gone ? labels.invalid_link || "" : describeError(error, errorLabels), true);
   };
@@ -99,30 +110,37 @@ export function initSubscriptionManage(root, deps = {}) {
     request,
 
     async confirm() {
+      let tokenRoute = false;
+      busy(true);
       show(null);
       setState("pending", labels.confirming || "");
       try {
         await client.feature(FEATURE);
+        tokenRoute = true;
         const answer = await client.post(`${client.pathFor(FEATURE)}/confirm`, { token: request.token });
         setState("confirmed", labels.confirmed || "");
         return answer;
       } catch (error) {
-        fail(error);
+        fail(error, tokenRoute, () => controller.confirm());
         return null;
+      } finally {
+        busy(false);
       }
     },
 
     async unsubscribe() {
+      let tokenRoute = false;
       busy(true);
       setState("pending", labels.unsubscribing || "");
       try {
         await client.feature(FEATURE);
+        tokenRoute = true;
         const answer = await client.delete(path);
         show(null);
         setState("unsubscribed", labels.unsubscribed || "");
         return answer;
       } catch (error) {
-        fail(error);
+        fail(error, tokenRoute, () => controller.unsubscribe());
         return null;
       } finally {
         busy(false);
@@ -131,10 +149,13 @@ export function initSubscriptionManage(root, deps = {}) {
 
     /** Loads the subscription's topics into the preferences form. */
     async load() {
+      let tokenRoute = false;
+      busy(true);
       show(null);
       setState("loading", labels.loading || "");
       try {
         await client.feature(FEATURE);
+        tokenRoute = true;
         const answer = await client.get(path);
         const topics = answer && answer.data && Array.isArray(answer.data.topics) ? answer.data.topics.map(String) : [];
         if (preferences) {
@@ -146,8 +167,10 @@ export function initSubscriptionManage(root, deps = {}) {
         setState("loaded");
         return topics;
       } catch (error) {
-        fail(error);
+        fail(error, tokenRoute, () => controller.load());
         return null;
+      } finally {
+        busy(false);
       }
     },
 

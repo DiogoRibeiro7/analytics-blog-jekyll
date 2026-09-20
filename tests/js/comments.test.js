@@ -340,3 +340,26 @@ describe('the thread', () => {
     delete window.DatalogDynamicServices;
   });
 });
+
+describe('patch comment regressions', () => {
+  it('reuses a failed comment submission key and rotates it after a successful post', async () => {
+    const root = mount();
+    const client = fakeClient();
+    const controller = initCommentsThread(root, { client, immediate: true });
+    await flush();
+    const form = root.querySelector('form');
+    const values = { name: 'Dana', email: 'dana@example.org', body: 'A sufficiently detailed comment.' };
+    fill(form, values);
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost'));
+    await controller.submit();
+    await controller.submit();
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    fill(form, values);
+    await controller.submit();
+    expect(client.post.mock.calls[2][2].idempotencyKey).not.toBe(client.post.mock.calls[0][2].idempotencyKey);
+  });
+  it('orders timestamps by the instant including time zone offsets', () => {
+    const comments = [{ id: 'later', created_at: '2026-09-20T09:30:00Z' }, { id: 'earlier', created_at: '2026-09-20T10:00:00+02:00' }];
+    expect(threadOf(comments).map((node) => node.comment.id)).toEqual(['earlier', 'later']);
+  });
+});

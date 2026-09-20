@@ -252,6 +252,7 @@ subscriptions:
   email_invalid: Isso não parece um endereço de email.
   topics_required: Escolha pelo menos um.
   manage:
+    retry: Tentar de novo
     idle: "Esta página confirma, altera ou termina uma subscrição da newsletter. Abra-a a partir da ligação num dos emails."
     unavailable: As subscrições não estão configuradas neste site.
     confirming: A confirmar a sua subscrição…
@@ -364,6 +365,7 @@ dynamic_services:
     server: O serviço encontrou um problema. Tente mais tarde.
     http: O serviço recusou o pedido.
     aborted: O pedido foi cancelado.
+    retry_after: "Tente novamente em {{seconds}} segundos."
     reference: "Referência: {{id}}"
 references:
   figure: Figura
@@ -503,6 +505,27 @@ dataset:
     description: Descrição
     type: Tipo
 notebook:
+  tags_label: Etiquetas do notebook
+  sidebar_label: Detalhes do notebook
+  sidebar:
+    overview: Visão geral
+    code_cells: células de código
+    markdown_cells: células Markdown
+    error_outputs: saídas com erros
+    execution: Execução
+    kernel: Kernel
+    language: Linguagem
+    file: Ficheiro
+    branch: Ramo
+    runtime: Duração
+    not_specified: Não especificado
+    na: Não disponível
+    run_online: Executar online
+    launch_binder: Abrir no Binder
+    open_colab: Abrir no Colab
+    version_history: Histórico de versões
+    last_commit: Último commit
+    view_latest: Ver a versão mais recente
   label: Notebook interativo
   meta:
     published: "Publicado:"
@@ -514,6 +537,7 @@ notebook:
     runtime: "Duração:"
   actions:
     download: Transferir .ipynb
+    view_source: Ver código-fonte
     launch_binder: Abrir no Binder
     open_colab: Abrir no Colab
 academic_dashboard:

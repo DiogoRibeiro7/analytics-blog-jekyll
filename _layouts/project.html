@@ -8,9 +8,9 @@ show_title: false # this layout renders the page's <h1>
   <header class="project-case__header">
     <div class="project-case__intro">
       <p class="project-case__eyebrow">{% t 'project.header.eyebrow' %}</p>
-      <h1 class="project-case__title" itemprop="name">{{ page.title }}</h1>
+      <h1 class="project-case__title" itemprop="name">{{ page.title | escape }}</h1>
       {% if page.description %}
-      <p class="project-case__description" itemprop="description">{{ page.description }}</p>
+      <p class="project-case__description" itemprop="description">{{ page.description | escape }}</p>
       {% endif %}
     </div>
     <div class="project-case__meta">
@@ -192,7 +192,7 @@ show_title: false # this layout renders the page's <h1>
       <ul class="project-case__related">
         {% for project in page.related_projects %}
         <li>
-          {% if project.url %}<a href="{{ project.url | relative_url }}">{{ project.title | default: project }}</a>{% else %}<span>{{ project.title | default: project }}</span>{% endif %}
+          {% if project.url %}<a href="{{ project.url | relative_url }}">{{ project.title | default: project | escape }}</a>{% else %}<span>{{ project.title | default: project | escape }}</span>{% endif %}
           {% if project.description %}<p>{{ project.description }}</p>{% endif %}
         </li>
         {% endfor %}

@@ -142,6 +142,30 @@ describe('the subscribe form', () => {
     form = root.querySelector('form');
   });
 
+  it('retries an unchanged submission with its original key, and recovers capability failures', async () => {
+    const client = fakeClient();
+    client.feature.mockRejectedValueOnce(new ServiceError('network', 'offline'));
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    const controller = initSubscribeForm(root, { client });
+    form.elements.email.value = 'reader@example.org';
+    await controller.submit();
+    expect(form.querySelector('button[type=submit]').disabled).toBe(false);
+    await controller.submit();
+    await controller.submit();
+    expect(client.post.mock.calls).toHaveLength(2);
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    form.elements.email.value = 'reader@example.org';
+    await controller.submit();
+    expect(client.post.mock.calls[2][2].idempotencyKey).not.toBe(client.post.mock.calls[0][2].idempotencyKey);
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    form.elements.email.value = 'reader@example.org';
+    await controller.submit();
+    form.elements.namedItem('email').value = 'changed@example.org';
+    form.elements.namedItem('email').dispatchEvent(new Event('input', { bubbles: true }));
+    await controller.submit();
+    expect(client.post.mock.calls[4][2].idempotencyKey).not.toBe(client.post.mock.calls[3][2].idempotencyKey);
+  });
+
   it('sends the subscription with an idempotency key and says to check the inbox', async () => {
     const client = fakeClient();
     const controller = initSubscribeForm(root, { client });
@@ -234,7 +258,7 @@ describe('the subscribe form', () => {
     client.post.mockRejectedValueOnce(new ServiceError('rate_limited', 'x', { requestId: 'req_9', retryAfter: 60 }));
     await controller.submit();
     expect(form.dataset.state).toBe('error');
-    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Ref req_9');
+    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Try again in 60 seconds. Ref req_9');
 
     client.post.mockRejectedValueOnce(new ServiceError('network', 'x'));
     await controller.submit();
@@ -309,6 +333,33 @@ describe('the manage page', () => {
   };
 
   const status = () => root.querySelector('[data-manage-status]');
+
+  it('offers an in-page retry with the retained token after transient failures', async () => {
+    for (const action of ['confirm', 'manage', 'unsubscribe']) {
+      const client = fakeClient();
+      const method = action === 'confirm' ? 'post' : action === 'manage' ? 'get' : 'delete';
+      client[method].mockRejectedValueOnce(new ServiceError('network', 'offline'));
+      const { controller } = open(`?${action}=abcdefgh12`, client);
+      if (action === 'unsubscribe') await controller.unsubscribe();
+      await flush();
+      const retry = root.querySelector('[data-manage-retry]');
+      expect(retry.hidden).toBe(false);
+      expect(retry.disabled).toBe(false);
+      retry.click();
+      await flush();
+      expect(client[method]).toHaveBeenCalledTimes(2);
+      expect(root.dataset.state).not.toBe('error');
+    }
+  });
+
+  it('does not call a capabilities 404 an expired subscription link', async () => {
+    const client = fakeClient();
+    client.feature.mockRejectedValueOnce(new ServiceError('not_found', 'missing service', { status: 404 }));
+    open('?confirm=abcdefgh12', client);
+    await flush();
+    expect(status().textContent).not.toBe('Link no longer valid.');
+    expect(client.post).not.toHaveBeenCalled();
+  });
 
   it('explains itself without a link, and says so without a backend', () => {
     const { client, history } = open('');

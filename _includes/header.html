@@ -39,7 +39,7 @@ and is cached for each distinct set.
           </svg>
         </span>
         <span class="site-title-group">
-          <span class="site-title">{{ site.name | default: site.title }}</span>
+          <span class="site-title">{{ site.name | default: site.title | escape }}</span>
           <span class="site-tagline">{{ brand_symbol }}</span>
         </span>
       </a>

@@ -188,12 +188,20 @@ export function locate(root, anchor) {
   if (candidates.length === 0) {
     return null;
   }
-  const scored = candidates.map((candidate) => ({
+  let scored = candidates.map((candidate) => ({
     ...candidate,
+    section: sectionOf(root, rangeOf(index, candidate.start, candidate.end).startContainer),
     score:
       overlapEnd(index.text.slice(Math.max(0, candidate.start - CONTEXT), candidate.start), anchor.prefix || "") +
       overlapStart(index.text.slice(candidate.end, candidate.end + CONTEXT), anchor.suffix || "")
   }));
+  if (anchor.section) {
+    const inSection = scored.filter((candidate) => candidate.section === anchor.section);
+    if (inSection.length) scored = inSection;
+    else return null;
+  }
   scored.sort((a, b) => b.score - a.score);
+  if (scored.length > 1 && (scored[0].score === 0 || scored[0].score === scored[1].score)) return null;
+  if (!anchor.section && (anchor.prefix || anchor.suffix) && scored[0].score === 0) return null;
   return rangeOf(index, scored[0].start, scored[0].end);
 }

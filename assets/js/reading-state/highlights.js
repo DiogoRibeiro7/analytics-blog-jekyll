@@ -55,6 +55,7 @@ export function wrapRange(range, id) {
     }
   }
   nodes.forEach((node) => {
+    if (!node.data.trim() || node.parentElement?.namespaceURI !== "http://www.w3.org/1999/xhtml") return;
     const piece = doc.createRange();
     piece.setStart(node, node === range.startContainer ? range.startOffset : 0);
     piece.setEnd(node, node === range.endContainer ? range.endOffset : node.data.length);

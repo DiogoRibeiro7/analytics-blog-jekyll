@@ -158,7 +158,7 @@ pre.highlight {
   overflow: visible;
 }
 
-.highlight .rouge-gutter {
+.highlight .rouge-table td.rouge-gutter {
   padding-right: map.get($spacing, 4);
   color: $color-ink-500;
   text-align: right;

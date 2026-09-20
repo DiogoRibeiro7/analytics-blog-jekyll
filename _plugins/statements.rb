@@ -28,7 +28,7 @@ module Datalog
     end
 
     def render(context)
-      attributes = References.attributes(@markup, context)
+      attributes = References.attributes(@markup, context, @kind)
       id = References.validate_id(attributes["id"], @kind)
       custom = attributes["label"]
       References.validate_label(custom, @kind)
@@ -52,7 +52,7 @@ module Datalog
     end
 
     def render(context)
-      attributes = References.attributes(@markup, context)
+      attributes = References.attributes(@markup, context, "proof")
       target = attributes["for"]
       body = References.markdown(context, super)
       heading_id = "proof-#{target ? References.validate_id(target, 'proof') : Statements.next_proof(context)}"

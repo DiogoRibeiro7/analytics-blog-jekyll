@@ -58,9 +58,11 @@ export function worthResuming(progress, contentHeight, innerHeight) {
  * @param {string} options.title
  * @param {Window} [options.win]
  * @param {number} [options.interval] - Milliseconds of quiet before a save
+ * @param {Function} [options.shouldSave] - Whether the new position may replace the saved one
+ * @param {Function} [options.onError] - Reports storage failures
  * @returns {{stop: Function, save: Function, snapshot: Function}}
  */
-export function trackProgress({ content, store, article, title, win = window, interval = 1000 }) {
+export function trackProgress({ content, store, article, title, win = window, interval = 1000, shouldSave = () => true, onError = () => {} }) {
   let timer = null;
   let last = null;
 
@@ -81,14 +83,15 @@ export function trackProgress({ content, store, article, title, win = window, in
 
   const save = () => {
     const progress = snapshot();
+    if (!shouldSave(progress)) return;
     if (last && Math.abs(last.ratio - progress.ratio) < 0.01) {
       return;
     }
-    last = progress;
     const record = store.read(article) || emptyRecord(article, title);
     record.title = record.title || title;
     record.progress = { ...progress, updated_at: new Date().toISOString() };
-    store.write(article, record);
+    if (store.write(article, record)) last = progress;
+    else onError();
   };
 
   const onScroll = () => {
@@ -101,13 +104,28 @@ export function trackProgress({ content, store, article, title, win = window, in
     }, interval);
   };
 
+  const flush = () => {
+    if (timer !== null) {
+      win.clearTimeout(timer);
+      timer = null;
+      save();
+    }
+  };
+  const onVisibility = () => {
+    if (win.document.visibilityState === "hidden") flush();
+  };
   win.addEventListener("scroll", onScroll, { passive: true });
+  win.addEventListener("pagehide", flush);
+  win.document.addEventListener("visibilitychange", onVisibility);
   return {
     stop() {
       win.removeEventListener("scroll", onScroll);
+      win.removeEventListener("pagehide", flush);
+      win.document.removeEventListener("visibilitychange", onVisibility);
       if (timer) {
         win.clearTimeout(timer);
       }
+      timer = null;
     },
     save,
     snapshot

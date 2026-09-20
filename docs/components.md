@@ -243,7 +243,7 @@ Every place that names the authors reads the same list, `page | page_authors` (a
 
 A person's details come from the entry itself, then from `_data/authors.yml` (by the entry's `id`, or the key or name it gives), and, for the site's own author, from `author` in `_config.yml`. Another author never takes the site author's affiliation or profiles.
 
-`author: jane_smith` or `author: Jane Doe` still names a single author, and `author_affiliation` sets that author's affiliation. `authors: "Ann Lee; Bo Kim"` separates names with semicolons. A research page's `citation_authors` names the authors for citation indexes alone.
+`author: jane_smith` or `author: Jane Doe` still names a single author, and `author_affiliation` sets that author's affiliation. `authors: "Ann Lee; Bo Kim"` separates names with semicolons. A research page's `citation_authors` names the authors for citation indexes alone and uses the same semicolon separator. For an institutional author, use a map such as `{name: World Health Organization, type: Organization}`; JSON-LD preserves the type and BibTeX preserves the name as one organization.
 
 Create `_data/authors.yml` for the people who write for the site:
 
@@ -713,7 +713,7 @@ body.reading-mode .my-sidebar { display: none; }
 ### Styling
 
 ```scss
-.reading-mode-bar { }             // holds the button; sticky in reading mode
+.post-tools { }                   // holds the buttons; sticky in reading mode
 .reading-mode-toggle { }          // the button; [aria-pressed="true"] while reading
 .post-print-source { }            // the address line, print only
 .print-only { }                   // anything shown on paper alone

@@ -40,6 +40,11 @@ module Datalog
   end
 
   module ScholarlyFilters
+    # JSON embedded in a script must not contain an HTML closing tag.
+    def jsonify_script(value)
+      jsonify(value).gsub("<", '\\u003c').gsub("\u2028", '\\u2028').gsub("\u2029", '\\u2029')
+    end
+
     # A Liquid filter's name cannot end with "?".
     def scholarly(page) # rubocop:disable Naming/PredicateMethod
       Scholarly.scholarly?(page, @context["site"])

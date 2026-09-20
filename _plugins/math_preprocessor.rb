@@ -137,6 +137,9 @@ module MathPreprocessor
         "aria-label" => alt_text,
         "tabindex" => "0"
       }
+      # Kramdown must not interpret TeX's escaped delimiters or underscores as
+      # Markdown inside an inline HTML span.
+      attributes["markdown"] = "0" unless display
 
       attribute_string = attributes.map do |key, value|
         next if value.nil? || value.strip.empty?
@@ -144,7 +147,7 @@ module MathPreprocessor
         %(#{key}="#{CGI.escapeHTML(value)}")
       end.compact.join(" ")
 
-      inner = "#{open}#{latex}#{close}"
+      inner = CGI.escapeHTML("#{open}#{latex}#{close}")
       "<#{tag} #{attribute_string}>#{inner}</#{tag}>"
     end
 

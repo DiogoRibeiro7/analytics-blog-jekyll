@@ -1,6 +1,6 @@
 ---
 layout: default
-schema_type: TechnicalArticle
+schema_type: TechArticle
 ---
 
 {% assign localization_config = site.theme_options.localization %}
@@ -39,6 +39,10 @@ schema_type: TechnicalArticle
 
 {%- comment -%} Tag/Category flags {%- endcomment -%}
 {% assign post_tags = page.tags %}
+{% assign tag_archive_path = site.tag_archive.path | default: '/tags/' %}
+{% assign category_archive_path = site.category_archive.path | default: '/categories/' %}
+{% assign tag_archive_page = site.pages | where: 'url', tag_archive_path | first %}
+{% assign category_archive_page = site.pages | where: 'url', category_archive_path | first %}
 {% assign has_tags = false %}
 {% if post_tags and post_tags.size > 0 %}{% assign has_tags = true %}{% endif %}
 {% assign has_categories = false %}
@@ -50,7 +54,7 @@ schema_type: TechnicalArticle
 {%- comment -%} Breadcrumb navigation {%- endcomment -%}
 {% include components/breadcrumbs.html %}
 
-<div class="post-wrapper" itemscope itemtype="https://schema.org/TechnicalArticle">
+<div class="post-wrapper" itemscope itemtype="https://schema.org/TechArticle">
   <meta itemprop="url" content="{{ canonical_url }}" />
   <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
   {% if page.last_modified_at or page.updated %}
@@ -127,6 +131,7 @@ schema_type: TechnicalArticle
     {% include components/reading-state-bookmark.html %}
     {% include components/reading-mode-toggle.html %}
   </div>
+  {% include components/reading-state-resume.html %}
   <p class="post-print-source print-only">{% t 'post.print.source' %} {{ canonical_url }}{% if page.doi %} · DOI {{ page.doi | escape }}{% endif %}</p>
 
   {%- comment -%} The newest correction or update, with a link to the revision history {%- endcomment -%}
@@ -139,13 +144,13 @@ schema_type: TechnicalArticle
         {% if has_tags %}
           {% for tag in post_tags %}
             {% assign tag_slug = tag | slugify %}
-            <li><a class="post-tag" href="{{ site.tag_archive.path | default: '/tags/' | append: '#' | append: tag_slug | relative_url }}">{{ tag }}</a></li>
+            <li>{% if tag_archive_page %}<a class="post-tag" href="{{ tag_archive_path | append: '#' | append: tag_slug | relative_url }}">{{ tag | escape }}</a>{% else %}<span class="post-tag">{{ tag | escape }}</span>{% endif %}</li>
           {% endfor %}
         {% endif %}
         {% if has_categories %}
           {% for category in page.categories %}
             {% assign cat_slug = category | slugify %}
-            <li><a class="post-tag post-category" href="{{ site.category_archive.path | default: '/categories/' | append: '#' | append: cat_slug | relative_url }}">{{ category }}</a></li>
+            <li>{% if category_archive_page %}<a class="post-tag post-category" href="{{ category_archive_path | append: '#' | append: cat_slug | relative_url }}">{{ category | escape }}</a>{% else %}<span class="post-tag post-category">{{ category | escape }}</span>{% endif %}</li>
           {% endfor %}
         {% endif %}
       </ul>
@@ -195,7 +200,7 @@ schema_type: TechnicalArticle
       <ul class="post-interactive-list">
         {% for demo in page.interactive_components %}
           <li>
-            <strong>{{ demo.title }}</strong>
+            <strong>{{ demo.title | escape }}</strong>
             {% if demo.description %}<p>{{ demo.description }}</p>{% endif %}
             {% if demo.url %}<p><a href="{{ demo.url | relative_url }}" target="_blank" rel="noopener noreferrer">{% t 'post.interactive.launch' %}</a></p>{% endif %}
           </li>
@@ -283,7 +288,7 @@ schema_type: TechnicalArticle
     {% if page.previous %}
       <div class="post-prev">
         <span class="post-pagination-label">Previous</span>
-        <a href="{{ page.previous.url | relative_url }}">{{ page.previous.title }}</a>
+        <a href="{{ page.previous.url | relative_url }}">{{ page.previous.title | escape }}</a>
         {% if page.previous.tags and page.tags %}
           {% assign shared_prev = '' %}
           {% for tag in page.tags %}
@@ -302,7 +307,7 @@ schema_type: TechnicalArticle
     {% if page.next %}
       <div class="post-next">
         <span class="post-pagination-label">Next</span>
-        <a href="{{ page.next.url | relative_url }}">{{ page.next.title }}</a>
+        <a href="{{ page.next.url | relative_url }}">{{ page.next.title | escape }}</a>
         {% if page.next.tags and page.tags %}
           {% assign shared_next = '' %}
           {% for tag in page.tags %}

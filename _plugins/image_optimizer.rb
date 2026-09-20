@@ -8,6 +8,7 @@ require "nokogiri"
 require "open3"
 require "tmpdir"
 require "tempfile"
+require "uri"
 
 module Jekyll
   module ImageOptimizer
@@ -76,18 +77,19 @@ module Jekyll
           img["loading"] ||= "lazy"
         end
         img["decoding"] ||= "async"
-
         normalized_src = normalize_src(img["src"], site)
         picture_entry = manifest[normalized_src]
 
         if picture_entry
           offer_variants(img, picture_entry, image_config, baseurl)
-          img["width"] ||= picture_entry["width"].to_s if picture_entry["width"]
-          img["height"] ||= picture_entry["height"].to_s if picture_entry["height"]
+          if !img["width"] && !img["height"] && picture_entry["width"] && picture_entry["height"]
+            img["width"] = picture_entry["width"].to_s
+            img["height"] = picture_entry["height"].to_s
+          end
         else
-          next if img["width"] && img["height"]
+          next if img["width"] || img["height"]
 
-          source = image_source_path(site, img["src"])
+          source = image_source_path(site, normalized_src)
           next unless source && File.exist?(source)
 
           width, height = FastImage.size(source)
@@ -270,7 +272,7 @@ module Jekyll
       relative_path = static_file.relative_path.sub(%r{^/}, "")
       dir = File.dirname(relative_path)
       responsive_dir = dir == "." ? "responsive" : File.join(dir, "responsive")
-      base = File.basename(relative_path, File.extname(relative_path))
+      base = File.basename(relative_path)
       Jekyll::ResponsiveImageStaticFile.new(site, responsive_dir, "#{base}-#{target_width}w.#{extension_for(format)}",
                                             cached)
     end
@@ -440,16 +442,16 @@ module Jekyll
     end
 
     def normalize_src(src, site)
-      return src if src.nil? || src.empty?
-      return src if src.start_with?("http://", "https://", "data:")
+      # Relative image URLs belong to the page, not to the source root. Leave
+      # them alone rather than offer another image's dimensions or variants.
+      return unless src&.start_with?("/") && !src.start_with?("//")
 
       baseurl = site&.baseurl.to_s
-      normalized = src.dup
-      normalized = normalized.delete_prefix(baseurl) if baseurl && !baseurl.empty? && normalized.start_with?(baseurl)
-      site_url = site&.config&.fetch("url", "").to_s
-      normalized = normalized.delete_prefix(site_url) if !site_url.empty? && normalized.start_with?(site_url)
-      normalized = normalized.gsub(%r{^/+}, "")
-      "/#{normalized}"
+      normalized = URI::DEFAULT_PARSER.unescape(src.split(/[?#]/, 2).first)
+      if !baseurl.empty? && (normalized == baseurl || normalized.start_with?("#{baseurl.chomp('/')}/"))
+        normalized = normalized.delete_prefix(baseurl.chomp("/"))
+      end
+      normalized
     end
 
     def image_config(site)

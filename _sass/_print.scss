@@ -83,9 +83,7 @@ body.reading-mode {
   .open-science-badges,
   .author-bio,
   .post-related,
-  .post-pagination,
-  .back-to-top,
-  [data-back-to-top] {
+  .post-pagination {
     display: none !important;
   }
 
@@ -140,12 +138,18 @@ body.reading-mode {
   .post-pagination,
   .post-tools,
   .reading-mode-bar,
-  .back-to-top,
-  [data-back-to-top],
   .code-copy,
   .citation-tools__exports,
   .viz-table-toggle,
-  [aria-live] {
+  .visually-hidden[aria-live],
+  .service-form__status,
+  .comments-thread__status,
+  .reading-data__status,
+  .moderation__status,
+  .reactions__status,
+  .subscription-manage__status,
+  .webmentions__status,
+  .enhanced-code-block__feedback {
     display: none !important;
   }
 
@@ -262,6 +266,10 @@ body.reading-mode {
     overflow: visible !important;
   }
 
+  .rouge-gutter {
+    display: none !important;
+  }
+
   body.dark-mode .highlight span {
     color: #000 !important;
     background: none !important;
@@ -271,8 +279,8 @@ body.reading-mode {
   iframe,
   canvas,
   video,
-  [data-viz-type] > *,
-  .interactive-embed > * {
+  [data-viz-type] > *:not(.viz-table-container),
+  .interactive-embed > *:not(.viz-table-container) {
     display: none !important;
   }
 

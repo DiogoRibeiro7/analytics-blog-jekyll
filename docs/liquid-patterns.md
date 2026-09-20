@@ -16,7 +16,7 @@ This document describes the reusable Liquid includes introduced to simplify site
 *Purpose*: Emit JSON-LD schema data with sensible defaults.
 *Usage*:
 ```liquid
-{% include meta/schema.html page=page type='TechnicalArticle' %}
+{% include meta/schema.html page=page type='TechArticle' %}
 ```
 
 ### `meta/publisher.html`

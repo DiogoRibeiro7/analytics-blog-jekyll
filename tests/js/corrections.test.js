@@ -135,6 +135,30 @@ describe('the form', () => {
     document.body.innerHTML = '';
   });
 
+  it('retries an unchanged submission with its original key, and recovers capability failures', async () => {
+    const client = fakeClient();
+    client.feature.mockRejectedValueOnce(new ServiceError('network', 'offline'));
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    const controller = initCorrectionReport(root, { client });
+    fill(form, { message: 'A sufficiently detailed correction report.' });
+    await controller.submit();
+    expect(form.querySelector('button[type=submit]').disabled).toBe(false);
+    await controller.submit();
+    await controller.submit();
+    expect(client.post.mock.calls).toHaveLength(2);
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    fill(form, { message: 'A sufficiently detailed correction report.' });
+    await controller.submit();
+    expect(client.post.mock.calls[2][2].idempotencyKey).not.toBe(client.post.mock.calls[0][2].idempotencyKey);
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    fill(form, { message: 'A sufficiently detailed correction report.' });
+    await controller.submit();
+    form.elements.namedItem('message').value += 'x';
+    form.elements.namedItem('message').dispatchEvent(new Event('input', { bubbles: true }));
+    await controller.submit();
+    expect(client.post.mock.calls[4][2].idempotencyKey).not.toBe(client.post.mock.calls[3][2].idempotencyKey);
+  });
+
   it('sends a valid report with an idempotency key and shows success', async () => {
     const client = fakeClient();
     const controller = initCorrectionReport(root, { client });
@@ -196,7 +220,7 @@ describe('the form', () => {
     client.post.mockRejectedValueOnce(new ServiceError('rate_limited', 'x', { requestId: 'req_9', retryAfter: 60 }));
     await controller.submit();
     expect(form.dataset.state).toBe('error');
-    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Ref req_9');
+    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Try again in 60 seconds. Ref req_9');
     expect(form.querySelector('[data-form-status]').getAttribute('role')).toBe('alert');
 
     client.post.mockRejectedValueOnce(new ServiceError('network', 'x'));
@@ -260,5 +284,30 @@ describe('the form', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     expect(spy).toHaveBeenCalled();
     delete window.DatalogDynamicServices;
+  });
+});
+
+describe('patch correction quote regressions', () => {
+  it('captures before pointer selection collapses and clears the hidden quote on success', async () => {
+    const root = mount();
+    const client = fakeClient();
+    const controller = initCorrectionReport(root, { client });
+    const form = root.querySelector('form');
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(document.querySelector('.post-content p'));
+    selection.removeAllRanges();
+    selection.addRange(range);
+    root.querySelector('summary').dispatchEvent(new Event('pointerdown'));
+    selection.removeAllRanges();
+    root.open = true;
+    root.dispatchEvent(new Event('toggle'));
+    expect(form.elements.quote.value).toBe('The quick brown fox.');
+    fill(form, { message: 'A sufficiently detailed correction report.' });
+    await controller.submit();
+    expect(form.elements.quote.value).toBe('');
+    fill(form, { message: 'Another sufficiently detailed report.' });
+    await controller.submit();
+    expect(client.post.mock.calls[1][1]).not.toHaveProperty('quote');
   });
 });

@@ -30,6 +30,12 @@ function inEditable(doc) {
   return Boolean(active && (EDITABLE.has(active.tagName) || active.isContentEditable));
 }
 
+function reportStorageError(root) {
+  const status = root.querySelector("[data-reading-status]");
+  const message = root.dataset?.saveFailed || root.querySelector("[data-reading-unavailable]")?.textContent || "Reading data could not be saved.";
+  if (status) status.textContent = message;
+}
+
 function headingText(content, id) {
   if (!id) {
     return "";
@@ -79,7 +85,7 @@ export function initBookmark(button, store) {
     record.title = record.title || title;
     record.bookmarked = !record.bookmarked;
     record.saved_at = record.bookmarked ? new Date().toISOString() : undefined;
-    store.write(article, record);
+    if (!store.write(article, record)) reportStorageError(button.ownerDocument);
     render();
   });
   render();
@@ -141,9 +147,9 @@ export function initDataControls(root, store, onChange, article) {
   const eraseArticle = root.querySelector("[data-reading-erase-article]");
   if (eraseArticle && article) {
     eraseArticle.addEventListener("click", () => {
-      store.remove(article);
+      if (!store.remove(article)) return reportStorageError(root);
       say(eraseArticle.dataset.done || "");
-      onChange();
+      onChange("erase");
     });
   }
 
@@ -153,9 +159,9 @@ export function initDataControls(root, store, onChange, article) {
       if (eraseAll.dataset.confirm && !win.confirm(eraseAll.dataset.confirm)) {
         return;
       }
-      store.clear();
+      if (!store.clear()) return reportStorageError(root);
       say(eraseAll.dataset.done || "");
-      onChange();
+      onChange("erase");
     });
   }
 }
@@ -177,7 +183,7 @@ export function initArticle(root, store, options = {}) {
   const content = options.content || doc.querySelector(".post-content");
   const wantProgress = root.dataset.progress !== "false";
   const wantHighlights = root.dataset.highlights !== "false";
-  const resume = root.querySelector("[data-reading-resume]");
+  const resume = doc.querySelector("[data-reading-resume]");
   const toolbar = root.querySelector("[data-reading-toolbar]");
   const list = root.querySelector("[data-reading-list-items]");
   const empty = root.querySelector("[data-reading-empty]");
@@ -186,11 +192,14 @@ export function initArticle(root, store, options = {}) {
   const bookmark = options.bookmark ? initBookmark(options.bookmark, store) : null;
   let pendingRange = null;
   let lostIds = [];
+  let progressTracker = null;
 
   const record = () => store.read(article) || emptyRecord(article, title);
   const save = (next) => {
     next.title = next.title || title;
-    store.write(article, next);
+    const saved = store.write(article, next);
+    if (!saved) reportStorageError(root);
+    return saved;
   };
 
   if (!store.available) {
@@ -310,7 +319,7 @@ export function initArticle(root, store, options = {}) {
       const annotation = { id: newId(), ...anchor, note, created_at: new Date().toISOString() };
       const next = record();
       next.annotations.push(annotation);
-      save(next);
+      if (!save(next)) return null;
       refresh();
       return annotation;
     },
@@ -321,7 +330,7 @@ export function initArticle(root, store, options = {}) {
       if (next.annotations.length === before) {
         return false;
       }
-      save(next);
+      if (!save(next)) return false;
       refresh();
       return true;
     },
@@ -332,6 +341,7 @@ export function initArticle(root, store, options = {}) {
         return null;
       }
       const annotation = controller.addAnnotation(range);
+      if (!annotation) return null;
       pendingRange = null;
       hideToolbar();
       const selection = win.getSelection && win.getSelection();
@@ -373,10 +383,10 @@ export function initArticle(root, store, options = {}) {
       noteButton.addEventListener("click", () => controller.highlightSelection(true));
     }
     doc.addEventListener("keydown", (event) => {
-      if (!event.altKey || !event.shiftKey || inEditable(doc)) {
+      if (!root.isConnected || event.defaultPrevented || event.isComposing || !event.altKey || !event.shiftKey || inEditable(doc)) {
         return;
       }
-      const key = event.key.toLowerCase();
+      const key = event.code ? event.code.replace(/^Key/, "").toLowerCase() : event.key.toLowerCase();
       if (key === "h" || key === "n") {
         event.preventDefault();
         controller.highlightSelection(key === "n");
@@ -414,10 +424,27 @@ export function initArticle(root, store, options = {}) {
         });
       }
     }
-    trackProgress({ content, store, article, title, win });
+    progressTracker = trackProgress({
+      content, store, article, title, win,
+      shouldSave: (progress) => {
+        if (!resume || resume.hidden) return true;
+        if (progress.ratio < saved.ratio) return false;
+        resume.hidden = true;
+        return true;
+      },
+      onError: () => reportStorageError(root)
+    });
   }
 
-  initDataControls(root, store, refresh, article);
+  initDataControls(root, store, (action) => {
+    if (action === "erase") {
+      progressTracker?.stop();
+      if (resume) resume.hidden = true;
+    }
+    refresh();
+  }, article);
+  doc.addEventListener("datalog:math-ready", refresh);
+  doc.addEventListener("datalog:viz-rendered", refresh);
   refresh();
   return controller;
 }
@@ -472,7 +499,7 @@ export function initReadingList(root, store) {
       remove.className = "post-tool";
       remove.textContent = root.dataset.removeLabel || "";
       remove.addEventListener("click", () => {
-        store.remove(record.article);
+        if (!store.remove(record.article)) return reportStorageError(root);
         render();
       });
       item.appendChild(remove);

@@ -20,7 +20,7 @@ show_title: false # this layout renders the page's <h1>
 
   <header class="notebook-article__header">
     <p class="notebook-article__label">{% t 'notebook.label' %}</p>
-    <h1 class="notebook-article__title" itemprop="headline">{{ page.title }}</h1>
+    <h1 class="notebook-article__title" itemprop="headline">{{ page.title | escape }}</h1>
     <p class="notebook-article__summary">{{ page.summary | default: page.excerpt }}</p>
 
     <ul class="notebook-article__meta">

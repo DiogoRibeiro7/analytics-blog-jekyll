@@ -8,7 +8,7 @@ summary: Learn how the DataLog theme supports research communication with notebo
 
 The **DataLog** theme is designed for data scientists and researchers who need a dependable platform for publishing technical content. It supports:
 
-- MathJax for rendering LaTeX equations such as $\\int_0^1 x^2 \\mathrm{d}x = \tfrac{1}{3}$
+- MathJax for rendering LaTeX equations such as $\int_0^1 x^2 \mathrm{d}x = \tfrac{1}{3}$
 - Syntax highlighting for Python, R, SQL, and Julia
 - Embedded visualizations from Plotly, Vega-Lite, or other frameworks via `<iframe>`
 

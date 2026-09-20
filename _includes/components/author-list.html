@@ -15,7 +15,7 @@ role and affiliation. `people` comes from `page | page_authors` or
 {%- assign list_property = include.property | default: 'author' -%}
 <ul class="author-list">
 {%- for person in include.people -%}
-  <li class="author-list__person" itemprop="{{ list_property }}" itemscope itemtype="https://schema.org/Person">
+  <li class="author-list__person" itemprop="{{ list_property }}" itemscope itemtype="https://schema.org/{% if person.type == 'Organization' %}Organization{% else %}Person{% endif %}">
     {%- if person.url -%}
       {%- assign person_href = person.url -%}
       {%- unless person_href contains '://' -%}{%- assign person_href = person_href | relative_url -%}{%- endunless -%}

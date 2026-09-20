@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Planned patch release: **0.9.1**. This release contains bug fixes only.
+
+### Fixed
+
+- Keep numbered figure, table and statement references unchanged when posts are embedded in feeds or listings. Parse escaped attribute quotes completely and fail malformed tags with the page and tag name (#298, #299).
+- Keep editorial asides in the article flow, preserve image proportions at narrow widths, contain wide tables and equations, and restore spacing beside Rouge line numbers (#300, #301, #319, #321).
+- Use `TechArticle` structured data, respect layout schema types, preserve comparison operators in titles and descriptions, escape script-sensitive JSON, and include `baseurl` in publisher, author and breadcrumb URLs (#302, #303, #313).
+- Preserve idempotency keys across retries of unchanged submissions and recover contact, correction and subscription forms after temporary capability failures (#304, #305).
+- Retain subscription management retries and distinguish service failures from expired links. Prevent stale reaction and moderation reads from overwriting newer state, respect moderation-specific endpoints, show retry timing and body request IDs, and sort timestamps by instant (#306).
+- Capture correction quotes before pointer interaction clears the selection, and clear them after successful submission (#307).
+- Offer reading resume above the article, preserve the saved position until resumed or dismissed, flush pending progress when leaving, and keep erased data erased. Restore highlights after math and visualization rendering and avoid ambiguous matches in other sections (#308, #309).
+- Correct macOS highlight shortcuts and Escape handling, report storage failures while keeping erase available, merge and sanitize imports, honor disabled reading lists, and keep fallback marks out of table/list whitespace and SVG (#310).
+- Produce complete BibTeX, RIS and EndNote records with format-specific types and escaped BibTeX fields. Share the exporter with research pages, preserve semicolon-separated author names, and support organization authors (#311).
+- Supply missing notebook labels in English, Spanish and Portuguese and validate literal translation keys (#312).
+- Validate author and licence shapes, resolve author names and profile handles, inherit partial licence settings, preserve year ranges, normalize repository and DOI links, prevent image variant collisions, handle encoded image paths, and propagate `updated` to feeds and sitemaps (#313).
+- Preserve visualization fallback tables and live content in print and hide code line-number gutters (#314).
+- Default omitted math loading settings to automatic detection and preserve inline parenthesis and double-dollar TeX through Markdown conversion, and leave empty delimiters literal (#315, #316, #320).
+- Render tag and category links only when their archive page exists, removing broken links without adding archive features (#293).
+
 ## [0.9.0] - 2026-09-18
 
 ### Added
