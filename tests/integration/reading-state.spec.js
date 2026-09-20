@@ -96,6 +96,25 @@ test.describe('Reading state', () => {
     expect(await page.evaluate(() => CSS.highlights.get('datalog-annotation').size)).toBe(0);
   });
 
+  test('a highlight spanning inline math is restored after typesetting on reload', async ({ page }) => {
+    await page.goto(new URL('/test-regressions/rendering/', baseUrl).href);
+    await expect(page.locator('.math-expression-inline mjx-container').first()).toBeVisible();
+    await page.evaluate(() => {
+      const paragraph = document.querySelector('.math-expression-inline').closest('p');
+      const range = document.createRange();
+      range.selectNodeContents(paragraph);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await page.keyboard.press('Alt+Shift+H');
+    await expect(page.locator('.reading-note')).toHaveCount(1);
+    await page.reload();
+    await expect(page.locator('.math-expression-inline mjx-container').first()).toBeVisible();
+    await expect(page.locator('[data-annotation-lost]')).toBeHidden();
+    await expect.poll(() => page.evaluate(() => CSS.highlights.get('datalog-annotation')?.size)).toBe(1);
+  });
+
   test('a browser that blocks storage sees a message, disabled controls and no errors', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));

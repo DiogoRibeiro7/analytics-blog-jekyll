@@ -27,13 +27,13 @@ module Datalog
     def authors(page, site)
       entries = entries(value(page, "authors"))
       entries = entries(value(page, "author")) if entries.empty?
-      records = entries.filter_map { |entry| resolve(entry, site) }
+      records = entries.filter_map { |entry| resolve(entry, site, page) }
       records = [site_author(site)].compact if records.empty?
       apply_page_affiliation(records, page)
     end
 
     def contributors(page, site)
-      entries(value(page, "contributors")).filter_map { |entry| resolve(entry, site) }
+      entries(value(page, "contributors")).filter_map { |entry| resolve(entry, site, page) }
     end
 
     # A list, one entry, or names in a string separated by semicolons.
@@ -46,9 +46,15 @@ module Datalog
     end
 
     # A plain entry is a key or a name; a map's own fields win over the record's.
-    def resolve(entry, site)
+    def resolve(entry, site, page = {})
       own = entry.is_a?(Hash) ? present(entry) : {}
-      key = own["id"] || own["name"] || entry.to_s.strip
+      key = own["id"] || own["name"] || (entry if entry.is_a?(String) || entry.is_a?(Symbol))
+      unless (key.is_a?(String) || key.is_a?(Symbol)) && !key.to_s.strip.empty?
+        path = value(page, "path")
+        raise Jekyll::Errors::FatalException,
+              "#{path} author entry #{entry.inspect} needs a name, an author id, or a map with name or id"
+      end
+      key = key.to_s.strip
       record = known(key, site).merge(own)
       record["name"] ||= key
       return if record["name"].to_s.strip.empty?
@@ -62,6 +68,11 @@ module Datalog
       data = value(value(site, "data"), "authors")
       record = value(data, key.to_s)
       return present(record) if record.is_a?(Hash)
+
+      if data.is_a?(Hash)
+        record = data.values.find { |candidate| candidate.is_a?(Hash) && candidate["name"] == key }
+        return present(record) if record
+      end
 
       author = site_author_profile(site)
       author && author["name"] == key ? author : {}
@@ -85,6 +96,13 @@ module Datalog
       record["image"] ||= record["avatar"] || record["photo"]
       record["orcid"] = "https://orcid.org/#{record['orcid']}" if record["orcid"].to_s.match?(ORCID_ID)
       record["site_author"] = record["name"] == site_author_profile(site)&.fetch("name")
+      PROFILE_URLS.each do |key, template|
+        next unless record[key]
+
+        prefix = template.delete_suffix("%s").delete_prefix("https://")
+        record[key] = record[key].to_s.strip.sub(%r{\Ahttps?://(?:www\.)?#{Regexp.escape(prefix)}}i, "")
+                                 .sub(/\A@/, "").chomp("/")
+      end
       record["same_as"] = profiles(record)
       record
     end

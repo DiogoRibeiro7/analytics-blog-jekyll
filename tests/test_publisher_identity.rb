@@ -24,7 +24,7 @@ class PublisherIdentityTest < Minitest::Test
 
   # Renders schema.html outside the site build, for settings the demo lacks.
   def render_schema(site, page = {})
-    site = { "title" => "Example Site", "url" => SITE_URL }.merge(site)
+    site = { "title" => "Example Site", "url" => "#{SITE_URL}/" }.merge(site)
     page = { "title" => "A post", "url" => "/a-post/", "layout" => "post", "content" => "<p>Words</p>" }.merge(page)
     template = Liquid::Template.parse("{% include meta/schema.html page=page %}")
     schema_with_publisher(template.render!({ "site" => site, "page" => page }, registers: { site: SiteBuilder.site }))
@@ -33,7 +33,7 @@ class PublisherIdentityTest < Minitest::Test
   def test_the_demo_author_publishes_the_demo_and_keeps_their_affiliation
     ["index.html", POST].each do |path|
       data = schema_with_publisher(SiteBuilder.read(path))
-      assert_equal({ "@type" => "Person", "name" => "Diogo Ribeiro", "url" => SITE_URL }, data["publisher"], path)
+      assert_equal({ "@type" => "Person", "name" => "Diogo Ribeiro", "url" => "#{SITE_URL}/" }, data["publisher"], path)
     end
 
     affiliation = schema_with_publisher(SiteBuilder.read(POST)).dig("author", "affiliation")
@@ -45,9 +45,10 @@ class PublisherIdentityTest < Minitest::Test
     title = SiteBuilder.site.config["title"]
 
     assert_includes html, '<meta itemprop="publisher" content="Diogo Ribeiro" />'
-    assert_includes html, "publisher = { #{title} },"
-    assert_includes html, "PB  - #{title}"
-    assert_includes html, "%I #{title}"
+    exports = Nokogiri::HTML(html).css("textarea").map(&:text).join("\n")
+    assert_includes exports, "publisher = { #{title.gsub('&', '\\\\&')} },"
+    assert_includes exports, "PB  - #{title}"
+    assert_includes exports, "%I #{title}"
     refute_match(/(?:publisher = \{|PB  -|%I) ESMAD/, html)
   end
 
@@ -60,7 +61,7 @@ class PublisherIdentityTest < Minitest::Test
     )
 
     assert_equal(
-      { "@type" => "Organization", "name" => "Example University", "url" => SITE_URL, "logo" => DEFAULT_LOGO },
+      { "@type" => "Organization", "name" => "Example University", "url" => "#{SITE_URL}/", "logo" => DEFAULT_LOGO },
       data["publisher"]
     )
     assert_equal({ "@type" => "Organization", "name" => "Example University" }, data["author"]["affiliation"])
@@ -96,7 +97,7 @@ class PublisherIdentityTest < Minitest::Test
   def test_the_author_publishes_when_only_a_name_is_configured
     data = render_schema("author" => "Jane Doe")
 
-    assert_equal({ "@type" => "Person", "name" => "Jane Doe", "url" => SITE_URL }, data["publisher"])
+    assert_equal({ "@type" => "Person", "name" => "Jane Doe", "url" => "#{SITE_URL}/" }, data["publisher"])
     assert_equal "Jane Doe", data["author"]["name"]
     refute data["author"].key?("affiliation")
   end
@@ -104,7 +105,7 @@ class PublisherIdentityTest < Minitest::Test
   def test_the_site_title_publishes_when_there_is_no_author_name
     [{}, { "author" => "" }].each do |site|
       assert_equal(
-        { "@type" => "Organization", "name" => "Example Site", "url" => SITE_URL, "logo" => DEFAULT_LOGO },
+        { "@type" => "Organization", "name" => "Example Site", "url" => "#{SITE_URL}/", "logo" => DEFAULT_LOGO },
         render_schema(site)["publisher"]
       )
     end
@@ -119,6 +120,11 @@ class PublisherIdentityTest < Minitest::Test
                    .dig("author", "affiliation", "name")
     # An empty affiliation in front matter means none, not an empty name.
     refute render_schema(site, "author_affiliation" => "")["author"].key?("affiliation")
+  end
+
+  def test_legacy_article_schema_name_is_normalized
+    data = render_schema({}, "schema_type" => "TechnicalArticle")
+    assert_equal "TechArticle", data["@type"]
   end
 
   def test_names_are_encoded_as_json

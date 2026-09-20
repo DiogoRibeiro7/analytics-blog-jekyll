@@ -9,6 +9,20 @@ require_relative "test_helper"
 class TestI18n < Minitest::Test
   UNBUILT_LOCALES = %w[pt es ar].freeze
 
+  def test_every_literal_template_translation_exists_in_each_shipped_locale
+    files = Dir[File.join(SiteBuilder.root, "{_layouts,_includes}", "**", "*.html")]
+    keys = files.flat_map do |file|
+      source = File.read(file)
+      source.scan(/\{%-?\s*t\s+['"]([\w.]+)['"]/).flatten +
+        source.scan(/['"]([\w.]+)['"]\s*\|\s*t\b/).flatten
+    end.uniq
+    %w[en es pt].each do |locale|
+      keys.each do |key|
+        refute_nil Datalog::I18n.lookup(SiteBuilder.site, locale, key), "#{locale}: missing #{key}"
+      end
+    end
+  end
+
   def test_homepage_declares_the_configured_locale
     html = SiteBuilder.read("index.html")
 

@@ -9,6 +9,7 @@
  */
 
 import { describeError, getClient } from "../dynamic-services/client.js";
+import { createSubmission } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "reactions";
 export const STORAGE_PREFIX = "datalog-reaction:";
@@ -26,12 +27,7 @@ function jsonIn(root, selector) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
+
 
 /** The reader's own choice for a page, on this device; null when none or when storage is unavailable. */
 export function storedChoice(storage, path) {
@@ -87,6 +83,7 @@ export function initReactions(root, deps = {}) {
   const storage = deps.storage === undefined ? safeStorage(win) : deps.storage;
   const path = root.dataset.reactionsPath || "/";
   const showCounts = root.dataset.reactionsCounts !== "false";
+  const submission = createSubmission();
   const labels = jsonIn(root, "[data-reactions-labels]");
   const errorLabels = labels.errors || {};
   const status = root.querySelector("[data-reactions-status]");
@@ -95,6 +92,7 @@ export function initReactions(root, deps = {}) {
   let loaded = false;
   let sending = false;
   let selected = storedChoice(storage, path);
+  let sequence = 0;
 
   const setStatus = (message, alert = false) => {
     if (!status) {
@@ -166,16 +164,19 @@ export function initReactions(root, deps = {}) {
 
     /** Fetches the counts. Resolves them, or null when the service gave none. */
     async load() {
+      const request = ++sequence;
       setState("loading");
       try {
         await ensureAvailable();
         const answer = await client.get(`${client.pathFor(FEATURE)}?path=${encodeURIComponent(path)}`);
+        if (request !== sequence || sending) return null;
         const counts = countsIn(answer && answer.data);
         showCountsOf(counts);
         setState("loaded");
         loaded = true;
         return counts;
       } catch (error) {
+        if (request !== sequence || sending) return null;
         if (error && OFF.has(error.kind)) {
           disable(error);
         } else {
@@ -200,12 +201,14 @@ export function initReactions(root, deps = {}) {
         return null;
       }
       sending = true;
+      sequence += 1;
       setBusy(true);
       setState("pending");
       setStatus(labels.sending || "");
       try {
         await ensureAvailable();
-        const answer = await client.post(client.pathFor(FEATURE), { path, reaction }, { idempotencyKey: newKey() });
+        const answer = await client.post(client.pathFor(FEATURE), { path, reaction }, { idempotencyKey: submission.key({ path, reaction }) });
+        submission.clear();
         selected = reaction;
         storeChoice(storage, path, reaction);
         showSelection();
@@ -221,10 +224,8 @@ export function initReactions(root, deps = {}) {
           disable(error);
         } else if (error && error.kind === "conflict") {
           // The service already has this reader's reaction: keep what it says.
-          selected = reaction;
-          storeChoice(storage, path, reaction);
           showSelection();
-          setState("selected");
+          setState(selected ? "selected" : loaded ? "loaded" : "unavailable");
           setStatus(labels.already || "");
         } else {
           setState(loaded ? "loaded" : "unavailable");

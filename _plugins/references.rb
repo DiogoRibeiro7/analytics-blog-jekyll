@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cgi"
+require "strscan"
 
 module Datalog
   # Numbered figures and tables, and references to them, within a page:
@@ -41,7 +42,8 @@ module Datalog
     ID = /\A[A-Za-z][\w.:-]*\z/
     # A label given in place of the number, as in "Theorem A".
     CUSTOM_LABEL = /\A[[:alnum:]][[:alnum:].'*-]*\z/
-    TARGET = /data-ref-target="([^"]+)" data-ref-kind="([a-z]+)"(?: data-ref-number="([^"]+)")?/
+    TARGET = /data-ref-target="([^"]+)"[ ]data-ref-kind="([a-z]+)"(?:[ ]data-ref-number="([^"]+)")?
+              ([ ]data-ref-numbered="true")?/x
     # A label ends with a full stop unless the tag chose another ending.
     LABEL = %r{<span class="datalog-ref-label" data-ref-for="([^"]+)"(?: data-ref-end="([^"]*)")?></span>}
     LINK = %r{<a class="datalog-ref" href="#([^"]+)" data-ref="\1">[^<]*</a>}
@@ -51,7 +53,12 @@ module Datalog
       content = document.content
       return unless content&.include?("data-ref")
 
-      targets = targets(content.scan(TARGET), document)
+      # Feeds and listings embed content that has already been numbered on its
+      # own page. Only process this document's remaining placeholders.
+      targets = targets(content.scan(TARGET).reject { |entry| entry[3] }, document)
+      content = content.gsub(TARGET) do |target|
+        Regexp.last_match(4) ? target : %(#{target} data-ref-numbered="true")
+      end
       content = content.gsub(LABEL) do
         id, ending = Regexp.last_match.captures
         text = "#{CGI.escapeHTML(targets.fetch(id))}#{ending || '.'}"
@@ -113,7 +120,8 @@ module Datalog
 
       content.gsub(LINK) do
         id = Regexp.last_match(1)
-        %(<a class="datalog-ref" href="##{id}" data-ref="#{id}">#{CGI.escapeHTML(targets[id])}</a>)
+        label = CGI.escapeHTML(targets[id])
+        %(<a class="datalog-ref" href="##{id}" data-ref="#{id}" data-ref-numbered="true">#{label}</a>)
       end
     end
 
@@ -140,10 +148,22 @@ module Datalog
     end
 
     # key="value", key='value' or key=variable.
-    def attributes(markup, context)
-      markup.scan(/(\w+)=(?:"([^"]*)"|'([^']*)'|([\w.\[\]-]+))/).to_h do |key, double, single, variable|
-        [key, double || single || context[variable].to_s]
+    def attributes(markup, context, tag = "reference")
+      scanner = StringScanner.new(markup)
+      result = {}
+      until scanner.eos?
+        scanner.skip(/\s+/)
+        break if scanner.eos?
+
+        unless scanner.scan(/(\w+)\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|([\w.\[\]-]+))(?=\s|\z)/m)
+          page = context.registers[:page] || {}
+          raise Liquid::ArgumentError,
+                "#{page['path'] || page['url']} {% #{tag} %} has invalid attributes near #{scanner.rest.inspect}"
+        end
+        key, double, single, variable = scanner.captures
+        result[key] = variable ? context[variable].to_s : (double || single).gsub(/\\([\\"'])/, '\\1')
       end
+      result
     end
 
     def markdown(context, text)
@@ -166,7 +186,7 @@ module Datalog
     end
 
     def render(context)
-      attributes = References.attributes(@markup, context)
+      attributes = References.attributes(@markup, context, "figure")
       id = References.validate_id(attributes["id"], "figure")
       src = attributes["src"].to_s
       raise Liquid::ArgumentError, "{% figure id=\"#{id}\" %} needs a src, the image it shows" if src.empty?
@@ -193,7 +213,7 @@ module Datalog
 
     # The body holds the caption and then a Markdown table.
     def render(context)
-      id = References.validate_id(References.attributes(@markup, context)["id"], "table")
+      id = References.validate_id(References.attributes(@markup, context, "table")["id"], "table")
       html = References.markdown(context, super)
       tables = html.scan(/<table\b/).size
       unless tables == 1

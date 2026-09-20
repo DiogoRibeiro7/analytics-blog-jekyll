@@ -119,6 +119,30 @@ describe('the form', () => {
     document.body.innerHTML = '';
   });
 
+  it('retries an unchanged submission with its original key, and recovers capability failures', async () => {
+    const client = fakeClient();
+    client.feature.mockRejectedValueOnce(new ServiceError('network', 'offline'));
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    const controller = initContactForm(root, { client });
+    fill(form, VALID);
+    await controller.submit();
+    expect(form.querySelector('button[type=submit]').disabled).toBe(false);
+    await controller.submit();
+    await controller.submit();
+    expect(client.post.mock.calls).toHaveLength(2);
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    fill(form, VALID);
+    await controller.submit();
+    expect(client.post.mock.calls[2][2].idempotencyKey).not.toBe(client.post.mock.calls[0][2].idempotencyKey);
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost response'));
+    fill(form, VALID);
+    await controller.submit();
+    form.elements.namedItem('subject').value += 'x';
+    form.elements.namedItem('subject').dispatchEvent(new Event('input', { bubbles: true }));
+    await controller.submit();
+    expect(client.post.mock.calls[4][2].idempotencyKey).not.toBe(client.post.mock.calls[3][2].idempotencyKey);
+  });
+
   it('sends a valid message with an idempotency key and shows success', async () => {
     const client = fakeClient();
     const controller = initContactForm(root, { client });
@@ -201,7 +225,7 @@ describe('the form', () => {
     client.post.mockRejectedValueOnce(new ServiceError('rate_limited', 'x', { requestId: 'req_9', retryAfter: 60 }));
     await controller.submit();
     expect(form.dataset.state).toBe('error');
-    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Ref req_9');
+    expect(form.querySelector('[data-form-status]').textContent).toBe('Wait. Try again in 60 seconds. Ref req_9');
     expect(form.querySelector('[data-form-status]').getAttribute('role')).toBe('alert');
 
     client.post.mockRejectedValueOnce(new ServiceError('network', 'x'));

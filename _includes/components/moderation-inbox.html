@@ -62,7 +62,7 @@ a fetch credentials mode, a sign-in link) are public.
     {%- endfor -%}
   },
   "errors": {
-    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,retry_after,reference" | split: "," -%}
     {%- for kind in kinds -%}
     {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
     {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}

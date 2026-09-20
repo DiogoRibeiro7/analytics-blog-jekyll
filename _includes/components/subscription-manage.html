@@ -23,8 +23,9 @@ may still lead here.
   "loading": {{ 'subscriptions.manage.loading' | t | jsonify }},
   "saving": {{ 'subscriptions.manage.saving' | t | jsonify }},
   "saved": {{ 'subscriptions.manage.saved' | t | jsonify }},
+  "retry": {{ 'subscriptions.manage.retry' | t | jsonify }},
   "errors": {
-    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,reference" | split: "," -%}
+    {%- assign kinds = "disabled,unsupported,version,timeout,network,malformed,unauthorized,forbidden,not_found,conflict,invalid,rate_limited,server,http,aborted,retry_after,reference" | split: "," -%}
     {%- for kind in kinds -%}
     {%- assign kind_key = "dynamic_services.errors." | append: kind -%}
     {{ kind | jsonify }}: {{ kind_key | t | jsonify }}{% unless forloop.last %},{% endunless %}

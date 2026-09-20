@@ -95,7 +95,7 @@ test.describe('Reactions', () => {
     await page.unroute(`${api}**`);
     await serve(page, { '/capabilities': capabilities, 'POST /reactions': { status: 409, body: { error: { code: 'already_reacted' } } } });
     await page.click('[data-reaction="clear"]');
-    await expect(page.locator('[data-reaction="clear"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-reaction="clear"]')).toHaveAttribute('aria-pressed', 'false');
     await expect(status).toContainText('already');
   });
 

@@ -24,10 +24,10 @@ Renders the standard article scaffold used by the default layout.
       page or layout that renders its own heading, so the page has one.
       {%- endcomment -%}
       {%- if article_page.title and article_page.show_title != false and layout.show_title != false -%}
-        <h1 class="article-title" itemprop="headline">{{ article_page.title }}</h1>
+        <h1 class="article-title" itemprop="headline">{{ article_page.title | escape }}</h1>
       {%- endif -%}
       {%- if article_page.subtitle -%}
-        <p class="article-subtitle">{{ article_page.subtitle }}</p>
+        <p class="article-subtitle">{{ article_page.subtitle | escape }}</p>
       {%- endif -%}
     {%- endunless -%}
     {%- if article_page.excerpt -%}

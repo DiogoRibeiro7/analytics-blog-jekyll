@@ -11,6 +11,49 @@ import { describeError } from "./client.js";
 
 export const STATES = ["idle", "pending", "success", "invalid", "error", "disabled"];
 
+/** Keeps a key until the same logical submission succeeds or its fields change. */
+export function createSubmission(form = null) {
+  const pending = new Map();
+  const reset = () => pending.clear();
+  if (form) {
+    ["input", "change", "reset"].forEach((event) => form.addEventListener(event, reset));
+  }
+  return {
+    key(payload, scope = "") {
+      const fingerprint = JSON.stringify(payload);
+      if (pending.get(scope)?.fingerprint !== fingerprint) {
+        const key = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+        pending.set(scope, { fingerprint, key });
+      }
+      return pending.get(scope).key;
+    },
+    clear(scope = "") { pending.delete(scope); },
+    reset
+  };
+}
+
+/** Permanent opt-outs disable a form; a temporary discovery failure can be retried. */
+export function createAvailabilityCheck(client, feature, form, labels = {}) {
+  let availability = null;
+  return () => {
+    if (!availability) {
+      availability = client.feature(feature).then((result) => {
+        if (form.dataset.state === "error") setFormState(form, "idle");
+        return result;
+      }).catch((error) => {
+        availability = null;
+        if (["disabled", "unsupported", "version"].includes(error.kind)) {
+          setFormState(form, "disabled", describeError(error, labels));
+        } else {
+          showFailure(form, error, labels);
+        }
+        throw error;
+      });
+    }
+    return availability;
+  };
+}
+
 function fieldsOf(form, name) {
   const found = form.elements.namedItem(name);
   if (!found) {

@@ -34,6 +34,7 @@ module Datalog
 
     def normalize!(document)
       data = document.data
+      data["last_modified_at"] ||= to_time(data["updated"]) if data["updated"]
       return unless data.key?("revisions")
 
       revisions = entries(data["revisions"], document)

@@ -7,13 +7,13 @@ optional:
 ---
 Outputs comprehensive JSON-LD metadata for the current page.
 Provides rich structured data for:
-- Article/BlogPosting/TechnicalArticle schema for posts
+- Article/BlogPosting/TechArticle schema for posts
 - WebPage schema for standard pages
 - Author information with social profile links
 - Publisher: a Person or an Organization, from `publisher` in _config.yml
 - Images, keywords, and content metadata
 
-Defaults to TechnicalArticle for posts, WebPage for other pages.
+Defaults to TechArticle for posts, WebPage for other pages.
 {%- endcomment -%}
 {%- assign schema_page = include.page -%}
 {%- include meta/publisher.html -%}
@@ -23,13 +23,15 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
 {%- endif -%}
 {%- assign default_type = 'WebPage' -%}
 {%- if is_post -%}
-  {%- assign default_type = 'TechnicalArticle' -%}
+  {%- assign default_type = 'TechArticle' -%}
 {%- endif -%}
-{%- assign schema_type = include.type | default: schema_page.schema_type | default: default_type -%}
+{%- assign schema_type = include.type | default: schema_page.schema_type | default: layout.schema_type | default: default_type -%}
+{%- if schema_type == 'TechnicalArticle' -%}{%- assign schema_type = 'TechArticle' -%}{%- endif -%}
 {%- assign csp_registry = site.data.csp | default: {} -%}
 {%- assign nonce_lookup = csp_registry.nonces | default: {} -%}
 {%- assign schema_nonce = schema_page.csp_nonce | default: page.csp_nonce | default: nonce_lookup[schema_page.path] | default: nonce_lookup[page.path] | default: nonce_lookup[page.url] -%}
-{%- assign description = schema_page.description | default: schema_page.excerpt | strip_html | strip_newlines | truncate: 300 -%}
+{%- assign schema_excerpt = schema_page.excerpt | strip_html -%}
+{%- assign description = schema_page.seo_description | default: schema_page.description | default: schema_excerpt | default: site.description | strip_newlines | truncate: 300 -%}
 {%- assign page_url = schema_page.url | absolute_url -%}
 {%- assign schema_authors = schema_page | page_authors -%}
 {%- assign schema_contributors = schema_page | page_contributors -%}
@@ -38,28 +40,28 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
 <script type="application/ld+json" nonce="{{ schema_nonce }}">
 {
   "@context": "https://schema.org",
-  "@type": "{{ schema_type }}",
+  "@type": {{ schema_type | jsonify_script }},
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": {{ page_url | jsonify }}
+    "@id": {{ page_url | jsonify_script }}
   },
-  "headline": {{ schema_page.title | default: site.title | truncate: 110 | jsonify }},
+  "headline": {{ schema_page.title | default: site.title | truncate: 110 | jsonify_script }},
   {%- comment -%} Values the page doesn't have are left out: "description": "" and "dateModified": "" are invalid structured data. {%- endcomment -%}
   {%- if description and description != "" -%}
-  "description": {{ description | jsonify }},
+  "description": {{ description | jsonify_script }},
   {%- endif -%}
-  "url": {{ page_url | jsonify }},
+  "url": {{ page_url | jsonify_script }},
   {%- if schema_page.image or schema_page.og_image -%}
   "image": {
     "@type": "ImageObject",
-    "url": {{ schema_page.image | default: schema_page.og_image | absolute_url | jsonify }},
+    "url": {{ schema_page.image | default: schema_page.og_image | absolute_url | jsonify_script }},
     "width": {{ schema_page.image_width | default: 1200 }},
     "height": {{ schema_page.image_height | default: 630 }}
   },
   {%- elsif site.social.default_image -%}
   "image": {
     "@type": "ImageObject",
-    "url": {{ site.social.default_image | absolute_url | jsonify }},
+    "url": {{ site.social.default_image | absolute_url | jsonify_script }},
     "width": 1200,
     "height": 630
   },
@@ -74,10 +76,10 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   "wordCount": {{ word_count }},
   {%- endif -%}
   {%- if schema_page.tags and schema_page.tags.size > 0 -%}
-  "keywords": {{ schema_page.tags | jsonify }},
+  "keywords": {{ schema_page.tags | jsonify_script }},
   {%- endif -%}
   {%- if schema_page.categories and schema_page.categories.size > 0 -%}
-  "articleSection": {{ schema_page.categories | first | jsonify }},
+  "articleSection": {{ schema_page.categories | first | jsonify_script }},
   {%- endif -%}
   {%- if is_post -%}
   "inLanguage": "{{ schema_page.lang | default: site.locale | default: 'en' | split: '_' | first }}",
@@ -98,13 +100,13 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   ],
   {%- endif -%}
   "publisher": {
-    "@type": {{ publisher_type | jsonify }},
-    "name": {{ publisher_name | jsonify }},
-    "url": {{ publisher_url | jsonify }}
+    "@type": {{ publisher_type | jsonify_script }},
+    "name": {{ publisher_name | jsonify_script }},
+    "url": {{ publisher_url | jsonify_script }}
     {%- if publisher_logo -%},
     "logo": {
       "@type": "ImageObject",
-      "url": {{ publisher_logo | jsonify }}
+      "url": {{ publisher_logo | jsonify_script }}
       {%- if publisher_logo_default -%},
       "width": 512,
       "height": 512
@@ -116,27 +118,27 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   "identifier": {
     "@type": "PropertyValue",
     "propertyID": "doi",
-    "value": {{ schema_page.doi | jsonify }}
+    "value": {{ schema_page.doi | jsonify_script }}
   }
   {%- endif -%}
   {%- if schema_page.citation_key -%},
-  "citation": {{ schema_page.citation_key | jsonify }}
+  "citation": {{ schema_page.citation_key | jsonify_script }}
   {%- endif -%}
   {%- comment -%} The licence of the text and figures, and who holds the copyright. {%- endcomment -%}
   {%- assign content_license = schema_page | page_license -%}
   {%- if content_license -%}
   {%- if content_license.url -%},
-  "license": {{ content_license.url | jsonify }}
+  "license": {{ content_license.url | jsonify_script }}
   {%- endif -%}
   {%- if content_license.year -%},
-  "copyrightYear": {{ content_license.year | jsonify }}
+  "copyrightYear": {{ content_license.year | jsonify_script }}
   {%- endif -%}
   {%- if content_license.holder -%},
   "copyrightHolder": {% if content_license.people %}{% if content_license.holders.size > 1 %}[{% endif %}
   {%- for holder in content_license.holders -%}
-  { "@type": "Person", "name": {{ holder | jsonify }} }{% unless forloop.last %},{% endunless %}
+  { "@type": "Person", "name": {{ holder | jsonify_script }} }{% unless forloop.last %},{% endunless %}
   {%- endfor -%}
-  {% if content_license.holders.size > 1 %}]{% endif %}{% else %}{ "@type": "Organization", "name": {{ content_license.holder | jsonify }} }{% endif %}
+  {% if content_license.holders.size > 1 %}]{% endif %}{% else %}{ "@type": "Organization", "name": {{ content_license.holder | jsonify_script }} }{% endif %}
   {%- endif -%}
   {%- endif -%}
   {%- comment -%} Each correction in the revision history, with its date, summary and link. {%- endcomment -%}
@@ -147,11 +149,11 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
   {
     "@type": "CorrectionComment",
     "datePublished": "{{ correction.date | date_to_xmlschema }}",
-    "text": {{ correction.summary | jsonify }}
+    "text": {{ correction.summary | jsonify_script }}
     {%- if correction.details_url -%}
     {%- assign correction_url = correction.details_url -%}
     {%- unless correction_url contains '://' -%}{%- assign correction_url = correction_url | absolute_url -%}{%- endunless -%},
-    "url": {{ correction_url | jsonify }}
+    "url": {{ correction_url | jsonify_script }}
     {%- endif -%}
   }{% unless forloop.last %},{% endunless %}
   {%- endfor -%}
@@ -170,19 +172,19 @@ Defaults to TechnicalArticle for posts, WebPage for other pages.
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": {{ site.url | jsonify }}
+      "item": {{ '/' | absolute_url | jsonify_script }}
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "Blog",
-      "item": {{ '/blog/' | absolute_url | jsonify }}
+      "item": {{ '/blog/' | absolute_url | jsonify_script }}
     },
     {
       "@type": "ListItem",
       "position": 3,
-      "name": {{ schema_page.title | truncate: 50 | jsonify }},
-      "item": {{ page_url | jsonify }}
+      "name": {{ schema_page.title | truncate: 50 | jsonify_script }},
+      "item": {{ page_url | jsonify_script }}
     }
   ]
 }

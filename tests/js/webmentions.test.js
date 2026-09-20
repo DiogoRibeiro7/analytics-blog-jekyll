@@ -239,3 +239,10 @@ describe('the section', () => {
     delete window.DatalogDynamicServices;
   });
 });
+
+
+it('orders webmentions by their instant across time zones', () => {
+  const mentions = [{ ...GOOD, id: 'later', published_at: '2026-09-20T09:30:00Z' },
+    { ...GOOD, id: 'earlier', published_at: '2026-09-20T10:00:00+02:00' }];
+  expect(mentionsIn({ mentions }).map((mention) => mention.id)).toEqual(['later', 'earlier']);
+});

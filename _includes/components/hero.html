@@ -23,7 +23,7 @@
 <section class="hero">
   <div class="hero-overlay"></div>
   <div class="container hero-content">
-    <h1>{{ page.hero_title | default: site.title }}</h1>
+    <h1>{{ page.hero_title | default: site.title | escape }}</h1>
     <p class="hero-tagline">{{ page.hero_tagline | default: site.hero_tagline }}</p>
     {% if page.hero_cta_url %}
       {% capture hero_cta_fallback %}{% t 'home.read_more' %}{% endcapture %}

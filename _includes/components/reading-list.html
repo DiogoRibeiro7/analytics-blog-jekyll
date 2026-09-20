@@ -8,6 +8,7 @@ components/reading-list.html %}` on a page, named in
 theme_options.reading_state.list_url so posts link to it. Filled from this
 browser's storage; nothing comes from a server.
 {%- endcomment -%}
+{%- unless site.theme_options.reading_state.enabled == false -%}
 {%- capture progress_label %}{% t 'post.reading_state.progress' %}{% endcapture -%}
 {%- capture highlights_label %}{% t 'post.reading_state.highlights_count' %}{% endcapture -%}
 {%- capture saved_label %}{% t 'post.reading_state.saved' %}{% endcapture -%}
@@ -29,3 +30,5 @@ browser's storage; nothing comes from a server.
   </div>
   <p class="reading-data__status" data-reading-status aria-live="polite"></p>
 </div>
+
+{%- endunless -%}

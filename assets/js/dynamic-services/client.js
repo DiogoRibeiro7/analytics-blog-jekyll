@@ -46,7 +46,8 @@ export const DEFAULT_LABELS = {
   server: "The service ran into a problem. Try again later.",
   http: "The service refused the request.",
   aborted: "The request was cancelled.",
-  reference: "Reference: {{id}}"
+  reference: "Reference: {{id}}",
+  retry_after: "Try again in {{seconds}} seconds."
 };
 
 /**
@@ -140,7 +141,11 @@ function errorFrom(response, data, requestId) {
  */
 export function describeError(error, labels = {}) {
   const kind = error && error.kind ? error.kind : "http";
-  const text = labels[kind] || DEFAULT_LABELS[kind] || labels.http || DEFAULT_LABELS.http;
+  let text = labels[kind] || DEFAULT_LABELS[kind] || labels.http || DEFAULT_LABELS.http;
+  if (error?.retryAfter != null && Number.isFinite(error.retryAfter)) {
+    const wait = labels.retry_after || DEFAULT_LABELS.retry_after;
+    text += ` ${wait.split("{{seconds}}").join(String(Math.ceil(error.retryAfter)))}`;
+  }
   if (error && error.requestId) {
     const reference = labels.reference || DEFAULT_LABELS.reference;
     return `${text} ${reference.split("{{id}}").join(error.requestId)}`;
@@ -157,13 +162,14 @@ export function createClient(config = readConfig(), deps = {}) {
   const fetchImpl = deps.fetch || ((...args) => globalThis.fetch(...args));
   const wait = deps.delay || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   const doc = deps.document === undefined ? globalThis.document : deps.document;
-  const base = String(config.base_url || "").replace(/\/+$/, "");
+  const configuredBase = String(config.base_url || "").trim();
+  const base = configuredBase.replace(/\/+$/, "");
   const version = versionSegment(config.api_version);
   const timeout = Number(config.timeout_ms) > 0 ? Number(config.timeout_ms) : DEFAULT_TIMEOUT;
   const credentials = ["omit", "same-origin", "include"].includes(config.credentials) ? config.credentials : "omit";
   const features = config.features && typeof config.features === "object" ? config.features : {};
   const paths = config.paths && typeof config.paths === "object" ? config.paths : {};
-  const enabled = base !== "";
+  const enabled = configuredBase !== "";
   let discovery = null;
 
   /** The full URL of a path under the versioned base, or a URL given whole. */
@@ -181,15 +187,17 @@ export function createClient(config = readConfig(), deps = {}) {
   }
 
   async function attempt(method, path, options) {
+    if (options.signal?.aborted) {
+      throw new ServiceError("aborted", "The request was cancelled", { retryable: false });
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
     let cancelled = false;
-    if (options.signal) {
-      options.signal.addEventListener("abort", () => {
-        cancelled = true;
-        controller.abort();
-      });
-    }
+    const onAbort = () => {
+      cancelled = true;
+      controller.abort();
+    };
+    options.signal?.addEventListener("abort", onAbort, { once: true });
     const headers = { Accept: "application/json", ...(options.headers || {}) };
     const init = { method, headers, credentials, signal: controller.signal };
     if (options.body !== undefined) {
@@ -221,9 +229,10 @@ export function createClient(config = readConfig(), deps = {}) {
       throw new ServiceError("network", "The service could not be reached");
     } finally {
       clearTimeout(timer);
+      options.signal?.removeEventListener("abort", onAbort);
     }
 
-    const requestId = response.headers.get("X-Request-Id") || null;
+    let requestId = response.headers.get("X-Request-Id") || null;
     let data = null;
     if (text) {
       try {
@@ -238,6 +247,7 @@ export function createClient(config = readConfig(), deps = {}) {
         }
       }
     }
+    requestId = requestId || data?.request_id || data?.error?.request_id || null;
     if (!response.ok) {
       throw errorFrom(response, data, requestId);
     }

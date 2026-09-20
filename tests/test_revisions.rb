@@ -82,7 +82,7 @@ class RevisionsTest < Minitest::Test
     replaced = normalize("last_modified_at" => Date.new(2020, 1, 1), "revisions" => [revision("2026-09-16")])
 
     assert_equal "2027-05-01", kept["last_modified_at"]
-    assert_nil updated["last_modified_at"]
+    assert_equal "2027-05-01", day(updated["last_modified_at"])
     assert_equal Time.new(2026, 9, 16), replaced["last_modified_at"]
   end
 

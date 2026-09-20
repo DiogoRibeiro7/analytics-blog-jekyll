@@ -60,6 +60,49 @@ class ReferencesTest < Minitest::Test
     assert_includes error.message, "two numbered figures, tables or statements with the id \"fig-a\""
   end
 
+  def test_embedded_posts_keep_their_own_numbers_in_feeds_and_listings
+    FileUtils.mkdir_p(File.join(@dir, "_posts"))
+    %w[01 02].each do |day|
+      File.write(File.join(@dir, "_posts", "2024-05-#{day}-post.md"),
+                 "---\nlayout: null\ntitle: Post #{day}\n---\nSee {% ref fig-shared %}.\n\n#{figure('fig-shared')}")
+    end
+    listing = build("{% for post in site.posts %}{{ post.content }}{% endfor %}",
+                    config: { "plugins" => ["jekyll-feed"] })
+    assert_equal ["Figure 1", "Figure 1"], listing.css("a.datalog-ref").map(&:text)
+    feed = Nokogiri::XML(File.read(File.join(@dir, "_site", "feed.xml")))
+    contents = feed.xpath("//*[local-name()='entry']/*[local-name()='content']")
+    assert_equal 2, contents.length
+    contents.each do |entry|
+      html = Nokogiri::HTML5.fragment(entry.text)
+      assert_equal "Figure 1", html.at_css("a.datalog-ref").text
+      assert_equal "Figure 1.", html.at_css(".datalog-ref-label").text
+    end
+  end
+
+  def test_escaped_quotes_and_backslashes_survive_attributes
+    doc = build(<<~'LIQUID')
+      {% figure id="quoted" src="/a.png" alt="He said \"hi\" at C:\\plots" %}
+      Caption.
+      {% endfigure %}
+      {% theorem id="thm-quoted" title='It\'s "quoted"' %}
+      Body.
+      {% endtheorem %}
+    LIQUID
+    assert_equal 'He said "hi" at C:\\plots', doc.at_css("img")["alt"]
+    assert_includes doc.at_css(".datalog-statement__title").text, 'It\'s "quoted"'
+  end
+
+  def test_unconsumed_or_unclosed_attributes_fail_with_the_tag_and_page
+    ['alt="unclosed', 'alt="Fine" stray', 'alt="Fine" id=fig 1'].each do |attributes|
+      error = assert_raises(StandardError) do
+        build("{% figure id=\"fig-a\" src=\"/a.png\" #{attributes} %}Caption.{% endfigure %}")
+      end
+      assert_includes error.message, "figure"
+      assert_includes error.message, "index.md"
+      assert_includes error.message, "invalid attributes"
+    end
+  end
+
   def test_a_reference_to_nothing_stops_the_build
     error = assert_raises(Jekyll::Errors::FatalException) { build("{% ref fig-missing %}\n\n#{figure('fig-a')}") }
     assert_includes error.message, "refers to \"fig-missing\", which no numbered figure, table or statement"

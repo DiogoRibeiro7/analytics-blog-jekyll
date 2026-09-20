@@ -8,6 +8,15 @@ require_relative "test_helper"
 # inlined data that only the academic pages read, and requested the feature
 # bundles it uses only after the core bundle had loaded.
 class FeatureLoadingTest < Minitest::Test
+  def test_unconfigured_math_defaults_to_detection_and_preserves_explicit_opt_outs
+    expressions = { "math_expressions" => [{ "latex" => "x^2" }] }
+    assert_equal "true", math_enabled(expressions, "", site: {})
+    assert_equal "false", math_enabled({}, "", site: {})
+    assert_equal "false", math_enabled(expressions, "", site: { "features" => { "mathjax" => false } })
+    assert_equal "false",
+                 math_enabled(expressions, "", site: { "theme_options" => { "math" => { "render_on_load" => false } } })
+  end
+
   def test_loads_mathjax_where_the_page_has_math
     {
       "2024/01/01/introducing-datalog/index.html" => "a post with math",
@@ -73,10 +82,10 @@ class FeatureLoadingTest < Minitest::Test
   # `mathjax` was read before `math`, so under a `mathjax: true` in front
   # matter defaults a page could not opt out with `math: false`.
   def test_math_front_matter_wins_over_mathjax
-    assert_equal "false", math_enabled("mathjax" => true, "math" => false),
+    assert_equal "false", math_enabled({ "mathjax" => true, "math" => false }),
                  "math: false should keep MathJax off under a mathjax: true default"
-    assert_equal "true", math_enabled("mathjax" => false, "math" => true)
-    assert_equal "true", math_enabled("mathjax" => true), "mathjax should still load MathJax when math is unset"
+    assert_equal "true", math_enabled({ "mathjax" => false, "math" => true })
+    assert_equal "true", math_enabled({ "mathjax" => true }), "mathjax should still load MathJax when math is unset"
   end
 
   # The math preprocessor followed Pandoc's rule for inline math and left out
@@ -94,9 +103,9 @@ class FeatureLoadingTest < Minitest::Test
 
   private
 
-  def math_enabled(page, content = "")
+  def math_enabled(page, content = "", site: SiteBuilder.payload["site"])
     template = Liquid::Template.parse("{% include meta/math-config.html page=page %}{{ math_enabled }}")
-    context = { "site" => SiteBuilder.payload["site"], "page" => page, "content" => content }
+    context = { "site" => site, "page" => page, "content" => content }
     template.render!(context, registers: { site: SiteBuilder.site }).strip
   end
 end

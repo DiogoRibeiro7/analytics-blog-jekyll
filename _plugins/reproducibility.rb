@@ -96,9 +96,22 @@ module Datalog
     def host_url(url, kind, *parts)
       return unless url
 
-      host = URI.parse(url).host.to_s.sub(/\Awww\./, "")
+      uri = URI.parse(url)
+      host = uri.host.to_s.downcase.sub(/\Awww\./, "")
       pattern = HOSTS.dig(host, kind)
-      "#{url.chomp('/')}#{format(pattern, *parts)}" if pattern
+      return unless pattern
+
+      root = if host == "github.com"
+               uri.path.split("/").reject(&:empty?).first(2).join("/")
+             else
+               uri.path.sub(%r{/-/.*}, "").delete_prefix("/")
+             end
+      root = root.chomp("/").delete_suffix(".git")
+      # A ref is one route argument; a file retains its directory separators.
+      encoded = parts.each_with_index.map do |part, index|
+        index.zero? ? URI.encode_www_form_component(part).gsub("+", "%20") : encode_path(part)
+      end
+      "#{uri.scheme}://#{host}/#{root}#{format(pattern, *encoded)}"
     rescue URI::InvalidURIError
       nil
     end
@@ -125,7 +138,11 @@ module Datalog
 
     def doi_url(doi)
       bare = bare_doi(doi)
-      "https://doi.org/#{bare}" if bare
+      "https://doi.org/#{encode_path(bare)}" if bare
+    end
+
+    def encode_path(value)
+      value.to_s.split("/", -1).map { |part| URI.encode_www_form_component(part).gsub("+", "%20") }.join("/")
     end
 
     # What a link reads: the address without its scheme, or the site path.

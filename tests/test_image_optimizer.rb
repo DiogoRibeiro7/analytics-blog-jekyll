@@ -186,14 +186,14 @@ class ImageOptimizerTest < Minitest::Test
   # Unit tests for helper methods
   # ---------------------------------------------------------------------------
 
-  def test_normalize_src_strips_leading_slashes
+  def test_normalize_src_skips_protocol_relative_urls
     result = Jekyll::ImageOptimizer.normalize_src("///assets/img/photo.jpg", nil)
-    assert_equal "/assets/img/photo.jpg", result
+    assert_nil result
   end
 
-  def test_normalize_src_preserves_external_urls
+  def test_normalize_src_skips_external_urls
     result = Jekyll::ImageOptimizer.normalize_src("https://example.com/photo.jpg", nil)
-    assert_equal "https://example.com/photo.jpg", result
+    assert_nil result
   end
 
   def test_normalize_src_returns_nil_for_nil
@@ -201,9 +201,9 @@ class ImageOptimizerTest < Minitest::Test
     assert_nil result
   end
 
-  def test_normalize_src_returns_empty_for_empty
+  def test_normalize_src_returns_nil_for_empty
     result = Jekyll::ImageOptimizer.normalize_src("", nil)
-    assert_equal "", result
+    assert_nil result
   end
 
   def test_build_srcset_produces_correct_format

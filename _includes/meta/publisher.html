@@ -31,7 +31,7 @@ on the author.
 {%- if site.publisher.url -%}
   {%- assign publisher_url = site.publisher.url | absolute_url -%}
 {%- else -%}
-  {%- assign publisher_url = site.url -%}
+  {%- assign publisher_url = '/' | absolute_url -%}
 {%- endif -%}
 {%- assign publisher_logo = nil -%}
 {%- assign publisher_logo_default = false -%}

@@ -11,8 +11,8 @@ export const FORMAT = 1;
 
 /**
  * localStorage when the browser lets this site use it, else null: a private
- * window, blocked site data or a full quota all answer null, and every
- * feature then stays off without an error.
+ * window or blocked site data answers null. Full storage remains readable
+ * so readers can export or erase data to make room.
  * @param {Window} [win]
  * @returns {Storage|null}
  */
@@ -24,6 +24,14 @@ export function browserStorage(win = window) {
     storage.removeItem(key);
     return storage;
   } catch (error) {
+    if (error.name === "QuotaExceededError" || error.code === 22) {
+      try {
+        win.localStorage.getItem(`${PREFIX}probe`);
+        return win.localStorage;
+      } catch (_blocked) {
+        return null;
+      }
+    }
     return null;
   }
 }
@@ -68,9 +76,21 @@ export function cleanRecord(record) {
   }
   const clean = emptyRecord(record.article, typeof record.title === "string" ? record.title : "");
   clean.bookmarked = record.bookmarked === true;
-  clean.annotations = Array.isArray(record.annotations) ? record.annotations.filter(validAnnotation) : [];
-  if (record.progress && typeof record.progress.ratio === "number") {
-    clean.progress = record.progress;
+  const annotations = new Map();
+  (Array.isArray(record.annotations) ? record.annotations : []).filter(validAnnotation).forEach((annotation) => {
+    const saved = { id: annotation.id, quote: annotation.quote };
+    ["prefix", "suffix", "section", "note", "created_at"].forEach((field) => {
+      if (typeof annotation[field] === "string") saved[field] = annotation[field];
+    });
+    annotations.set(saved.id, saved);
+  });
+  clean.annotations = [...annotations.values()];
+  if (record.progress && Number.isFinite(record.progress.ratio)) {
+    clean.progress = {
+      ratio: Math.min(1, Math.max(0, record.progress.ratio)),
+      anchor: typeof record.progress.anchor === "string" ? record.progress.anchor : null
+    };
+    if (typeof record.progress.updated_at === "string") clean.progress.updated_at = record.progress.updated_at;
   }
   if (typeof record.saved_at === "string") {
     clean.saved_at = record.saved_at;
@@ -172,7 +192,7 @@ export function createStore(storage = browserStorage()) {
   }
 
   /**
-   * Reads an export back, replacing the records of the articles it holds.
+   * Merges an export with existing bookmarks and annotations by article/id.
    * @param {string} text
    * @returns {number} How many articles were written
    */
@@ -184,7 +204,19 @@ export function createStore(storage = browserStorage()) {
     }
     return articles.reduce((count, record) => {
       const clean = cleanRecord(record);
-      return clean && write(clean.article, clean) ? count + 1 : count;
+      if (!clean) return count;
+      const existing = read(clean.article);
+      if (existing) {
+        clean.annotations = [...new Map([...existing.annotations, ...clean.annotations].map((item) => [item.id, item])).values()];
+        clean.bookmarked = clean.bookmarked || existing.bookmarked;
+        clean.title = clean.title || existing.title;
+        clean.saved_at = clean.saved_at || existing.saved_at;
+        if (!clean.progress || (Date.parse(existing.progress?.updated_at) || 0) > (Date.parse(clean.progress.updated_at) || 0)) {
+          clean.progress = existing.progress;
+        }
+      }
+      if (!write(clean.article, clean)) throw new Error("Reading data could not be saved");
+      return count + 1;
     }, 0);
   }
 

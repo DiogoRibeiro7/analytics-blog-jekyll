@@ -1,5 +1,6 @@
 {% assign page_title = page.seo_title | default: page.title | default: site.title %}
-{% assign page_description = page.seo_description | default: page.description | default: page.excerpt | default: site.description %}
+{% assign excerpt_description = page.excerpt | strip_html %}
+{% assign page_description = page.seo_description | default: page.description | default: excerpt_description | default: site.description %}
 {% assign canonical_url = page.url | default: page.permalink | default: '/' | absolute_url %}
 {% assign raw_keywords = page.keywords | default: page.tags | default: site.keywords %}
 {% assign localization_config = site.theme_options.localization %}
@@ -23,7 +24,7 @@
 {% include csp-meta.html %}
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0b1d3d" />
-<meta name="description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+<meta name="description" content="{{ page_description | normalize_whitespace | escape }}" />
 {% assign head_authors = page | page_authors %}
 <meta name="author" content="{{ head_authors | map: 'name' | join: ', ' | escape }}" />
 {% if keyword_list %}
@@ -34,15 +35,15 @@
 {%- comment -%} `robots:` in front matter keeps a page out of search results, as the 404, search and admin pages do. {%- endcomment %}
 <meta name="robots" content="{{ page.robots | default: 'index,follow' }}" />
 <meta name="format-detection" content="telephone=no" />
-<meta name="application-name" content="{{ site.title }}" />
-<meta property="og:site_name" content="{{ site.title }}" />
+<meta name="application-name" content="{{ site.title | escape }}" />
+<meta property="og:site_name" content="{{ site.title | escape }}" />
 {% if page.layout == 'post' or page.collection == 'posts' %}
 <meta property="og:type" content="article" />
 {% else %}
 <meta property="og:type" content="website" />
 {% endif %}
-<meta property="og:title" content="{{ page_title | strip_html | normalize_whitespace }}" />
-<meta property="og:description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+<meta property="og:title" content="{{ page_title | normalize_whitespace | escape }}" />
+<meta property="og:description" content="{{ page_description | normalize_whitespace | escape }}" />
 <meta property="og:url" content="{{ canonical_url }}" />
 {% if page.og_image or page.image %}
 <meta property="og:image" content="{{ page.og_image | default: page.image | absolute_url }}" />
@@ -53,8 +54,8 @@
 <meta property="og:see_also" content="{{ site.url }}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="{{ site.social.twitter | default: site.twitter_username }}" />
-<meta name="twitter:title" content="{{ page_title | strip_html | normalize_whitespace }}" />
-<meta name="twitter:description" content="{{ page_description | strip_html | normalize_whitespace }}" />
+<meta name="twitter:title" content="{{ page_title | normalize_whitespace | escape }}" />
+<meta name="twitter:description" content="{{ page_description | normalize_whitespace | escape }}" />
 {% if page.twitter_image or page.og_image or page.image %}
 <meta name="twitter:image" content="{{ page.twitter_image | default: page.og_image | default: page.image | absolute_url }}" />
 {% elsif site.social.default_image %}
@@ -154,11 +155,11 @@
 <meta name="msapplication-TileColor" content="#0b1d3d" />
 
 {% if page.seo_title %}
-<title>{{ page.seo_title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
+<title>{{ page.seo_title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
 {% elsif page.title and page.title != site.title %}
-<title>{{ page.title | strip_html | normalize_whitespace }} | {{ site.title }}</title>
+<title>{{ page.title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
 {% else %}
-<title>{{ site.title }}</title>
+<title>{{ site.title | escape }}</title>
 {% endif %}
 
 {%- comment -%}
@@ -355,7 +356,7 @@
 {%- comment -%} Highwire and Dublin Core tags, for a page read as a research article; the include decides which. {%- endcomment -%}
 {% include meta/scholarly.html %}
 
-<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}" />
+<link rel="alternate" type="application/atom+xml" title="{{ site.title | escape }}" href="{{ '/feed.xml' | absolute_url }}" />
 <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
 {%- comment -%} A verification tag renders only when the site sets its code: an empty one verifies nothing. {%- endcomment %}
 {% if site.google_site_verification and site.google_site_verification != "" %}

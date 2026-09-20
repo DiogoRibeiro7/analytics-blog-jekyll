@@ -89,7 +89,7 @@ export function mentionsIn(data, types = DEFAULT_TYPES) {
   return list
     .map((entry) => normalizeMention(entry, types))
     .filter(Boolean)
-    .sort((a, b) => b.published_at.localeCompare(a.published_at));
+    .sort((a, b) => (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0));
 }
 
 function formatDate(value, lang) {

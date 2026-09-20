@@ -12,6 +12,9 @@
   background: rgba($color-neutral-100, 0.9);
   box-shadow: 0 12px 30px rgba($color-neutral-900, 0.08);
   display: grid;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
   gap: map.get($spacing, 3);
   transition: border-color $transition-snappy, box-shadow $transition-snappy, background $transition-snappy;
 
@@ -22,7 +25,14 @@
   }
 
   mjx-container[display='true'] {
-    justify-self: center;
+    justify-self: start;
+    min-width: max-content;
+    margin-inline: auto;
+  }
+
+  .katex-display {
+    min-width: max-content;
+    margin-inline: auto;
   }
 }
 

@@ -12,7 +12,7 @@ show_title: false # this layout renders the page's <h1>
           {% if page.icon %}
             <span class="package-docs__icon">{{ page.icon }}</span>
           {% endif %}
-          {{ page.title }}
+          {{ page.title | escape }}
         </h1>
         {% if page.tagline %}
           <p class="package-docs__tagline">{{ page.tagline }}</p>
@@ -90,12 +90,12 @@ show_title: false # this layout renders the page's <h1>
         {% if page.nav_sections %}
           {% for section in page.nav_sections %}
             <div class="package-nav__section">
-              <h3 class="package-nav__section-title">{{ section.title }}</h3>
+              <h3 class="package-nav__section-title">{{ section.title | escape }}</h3>
               <ul class="package-nav__list">
                 {% for item in section.items %}
                   <li class="package-nav__item">
                     <a href="#{{ item.id }}" class="package-nav__link">
-                      {{ item.title }}
+                      {{ item.title | escape }}
                     </a>
                   </li>
                 {% endfor %}
@@ -171,7 +171,7 @@ show_title: false # this layout renders the page's <h1>
             </svg>
             <div>
               <span class="package-docs__footer-nav-label">Previous</span>
-              <span class="package-docs__footer-nav-title">{{ page.previous_page.title }}</span>
+              <span class="package-docs__footer-nav-title">{{ page.previous_page.title | escape }}</span>
             </div>
           </a>
         {% endif %}
@@ -180,7 +180,7 @@ show_title: false # this layout renders the page's <h1>
           <a href="{{ page.next_page.url | relative_url }}" class="package-docs__footer-nav-link package-docs__footer-nav-link--next">
             <div>
               <span class="package-docs__footer-nav-label">Next</span>
-              <span class="package-docs__footer-nav-title">{{ page.next_page.title }}</span>
+              <span class="package-docs__footer-nav-title">{{ page.next_page.title | escape }}</span>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"></polyline>
