@@ -71,6 +71,7 @@ module MathPreprocessor
       processed = CODE_PATTERNS.reduce(@content.dup) do |text, pattern|
         text.gsub(pattern) { |match| mask(match) }
       end
+      processed = normalize_inline_dollars(processed)
       processed = apply_patterns(processed, DISPLAY_PATTERNS, display: true)
       processed = apply_patterns(processed, INLINE_PATTERNS, display: false)
       # A segment set aside can contain the placeholder of an earlier one.
@@ -83,6 +84,24 @@ module MathPreprocessor
     def mask(segment)
       @segments << segment
       "\x00#{@segments.size - 1}\x00"
+    end
+
+    # Kramdown accepts $$...$$ inside prose as inline math. A div there is
+    # escaped by Markdown and leaks its attributes into the visible article.
+    # Normalize before wrapping; code is already masked and standalone or
+    # multiline display equations retain their original delimiters.
+    def normalize_inline_dollars(text)
+      text.gsub(DISPLAY_PATTERNS.first[:regex]) do |expression|
+        match = Regexp.last_match
+        body = match[:body]
+        next expression if body.include?("\n") || body.strip.empty?
+
+        before = match.pre_match.split("\n", -1).last.to_s
+        after = match.post_match.split("\n", 2).first.to_s
+        next expression unless before.match?(/\S/) || after.match?(/\S/)
+
+        "$#{body.strip}$"
+      end
     end
 
     def apply_patterns(text, patterns, display: false)
@@ -118,6 +137,9 @@ module MathPreprocessor
         "aria-label" => alt_text,
         "tabindex" => "0"
       }
+      # Kramdown must not interpret TeX's escaped delimiters or underscores as
+      # Markdown inside an inline HTML span.
+      attributes["markdown"] = "0" unless display
 
       attribute_string = attributes.map do |key, value|
         next if value.nil? || value.strip.empty?
@@ -125,7 +147,7 @@ module MathPreprocessor
         %(#{key}="#{CGI.escapeHTML(value)}")
       end.compact.join(" ")
 
-      inner = "#{open}#{latex}#{close}"
+      inner = CGI.escapeHTML("#{open}#{latex}#{close}")
       "<#{tag} #{attribute_string}>#{inner}</#{tag}>"
     end
 

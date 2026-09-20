@@ -247,7 +247,7 @@ A field the page lacks leaves its tag out, so nothing is emitted empty.
 
 ### How they relate to the JSON-LD and the citation tools
 
-The three describe the same article to different readers. The JSON-LD `TechnicalArticle` (or `ScholarlyArticle` on a research page) is for search engines; the Highwire and Dublin Core tags are for scholarly indexes and reference managers; the BibTeX, RIS and EndNote exports under "How to cite" are for a reader's own bibliography. All of them take the authors from `page | page_authors`, the DOI from `doi`, the publisher from `publisher` and the licence from `license`, so a change in front matter reaches every one of them.
+The three describe the same article to different readers. The JSON-LD `TechArticle` (or `ScholarlyArticle` on a research page) is for search engines; the Highwire and Dublin Core tags are for scholarly indexes and reference managers; the BibTeX, RIS and EndNote exports under "How to cite" are for a reader's own bibliography. All of them take the authors from `page | page_authors`, the DOI from `doi`, the publisher from `publisher` and the licence from `license`, so a change in front matter reaches every one of them.
 
 ## Related Documentation
 

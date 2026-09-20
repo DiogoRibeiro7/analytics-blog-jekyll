@@ -8,7 +8,7 @@
  */
 
 import { createClient, describeError, getClient } from "../dynamic-services/client.js";
-import { readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
+import { createSubmission, readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "comments";
 export const MIN_BODY = 3;
@@ -27,12 +27,7 @@ function jsonIn(root, selector) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
+
 
 function interpolate(text, values) {
   return Object.keys(values).reduce((memo, key) => memo.split(`{{${key}}}`).join(values[key]), text);
@@ -71,7 +66,7 @@ export function threadOf(comments, replies = true) {
       roots.push(node);
     }
   });
-  const byDate = (a, b) => String(a.comment.created_at || "").localeCompare(String(b.comment.created_at || ""));
+  const byDate = (a, b) => (Date.parse(a.comment.created_at) || 0) - (Date.parse(b.comment.created_at) || 0);
   const sort = (nodes) => {
     nodes.sort(byDate);
     nodes.forEach((node) => sort(node.replies));
@@ -246,6 +241,7 @@ export function initCommentsThread(root, deps = {}) {
   const status = root.querySelector("[data-comments-status]");
   const list = root.querySelector("[data-comments-list]");
   const form = root.querySelector("form");
+  const submission = createSubmission(form);
   const parentField = form ? form.elements.namedItem("parent_id") : null;
   const replying = root.querySelector("[data-comments-replying]");
   const replyingTo = root.querySelector("[data-comments-replying-to]");
@@ -380,13 +376,14 @@ export function initCommentsThread(root, deps = {}) {
       setFormState(form, "pending", labels.sending || "");
       try {
         await ensureAvailable();
-        const answer = await client.post(client.pathFor(FEATURE), comment, { idempotencyKey: newKey() });
+        const answer = await client.post(client.pathFor(FEATURE), comment, { idempotencyKey: submission.key(comment) });
         const data = answer && answer.data && typeof answer.data === "object" ? answer.data : {};
         const posted = data.comment && typeof data.comment === "object" ? data.comment : null;
         const pending = data.status === "pending" || (posted !== null && posted.status === "pending");
         if (posted) {
           place(renderComment(doc, pending ? { ...posted, status: "pending" } : posted, renderOptions), posted.parent_id);
         }
+        submission.clear();
         form.reset();
         cancelReply();
         setFormState(form, "success", pending ? labels.posted_pending || "" : labels.posted || "");

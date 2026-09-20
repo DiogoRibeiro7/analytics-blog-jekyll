@@ -14,7 +14,7 @@ the indexed authors alone.
 {%- assign is_scholarly = page | scholarly -%}
 {%- if is_scholarly and page.title -%}
 {%- include meta/publisher.html -%}
-{%- assign scholarly_title = page.citation_title | default: page.title | strip_html | normalize_whitespace -%}
+{%- assign scholarly_title = page.citation_title | default: page.title | normalize_whitespace -%}
 {%- assign scholarly_url = page.url | absolute_url -%}
 {%- assign scholarly_authors = page | page_authors -%}
 {%- assign scholarly_names = scholarly_authors | map: 'name' -%}
@@ -26,7 +26,7 @@ the indexed authors alone.
   {%- if citation_source_first == '[' -%}
     {%- assign scholarly_names = page.citation_authors -%}
   {%- else -%}
-    {%- assign scholarly_names = page.citation_authors | replace: ';', ',' | split: ',' -%}
+    {%- assign scholarly_names = page.citation_authors | split: ';' -%}
   {%- endif -%}
 {%- endif -%}
 {%- assign scholarly_pdf = page.pdf_url | default: page.citation_pdf -%}
@@ -36,7 +36,8 @@ the indexed authors alone.
 {%- assign scholarly_publisher = page.publisher | default: publisher_name -%}
 {%- assign scholarly_language = page.lang | default: site.locale | default: 'en' | split: '_' | first | split: '-' | first -%}
 {%- assign scholarly_license = page | page_license -%}
-{%- assign scholarly_description = page.description | default: page.excerpt | strip_html | normalize_whitespace | truncate: 300 -%}
+{%- assign scholarly_excerpt = page.excerpt | strip_html -%}
+{%- assign scholarly_description = page.seo_description | default: page.description | default: scholarly_excerpt | normalize_whitespace | truncate: 300 -%}
 <meta name="citation_title" content="{{ scholarly_title | escape }}" />
 {%- if scholarly_override %}
 {%- for name in scholarly_names %}

@@ -6,7 +6,7 @@
 <footer class="site-footer" role="contentinfo">
   <div class="container footer-container">
     <section class="footer-about">
-      <h2>{{ site.name | default: site.title }}</h2>
+      <h2>{{ site.name | default: site.title | escape }}</h2>
       <p class="footer-description">{{ site.description | strip_html | truncate: 160 }}</p>
       <p class="footer-author">
         <strong>{{ site.author.name }}</strong>
@@ -28,7 +28,7 @@
       <h2 id="footer-explore-heading">Explore</h2>
       <ul class="footer-link-list">
         {% for item in footer_links %}
-        <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+        <li><a href="{{ item.url | relative_url }}">{{ item.title | escape }}</a></li>
         {% endfor %}
       </ul>
     </nav>

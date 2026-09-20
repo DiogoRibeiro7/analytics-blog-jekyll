@@ -117,7 +117,7 @@ releases, and the work that is not released yet:
 Bundler can install from any of them. Pin a release tag:
 
 ```ruby
-gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.9.0"
+gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.9.1"
 ```
 
 Write `branch: "main"` in place of the tag to follow releases, or

@@ -8,7 +8,7 @@
  */
 
 import { getClient } from "../dynamic-services/client.js";
-import { readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
+import { createAvailabilityCheck, createSubmission, readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "subscriptions";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,12 +25,6 @@ function jsonIn(root, selector) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 /**
  * What the form sends: the address, the topics ticked (always a list, left
@@ -97,7 +91,7 @@ export function initSubscribeForm(root, deps = {}) {
     hasTopics: form.querySelector('[name="topics"]') !== null
   };
   const doubleOptIn = root.dataset.subscribeDoubleOptIn !== "false";
-  let availability = null;
+  const submission = createSubmission(form);
 
   const finish = (result) => {
     form.dataset.result = result;
@@ -110,20 +104,7 @@ export function initSubscribeForm(root, deps = {}) {
   }
 
   /** Asks the service once whether it takes subscriptions; a refusal disables the form. */
-  const ensureAvailable = () => {
-    if (!availability) {
-      availability = client.feature(FEATURE).catch((error) => {
-        availability = null;
-        showFailure(form, error, errorLabels);
-        form.dataset.state = "disabled";
-        form.querySelectorAll("button[type=submit]").forEach((button) => {
-          button.disabled = true;
-        });
-        throw error;
-      });
-    }
-    return availability;
-  };
+  const ensureAvailable = createAvailabilityCheck(client, FEATURE, form, errorLabels);
 
   // The first time the reader reaches into the form, not on page load.
   form.addEventListener("focusin", () => ensureAvailable().catch(() => {}), { once: true });
@@ -156,8 +137,9 @@ export function initSubscribeForm(root, deps = {}) {
         return null;
       }
       try {
-        const answer = await client.post(client.pathFor(FEATURE), subscription, { idempotencyKey: newKey() });
+        const answer = await client.post(client.pathFor(FEATURE), subscription, { idempotencyKey: submission.key(subscription) });
         const status = answer && answer.data && typeof answer.data.status === "string" ? answer.data.status : "";
+        submission.clear();
         form.reset();
         // The service says which; when it does not, the site's setting does.
         finish(status === "confirmed" || status === "subscribed" || (status === "" && !doubleOptIn) ? "confirmed" : "pending");

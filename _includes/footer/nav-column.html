@@ -13,7 +13,7 @@ Renders a footer navigation column with optional item descriptions.
   {%- assign column_items = '' | split: '' -%}
 {%- endif -%}
 <div>
-  <h4>{{ include.title | strip }}</h4>
+  <h4>{{ include.title | strip | escape }}</h4>
   <ul>
     {%- for item in column_items -%}
       {%- capture item_label -%}{% if item.label %}{{ item.label }}{% elsif item.label_key %}{% t item.label_key %}{% endif %}{%- endcapture -%}

@@ -10,7 +10,7 @@
  */
 
 import { getClient } from "../dynamic-services/client.js";
-import { readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
+import { createAvailabilityCheck, createSubmission, readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "corrections";
 export const MIN_MESSAGE = 20;
@@ -28,12 +28,6 @@ function labelsOf(root) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 /**
  * Fills the section list from the article's headings, so a report can say
@@ -134,7 +128,7 @@ export function initCorrectionReport(root, deps = {}) {
   const article = { url: root.dataset.articleUrl || "", title: root.dataset.articleTitle || "" };
   const quoteField = form.elements.namedItem("quote");
   const quoteShown = root.querySelector("[data-correction-quote]");
-  let availability = null;
+  const submission = createSubmission(form);
 
   fillSections(form.elements.namedItem("section"), content);
 
@@ -144,29 +138,21 @@ export function initCorrectionReport(root, deps = {}) {
   }
 
   /** Asks the service once whether it takes reports; a refusal disables the form. */
-  const ensureAvailable = () => {
-    if (!availability) {
-      availability = client.feature(FEATURE).catch((error) => {
-        availability = null;
-        showFailure(form, error, errorLabels);
-        form.dataset.state = "disabled";
-        form.querySelectorAll("button[type=submit]").forEach((button) => {
-          button.disabled = true;
-        });
-        throw error;
-      });
-    }
-    return availability;
-  };
+  const ensureAvailable = createAvailabilityCheck(client, FEATURE, form, errorLabels);
 
   const details = root.tagName === "DETAILS" ? root : root.querySelector("details");
   if (details) {
+    let pointerQuote = "";
+    details.querySelector("summary")?.addEventListener("pointerdown", () => {
+      pointerQuote = selectedQuote(win, content);
+    });
     details.addEventListener("toggle", () => {
       if (!details.open) {
         return;
       }
-      const text = selectedQuote(win, content);
-      if (quoteField && text && !quoteField.value) {
+      const text = selectedQuote(win, content) || pointerQuote;
+      pointerQuote = "";
+      if (quoteField && text) {
         quoteField.value = text;
         if (quoteShown) {
           quoteShown.textContent = text;
@@ -204,9 +190,12 @@ export function initCorrectionReport(root, deps = {}) {
         return null;
       }
       try {
-        const answer = await client.post(client.pathFor(FEATURE), report, { idempotencyKey: newKey() });
+        const answer = await client.post(client.pathFor(FEATURE), report, { idempotencyKey: submission.key(report) });
+        submission.clear();
         form.reset();
+        if (quoteField) quoteField.value = "";
         if (quoteShown) {
+          quoteShown.textContent = "";
           quoteShown.hidden = true;
         }
         setFormState(form, "success", labels.success || "");

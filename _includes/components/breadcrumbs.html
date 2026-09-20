@@ -64,11 +64,13 @@ Parameters:
     {%- if page.categories and page.categories.size > 0 -%}
       {%- assign main_category = page.categories | first -%}
       {%- assign category_slug = main_category | slugify -%}
+      {%- assign category_archive_path = site.category_archive.path | default: '/categories/' -%}
+      {%- assign category_archive_page = site.pages | where: 'url', category_archive_path | first -%}
       {%- unless position -%}{%- assign position = 2 -%}{%- endunless -%}
       <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="{{ site.category_archive.path | default: '/categories/' | append: '#' | append: category_slug | relative_url }}" class="breadcrumbs__link" itemprop="item">
-          <span itemprop="name">{{ main_category }}</span>
-        </a>
+        {% if category_archive_page %}<a href="{{ category_archive_path | append: '#' | append: category_slug | relative_url }}" class="breadcrumbs__link" itemprop="item">{% endif %}
+          <span itemprop="name">{{ main_category | escape }}</span>
+        {% if category_archive_page %}</a>{% endif %}
         <meta itemprop="position" content="{{ position }}" />
         <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
       </li>
@@ -80,7 +82,7 @@ Parameters:
       {%- unless position -%}{%- assign position = 2 -%}{%- endunless -%}
       <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
         <span class="breadcrumbs__current" itemprop="item">
-          <span itemprop="name">{{ page.title | truncate: 50 }}</span>
+          <span itemprop="name">{{ page.title | truncate: 50 | escape }}</span>
         </span>
         <meta itemprop="position" content="{{ position }}" />
       </li>

@@ -4,7 +4,7 @@ show_title: false # this layout renders the page's <h1>
 ---
 <article class="portfolio-item">
   <header class="portfolio-header">
-    <h1>{{ page.title }}</h1>
+    <h1>{{ page.title | escape }}</h1>
     {% if page.hero_image %}
     <div class="portfolio-hero-media">
       {% assign hero_alt = page.hero_alt | default: page.title %}

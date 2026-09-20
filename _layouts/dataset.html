@@ -6,7 +6,7 @@ show_title: false # this layout renders the page's <h1>
 {% assign date_format = page.date_format | default: localization_config.date_format | default: 'long' %}
 <article class="dataset">
   <header class="dataset-header">
-    <h1>{{ page.title }}</h1>
+    <h1>{{ page.title | escape }}</h1>
     {% if page.updated %}<p class="dataset-meta"><strong>{% t 'dataset.last_updated' %}</strong> {{ page.updated | localize_date: date_format }}</p>{% endif %}
     {% assign dataset_license = page | page_license %}
     {% if dataset_license %}<p class="dataset-meta"><strong>{% t 'dataset.license' %}</strong> {% include components/license-link.html license=dataset_license %}</p>{% endif %}

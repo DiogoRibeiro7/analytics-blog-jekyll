@@ -44,6 +44,25 @@ test.describe('Reading mode', () => {
     await expect(page.locator('.site-header')).toBeVisible();
   });
 
+  test('Escape leaves note editing, composition and handled keys to their controls', async ({ page }) => {
+    await page.goto(new URL(longPost, baseUrl).href);
+    await page.locator('[data-reading-mode-toggle]').click();
+    await page.evaluate(() => {
+      const note = document.createElement('textarea');
+      document.querySelector('.post-content').append(note);
+      note.focus();
+      note.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      note.remove();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', isComposing: true }));
+      const handled = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+      handled.preventDefault();
+      document.dispatchEvent(handled);
+    });
+    await expect(page.locator('body')).toHaveClass(/reading-mode/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('body')).not.toHaveClass(/reading-mode/);
+  });
+
   test('the choice is not remembered across pages by default', async ({ page }) => {
     await page.goto(new URL(longPost, baseUrl).href, { waitUntil: 'load' });
     await page.locator('[data-reading-mode-toggle]').click();

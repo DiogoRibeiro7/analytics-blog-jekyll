@@ -28,7 +28,8 @@ class ReadingStateTest < Minitest::Test
     assert_equal "/saved/", doc.at_css(".post-tools a.post-tool--link")["href"]
     assert_equal ["/2024/04/05/sql-optimization-guide/", "true", "true"],
                  [root["data-article"], root["data-progress"], root["data-highlights"]]
-    assert root.at_css("[data-reading-resume][hidden]"), "the resume prompt is hidden until there is a position"
+    assert doc.at_css(".post-tools + [data-reading-resume][hidden]"),
+           "the resume prompt is hidden until there is a position"
     assert root.at_css("[data-reading-toolbar][role=toolbar][hidden]"),
            "the toolbar is hidden until there is a selection"
     assert_equal "Your private highlights", root.at_css("#reading-notes-heading").text
@@ -63,7 +64,9 @@ class ReadingStateTest < Minitest::Test
   end
 
   def test_the_settings_remove_the_layer_or_its_parts
-    assert_nil render("enabled" => false).at_css("[data-reading-state], [data-bookmark-toggle]")
+    disabled = render("enabled" => false)
+    selector = "[data-reading-state], [data-bookmark-toggle], [data-reading-resume], [data-reading-list]"
+    assert_nil disabled.at_css(selector)
     without_bookmarks = render("bookmarks" => false)
     assert_nil without_bookmarks.at_css("[data-bookmark-toggle]")
     assert without_bookmarks.at_css("[data-reading-state]")
@@ -92,13 +95,15 @@ class ReadingStateTest < Minitest::Test
   def render(settings, lang = nil)
     FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
     FileUtils.mkdir_p(File.join(@dir, "_data"))
-    %w[reading-state-bookmark reading-state-panel].each do |name|
+    %w[reading-state-bookmark reading-state-panel reading-state-resume reading-list].each do |name|
       FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "#{name}.html"),
                    File.join(@dir, "_includes", "components", "#{name}.html"))
     end
     FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
     front_matter = { "layout" => nil, "title" => "Paper", "lang" => lang }.compact.to_yaml
-    body = "{% include components/reading-state-bookmark.html %}{% include components/reading-state-panel.html %}"
+    body = %w[reading-state-bookmark reading-state-resume reading-state-panel reading-list].map do |name|
+      "{% include components/#{name}.html %}"
+    end.join
     File.write(File.join(@dir, "index.html"), "#{front_matter}---\n\n#{body}\n")
     config = Jekyll.configuration(
       "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Reading",

@@ -8,7 +8,7 @@
  */
 
 import { getClient } from "../dynamic-services/client.js";
-import { readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
+import { createAvailabilityCheck, createSubmission, readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "contact";
 export const MIN_MESSAGE = 20;
@@ -25,12 +25,6 @@ function jsonIn(root, selector) {
   }
 }
 
-function newKey() {
-  const crypto = globalThis.crypto;
-  return crypto && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 /**
  * What the form sends: the sender's fields and the page it was sent from.
@@ -100,7 +94,7 @@ export function initContactForm(root, deps = {}) {
   const category = form.elements.namedItem("category");
   const hint = root.querySelector("[data-contact-hint]");
   const defaultHint = hint ? hint.textContent : "";
-  let availability = null;
+  const submission = createSubmission(form);
 
   /** The hint under the message follows the category, when the category has a prompt. */
   const showPrompt = () => {
@@ -119,20 +113,7 @@ export function initContactForm(root, deps = {}) {
   }
 
   /** Asks the service once whether it takes messages; a refusal disables the form. */
-  const ensureAvailable = () => {
-    if (!availability) {
-      availability = client.feature(FEATURE).catch((error) => {
-        availability = null;
-        showFailure(form, error, errorLabels);
-        form.dataset.state = "disabled";
-        form.querySelectorAll("button[type=submit]").forEach((button) => {
-          button.disabled = true;
-        });
-        throw error;
-      });
-    }
-    return availability;
-  };
+  const ensureAvailable = createAvailabilityCheck(client, FEATURE, form, errorLabels);
 
   // The first time the reader reaches into the form, not on page load.
   form.addEventListener("focusin", () => ensureAvailable().catch(() => {}), { once: true });
@@ -164,7 +145,8 @@ export function initContactForm(root, deps = {}) {
         return null;
       }
       try {
-        const answer = await client.post(client.pathFor(FEATURE), message, { idempotencyKey: newKey() });
+        const answer = await client.post(client.pathFor(FEATURE), message, { idempotencyKey: submission.key(message) });
+        submission.clear();
         form.reset();
         showPrompt();
         setFormState(form, "success", labels.success || "");

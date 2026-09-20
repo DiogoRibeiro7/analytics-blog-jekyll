@@ -420,3 +420,107 @@ describe('controls', () => {
     expect(document.querySelectorAll('[data-reading-list-items] li')).toHaveLength(1);
   });
 });
+
+describe('patch regressions', () => {
+  it('keeps readable full storage available and reports failed saves without losing the selection', () => {
+    const storage = fakeStorage();
+    storage.setItem = () => { throw new DOMException('full', 'QuotaExceededError'); };
+    expect(browserStorage({ localStorage: storage })).toBe(storage);
+    mount(`${BOOKMARK}${CONTENT}${PANEL}`);
+    const store = createStore(storage);
+    const controller = initReadingState(document, store).article;
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(rangeOver(document.querySelector('.post-content'), 'lazy dog'));
+    expect(controller.highlightSelection()).toBeNull();
+    expect(selection.toString()).toBe('lazy dog');
+    expect(document.querySelector('[data-reading-status]').textContent).not.toBe('');
+    expect(document.querySelector('[data-reading-erase-all]').disabled).toBe(false);
+    document.querySelector('[data-bookmark-toggle]').click();
+    expect(document.querySelector('[data-bookmark-toggle]').getAttribute('aria-pressed')).toBe('false');
+    document.querySelector('[data-reading-erase-article]').click();
+  });
+
+  it('merges and sanitizes imported records', () => {
+    const store = createStore(fakeStorage());
+    store.write(ARTICLE, { bookmarked: true, annotations: [{ id: 'local', quote: 'keep' }] });
+    store.importJSON(JSON.stringify({ articles: [{ article: ARTICLE, progress: { ratio: 7, anchor: 42, secret: 'drop' },
+      annotations: [{ id: 'other', quote: 'old' }, { id: 'other', quote: 'new', note: {}, prefix: [], secret: 'drop' }] }] }));
+    expect(store.read(ARTICLE).bookmarked).toBe(true);
+    expect(store.read(ARTICLE).progress).toEqual({ ratio: 1, anchor: null });
+    expect(store.read(ARTICLE).annotations).toEqual([{ id: 'local', quote: 'keep' }, { id: 'other', quote: 'new' }]);
+  });
+
+  it('preserves the resume position until dismissed and does not recreate erased data', () => {
+    vi.useFakeTimers();
+    mount(CONTENT + PANEL);
+    const store = createStore(fakeStorage());
+    store.write(ARTICLE, { progress: { ratio: 0.8, anchor: 'method' } });
+    document.querySelector('.post-content').getBoundingClientRect = () => ({ top: 0, height: 5000 });
+    initArticle(document.querySelector('[data-reading-state]'), store);
+    window.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(1100);
+    expect(store.read(ARTICLE).progress.ratio).toBe(0.8);
+    document.querySelector('[data-reading-resume-dismiss]').click();
+    window.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(new Event('pagehide'));
+    expect(store.read(ARTICLE).progress.ratio).toBeLessThan(0.8);
+    document.querySelector('[data-reading-erase-article]').click();
+    window.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(1100);
+    window.dispatchEvent(new Event('pagehide'));
+    expect(store.read(ARTICLE)).toBeNull();
+  });
+
+  it('repaints highlights after math and lazy visualization rendering', () => {
+    mount('<div class="post-content"><p>variance \\(sigma^2\\) of the estimator</p></div>' + PANEL);
+    const store = createStore(fakeStorage());
+    store.write(ARTICLE, { annotations: [{ id: 'math', quote: 'variance σ2 of the estimator' }, { id: 'chart', quote: 'Chart caption' }] });
+    initArticle(document.querySelector('[data-reading-state]'), store);
+    expect(document.querySelector('[data-annotation-lost]').hidden).toBe(false);
+    document.querySelector('.post-content').innerHTML = '<p>variance <mjx-container><mjx-assistive-mml>σ2</mjx-assistive-mml></mjx-container> of the estimator</p>';
+    document.dispatchEvent(new CustomEvent('datalog:math-ready'));
+    expect(document.querySelector('[data-annotation-lost]').hidden).toBe(true);
+    document.querySelector('.post-content').insertAdjacentHTML('beforeend', '<p>Chart caption</p>');
+    document.dispatchEvent(new CustomEvent('datalog:viz-rendered'));
+    expect([...document.querySelectorAll('[data-annotation-lost]')].every((node) => node.hidden)).toBe(true);
+  });
+
+  it('does not relocate deleted passages to other sections or guess between identical matches', () => {
+    mount('<div class="post-content"><h2 id="bias">Bias</h2><p>Use a robust estimator here.</p><h2 id="cost">Cost</h2><p>Use a robust estimator here.</p></div>');
+    const root = document.querySelector('.post-content');
+    const anchor = describeRange(rangeOver(root, 'robust estimator'), root);
+    root.querySelector('#bias + p').remove();
+    expect(locate(root, anchor)).toBeNull();
+    root.innerHTML = '<p>same phrase same phrase</p>';
+    expect(locate(root, { quote: 'phrase' })).toBeNull();
+  });
+
+  it('does not insert HTML marks between rows or inside SVG', () => {
+    mount('<div class="post-content"><table><tbody><tr><td>First</td></tr>\n<tr><td>Last</td></tr>\n</tbody></table><svg><text>Chart</text></svg></div>');
+    const root = document.querySelector('.post-content');
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    wrapRange(range, 'all');
+    expect(root.querySelector('tbody > mark, svg mark')).toBeNull();
+    expect(root.querySelectorAll('td mark')).toHaveLength(2);
+  });
+
+  it('uses physical shortcut keys on macOS and respects composition and handled events', () => {
+    mount(CONTENT + PANEL);
+    const store = createStore(fakeStorage());
+    initArticle(document.querySelector('[data-reading-state]'), store);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(rangeOver(document.querySelector('.post-content'), 'lazy dog'));
+    const settings = { key: 'Ó', code: 'KeyH', altKey: true, shiftKey: true, cancelable: true };
+    document.dispatchEvent(new KeyboardEvent('keydown', { ...settings, isComposing: true }));
+    const handled = new KeyboardEvent('keydown', settings);
+    handled.preventDefault();
+    document.dispatchEvent(handled);
+    expect(store.read(ARTICLE)).toBeNull();
+    document.dispatchEvent(new KeyboardEvent('keydown', settings));
+    expect(store.read(ARTICLE).annotations[0].quote).toBe('lazy dog');
+    document.querySelector('[data-reading-erase-article]').click();
+  });
+});

@@ -38,7 +38,7 @@ schema_type: ScholarlyArticle
 {% assign show_publications = page.show_publications | default: false %}
 
 <div class="research-wrapper" itemscope itemtype="https://schema.org/ScholarlyArticle">
-  <meta itemprop="headline" content="{{ page.title }}" />
+  <meta itemprop="headline" content="{{ page.title | escape }}" />
   {% if page.date %}
     <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
   {% endif %}
@@ -56,7 +56,7 @@ schema_type: ScholarlyArticle
   {% endif %}
 
   <header class="research-header" aria-labelledby="research-title">
-    <h1 id="research-title" class="research-title">{{ page.title }}</h1>
+    <h1 id="research-title" class="research-title">{{ page.title | escape }}</h1>
 
     <div class="research-authors" aria-label="Authors">
       <h2 class="visually-hidden">Authors</h2>
@@ -207,67 +207,7 @@ schema_type: ScholarlyArticle
     </section>
   {% endif %}
 
-  <section class="research-citation" aria-labelledby="citation-exports-heading">
-    <h2 id="citation-exports-heading">Citation exports</h2>
-    {% capture bibtex_authors %}
-      {% for author in authors %}
-        {% assign author_name = author.name | default: author %}
-        {{ author_name | strip }}{% unless forloop.last %} and {% endunless %}
-      {% endfor %}
-    {% endcapture %}
-    {% capture bibtex_entry %}
-@article{ {{ citation_key }},
-  title = { {{ page.title | strip }} },
-  author = { {{ bibtex_authors | strip }} },
-  {% if publication_name %}journal = { {{ publication_name | strip }} },{% endif %}
-  {% if page.date %}year = { {{ page.date | date: '%Y' }} },{% endif %}
-  {% if doi %}doi = { {{ doi }} },{% endif %}
-  {% if page.publisher %}publisher = { {{ page.publisher }} },{% endif %}
-  {% if page.volume %}volume = { {{ page.volume }} },{% endif %}
-  {% if page.number %}number = { {{ page.number }} },{% endif %}
-  {% if page.pages %}pages = { {{ page.pages }} },{% endif %}
-}
-    {% endcapture %}
-    {% capture ris_entry %}
-TY  - JOUR
-TI  - {{ page.title | strip }}
-{% if publication_name %}JO  - {{ publication_name | strip }}
-{% endif %}
-{% if page.date %}PY  - {{ page.date | date: '%Y/%m/%d' }}
-{% endif %}
-{% for author in authors %}{% assign author_name = author.name | default: author %}AU  - {{ author_name | strip }}
-{% endfor %}
-{% if doi %}DO  - {{ doi }}
-{% endif %}
-ER  -
-    {% endcapture %}
-    {% capture endnote_entry %}
-%0 Journal Article
-%T {{ page.title | strip }}
-{% for author in authors %}{% assign author_name = author.name | default: author %}%A {{ author_name | strip }}
-{% endfor %}
-{% if publication_name %}%J {{ publication_name | strip }}
-{% endif %}
-{% if page.date %}%D {{ page.date | date: '%Y' }}
-{% endif %}
-{% if doi %}%R {{ doi }}
-{% endif %}
-    {% endcapture %}
-    <div class="citation-export-grid">
-      <article>
-        <h3>BibTeX</h3>
-        <textarea readonly aria-label="BibTeX citation">{{ bibtex_entry | strip }}</textarea>
-      </article>
-      <article>
-        <h3>RIS</h3>
-        <textarea readonly aria-label="RIS citation">{{ ris_entry | strip }}</textarea>
-      </article>
-      <article>
-        <h3>EndNote</h3>
-        <textarea readonly aria-label="EndNote citation">{{ endnote_entry | strip }}</textarea>
-      </article>
-    </div>
-  </section>
+  {% include components/citation-tools.html authors=authors journal=publication_name %}
 
   <section class="research-body" itemprop="articleBody">
     {% if methodology_content %}
@@ -347,7 +287,7 @@ ER  -
             <li>
               <article class="appendix-item">
                 {% if appendix.title %}
-                  <h3>{{ appendix.title }}</h3>
+                  <h3>{{ appendix.title | escape }}</h3>
                 {% endif %}
                 {% if appendix.content %}
                   {{ appendix.content | markdownify }}
@@ -393,7 +333,7 @@ ER  -
             {% for publication in group_items %}
             <li class="publication-list__item">
               <article>
-                <h4 class="publication-title">{{ publication.title }}</h4>
+                <h4 class="publication-title">{{ publication.title | escape }}</h4>
                 {% assign publication_authors = publication.authors | arrayify %}
                 {% if publication_authors and publication_authors.size > 0 %}
                 <p class="publication-authors">{{ publication_authors | join: ', ' }}</p>
@@ -416,7 +356,7 @@ ER  -
           {% for publication in publication_entries %}
           <li class="publication-list__item">
             <article>
-              <h4 class="publication-title">{{ publication.title }}</h4>
+              <h4 class="publication-title">{{ publication.title | escape }}</h4>
               {% assign publication_authors = publication.authors | arrayify %}
               {% if publication_authors and publication_authors.size > 0 %}
               <p class="publication-authors">{{ publication_authors | join: ', ' }}</p>
@@ -456,7 +396,7 @@ ER  -
             <li>
               <article class="version-entry">
                 <header>
-                  <strong>{{ version.version | default: version.title | default: version }}</strong>
+                  <strong>{{ version.version | default: version.title | default: version | escape }}</strong>
                   {% if version.date %}<span class="version-date">{{ version.date | localize_date: date_format }}</span>{% endif %}
                 </header>
                 {% if version.notes %}

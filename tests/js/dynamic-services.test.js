@@ -325,3 +325,23 @@ describe('form states', () => {
     expect(readForm(form)).toEqual({ message: 'hello', contact_email: 'a@b.c', tags: ['a', 'b'] });
   });
 });
+
+describe('patch client regressions', () => {
+  it('supports a same-origin root endpoint and body request ids', async () => {
+    const fetch = vi.fn().mockResolvedValue(reply(422, { request_id: 'body-id', error: { message: 'bad' } }));
+    const c = client(fetch, { base_url: '/' });
+    expect(c.enabled).toBe(true);
+    await expect(c.post('/contact', {})).rejects.toMatchObject({ requestId: 'body-id' });
+    expect(fetch.mock.calls[0][0]).toBe('/v1/contact');
+  });
+  it('does not fetch with an already aborted signal', async () => {
+    const fetch = vi.fn();
+    const controller = new AbortController();
+    controller.abort();
+    await expect(client(fetch).get('/x', { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it('includes translated retry timing', () => {
+    expect(describeError(new ServiceError('rate_limited', 'x', { retryAfter: 12 }), { rate_limited: 'Wait.', retry_after: 'Retry in {{seconds}} s.' })).toBe('Wait. Retry in 12 s.');
+  });
+});

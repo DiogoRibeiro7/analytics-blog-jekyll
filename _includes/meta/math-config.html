@@ -37,6 +37,9 @@ only on pages that opt in.
 {%- if math_load == nil -%}
   {%- assign math_load = site.features.mathjax -%}
 {%- endif -%}
+{%- if math_load == nil -%}
+  {%- assign math_load = 'auto' -%}
+{%- endif -%}
 {%- if include.page.math != nil -%}
   {%- assign math_enabled = include.page.math -%}
 {%- elsif include.page.mathjax != nil -%}

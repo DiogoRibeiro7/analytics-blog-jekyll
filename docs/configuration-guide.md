@@ -70,7 +70,7 @@ theme_options:
 
 The math engine is loaded from a CDN and weighs several hundred kilobytes, so by default it is only loaded where it is needed:
 
-- `math.render_on_load: auto` loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
+- `math.render_on_load: auto` (also the default when omitted) loads the math engine on pages where the math preprocessor finds expressions (`$…$`, `$$…$$`, `\(…\)` and `\[…\]`, outside code), and on notebook pages that render math. `true` loads it on every page; `false` only on pages that opt in.
 - Inline math with spaces inside the dollars, such as `$ \frac{a}{b} $`, counts when it holds a TeX command, `^` or `_`, so `$ 5 or $ 10` stays text. Where MathJax loads it renders `$ x $` as well, but the preprocessor does not count it: write `$x$`, or set `math: true` on the page.
 - A page can force it with `math: true` or `math: false` in its front matter. `mathjax` is read as an alias when `math` is not set, so a page's `math: false` turns off what a `mathjax: true` default turned on. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 - Leave `math: true` and `mathjax: true` out of `defaults` while `render_on_load` is `auto`: every page in their scope would load the engine, math or not. The build prints a warning when it finds one.
@@ -81,7 +81,7 @@ A page that sets its own `hero_image` can also set `hero_image_small` (a version
 
 #### Images
 
-When the site builds on a machine with [ImageMagick](https://imagemagick.org), each JPEG and PNG in the site's files gets resized copies and a WebP version; with `avifenc` from [libavif](https://github.com/AOMediaCodec/libavif) it also gets an AVIF version. Pages then offer them. A Markdown image such as `![Power curve](/assets/img/power.png)` becomes a `<picture>` with an AVIF and a WebP `<source>`, and its `<img>` keeps its attributes and gains a `srcset` of the resized copies. Without ImageMagick, the build creates nothing and images stay as written.
+When the site builds on a machine with [ImageMagick](https://imagemagick.org), each JPEG and PNG in the site's files gets resized copies and a WebP version; with `avifenc` from [libavif](https://github.com/AOMediaCodec/libavif) it also gets an AVIF version. Pages then offer them. A Markdown image such as `![Power curve](/assets/img/power.png)` becomes a `<picture>` with an AVIF and a WebP `<source>`, and its `<img>` keeps its attributes and gains a `srcset` of the resized copies. Without ImageMagick, no resized or converted copies are created. The optimizer still adds loading, decoding and known intrinsic dimensions, serializes optimized HTML, and writes the image manifest. A supplied width or height is preserved without adding an incompatible intrinsic counterpart. Relative image URLs are left alone; use site-root paths for optimization.
 
 ```yaml
 theme_options:

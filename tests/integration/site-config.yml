@@ -2,6 +2,10 @@
 # a backend at an address the specs intercept with page.route, so the forms that
 # post to the dynamic services and the comments thread can be exercised without
 # a server. The deploy workflow builds the site again without this file.
+include:
+  - _pages
+  - _test_pages
+
 dynamic_services:
   base_url: https://api.example.test
   api_version: v1

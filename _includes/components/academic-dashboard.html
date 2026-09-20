@@ -155,7 +155,7 @@
       <li class="submission-card" data-submission-status="{{ submission.status | slugify }}">
         <article>
           <header>
-            <h3>{{ submission.title }}</h3>
+            <h3>{{ submission.title | escape }}</h3>
             <p class="submission-venue">{{ submission.venue }} · <span class="submission-type">{{ submission.type | capitalize }}</span></p>
           </header>
           <dl class="submission-meta">
@@ -182,7 +182,7 @@
         <ul class="workflow-list">
           {% for review in academic.workflow.peer_review %}
           <li>
-            <strong>{{ review.title }}</strong>
+            <strong>{{ review.title | escape }}</strong>
             <p>{{ review.journal }}</p>
             <p>{% t 'academic_dashboard.workflow.peer_review.status_label' %} <span class="status-badge">{{ review.status }}</span></p>
             {% assign assigned_label = review.assigned_date | localize_date: date_format %}
@@ -255,7 +255,7 @@
       <li>
         <article>
           <header>
-            <h3>{{ grant.title }}</h3>
+            <h3>{{ grant.title | escape }}</h3>
             <p>{{ grant.agency }} · {{ grant.role }}</p>
           </header>
           <dl class="funding-meta">
@@ -279,7 +279,7 @@
       <li>
         <article>
           <header>
-            <h3>{{ opportunity.title }}</h3>
+            <h3>{{ opportunity.title | escape }}</h3>
             {% if opportunity.tags %}<p class="opportunity-tags">{{ opportunity.tags | array_to_sentence_string }}</p>{% endif %}
           </header>
           <p>{{ opportunity.description }}</p>

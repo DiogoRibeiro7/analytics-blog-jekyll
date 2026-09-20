@@ -206,14 +206,15 @@ describe('the strip', () => {
     expect(pressed(root)).toEqual(['needs-clarification']);
   });
 
-  it('treats a conflict as already counted, and a rate limit or a failure as an error that changes nothing', async () => {
+  it('preserves the previous choice after a conflict, rate limit or failure', async () => {
     const client = fakeClient();
     const storage = memoryStorage();
+    storage.store.set(`${STORAGE_PREFIX}/post/`, 'useful');
     const controller = initReactions(root, { client, storage, immediate: true });
     await flush();
 
     client.post.mockRejectedValueOnce(new ServiceError('conflict', 'x'));
-    expect(await controller.react('useful')).toBeNull();
+    expect(await controller.react('clear')).toBeNull();
     expect(pressed(root)).toEqual(['useful']);
     expect(storage.store.get(`${STORAGE_PREFIX}/post/`)).toBe('useful');
     expect(root.querySelector('[data-reactions-status]').textContent).toBe('Already counted.');
@@ -221,7 +222,7 @@ describe('the strip', () => {
     client.post.mockRejectedValueOnce(new ServiceError('rate_limited', 'x', { requestId: 'req_9', retryAfter: 30 }));
     await controller.react('clear');
     const status = root.querySelector('[data-reactions-status]');
-    expect(status.textContent).toBe('Wait. Ref req_9');
+    expect(status.textContent).toBe('Wait. Try again in 30 seconds. Ref req_9');
     expect(status.getAttribute('role')).toBe('alert');
     expect(pressed(root)).toEqual(['useful']);
     expect(root.dataset.state).toBe('loaded');
@@ -266,5 +267,25 @@ describe('the strip', () => {
     expect(controllers).toHaveLength(1);
     expect(typeof controllers[0].react).toBe('function');
     delete window.DatalogDynamicServices;
+  });
+});
+
+describe('patch reaction regressions', () => {
+  it('reuses failed votes and ignores count reads that started before a vote', async () => {
+    const root = mount();
+    let resolveRead;
+    const client = fakeClient({ get: vi.fn(() => new Promise((resolve) => { resolveRead = resolve; })) });
+    const controller = initReactions(root, { client, storage: memoryStorage(), immediate: true });
+    await flush();
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost'));
+    await controller.react('useful');
+    await controller.react('useful');
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    resolveRead({ data: { counts: { useful: 2 } } });
+    await flush();
+    expect(counts(root).useful).toBe('43');
+    expect(root.dataset.state).toBe('selected');
+    await controller.react('clear');
+    expect(client.post.mock.calls[2][2].idempotencyKey).not.toBe(client.post.mock.calls[1][2].idempotencyKey);
   });
 });

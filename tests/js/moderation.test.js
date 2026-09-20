@@ -341,3 +341,47 @@ describe('the inbox', () => {
     expect(initModerationInboxes(document)).toHaveLength(1);
   });
 });
+
+describe('patch moderation regressions', () => {
+  it('uses an explicit endpoint even when the main service opts out of moderation', async () => {
+    mount();
+    window.DatalogDynamicServices = { base_url: 'https://api.example.org', features: { moderation: false } };
+    root.dataset.moderationEndpoint = 'https://moderation.example.org';
+    vi.stubGlobal('fetch', vi.fn((url) => Promise.resolve(new Response(JSON.stringify(
+      url.endsWith('/capabilities') ? { api_version: 'v1', features: { moderation: true } } : { items: [COMMENT] }
+    ), { status: 200 }))));
+    const controller = initModerationInbox(root);
+    await controller.load();
+    expect(ids()).toEqual([COMMENT.id]);
+    expect(fetch.mock.calls[0][0]).toBe('https://moderation.example.org/v1/capabilities');
+    delete window.DatalogDynamicServices;
+  });
+
+  it('reuses a failed action key and keeps the last applied filters until resubmission', async () => {
+    mount();
+    const client = fakeClient();
+    const controller = initModerationInbox(root, { client });
+    await flush();
+    root.querySelector('[name=status]').value = 'approved';
+    client.post.mockRejectedValueOnce(new ServiceError('network', 'lost'));
+    await controller.act(normalizeItem(COMMENT), 'approve');
+    await controller.act(normalizeItem(COMMENT), 'approve');
+    expect(client.post.mock.calls[1][2].idempotencyKey).toBe(client.post.mock.calls[0][2].idempotencyKey);
+    expect(ids()).not.toContain(COMMENT.id);
+  });
+  it('discards stale filter requests', async () => {
+    mount();
+    const reads = [];
+    const client = fakeClient({ get: vi.fn(() => new Promise((resolve) => reads.push(resolve))) });
+    const controller = initModerationInbox(root, { client });
+    await flush();
+    root.querySelector('[name=status]').value = 'spam';
+    const latest = controller.load();
+    await flush();
+    reads[1]({ data: { items: [{ ...COMMENT, id: 'spam', status: 'spam' }] } });
+    await latest;
+    reads[0]({ data: { items: [COMMENT] } });
+    await flush();
+    expect(ids()).toEqual(['spam']);
+  });
+});

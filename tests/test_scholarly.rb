@@ -158,8 +158,8 @@ class ScholarlyTest < Minitest::Test
   def test_the_tags_are_escaped
     doc = render("scholarly: true\ntitle: A <b>bold</b> & brave paper\nauthor: O'Brien <script>\n")
 
-    assert_equal ["A bold & brave paper"], metas(doc, "citation_title")
-    assert_includes @html, "content=\"A bold &amp; brave paper\""
+    assert_equal ["A <b>bold</b> & brave paper"], metas(doc, "citation_title")
+    assert_includes @html, "content=\"A &lt;b&gt;bold&lt;/b&gt; &amp; brave paper\""
     assert_equal ["O'Brien <script>"], metas(doc, "citation_author")
     assert_includes @html, "O&#39;Brien &lt;script&gt;"
   end

@@ -4,7 +4,7 @@
     <span class="post-meta__badge">{{ tech }}</span>
     {% if visualization.version %}<span>v{{ visualization.version }}</span>{% endif %}
   </p>
-  <h3>{{ visualization.title }}</h3>
+  <h3>{{ visualization.title | escape }}</h3>
   <p>{{ visualization.summary }}</p>
   {% if visualization.tags %}
   <ul class="post-list-item__tags">

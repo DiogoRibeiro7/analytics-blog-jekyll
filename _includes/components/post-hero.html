@@ -51,10 +51,10 @@ Policy does not allow inline style attributes.
 <div id="{{ hero_id }}" class="post-hero post-hero--overlay">
   <div class="post-hero__inner">
     {%- if include.page.title -%}
-    <h1 class="article-title post-hero__title" itemprop="headline">{{ include.page.title }}</h1>
+    <h1 class="article-title post-hero__title" itemprop="headline">{{ include.page.title | escape }}</h1>
     {%- endif -%}
     {%- if include.page.subtitle -%}
-    <p class="post-hero__subtitle">{{ include.page.subtitle }}</p>
+    <p class="post-hero__subtitle">{{ include.page.subtitle | escape }}</p>
     {%- endif -%}
   </div>
 </div>
