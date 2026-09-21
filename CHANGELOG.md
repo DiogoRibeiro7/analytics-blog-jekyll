@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Give package pages a dark mode. The package stylesheet had no dark rules at all, so its panels stayed white on a dark page and everything layered on them followed: 421 axe contrast failures in dark mode, 103 in light. Its surfaces, inks and borders now read from the theme's own tokens, the tinted admonitions carry an ink that pairs with their tint in each mode, and a highlighted example no longer sits on a forced dark background that fought the light Rouge palette (#342).
+- Name the version selector on a package page, take the second `main` landmark out of the package layout, start the sidebar's section titles at the level after the page title, and let the keyboard reach an API signature that scrolls sideways (#342).
 - Give the installation panel real tab semantics, so the arrow keys move between pip, conda and Git, the selected one is announced, and each panel is named by its tab. Its id is the package's rather than `installation`, which a page's own heading already had; its buttons carry a type; its labels are translated; and it copies through the core bundle's copy button instead of a second clipboard implementation. The tab labels meet the AA contrast ratio (#332).
 - Fall back to the older copy route where the clipboard API is unavailable or refused, and let a template pass the words shown after a copy (#332).
 
