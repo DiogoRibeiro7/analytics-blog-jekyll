@@ -778,23 +778,3 @@ breadcrumbs:
   portfolio: Portfolio
   datasets: Datasets
   notebooks: Notebooks
-search_facets:
-  reset_button: Reset
-  tags: Tags
-  categories: Categories
-  difficulty_title: Difficulty
-  date_range: Date Range
-  results: posts found
-  title: Filter & Search
-  query_label: Search posts
-  query_placeholder: Search posts...
-  reset: Reset all filters
-  filter_by: Filter by {{name}}
-  beginner: Beginner
-  intermediate: Intermediate
-  advanced: Advanced
-  expert: Expert
-  all_time: All time
-  past_week: Past week
-  past_month: Past month
-  past_year: Past year

@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- Translations for the breadcrumbs, the search facets, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
+- Translations for the breadcrumbs, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
 
 ## [0.9.2] - 2026-09-20
 

@@ -778,23 +778,3 @@ breadcrumbs:
   portfolio: Portefólio
   datasets: Conjuntos de dados
   notebooks: Cadernos
-search_facets:
-  reset_button: Repor
-  tags: Etiquetas
-  categories: Categorias
-  difficulty_title: Dificuldade
-  date_range: Intervalo de datas
-  results: artigos encontrados
-  title: Filtrar e pesquisar
-  query_label: Pesquisar artigos
-  query_placeholder: Pesquisar artigos...
-  reset: Repor todos os filtros
-  filter_by: Filtrar por {{name}}
-  beginner: Iniciante
-  intermediate: Intermédio
-  advanced: Avançado
-  expert: Especialista
-  all_time: Desde sempre
-  past_week: Última semana
-  past_month: Último mês
-  past_year: Último ano
