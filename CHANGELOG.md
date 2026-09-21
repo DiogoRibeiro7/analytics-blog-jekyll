@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Upgrading from 0.9.x
+
+Three changes need an edit on a site that upgrades:
+
+- **`components/search-facets.html` is gone.** A site that includes it will not build. Remove the include; the search page's own application covers the same ground, with tests.
+- **The installation panel's id is the package's**, `install-<package-name>`, where it was `installation`. A link or a stylesheet that pointed at `#installation` should point at the new id — or at the page's own `## Installation` heading, which still carries that id where the Markdown has one.
+- **`package-docs__main` is a `<div>`, not a `<main>`.** The page already had a `main` landmark from the default layout, and two is one too many. A selector written as `main.package-docs__main` needs the tag dropped.
+
+Two more to know about, neither needing an edit:
+
+- `datalog new post` slugifies the way Jekyll does, so a new post with an accented title is filed under a different name than 0.9.x would have given it: `analise-de-series-temporais`, not `an-lise-de-s-ries-temporais`. Posts already published are untouched.
+- A site holding its own copy of `components/enhanced-toc.html` keeps that copy's inline script, and now also loads the contents module in the core bundle. Take the `<script>` block out of the copy, or drop the copy and use the theme's.
+
 ### Added
 
 - Translations for the breadcrumbs, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
