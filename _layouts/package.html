@@ -90,7 +90,7 @@ show_title: false # this layout renders the page's <h1>
         {% if page.nav_sections %}
           {% for section in page.nav_sections %}
             <div class="package-nav__section">
-              <h3 class="package-nav__section-title">{{ section.title | escape }}</h3>
+              <h2 class="package-nav__section-title">{{ section.title | escape }}</h2>
               <ul class="package-nav__list">
                 {% for item in section.items %}
                   <li class="package-nav__item">
@@ -105,7 +105,7 @@ show_title: false # this layout renders the page's <h1>
         {% else %}
           {%- comment -%} Auto-generate from headings {%- endcomment -%}
           <div class="package-nav__section">
-            <h3 class="package-nav__section-title">Contents</h3>
+            <h2 class="package-nav__section-title">Contents</h2>
             <ul class="package-nav__list">
               <li class="package-nav__item">
                 <a href="#installation" class="package-nav__link">Installation</a>
@@ -129,8 +129,9 @@ show_title: false # this layout renders the page's <h1>
         {%- comment -%} Version Selector {%- endcomment -%}
         {% if page.versions %}
           <div class="package-nav__section package-nav__section--versions">
-            <h3 class="package-nav__section-title">Versions</h3>
-            <select class="package-nav__version-select" data-navigate-on-change>
+            <h2 class="package-nav__section-title" id="package-versions-heading">Versions</h2>
+            <select class="package-nav__version-select" data-navigate-on-change
+                    aria-labelledby="package-versions-heading">
               {% for v in page.versions %}
                 <option value="{{ v.url }}" {% if v.version == page.version %}selected{% endif %}>
                   v{{ v.version }} {% if v.status %}({{ v.status }}){% endif %}
@@ -143,7 +144,7 @@ show_title: false # this layout renders the page's <h1>
         {%- comment -%} Related Packages {%- endcomment -%}
         {% if page.related_packages %}
           <div class="package-nav__section">
-            <h3 class="package-nav__section-title">Related Packages</h3>
+            <h2 class="package-nav__section-title">Related Packages</h2>
             <ul class="package-nav__list">
               {% for pkg in page.related_packages %}
                 <li class="package-nav__item">
@@ -157,7 +158,8 @@ show_title: false # this layout renders the page's <h1>
     </aside>
 
     {%- comment -%} Main Content {%- endcomment -%}
-    <main class="package-docs__main">
+    {%- comment -%} A column, not a landmark: the default layout's <main> already wraps this. {%- endcomment -%}
+    <div class="package-docs__main">
       <article class="package-docs__content">
         {{ content }}
       </article>
@@ -188,7 +190,7 @@ show_title: false # this layout renders the page's <h1>
           </a>
         {% endif %}
       </nav>
-    </main>
+    </div>
   </div>
 </div>
 
