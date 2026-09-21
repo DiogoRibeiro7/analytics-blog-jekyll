@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. The format 
 
 - `components/search-facets.html`, which no layout or page included, no stylesheet styled, and whose script would have thrown on load. The search page's own application (`assets/js/search/`) is the one that indexes posts, code and math, offers facets and is covered by tests (#341).
 
+### Fixed
+
+- Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed
