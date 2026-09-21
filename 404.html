@@ -12,7 +12,7 @@ sitemap: false
   <div class="container">
     <h1 id="not-found-heading">Page not found</h1>
     <p>The page you’re looking for may have been moved, renamed, or no longer exists. Try the links below or search with technical filters.</p>
-    <form class="error-search" role="search" action="/search/">
+    <form class="error-search" role="search" action="{{ '/search/' | relative_url }}">
       <label for="error-search-input">Search tutorials, research, projects, and datasets</label>
       <input id="error-search-input" type="search" name="q" placeholder="Search Python, R, SQL, machine learning…">
       <button type="submit">Search</button>
