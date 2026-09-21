@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
 - Let the browser follow a table-of-contents link instead of intercepting it, so an entry for a numbered heading reaches its section, the heading clears the sticky header by its own scroll margin, and the keyboard carries on from there. The contents now ship as a module in the core bundle: the reading position is measured from the viewport, the progress indicator reports a number rather than `NaN` on a short article, the current entry is marked with `aria-current`, and the percentage no longer sits in a live region that announced every scroll (#330).
 
 ## [0.9.2] - 2026-09-20
