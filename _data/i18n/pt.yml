@@ -778,3 +778,10 @@ breadcrumbs:
   portfolio: Portefólio
   datasets: Conjuntos de dados
   notebooks: Cadernos
+package_install:
+  title: Instalação
+  terminal: Terminal
+  r_console: Consola do R
+  copy: Copiar
+  copied: Copiado!
+  copy_error: Não foi possível copiar
