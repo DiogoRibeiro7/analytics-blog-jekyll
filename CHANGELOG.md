@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
+- Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
 - Give the installation panel real tab semantics, so the arrow keys move between pip, conda and Git, the selected one is announced, and each panel is named by its tab. Its id is the package's rather than `installation`, which a page's own heading already had; its buttons carry a type; its labels are translated; and it copies through the core bundle's copy button instead of a second clipboard implementation. The tab labels meet the AA contrast ratio (#332).
 - Fall back to the older copy route where the clipboard API is unavailable or refused, and let a template pass the words shown after a copy (#332).
 
