@@ -90,7 +90,74 @@ class CLITest < Minitest::Test
     end
   end
 
+  # The slug names the file and, through it, the page's URL. An ASCII-only
+  # character class deleted every accented letter instead of carrying it
+  # across, which is most of the titles in the languages this theme is
+  # translated into.
+  def test_new_post_carries_accented_titles_into_the_filename
+    Dir.mktmpdir do |dir|
+      scaffold(dir, title: "Análise de Séries Temporais", date: "2024-01-02")
+
+      post = Dir[File.join(dir, "_posts", "*.md")].first
+      assert_equal "2024-01-02-analise-de-series-temporais.md", File.basename(post)
+    end
+  end
+
+  def test_new_post_keeps_a_title_no_transliteration_covers
+    Dir.mktmpdir do |dir|
+      scaffold(dir, title: "Анализ данных", date: "2024-01-03")
+
+      post = Dir[File.join(dir, "_posts", "*.md")].first
+      refute_nil post, "a title in another script should still name a file"
+      refute_equal "2024-01-03-.md", File.basename(post)
+    end
+  end
+
+  def test_new_post_slug_survives_a_title_the_console_tagged_otherwise
+    Dir.mktmpdir do |dir|
+      # Thor hands over what the console gave it; on Windows that is rarely
+      # tagged UTF-8, and transliterating it raised Encoding::CompatibilityError.
+      title = +"Análise de Séries"
+      title.force_encoding(Encoding::ASCII_8BIT)
+      scaffold(dir, title: title, date: "2024-01-04")
+
+      post = Dir[File.join(dir, "_posts", "*.md")].first
+      assert_equal "2024-01-04-analise-de-series.md", File.basename(post)
+    end
+  end
+
+  def test_update_stops_when_npm_cannot_install
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "package.json"), "{}\n")
+      cli = Datalog::CLI.new([], { root: dir })
+      cli.define_singleton_method(:command_available?) { |_command| true }
+      cli.define_singleton_method(:system) { |*_args, **_options| false }
+
+      error = assert_raises(SystemExit) { capture_io { cli.update } }
+      assert_equal 1, error.status
+    end
+  end
+
+  def test_update_reports_success_when_npm_installs
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "package.json"), "{}\n")
+      cli = Datalog::CLI.new([], { root: dir })
+      cli.define_singleton_method(:command_available?) { |_command| true }
+      cli.define_singleton_method(:system) { |*_args, **_options| true }
+
+      out, = capture_io { cli.update }
+      assert_includes out, "up to date"
+    end
+  end
+
   private
+
+  # `datalog new post`, with every prompt answered with its default.
+  def scaffold(dir, **options)
+    cli = Datalog::CLI::New.new([], { root: dir, tags: [], difficulty: "easy" }.merge(options))
+    cli.define_singleton_method(:ask) { |*_args| "" }
+    capture_io { cli.post }
+  end
 
   def env
     { "BUNDLE_GEMFILE" => ROOT.join("Gemfile").to_s }

@@ -9,12 +9,12 @@ Parameters:
 {%- assign show_current = include.show_current | default: true -%}
 {%- assign separator = include.separator | default: " / " -%}
 
-<nav class="breadcrumbs" aria-label="Breadcrumb">
+<nav class="breadcrumbs" aria-label="{% t 'breadcrumbs.label' %}">
   <ol class="breadcrumbs__list" itemscope itemtype="https://schema.org/BreadcrumbList">
     {%- comment -%} Home link {%- endcomment -%}
     <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
       <a href="{{ '/' | relative_url }}" class="breadcrumbs__link" itemprop="item">
-        <span itemprop="name">Home</span>
+        <span itemprop="name">{% t 'breadcrumbs.home' %}</span>
       </a>
       <meta itemprop="position" content="1" />
       <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
@@ -27,7 +27,7 @@ Parameters:
         {%- when 'posts' -%}
           <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
             <a href="{{ '/blog' | relative_url }}" class="breadcrumbs__link" itemprop="item">
-              <span itemprop="name">Blog</span>
+              <span itemprop="name">{% t 'breadcrumbs.blog' %}</span>
             </a>
             <meta itemprop="position" content="{{ position }}" />
             <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
@@ -35,7 +35,7 @@ Parameters:
         {%- when 'portfolio' -%}
           <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
             <a href="{{ '/portfolio' | relative_url }}" class="breadcrumbs__link" itemprop="item">
-              <span itemprop="name">Portfolio</span>
+              <span itemprop="name">{% t 'breadcrumbs.portfolio' %}</span>
             </a>
             <meta itemprop="position" content="{{ position }}" />
             <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
@@ -43,7 +43,7 @@ Parameters:
         {%- when 'datasets' -%}
           <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
             <a href="{{ '/datasets' | relative_url }}" class="breadcrumbs__link" itemprop="item">
-              <span itemprop="name">Datasets</span>
+              <span itemprop="name">{% t 'breadcrumbs.datasets' %}</span>
             </a>
             <meta itemprop="position" content="{{ position }}" />
             <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>
@@ -51,7 +51,7 @@ Parameters:
         {%- when 'notebooks' -%}
           <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
             <a href="{{ '/notebooks' | relative_url }}" class="breadcrumbs__link" itemprop="item">
-              <span itemprop="name">Notebooks</span>
+              <span itemprop="name">{% t 'breadcrumbs.notebooks' %}</span>
             </a>
             <meta itemprop="position" content="{{ position }}" />
             <span class="breadcrumbs__separator" aria-hidden="true">{{ separator }}</span>

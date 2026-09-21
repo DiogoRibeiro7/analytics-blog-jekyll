@@ -31,6 +31,9 @@ const PAGES = [
   '/2024/04/05/sql-optimization-guide/',
   // Numbered equations and \eqref links, once MathJax has drawn them.
   '/2024/04/08/mathematical-proof-numbered-equations/',
+  // The package docs: a dark sidebar, tinted panels, API signatures and the
+  // installation tabs, in a stylesheet that had no dark mode of its own.
+  '/packages/statflow/',
 ];
 
 // What a page shows once its scripts have finished what the scan is about.

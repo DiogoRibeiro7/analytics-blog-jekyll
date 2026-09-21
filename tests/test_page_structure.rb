@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "nokogiri"
 
 # The page outline and the markup that screen readers and the Content Security
 # Policy depend on.
@@ -12,6 +13,19 @@ class PageStructureTest < Minitest::Test
       "#{path.delete_prefix(SiteBuilder.destination)} (#{count})" if count > 1
     end
     assert_empty repeated, "Each page should have one <h1>; the layout's title and the page's own heading both rendered"
+  end
+
+  # An id used twice is invalid, and an anchor to it lands on whichever the
+  # browser picks. The installation panel hardcoded id="installation", which a
+  # package page's own `## Installation` heading already had (#332).
+  def test_no_page_uses_an_id_twice
+    SiteBuilder.build
+    repeated = Dir.glob(File.join(SiteBuilder.destination, "**", "*.html")).filter_map do |path|
+      ids = Nokogiri::HTML(File.read(path)).css("[id]").map { |node| node["id"] }
+      duplicated = ids.tally.select { |_, count| count > 1 }.keys
+      "#{path.delete_prefix(SiteBuilder.destination)}: #{duplicated.join(', ')}" unless duplicated.empty?
+    end
+    assert_empty repeated, "an id belongs to one element"
   end
 
   def test_footer_navigation_is_named_and_its_headings_follow_the_page

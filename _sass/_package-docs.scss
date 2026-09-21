@@ -5,9 +5,16 @@
 
 @use 'sass:color';
 @use 'mixins' as *;
+@use 'variables' as *;
 
 // Color scheme - ReadTheDocs inspired
 $pkg-primary: #2980b9;
+// $pkg-primary is a brand colour for borders, gradients and rules. As text it
+// reads at 4.08:1 on the panel, short of WCAG AA, and a single darker value
+// would fail again on a dark surface — so text uses the theme's own accent and
+// secondary inks, which _theme.scss defines for each mode.
+$pkg-primary-text: var(--color-accent-text);
+$pkg-muted-text: var(--color-text-secondary);
 $pkg-success: #27ae60;
 $pkg-warning: #f39c12;
 $pkg-danger: #e74c3c;
@@ -15,8 +22,26 @@ $pkg-sidebar-bg: #343131;
 $pkg-sidebar-text: #b3b3b3;
 $pkg-sidebar-link: #9b9b9b;
 $pkg-sidebar-link-hover: #fff;
-$pkg-code-bg: #f8f8f8;
-$pkg-border: #e1e4e5;
+$pkg-code-bg: var(--color-background-secondary);
+$pkg-border: var(--color-border);
+
+// The tinted panels: a background and the ink that reads on it, for each
+// mode. _theme.scss has no tokens for these, so they are defined here.
+:root {
+  --pkg-tint-note: #e7f2fa;
+  --pkg-tint-tip: #dbf5e8;
+  --pkg-tint-warning: #fff3cd;
+  --pkg-tint-danger: #f8d7da;
+  --pkg-tint-ink: #{$color-ink-900};
+}
+
+body.dark-mode {
+  --pkg-tint-note: #{rgba($dark-accent-primary, 0.16)};
+  --pkg-tint-tip: #{rgba($dark-accent-secondary, 0.16)};
+  --pkg-tint-warning: #{rgba($dark-warning, 0.16)};
+  --pkg-tint-danger: #{rgba($dark-danger-400, 0.22)};
+  --pkg-tint-ink: #{$dark-ink-900};
+}
 
 // Package Docs Container
 .package-docs {
@@ -126,7 +151,7 @@ $pkg-border: #e1e4e5;
   &__main {
     flex: 1;
     padding: 2rem 3rem;
-    background: white;
+    background: var(--color-surface);
     min-width: 0;
   }
 
@@ -179,7 +204,7 @@ $pkg-border: #e1e4e5;
     }
 
     pre {
-      background: #f8f8f8;
+      background: var(--color-background-secondary);
       border: 1px solid $pkg-border;
       border-radius: 4px;
       padding: 1rem;
@@ -201,24 +226,30 @@ $pkg-border: #e1e4e5;
       border-left: 4px solid;
       border-radius: 4px;
 
+      // Tinted panels keep their own ink, so the tint and the text stay a
+      // pair whichever way the page is set.
       &.note {
-        background: #e7f2fa;
+        background: var(--pkg-tint-note);
         border-color: $pkg-primary;
+        color: var(--pkg-tint-ink);
       }
 
       &.tip {
-        background: #dbf5e8;
+        background: var(--pkg-tint-tip);
         border-color: $pkg-success;
+        color: var(--pkg-tint-ink);
       }
 
       &.warning {
-        background: #fff3cd;
+        background: var(--pkg-tint-warning);
         border-color: $pkg-warning;
+        color: var(--pkg-tint-ink);
       }
 
       &.danger {
-        background: #f8d7da;
+        background: var(--pkg-tint-danger);
         border-color: $pkg-danger;
+        color: var(--pkg-tint-ink);
       }
 
       .admonition-title {
@@ -242,7 +273,7 @@ $pkg-border: #e1e4e5;
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--color-background-secondary);
     border: 1px solid $pkg-border;
     border-radius: 6px;
     text-decoration: none;
@@ -251,7 +282,7 @@ $pkg-border: #e1e4e5;
     flex: 1;
 
     &:hover {
-      background: #e9ecef;
+      background: var(--color-border);
       border-color: $pkg-primary;
     }
 
@@ -273,14 +304,14 @@ $pkg-border: #e1e4e5;
 
   &__footer-nav-label {
     font-size: 0.8125rem;
-    color: #6c757d;
+    color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   &__footer-nav-title {
     font-weight: 600;
-    color: #212529;
+    color: var(--color-text-primary);
   }
 }
 
@@ -368,7 +399,7 @@ $pkg-border: #e1e4e5;
 .package-install {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--color-background-secondary);
   border: 1px solid $pkg-border;
   border-radius: 6px;
 
@@ -393,15 +424,15 @@ $pkg-border: #e1e4e5;
     margin-bottom: -2px;
     cursor: pointer;
     font-weight: 500;
-    color: #6c757d;
+    color: $pkg-muted-text;
     transition: all 0.2s ease;
 
     &:hover {
-      color: $pkg-primary;
+      color: $pkg-primary-text;
     }
 
     &--active {
-      color: $pkg-primary;
+      color: $pkg-primary-text;
       border-bottom-color: $pkg-primary;
     }
   }
@@ -469,7 +500,7 @@ $pkg-border: #e1e4e5;
 .api-function {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--color-background-secondary);
   border: 1px solid $pkg-border;
   border-left: 4px solid $pkg-primary;
   border-radius: 4px;
@@ -481,7 +512,7 @@ $pkg-border: #e1e4e5;
   &__name {
     margin: 0 0 0.75rem;
     font-size: 1.5rem;
-    color: $pkg-primary;
+    color: $pkg-primary-text;
 
     code {
       background: none;
@@ -519,7 +550,7 @@ $pkg-border: #e1e4e5;
     margin: 0 0 0.75rem;
     font-size: 1.125rem;
     font-weight: 600;
-    color: #343a40;
+    color: var(--color-text-primary);
   }
 
   &__params {
@@ -550,7 +581,7 @@ $pkg-border: #e1e4e5;
 
   &__param-type {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--color-text-secondary);
     font-style: italic;
     font-weight: normal;
   }
@@ -564,18 +595,18 @@ $pkg-border: #e1e4e5;
   &__param-badge {
     display: inline-block;
     padding: 0.125rem 0.5rem;
-    background: #e9ecef;
+    background: var(--color-border);
     border-radius: 3px;
     font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
-    color: #6c757d;
+    color: var(--color-text-secondary);
   }
 
   &__param-desc {
     margin: 0;
     padding-left: 1rem;
-    color: #495057;
+    color: var(--color-text-primary);
     line-height: 1.6;
 
     p:last-child {
@@ -585,16 +616,16 @@ $pkg-border: #e1e4e5;
 
   &__returns {
     padding: 1rem;
-    background: white;
+    background: var(--color-surface);
     border-radius: 4px;
   }
 
   &__return-type {
     display: inline-block;
     padding: 0.25rem 0.625rem;
-    background: #e7f2fa;
+    background: var(--pkg-tint-note);
     border-radius: 3px;
-    color: $pkg-primary;
+    color: var(--pkg-tint-ink);
     font-weight: 600;
     font-size: 0.9375rem;
     margin-bottom: 0.5rem;
@@ -602,12 +633,7 @@ $pkg-border: #e1e4e5;
 
   &__examples {
     pre {
-      background: #2d2d2d;
       border: none;
-
-      code {
-        color: #e6e6e6;
-      }
     }
   }
 

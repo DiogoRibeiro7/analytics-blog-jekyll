@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-21
+
+### Upgrading from 0.9.x
+
+Three changes need an edit on a site that upgrades:
+
+- **`components/search-facets.html` is gone.** A site that includes it will not build. Remove the include; the search page's own application covers the same ground, with tests.
+- **The installation panel's id is the package's**, `install-<package-name>`, where it was `installation`. A link or a stylesheet that pointed at `#installation` should point at the new id — or at the page's own `## Installation` heading, which still carries that id where the Markdown has one.
+- **`package-docs__main` is a `<div>`, not a `<main>`.** The page already had a `main` landmark from the default layout, and two is one too many. A selector written as `main.package-docs__main` needs the tag dropped.
+
+Two more to know about, neither needing an edit:
+
+- `datalog new post` slugifies the way Jekyll does, so a new post with an accented title is filed under a different name than 0.9.x would have given it: `analise-de-series-temporais`, not `an-lise-de-s-ries-temporais`. Posts already published are untouched.
+- A site holding its own copy of `components/enhanced-toc.html` keeps that copy's inline script, and now also loads the contents module in the core bundle. Take the `<script>` block out of the copy, or drop the copy and use the theme's.
+
+### Added
+
+- Translations for the breadcrumbs, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
+
+### Removed
+
+- `components/search-facets.html`, which no layout or page included, no stylesheet styled, and whose script would have thrown on load. The search page's own application (`assets/js/search/`) is the one that indexes posts, code and math, offers facets and is covered by tests (#341).
+
+### Fixed
+
+- Name the equation editor's LaTeX box and tie it to the description beside it. The dialog's title named the dialog, not the box, so a screen reader met an unlabelled multiline text box — and the editor is built into every page that loads MathJax, where an accessibility sweep finds it.
+- Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
+- Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
+- Name a scaffolded post after its title, accents and all: `datalog new post` now slugifies the way Jekyll does, so "Análise de Séries Temporais" becomes `analise-de-series-temporais` rather than `an-lise-de-s-ries-temporais`, a title in a script no transliteration covers keeps its own characters, and a title the console tagged as something other than UTF-8 no longer raises (#333).
+- Stop `datalog update` where `npm install` fails, instead of reporting that the theme's dependencies are up to date (#333).
+- Let the browser follow a table-of-contents link instead of intercepting it, so an entry for a numbered heading reaches its section, the heading clears the sticky header by its own scroll margin, and the keyboard carries on from there. The contents now ship as a module in the core bundle: the reading position is measured from the viewport, the progress indicator reports a number rather than `NaN` on a short article, the current entry is marked with `aria-current`, and the percentage no longer sits in a live region that announced every scroll (#330).
+- Ask for the translations the theme already ships. The header's search box, brand link and toggles, the primary navigation's labels and descriptions, the breadcrumbs, the sharing buttons, the contents heading and the footer's headings now read from `_data/i18n`, so a site in Spanish or Portuguese is no longer an English chrome around translated articles. `{% t %}` accepts a variable holding a key, which is how `_data/navigation.yml` names one per entry, and a key the data names but no locale defines falls back to the literal beside it instead of printing the key (#331).
+- Give the installation panel real tab semantics, so the arrow keys move between pip, conda and Git, the selected one is announced, and each panel is named by its tab. Its id is the package's rather than `installation`, which a page's own heading already had; its buttons carry a type; its labels are translated; and it copies through the core bundle's copy button instead of a second clipboard implementation. The tab labels meet the AA contrast ratio (#332).
+- Fall back to the older copy route where the clipboard API is unavailable or refused, and let a template pass the words shown after a copy (#332).
+- Give package pages a dark mode. The package stylesheet had no dark rules at all, so its panels stayed white on a dark page and everything layered on them followed: 421 axe contrast failures in dark mode, 103 in light. Its surfaces, inks and borders now read from the theme's own tokens, the tinted admonitions carry an ink that pairs with their tint in each mode, and a highlighted example no longer sits on a forced dark background that fought the light Rouge palette (#342).
+- Name the version selector on a package page, take the second `main` landmark out of the package layout, start the sidebar's section titles at the level after the page title, and let the keyboard reach an API signature that scrolls sideways (#342).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed

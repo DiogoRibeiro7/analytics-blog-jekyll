@@ -96,6 +96,9 @@ navigation:
     visualizations:
       title: Visualizações
       description: Plotly, D3 e notebooks Observable
+    packages:
+      title: Pacotes
+      description: Pacotes de software, bibliotecas e ferramentas
     academic:
       title: Operações académicas
       description: Métricas de citação, submissões e colaboração
@@ -475,6 +478,7 @@ post:
     many: "Leitura de {{minutes}} min"
   difficulty_default: Intermédio
   toc_heading: Nesta página
+  toc_toggle: Mostrar ou ocultar o índice
   notebook:
     open_external: Abrir notebook Jupyter
     download: Transferir notebook Jupyter
@@ -484,6 +488,11 @@ post:
     twitter: Partilhar no X (Twitter)
     linkedin: Partilhar no LinkedIn
     reddit: Discutir no Reddit
+    facebook: Partilhar no Facebook
+    email: Partilhar por email
+    copy_link: Copiar a ligação
+    email_label: Email
+    copy_link_label: Copiar ligação
   interactive:
     label: Recursos interativos
     launch: Iniciar demonstração
@@ -693,6 +702,11 @@ project:
     last_commit: "Último commit {{commit}}."
     view_latest: Ver revisão mais recente
 footer:
+  explore: Explorar
+  connect: Contacto
+  stay_updated: Fique a par
+  rss_description: Siga o RSS ou volte para ver novas investigações e tutoriais.
+  rss_feed: Fonte RSS
   heading: Rodapé do site
   about_title: "Sobre {{site}}"
   orcid_label: "ORCID: {{id}}"
@@ -757,3 +771,17 @@ analytics:
       users: Usuários
       new_users: Novos usuários
       page_views: Visualizações de página
+breadcrumbs:
+  label: Caminho de navegação
+  home: Início
+  blog: Blog
+  portfolio: Portefólio
+  datasets: Conjuntos de dados
+  notebooks: Cadernos
+package_install:
+  title: Instalação
+  terminal: Terminal
+  r_console: Consola do R
+  copy: Copiar
+  copied: Copiado!
+  copy_error: Não foi possível copiar

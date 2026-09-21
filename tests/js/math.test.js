@@ -610,6 +610,115 @@ describe('MathJax initialization', () => {
   });
 });
 
+/**
+ * MathJax hands `startup.document.math` over as a MathList, which extends a
+ * linked list: iterable, and with neither `forEach` nor `length`. Mocking it
+ * as an array is what hid #329, so these tests mock it as it really is.
+ */
+function mathList(items) {
+  return {
+    [Symbol.iterator]() {
+      return items[Symbol.iterator]();
+    }
+  };
+}
+
+/** A display container shaped like MathJax's output for a numbered equation. */
+function numberedDisplay(number) {
+  const wrapper = document.createElement('div');
+  const container = document.createElement('div');
+  wrapper.appendChild(container);
+  if (number) {
+    container.innerHTML =
+      `<mjx-assistive-mml><mtable><mlabeledtr><mtd>${number}</mtd><mtd>x</mtd></mlabeledtr></mtable></mjx-assistive-mml>`;
+  }
+  return container;
+}
+
+describe('the math list MathJax really passes', () => {
+  beforeEach(() => {
+    toolkit.displayCounter = 0;
+    toolkit.anchorCounter = 0;
+    toolkit.equationMap = new Map();
+    toolkit.MathJax = null;
+  });
+
+  it('decorates a list that has no forEach and no length', () => {
+    const container = document.createElement('div');
+    const item = { typesetRoot: container, math: 'x^2', display: false };
+
+    toolkit.decorateExisting(mathList([item]));
+
+    expect(container.getAttribute('role')).toBe('math');
+  });
+
+  it('decorates through init, rather than failing into the catch', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const container = document.createElement('div');
+    const mathJax = {
+      startup: {
+        promise: Promise.resolve(),
+        document: { math: mathList([{ typesetRoot: container, math: 'x^2', display: false }]) }
+      }
+    };
+
+    toolkit.init(mathJax);
+    await mathJax.startup.promise;
+    await Promise.resolve();
+
+    expect(container.getAttribute('role')).toBe('math');
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    toolkit.MathJax = null;
+  });
+});
+
+describe('who numbers a display equation', () => {
+  beforeEach(() => {
+    toolkit.displayCounter = 0;
+    toolkit.anchorCounter = 0;
+    toolkit.equationMap = new Map();
+    toolkit.MathJax = null;
+  });
+
+  it('leaves the number to MathJax when MathJax is numbering', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'all' } } };
+    const container = numberedDisplay('(7)');
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: '\\label{eq:a} E = mc^2', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBe('(7)');
+    expect(toolkit.equationMap.get('eq:a').number).toBe('(7)');
+    toolkit.MathJax = null;
+  });
+
+  it('draws no number for an equation MathJax left unnumbered', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'all' } } };
+    const container = numberedDisplay(null);
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: '\\notag E = mc^2', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBeUndefined();
+    toolkit.MathJax = null;
+  });
+
+  it('numbers them itself when MathJax does not', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'none' } } };
+    const container = numberedDisplay(null);
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: 'E = mc^2', display: true });
+
+    const badge = container.parentElement.querySelector('.math-expression__number');
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toBe('(1)');
+    toolkit.MathJax = null;
+  });
+});
+
 describe('onPageReady', () => {
   beforeEach(() => {
     toolkit.equationMap = new Map();
@@ -1011,6 +1120,22 @@ describe('editor lifecycle', () => {
     document.body.innerHTML = '';
     toolkit.editor = null;
     toolkit.editorOpen = false;
+  });
+
+  // The dialog's title names the dialog; the box inside it needs a name of its
+  // own, or a screen reader meets an unlabelled multiline text box. It is also
+  // built into every page that loads MathJax, where an accessibility sweep
+  // finds it.
+  it('names the LaTeX box and ties it to the description beside it', () => {
+    toolkit.setupEditor();
+
+    const textarea = toolkit.editor.textarea;
+    expect(textarea.getAttribute('aria-label')).toBeTruthy();
+
+    const describedBy = textarea.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy)).not.toBeNull();
+    expect(document.getElementById(describedBy).textContent).toContain('LaTeX');
   });
 
   it('setupEditor creates editor structure', () => {

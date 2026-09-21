@@ -1,11 +1,13 @@
 import { initCopyButtons } from "./core/copy-buttons.js";
 import { initDarkModeToggle } from "./core/dark-mode.js";
 import { initGitHubCards } from "./core/github-cards.js";
+import { initAllInstallTabs } from "./core/install-tabs.js";
 import { initLanguageFilter } from "./core/language-filter.js";
 import { initNavigation } from "./core/navigation.js";
 import { initScrollProgress } from "./core/scroll-progress.js";
 import { initSearchHotkeys } from "./core/search-hotkeys.js";
 import { initSkipLinks } from "./core/skip-links.js";
+import { initToc } from "./core/toc.js";
 
 const CORE_INITIALIZERS = [
   initSkipLinks,
@@ -15,7 +17,9 @@ const CORE_INITIALIZERS = [
   initScrollProgress,
   initSearchHotkeys,
   initGitHubCards,
-  initCopyButtons
+  initCopyButtons,
+  initToc,
+  initAllInstallTabs
 ];
 
 /**

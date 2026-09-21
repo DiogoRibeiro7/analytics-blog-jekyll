@@ -21,7 +21,7 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.9.2
+theme_version: 0.10.0
 
 # The licence of the articles' text and figures (the repository's LICENSE covers
 # the theme's software). A page sets its own with `license:`, or none with `license: false`.
@@ -150,7 +150,6 @@ defaults:
     values:
       layout: post
       toc: true
-      toc_label: On this page
       author: Diogo Ribeiro
   - scope:
       path: ""
