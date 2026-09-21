@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- Name the equation editor's LaTeX box and tie it to the description beside it. The dialog's title named the dialog, not the box, so a screen reader met an unlabelled multiline text box — and the editor is built into every page that loads MathJax, where an accessibility sweep finds it.
 - Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
 - Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
 - Name a scaffolded post after its title, accents and all: `datalog new post` now slugifies the way Jekyll does, so "Análise de Séries Temporais" becomes `analise-de-series-temporais` rather than `an-lise-de-s-ries-temporais`, a title in a script no transliteration covers keeps its own characters, and a title the console tagged as something other than UTF-8 no longer raises (#333).
