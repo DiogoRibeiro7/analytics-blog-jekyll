@@ -25,7 +25,7 @@
 
       MathJax.startup.promise
         .then(() => {
-          this.decorateExisting(MathJax.startup.document.math || []);
+          this.decorateExisting(MathJax.startup.document.math);
           this.updateEquationReferences();
           if (this.pendingTypeset.length > 0) {
             const pending = [...this.pendingTypeset];
@@ -47,8 +47,17 @@
       this.updateEquationReferences();
     },
 
+    /**
+     * `MathJax.startup.document.math` is a MathList, which extends a linked
+     * list: iterable, but with no `forEach` and no `length`. Calling `forEach`
+     * on it threw, the `catch` around initialization swallowed the error, and
+     * none of this ran on a real page — no numbers, no toolbars, no reference
+     * map (#329). Reading it as an array is what switches the toolkit on.
+     * @param {Iterable} mathItems - The expressions MathJax typeset
+     */
     decorateExisting(mathItems) {
-      if (!mathItems || mathItems.length === 0) {
+      const items = mathItems ? Array.from(mathItems) : [];
+      if (items.length === 0) {
         return;
       }
 
@@ -56,7 +65,7 @@
       this.anchorCounter = 0;
       this.equationMap.clear();
 
-      mathItems.forEach((item) => {
+      items.forEach((item) => {
         try {
           this.decorateMathItem(item);
         } catch (error) {
@@ -77,10 +86,17 @@
       const altText = this.resolveAltText(wrapper, latex);
 
       container.dataset.mathLatex = latex;
-      container.setAttribute('tabindex', '0');
-      container.setAttribute('role', 'math');
 
-      this.syncAltAttributes(wrapper, container, altText);
+      // MathJax draws \eqref and \ref as a link inside the expression. Giving
+      // that expression a role and a place in the tab order would make it an
+      // interactive control with a link inside it, which axe reads as a nested
+      // interactive control; a reference is also already named by what MathJax
+      // wrote and by the link exposeReferenceLinks puts after it.
+      if (!container.querySelector('a[href]')) {
+        container.setAttribute('tabindex', '0');
+        container.setAttribute('role', 'math');
+        this.syncAltAttributes(wrapper, container, altText);
+      }
 
       if (item.display) {
         this.decorateDisplay(container, latex);
@@ -159,19 +175,23 @@
         wrapper.appendChild(container);
       }
 
+      // The preprocessor names the wrapper `role="math"` because until MathJax
+      // runs the wrapper *is* the expression, holding its LaTeX as text. Once
+      // it has run, the expression is the container inside, which carries the
+      // role and the label, and the wrapper holds the copy and edit buttons
+      // beside it — a role="math" element with buttons in it is a nested
+      // interactive control.
+      wrapper.removeAttribute('role');
+      wrapper.removeAttribute('aria-label');
+      wrapper.removeAttribute('tabindex');
+
       const info = this.extractEquationInfo(latex);
       this.anchorCounter += 1;
       const fallbackAnchor = `eq:auto-${this.anchorCounter}`;
-      let equationNumber = info.tag || '';
-
-      if (!info.skipNumber) {
-        this.displayCounter += 1;
-        if (!equationNumber) {
-          equationNumber = String(this.displayCounter);
-        }
-      }
-
-      const formattedNumber = equationNumber ? `(${equationNumber})` : '';
+      const mathJaxNumbers = this.mathJaxNumbersEquations();
+      const formattedNumber = mathJaxNumbers
+        ? this.mathJaxNumber(container)
+        : this.ownNumber(info);
       const anchorId = this.buildAnchorId(info.label, fallbackAnchor);
 
       wrapper.dataset.mathLatex = latex;
@@ -201,8 +221,53 @@
         }
       }
 
-      this.attachNumberBadge(wrapper, formattedNumber);
+      // A number MathJax drew is already in the expression and in the
+      // assistive MathML a screen reader announces; a badge beside it would be
+      // the same number twice.
+      if (!mathJaxNumbers) {
+        this.attachNumberBadge(wrapper, formattedNumber);
+      }
       this.attachToolbar(wrapper);
+    },
+
+    /**
+     * Whether MathJax numbers equations itself. It does unless `tex.tags` is
+     * "none", and then it also decides which ones: `\notag` and the starred
+     * environments are its to honour, and an `align` numbers each of its lines
+     * where this toolkit sees one expression. Where it numbers, its numbers
+     * are the ones the page shows and the ones references point at.
+     * @returns {boolean}
+     */
+    mathJaxNumbersEquations() {
+      const tex = this.MathJax && this.MathJax.config ? this.MathJax.config.tex : null;
+      const tags = tex ? tex.tags : null;
+      return Boolean(tags) && tags !== 'none';
+    },
+
+    /**
+     * The number MathJax gave this expression, as it drew it ("(3)"), read
+     * from the assistive MathML so it does not depend on the output format.
+     * Empty when it numbered none — an unnumbered environment, or `\notag`.
+     * @param {Element} container - The typeset container
+     * @returns {string}
+     */
+    mathJaxNumber(container) {
+      const label = container.querySelector('mjx-assistive-mml mlabeledtr > mtd:first-child');
+      return label ? (label.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    },
+
+    /** The toolkit's own number, for a site whose MathJax does not number. */
+    ownNumber(info) {
+      let equationNumber = info.tag || '';
+
+      if (!info.skipNumber) {
+        this.displayCounter += 1;
+        if (!equationNumber) {
+          equationNumber = String(this.displayCounter);
+        }
+      }
+
+      return equationNumber ? `(${equationNumber})` : '';
     },
 
     extractEquationInfo(latex) {
