@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+- `components/search-facets.html`, which no layout or page included, no stylesheet styled, and whose script would have thrown on load. The search page's own application (`assets/js/search/`) is the one that indexes posts, code and math, offers facets and is covered by tests (#341).
+
 ## [0.9.2] - 2026-09-20
 
 ### Fixed
