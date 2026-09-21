@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 
 - Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
+- Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
 - Ask for the translations the theme already ships. The header's search box, brand link and toggles, the primary navigation's labels and descriptions, the breadcrumbs, the sharing buttons, the contents heading and the footer's headings now read from `_data/i18n`, so a site in Spanish or Portuguese is no longer an English chrome around translated articles. `{% t %}` accepts a variable holding a key, which is how `_data/navigation.yml` names one per entry, and a key the data names but no locale defines falls back to the literal beside it instead of printing the key (#331).
 
 ## [0.9.2] - 2026-09-20
