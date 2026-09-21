@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-### Fixed
-
-- Ask for the translations the theme already ships. The header's search box, brand link and toggles, the primary navigation's labels and descriptions, the breadcrumbs, the sharing buttons, the contents heading and the footer's headings now read from `_data/i18n`, so a site in Spanish or Portuguese is no longer an English chrome around translated articles. `{% t %}` accepts a variable holding a key, which is how `_data/navigation.yml` names one per entry, and a key the data names but no locale defines falls back to the literal beside it instead of printing the key (#331).
-
 ### Added
 
 - Translations for the breadcrumbs, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
+
+### Fixed
+
+- Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
+- Ask for the translations the theme already ships. The header's search box, brand link and toggles, the primary navigation's labels and descriptions, the breadcrumbs, the sharing buttons, the contents heading and the footer's headings now read from `_data/i18n`, so a site in Spanish or Portuguese is no longer an English chrome around translated articles. `{% t %}` accepts a variable holding a key, which is how `_data/navigation.yml` names one per entry, and a key the data names but no locale defines falls back to the literal beside it instead of printing the key (#331).
 
 ## [0.9.2] - 2026-09-20
 

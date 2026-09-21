@@ -103,7 +103,8 @@
 </script>
 
 {% if js_manifest %}
-  <script id="datalog-js-manifest" type="application/json" nonce="{{ page.csp_nonce }}">{{ js_manifest | jsonify }}</script>
+  {%- comment -%} The loader reads this as JSON, so the baseurl goes in before it is written, not with `relative_url` at each use. {%- endcomment -%}
+  <script id="datalog-js-manifest" type="application/json" nonce="{{ page.csp_nonce }}">{{ js_manifest | relative_manifest | jsonify }}</script>
 {% endif %}
 
 {% assign loader_src = js_manifest.loader | default: '/assets/js/loader.js' %}
