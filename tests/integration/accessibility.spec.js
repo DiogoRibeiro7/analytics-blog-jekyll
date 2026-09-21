@@ -174,37 +174,43 @@ test.describe('Accessibility - Forms', () => {
   test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
 
   test('form inputs have associated labels', async ({ page }) => {
-    await page.goto(`${baseUrl}/search/`, { waitUntil: 'domcontentloaded' }).catch(() => {
-      // Search page might not exist
+    // `load`, not `domcontentloaded`: MathJax arrives from a CDN and builds
+    // the equation editor into the page, so enumerating before it settles read
+    // a different set of controls on a fast connection than on a slow one, and
+    // the count was taken once while the list was still growing.
+    await page.goto(`${baseUrl}/search/`, { waitUntil: 'load' });
+    await page.waitForLoadState('networkidle').catch(() => {
+      // A page that keeps a connection open is still ready enough to read.
     });
 
-    const inputs = page.locator(
-      'input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select'
-    );
+    // Read every control in one pass, so nothing shifts under the loop, and
+    // say which one is at fault when one is.
+    const unlabelled = await page.evaluate(() => {
+      const selector =
+        'input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select';
+      return Array.from(document.querySelectorAll(selector))
+        .filter((el) => {
+          // A control nobody can perceive needs no name: `hidden`, an
+          // aria-hidden subtree, or display:none from a stylesheet.
+          if (el.closest('[hidden], [aria-hidden="true"]')) {
+            return false;
+          }
+          return el.getClientRects().length > 0;
+        })
+        .filter((el) => {
+          const named =
+            (el.id && document.querySelector(`label[for="${CSS.escape(el.id)}"]`)) ||
+            el.getAttribute('aria-label') ||
+            el.getAttribute('aria-labelledby') ||
+            el.getAttribute('placeholder') ||
+            el.closest('label');
+          return !named;
+        })
+        .map((el) => `<${el.tagName.toLowerCase()}${el.id ? ` id="${el.id}"` : ''}` +
+          `${el.className ? ` class="${el.className}"` : ''}>`);
+    });
 
-    const inputCount = await inputs.count();
-
-    for (let i = 0; i < inputCount; i++) {
-      const input = inputs.nth(i);
-      const id = await input.getAttribute('id');
-      const ariaLabel = await input.getAttribute('aria-label');
-      const ariaLabelledBy = await input.getAttribute('aria-labelledby');
-      const placeholder = await input.getAttribute('placeholder');
-      // A control nested inside <label> is labelled implicitly.
-      const wrappedInLabel = await input.evaluate((el) => Boolean(el.closest('label')));
-
-      // Should have some form of label
-      if (id) {
-        const label = page.locator(`label[for="${id}"]`);
-        const hasLabel = (await label.count()) > 0;
-        const hasAriaLabel = ariaLabel || ariaLabelledBy;
-
-        expect(hasLabel || hasAriaLabel || placeholder || wrappedInLabel).toBeTruthy();
-      } else {
-        // Without id, should have aria-label, placeholder or a wrapping label
-        expect(ariaLabel || ariaLabelledBy || placeholder || wrappedInLabel).toBeTruthy();
-      }
-    }
+    expect(unlabelled, 'every control a reader can reach should have a name').toEqual([]);
   });
 });
 

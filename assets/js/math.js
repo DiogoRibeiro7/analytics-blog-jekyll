@@ -529,15 +529,20 @@
       title.textContent = 'Equation editor';
 
       const helper = document.createElement('p');
+      helper.id = 'math-tooling-description';
       helper.className = 'math-tooling__description';
-      // innerHTML required for MathJax rendering
-      helper.innerHTML =
+      helper.textContent =
         'Craft LaTeX expressions with live preview, quick statistical symbols, and chemistry support.';
 
+      // The dialog's title names the dialog, not the box inside it. Without a
+      // name of its own the editor was an unlabelled multiline text box, and
+      // the description beside it was never announced with it.
       const textarea = document.createElement('textarea');
       textarea.className = 'math-tooling__input';
       textarea.setAttribute('data-math-editor-input', 'true');
       textarea.setAttribute('spellcheck', 'false');
+      textarea.setAttribute('aria-label', 'LaTeX source');
+      textarea.setAttribute('aria-describedby', helper.id);
       textarea.rows = 10;
 
       const actions = document.createElement('div');

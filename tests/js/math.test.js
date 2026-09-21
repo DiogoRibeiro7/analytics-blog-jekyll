@@ -1122,6 +1122,22 @@ describe('editor lifecycle', () => {
     toolkit.editorOpen = false;
   });
 
+  // The dialog's title names the dialog; the box inside it needs a name of its
+  // own, or a screen reader meets an unlabelled multiline text box. It is also
+  // built into every page that loads MathJax, where an accessibility sweep
+  // finds it.
+  it('names the LaTeX box and ties it to the description beside it', () => {
+    toolkit.setupEditor();
+
+    const textarea = toolkit.editor.textarea;
+    expect(textarea.getAttribute('aria-label')).toBeTruthy();
+
+    const describedBy = textarea.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy)).not.toBeNull();
+    expect(document.getElementById(describedBy).textContent).toContain('LaTeX');
+  });
+
   it('setupEditor creates editor structure', () => {
     toolkit.setupEditor();
 

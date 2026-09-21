@@ -96,6 +96,9 @@ navigation:
     visualizations:
       title: Visualizaciones
       description: Plotly, D3 y notebooks de Observable
+    packages:
+      title: Paquetes
+      description: Paquetes de software, bibliotecas y herramientas
     academic:
       title: Operaciones académicas
       description: Métricas de citación, envíos y colaboración
@@ -475,6 +478,7 @@ post:
     many: "Lectura de {{minutes}} min"
   difficulty_default: Intermedio
   toc_heading: En esta página
+  toc_toggle: Mostrar u ocultar el índice
   notebook:
     open_external: Abrir notebook de Jupyter
     download: Descargar notebook de Jupyter
@@ -484,6 +488,11 @@ post:
     twitter: Compartir en X (Twitter)
     linkedin: Compartir en LinkedIn
     reddit: Debatir en Reddit
+    facebook: Compartir en Facebook
+    email: Compartir por correo
+    copy_link: Copiar el enlace
+    email_label: Correo
+    copy_link_label: Copiar enlace
   interactive:
     label: Recursos interactivos
     launch: Iniciar demostración
@@ -693,6 +702,11 @@ project:
     last_commit: "Último commit {{commit}}."
     view_latest: Ver revisión más reciente
 footer:
+  explore: Explorar
+  connect: Contacto
+  stay_updated: Mantente al día
+  rss_description: Sigue el RSS o vuelve para ver nuevas investigaciones y tutoriales.
+  rss_feed: Fuente RSS
   heading: Pie de página
   about_title: "Acerca de {{site}}"
   orcid_label: "ORCID: {{id}}"
@@ -757,6 +771,13 @@ analytics:
       users: Usuarios
       new_users: Usuarios nuevos
       page_views: Vistas de página
+breadcrumbs:
+  label: Ruta de navegación
+  home: Inicio
+  blog: Blog
+  portfolio: Portafolio
+  datasets: Conjuntos de datos
+  notebooks: Cuadernos
 package_install:
   title: Instalación
   terminal: Terminal

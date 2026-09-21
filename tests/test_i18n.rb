@@ -65,6 +65,30 @@ class TestI18n < Minitest::Test
     refute_includes html, "Analytics Overview"
   end
 
+  # _data/navigation.yml names the key for each entry, so the tag has to accept
+  # a variable holding a key as well as a key written out. Both are unquoted,
+  # so the variable is tried first and a key that is not one is used as written.
+  def test_an_unquoted_key_may_be_a_variable_holding_one
+    template = Liquid::Template.parse("{% t item.title_key %}")
+    rendered = template.render!({ "item" => { "title_key" => "navigation.header.blog.title" } },
+                                registers: { site: SiteBuilder.site })
+
+    assert_equal "Blog", rendered
+  end
+
+  def test_an_unquoted_key_that_names_no_variable_is_still_a_key
+    template = Liquid::Template.parse("{% t post.toc_heading %}")
+
+    assert_equal "On this page", template.render!({}, registers: { site: SiteBuilder.site })
+  end
+
+  def test_a_variable_holding_no_key_falls_back_to_the_token
+    template = Liquid::Template.parse("{% t item.title_key %}")
+    rendered = template.render!({ "item" => {} }, registers: { site: SiteBuilder.site })
+
+    assert_equal "item.title_key", rendered
+  end
+
   def test_quoted_keys_interpolate_their_options
     html = SiteBuilder.read(File.join(SiteBuilder.site.posts.docs.find { |doc| doc.data["title"] == "Python Data Wrangling Foundations" }.url, "index.html"))
     refute_includes html, "{{minutes}}", "the reading-time placeholder must be replaced"
