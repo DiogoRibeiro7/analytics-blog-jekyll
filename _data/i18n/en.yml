@@ -96,6 +96,9 @@ navigation:
     visualizations:
       title: Visualizations
       description: Plotly, D3, and Observable notebooks
+    packages:
+      title: Packages
+      description: Software packages, libraries, and tools
     academic:
       title: Academic Ops
       description: Citation metrics, submissions, and collaboration hub
@@ -475,6 +478,7 @@ post:
     many: "{{minutes}} mins read"
   difficulty_default: Intermediate
   toc_heading: On this page
+  toc_toggle: Toggle table of contents
   notebook:
     open_external: Open Jupyter Notebook
     download: Download Jupyter Notebook
@@ -484,6 +488,11 @@ post:
     twitter: Share on X (Twitter)
     linkedin: Share on LinkedIn
     reddit: Discuss on Reddit
+    facebook: Share on Facebook
+    email: Share via email
+    copy_link: Copy link to clipboard
+    email_label: Email
+    copy_link_label: Copy link
   interactive:
     label: Interactive resources
     launch: Launch demo
@@ -693,6 +702,11 @@ project:
     last_commit: "Last commit {{commit}}."
     view_latest: View latest revision
 footer:
+  explore: Explore
+  connect: Connect
+  stay_updated: Stay updated
+  rss_description: Follow via RSS or check back for new research and tutorials.
+  rss_feed: RSS feed
   heading: Site footer
   about_title: "About {{site}}"
   orcid_label: "ORCID: {{id}}"
@@ -757,3 +771,10 @@ analytics:
       users: Users
       new_users: New users
       page_views: Page views
+breadcrumbs:
+  label: Breadcrumb
+  home: Home
+  blog: Blog
+  portfolio: Portfolio
+  datasets: Datasets
+  notebooks: Notebooks

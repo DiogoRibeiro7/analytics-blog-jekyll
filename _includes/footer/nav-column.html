@@ -16,8 +16,11 @@ Renders a footer navigation column with optional item descriptions.
   <h4>{{ include.title | strip | escape }}</h4>
   <ul>
     {%- for item in column_items -%}
-      {%- capture item_label -%}{% if item.label %}{{ item.label }}{% elsif item.label_key %}{% t item.label_key %}{% endif %}{%- endcapture -%}
-      {%- capture item_description -%}{% if item.description %}{{ item.description }}{% elsif item.description_key %}{% t item.description_key %}{% endif %}{%- endcapture -%}
+      {%- comment -%} The key first, so a site in another language gets its own words; the literal when there is no key, or the key names no translation. {%- endcomment -%}
+      {%- capture item_label -%}{% if item.label_key %}{% t item.label_key %}{% endif %}{%- endcapture -%}
+      {%- if item_label == '' or item_label == item.label_key -%}{%- assign item_label = item.label | default: '' -%}{%- endif -%}
+      {%- capture item_description -%}{% if item.description_key %}{% t item.description_key %}{% endif %}{%- endcapture -%}
+      {%- if item_description == '' or item_description == item.description_key -%}{%- assign item_description = item.description | default: '' -%}{%- endif -%}
       <li>
         <a href="{{ item.url | relative_url }}">
           <span>{{ item_label | strip }}</span>

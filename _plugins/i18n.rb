@@ -117,6 +117,7 @@ class TranslateTag < Liquid::Tag
   # The key may be bare or quoted; a quoted key must not leak its closing
   # quote into the first option name, or interpolation silently fails.
   SYNTAX = /\A\s*(['"]?)(\w[\w.-]*)\1(.*)?\z/m
+  QUOTED = /\A\s*['"]/
 
   # `name: value` pairs, separated by commas or spaces. A quoted value may
   # contain commas: splitting the markup on every comma cut `name: "Doe, Jane"`
@@ -128,15 +129,28 @@ class TranslateTag < Liquid::Tag
     raise Liquid::SyntaxError, "Syntax Error in 't' - Valid syntax: t key [arg: value]" unless markup.strip =~ SYNTAX
 
     @key = Regexp.last_match(2)
+    @quoted = markup.match?(QUOTED)
     @markup = Regexp.last_match(3)
   end
 
   def render(context)
     options = parse_options(@markup, context)
-    Datalog::I18n.translate(context, @key, options)
+    Datalog::I18n.translate(context, key_for(context), options)
   end
 
   private
+
+  # An unquoted key may be a key (`{% t header.brand_home %}`) or a variable
+  # holding one (`{% t item.title_key %}`, where _data/navigation.yml names the
+  # key for each entry). Both are written the same way, so the variable is
+  # tried first: a key that is not one resolves to nothing and is used as it
+  # was written. A quoted key is always a key.
+  def key_for(context)
+    return @key if @quoted
+
+    value = context[@key]
+    value.is_a?(String) && !value.empty? ? value : @key
+  end
 
   def parse_options(markup, context)
     return {} unless markup && !markup.strip.empty?

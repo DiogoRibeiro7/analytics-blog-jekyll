@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- Translations for the breadcrumbs, the footer headings, the remaining sharing buttons and the Packages menu entry, in English, Spanish and Portuguese.
+
 ### Removed
 
 - `components/search-facets.html`, which no layout or page included, no stylesheet styled, and whose script would have thrown on load. The search page's own application (`assets/js/search/`) is the one that indexes posts, code and math, offers facets and is covered by tests (#341).
@@ -16,6 +20,7 @@ All notable changes to this project will be documented in this file. The format 
 - Name a scaffolded post after its title, accents and all: `datalog new post` now slugifies the way Jekyll does, so "Análise de Séries Temporais" becomes `analise-de-series-temporais` rather than `an-lise-de-s-ries-temporais`, a title in a script no transliteration covers keeps its own characters, and a title the console tagged as something other than UTF-8 no longer raises (#333).
 - Stop `datalog update` where `npm install` fails, instead of reporting that the theme's dependencies are up to date (#333).
 - Let the browser follow a table-of-contents link instead of intercepting it, so an entry for a numbered heading reaches its section, the heading clears the sticky header by its own scroll margin, and the keyboard carries on from there. The contents now ship as a module in the core bundle: the reading position is measured from the viewport, the progress indicator reports a number rather than `NaN` on a short article, the current entry is marked with `aria-current`, and the percentage no longer sits in a live region that announced every scroll (#330).
+- Ask for the translations the theme already ships. The header's search box, brand link and toggles, the primary navigation's labels and descriptions, the breadcrumbs, the sharing buttons, the contents heading and the footer's headings now read from `_data/i18n`, so a site in Spanish or Portuguese is no longer an English chrome around translated articles. `{% t %}` accepts a variable holding a key, which is how `_data/navigation.yml` names one per entry, and a key the data names but no locale defines falls back to the literal beside it instead of printing the key (#331).
 
 ## [0.9.2] - 2026-09-20
 

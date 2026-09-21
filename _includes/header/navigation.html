@@ -26,10 +26,19 @@ page language gets its own copy of any translated descriptions.
       {%- assign is_active = true -%}
     {%- endif -%}
     {%- assign nav_title = item.title | default: 'Untitled' | strip -%}
+    {%- if item.title_key -%}
+      {%- capture translated_title -%}{% t item.title_key %}{%- endcapture -%}
+      {%- unless translated_title == item.title_key -%}
+        {%- assign nav_title = translated_title | strip -%}
+      {%- endunless -%}
+    {%- endif -%}
     {%- assign nav_section = item.section | default: nav_title | replace: '_', ' ' | replace: '-', ' ' | strip -%}
     {%- assign nav_description = item.description | default: '' -%}
-    {%- if nav_description == '' and item.description_key -%}
-      {%- capture nav_description -%}{% t item.description_key %}{%- endcapture -%}
+    {%- if item.description_key -%}
+      {%- capture translated_description -%}{% t item.description_key %}{%- endcapture -%}
+      {%- unless translated_description == item.description_key -%}
+        {%- assign nav_description = translated_description | strip -%}
+      {%- endunless -%}
     {%- endif -%}
     {%- if nav_description == '' -%}
       {%- assign nav_description = nav_section | default: nav_title -%}

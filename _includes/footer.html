@@ -25,7 +25,7 @@
     {% assign footer_links = navigation_data.footer %}
     {% if footer_links.size > 0 %}
     <nav class="footer-navigation" aria-labelledby="footer-explore-heading">
-      <h2 id="footer-explore-heading">Explore</h2>
+      <h2 id="footer-explore-heading">{% t 'footer.explore' %}</h2>
       <ul class="footer-link-list">
         {% for item in footer_links %}
         <li><a href="{{ item.url | relative_url }}">{{ item.title | escape }}</a></li>
@@ -37,7 +37,7 @@
     {% assign primary_social = social_data.primary %}
     {% if primary_social.size > 0 or site.author.email %}
     <section class="footer-connect">
-      <h2>Connect</h2>
+      <h2>{% t 'footer.connect' %}</h2>
       {% if primary_social.size > 0 %}
       <ul class="footer-link-list">
         {% for profile in primary_social %}
@@ -54,8 +54,8 @@
     {% endif %}
 
     <section class="footer-subscribe">
-      <h2>Stay updated</h2>
-      <p>Follow via RSS or check back for new research and tutorials.</p>
+      <h2>{% t 'footer.stay_updated' %}</h2>
+      <p>{% t 'footer.rss_description' %}</p>
       {%- comment -%} jekyll-feed is a dependency of the theme, so /feed.xml exists even when _data/social.yml lists no feeds. {%- endcomment -%}
       {% assign rss_links = social_data.rss %}
       <ul class="footer-link-list">
@@ -64,7 +64,7 @@
         <li><a href="{{ feed.url | relative_url }}">{{ feed.label }}</a></li>
         {% endfor %}
         {% else %}
-        <li><a href="{{ '/feed.xml' | relative_url }}">RSS feed</a></li>
+        <li><a href="{{ '/feed.xml' | relative_url }}">{% t 'footer.rss_feed' %}</a></li>
         {% endif %}
       </ul>
       {%- comment -%} The newsletter form, on a site with a backend that takes subscriptions {%- endcomment -%}
