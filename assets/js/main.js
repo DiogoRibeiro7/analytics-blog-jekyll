@@ -6,6 +6,7 @@ import { initNavigation } from "./core/navigation.js";
 import { initScrollProgress } from "./core/scroll-progress.js";
 import { initSearchHotkeys } from "./core/search-hotkeys.js";
 import { initSkipLinks } from "./core/skip-links.js";
+import { initToc } from "./core/toc.js";
 
 const CORE_INITIALIZERS = [
   initSkipLinks,
@@ -15,7 +16,8 @@ const CORE_INITIALIZERS = [
   initScrollProgress,
   initSearchHotkeys,
   initGitHubCards,
-  initCopyButtons
+  initCopyButtons,
+  initToc
 ];
 
 /**
