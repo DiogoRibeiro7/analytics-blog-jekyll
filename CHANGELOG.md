@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Removed
+
+- `components/search-facets.html`, which no layout or page included, no stylesheet styled, and whose script would have thrown on load. The search page's own application (`assets/js/search/`) is the one that indexes posts, code and math, offers facets and is covered by tests (#341).
+
 ### Fixed
 
 - Put the site's `baseurl` in front of every bundle in the script manifest the loader reads, and in the 404 page's search form, so a site served from a subdirectory runs its JavaScript instead of importing paths at the domain root (#328).
 - Read MathJax's expressions as a list that can be iterated, so equation numbering, the copy and edit tools, the reference map and the `role="math"` labels reach a typeset page at all. Leave the number to MathJax where it numbers, rather than drawing a second one beside it, and keep the tools out of the element that carries the maths role (#329).
+- Name a scaffolded post after its title, accents and all: `datalog new post` now slugifies the way Jekyll does, so "Análise de Séries Temporais" becomes `analise-de-series-temporais` rather than `an-lise-de-s-ries-temporais`, a title in a script no transliteration covers keeps its own characters, and a title the console tagged as something other than UTF-8 no longer raises (#333).
+- Stop `datalog update` where `npm install` fails, instead of reporting that the theme's dependencies are up to date (#333).
 - Let the browser follow a table-of-contents link instead of intercepting it, so an entry for a numbered heading reaches its section, the heading clears the sticky header by its own scroll margin, and the keyboard carries on from there. The contents now ship as a module in the core bundle: the reading position is measured from the viewport, the progress indicator reports a number rather than `NaN` on a short article, the current entry is marked with `aria-current`, and the percentage no longer sits in a live region that announced every scroll (#330).
 
 ## [0.9.2] - 2026-09-20
