@@ -12,7 +12,7 @@ group :development do
   gem 'wdm', '>= 0.1.0' if Gem.win_platform?
   # Pinned: the repository has no Gemfile.lock, and a newer release can enable
   # cops that fail the Lint job on code nobody changed.
-  gem "rubocop", "1.85.1", require: false
+  gem "rubocop", "1.91.0", require: false
 end
 
 
