@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A page in `_datasets/` now carries `schema.org/Dataset` structured data, which is what Google Dataset Search indexes; the `WebPage` description a dataset page had could not reach it. The title, summary, `updated`, `license` and field `schema` it already declares fill most of it in, and `doi`, `keywords`, `temporal_coverage`, `spatial_coverage`, `measurement_technique`, `citation`, `is_accessible_for_free` and a `distributions` list are read when present. A dataset with no `date:` claims no publication date rather than the build time (#334).
+
 ## [0.10.1] - 2026-09-22
 
 ### Fixed
