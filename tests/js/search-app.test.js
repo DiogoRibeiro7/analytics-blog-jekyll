@@ -19,11 +19,9 @@ describe('initializeSearchApp', () => {
       search: ''
     };
 
-    // Mock window.history
-    originalHistory = window.history;
-    window.history = {
-      replaceState: vi.fn()
-    };
+    // `window.history` is a getter with no setter, so the object cannot be
+    // replaced; the tests only need replaceState to do nothing.
+    originalHistory = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
 
     // Mock fetch
     originalFetch = global.fetch;
@@ -103,7 +101,7 @@ describe('initializeSearchApp', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    window.history = originalHistory;
+    originalHistory.mockRestore();
   });
 
   it('returns early when app element is not found', () => {

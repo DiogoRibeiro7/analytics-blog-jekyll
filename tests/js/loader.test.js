@@ -1,6 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { bootstrapFeatures } from '../../assets/js/loader.js';
 
+// Hoisted by vitest to the top of the file whatever line it is written on, so
+// it is written where it runs. The dynamic import of a bundle that does not
+// exist on disk would otherwise reject and leave the core bundle in the error
+// state instead of the ready one.
+vi.mock('../../assets/js/loader.js', async (importOriginal) => {
+  const mod = await importOriginal();
+  return {
+    ...mod,
+    importModule: vi.fn(() => Promise.resolve({}))
+  };
+});
+
 describe('Loader Module', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
@@ -35,15 +47,6 @@ describe('Loader Module', () => {
       `;
 
       document.body.dataset.featureCore = 'true';
-
-      // Mock dynamic import
-      vi.mock('../../assets/js/loader.js', async (importOriginal) => {
-        const mod = await importOriginal();
-        return {
-          ...mod,
-          importModule: vi.fn(() => Promise.resolve({}))
-        };
-      });
 
       await bootstrapFeatures(manifest);
 
