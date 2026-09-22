@@ -8,6 +8,41 @@
 const STORAGE_KEY = "datalog-color-mode";
 /** @constant {string} Class applied to body for dark mode */
 const DARK_CLASS = "dark-mode";
+/** @constant {string} The query the image pipeline writes on a dark figure's sources */
+const DARK_MEDIA = "(prefers-color-scheme: dark)";
+/** @constant {string} Every dark <source> the image pipeline emitted */
+const DARK_SOURCES = "picture > source[data-dark-source]";
+
+/**
+ * Points every figure with a dark companion at the right file.
+ *
+ * `_plugins/image_optimizer.rb` writes those companions as
+ * `<source media="(prefers-color-scheme: dark)">`, which follows the operating
+ * system. This toggle does not: a reader whose system is light can switch the
+ * site to dark, and would otherwise keep the white plot on the dark page. So
+ * when there is a stored preference, it overrules the query — "all" for dark,
+ * "not all" for light — and when there is none the query is restored and the
+ * system decides again.
+ *
+ * With no JavaScript nothing runs and the figures follow the system, which is
+ * right for every reader who has not used the toggle.
+ * @param {string|null} preference - "dark", "light" or null for the system's
+ * @param {ParentNode} [root] - Where to look; the document by default
+ * @returns {void}
+ */
+export function syncDarkFigures(preference, root = document) {
+  let media = DARK_MEDIA;
+  if (preference === "dark") {
+    media = "all";
+  } else if (preference === "light") {
+    media = "not all";
+  }
+  root.querySelectorAll(DARK_SOURCES).forEach((source) => {
+    if (source.getAttribute("media") !== media) {
+      source.setAttribute("media", media);
+    }
+  });
+}
 
 /**
  * Reads the saved preference. Storage access throws where the browser blocks
@@ -69,6 +104,7 @@ export function initDarkModeToggle() {
   if (resolveInitialPreference(prefersDarkScheme)) {
     body.classList.add(DARK_CLASS);
   }
+  syncDarkFigures(readStoredPreference());
 
   /** Mirrors the effective theme on <body data-theme> for CSS hooks and tests. */
   const syncThemeAttribute = () => {
@@ -93,6 +129,7 @@ export function initDarkModeToggle() {
       toggleButton.setAttribute("aria-pressed", String(isDark));
       storePreference(isDark ? "dark" : "light");
       syncThemeAttribute();
+      syncDarkFigures(isDark ? "dark" : "light");
     });
   }
 

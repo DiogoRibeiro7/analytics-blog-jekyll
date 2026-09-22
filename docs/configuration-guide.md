@@ -99,6 +99,28 @@ theme_options:
 - A copy that fails to encode is left out, with a warning, and the page does not offer it.
 - An image keeps its markup when it already has a `srcset`, sits in a `<picture>` of its own, or sets `data-no-optimize="true"`.
 
+##### Dark figures
+
+A plot exported for a white page is a white rectangle on a dark one. Export the figure twice and the theme serves whichever suits the reader: put `power-dark.png` beside `power.png` and it becomes a `<source media="(prefers-color-scheme: dark)">` at the front of the same `<picture>`, with its own resized copies and modern formats. Nothing else changes. The `<img>` still points at the light file and keeps its alt text and its dimensions, so it is the same figure described once, and a browser that ignores the query shows the light version.
+
+```yaml
+theme_options:
+  images:
+    dark_suffix: "-dark"   # "" turns the convention off
+```
+
+`prefers-color-scheme` follows the operating system; this theme's toggle does not. `assets/js/core/dark-mode.js` closes that gap, overruling the query on those sources whenever a reader has chosen a mode for the site. With JavaScript off the figures follow the system, which is right for every reader who has not touched the toggle. The figure the browser first picked may be fetched before the script runs, so a reader whose choice disagrees with their system pays for one extra image on pages with figures.
+
+A figure that does not follow the convention names its companion itself:
+
+```liquid
+{% figure id="fig-power" src="/assets/img/power.png" dark_src="/assets/img/power-night.png" alt="Power curve" %}
+Power as a function of effect size.
+{% endfigure %}
+```
+
+Any `<img data-dark-src="/assets/img/power-night.png">` is treated the same way, in a Markdown page or in a notebook's HTML. A companion the variant pipeline never reads, an SVG or an image on another host, is offered as the single file it is. A page's `hero_image` follows the convention too.
+
 #### Critical CSS
 
 With `critical_css.enabled: true`, a production build inlines the CSS each page needs to draw its first screen and loads `main.css` without blocking rendering. That CSS depends on your own pages and styles, so the theme ships none. Write your site's with:
