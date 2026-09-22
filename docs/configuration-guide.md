@@ -121,6 +121,20 @@ Power as a function of effect size.
 
 Any `<img data-dark-src="/assets/img/power-night.png">` is treated the same way, in a Markdown page or in a notebook's HTML. A companion the variant pipeline never reads, an SVG or an image on another host, is offered as the single file it is. A page's `hero_image` follows the convention too.
 
+#### Search results
+
+A result is a page, and under it the sections of that page the query was found in — at most three, each a link to the heading itself rather than to the top of the article. A reader who searches for a term buried in a long methods post lands on the paragraph instead of starting again with Ctrl+F.
+
+The sections come from the page's own headings. `_plugins/search_sections.rb` splits each document at its `h2` and `h3` when `search.json` is built, and takes the anchor from the id kramdown already gave the heading — the same id the contents list links to. Nothing to configure and nothing to write in front matter:
+
+- A page with no headings indexes as one section, which is what every page did before.
+- The text before the first heading belongs to the page, not to a section of it, so it is never offered as one.
+- A heading with no id still indexes; its section links to the page.
+- The split runs over the document's own content, so the headings a layout puts around an article — "About this post", "Reading notes" — are not sections of every result.
+- `exclude_from_search: true` keeps a page out of the index entirely, sections and all.
+
+The index repeats each page's text under its headings, which is smaller than it sounds: on the demo site it takes `search.json` from 147 KB to 224 KB uncompressed, but from 32 KB to 39 KB served compressed, because the repeat is exactly what a compressor is good at. `tests/test_search_sections.rb` holds the index to a budget per indexed page so it cannot drift.
+
 #### Critical CSS
 
 With `critical_css.enabled: true`, a production build inlines the CSS each page needs to draw its first screen and loads `main.css` without blocking rendering. That CSS depends on your own pages and styles, so the theme ships none. Write your site's with:

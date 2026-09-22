@@ -70,4 +70,46 @@ test.describe('Search workflow', () => {
     await expect(input).toHaveValue('');
     await expect(resultsList.locator('.search-result')).toHaveCount(0, { timeout: 5000 });
   });
+
+  // A result used to point at the top of a 6,000-word article. It now lists
+  // the sections the words were in, and following one has to land on the
+  // heading rather than the top of the page (#336).
+  test('a result links to the section the words were in', async ({ page }) => {
+    await page.goto(`${baseUrl}/search/`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', { timeout: 15000 });
+
+    await page.locator('[data-search-input]').fill('reproducibility');
+    await expect(page.locator('[data-result-sections]:not([hidden])').first()).toBeVisible({ timeout: 15000 });
+
+    // A heading with no id of its own links to the page, which is right but is
+    // not what this is about.
+    const link = page.locator('[data-result-sections]:not([hidden]) a[href*="#"]').first();
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute('href');
+    const anchor = href.slice(href.indexOf('#') + 1);
+
+    await link.click();
+    await page.waitForLoadState('load');
+    await expect(page).toHaveURL(new RegExp(`#${anchor}$`));
+
+    // getElementById, not querySelector: kramdown gives "1. Introduction" the
+    // id "1-introduction", which is not a valid CSS identifier (#330). The
+    // theme sets scroll-behavior: smooth, so the jump is animated and is not
+    // over when the load event fires.
+    await page.waitForFunction(
+      (id) => {
+        const element = document.getElementById(decodeURIComponent(id));
+        if (!element) {
+          return false;
+        }
+        const top = element.getBoundingClientRect().top;
+        return top >= -2 && top < window.innerHeight;
+      },
+      anchor,
+      { timeout: 15000 }
+    );
+
+    const tag = await page.evaluate((id) => document.getElementById(decodeURIComponent(id)).tagName, anchor);
+    expect(['H2', 'H3']).toContain(tag);
+  });
 });

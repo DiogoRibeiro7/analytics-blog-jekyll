@@ -40,6 +40,7 @@ export function renderResults(results, query, elements) {
     const mathCodeEl = clone.querySelector("[data-result-math-code]");
     const mathCopyButton = clone.querySelector("[data-result-math-copy]");
     const excerptEl = clone.querySelector("[data-result-excerpt]");
+    const sectionsEl = clone.querySelector("[data-result-sections]");
     const tagsEl = clone.querySelector("[data-result-tags]");
     const dateEl = clone.querySelector("[data-result-date]");
 
@@ -112,6 +113,8 @@ export function renderResults(results, query, elements) {
       }
     }
 
+    renderSections(sectionsEl, result, query);
+
     if (codeEl && codeCodeEl) {
       if (result.codeSnippet && result.codeSnippet.code) {
         const language = result.codeSnippet.language || "text";
@@ -156,6 +159,53 @@ export function renderResults(results, query, elements) {
   });
 
   resultsList.appendChild(fragment);
+}
+
+/**
+ * Lists the sections of a page that matched, under its result. A reader who
+ * searches for a term buried in a 6,000-word article would otherwise land at
+ * the top of it and start again with Ctrl+F.
+ * @param {Element|null} container - The [data-result-sections] element
+ * @param {object} result - One search result, with its `sections`
+ * @param {string} query - What was searched for, for the highlighting
+ * @returns {void}
+ */
+function renderSections(container, result, query) {
+  if (!container) {
+    return;
+  }
+  const sections = Array.isArray(result.sections) ? result.sections : [];
+  const list = container.querySelector("ul");
+  const label = container.querySelector("[data-result-sections-label]");
+  if (!list || sections.length === 0) {
+    container.hidden = true;
+    return;
+  }
+
+  container.hidden = false;
+  if (label) {
+    label.textContent = sections.length === 1 ? "Matching section" : "Matching sections";
+  }
+  list.replaceChildren();
+  sections.forEach((section) => {
+    const item = document.createElement("li");
+    item.className = `search-result__section search-result__section--h${section.level || 2}`;
+
+    const link = document.createElement("a");
+    link.className = "search-result__section-link";
+    link.setAttribute("href", section.url);
+    link.insertAdjacentHTML("beforeend", highlightText(section.title || result.title || "", query));
+    item.appendChild(link);
+
+    if (section.snippet) {
+      const snippet = document.createElement("span");
+      snippet.className = "search-result__section-snippet";
+      snippet.insertAdjacentHTML("beforeend", highlightText(section.snippet, query));
+      item.appendChild(snippet);
+    }
+
+    list.appendChild(item);
+  });
 }
 
 function copyToClipboard(value, container) {

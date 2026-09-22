@@ -61,7 +61,9 @@ The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.4 or la
 
    The theme then generates `/search/` and the `/search.json` index it reads,
    because a theme gem can ship layouts and includes but not pages. A site that
-   defines either path itself keeps its own version.
+   defines either path itself keeps its own version. Results link to the
+   section of a page the query was found in, not just to the page; see
+   [Search results](configuration-guide.md#search-results).
 
 3. **Install and preview** with `bundle install` and `bundle exec jekyll serve`.
 
