@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Article reactions (#255): the strip a post carries on a site with a
@@ -10,14 +8,6 @@ require_relative "test_helper"
 # here: the script fills them from the service.
 class ReactionsTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "features" => { "reactions" => true } }.freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_without_a_backend_renders_no_strip
     html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
@@ -81,18 +71,10 @@ class ReactionsTest < Minitest::Test
 
   # A page holding the strip, under the given site configuration and front matter.
   def render(config, front_matter = "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "reactions.html"),
-                 File.join(@dir, "_includes", "components", "reactions.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    page = "---\nlayout: null\ntitle: Paper\n#{front_matter}---\n\n{% include components/reactions.html %}\n"
-    File.write(File.join(@dir, "index.html"), page)
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Reactions",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Reactions")) do |source|
+      source.theme("_includes/components/reactions.html", "_data/i18n")
+      source.page("index.html", "{% include components/reactions.html %}",
+                  "layout: null\ntitle: Paper\n#{front_matter}")
+    end.html("index.html")
   end
 end

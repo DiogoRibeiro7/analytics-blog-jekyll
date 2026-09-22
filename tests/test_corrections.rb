@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # The correction-report form (#256): the markup a post carries on a site
@@ -9,14 +7,6 @@ require_relative "test_helper"
 # categories and their labels, and the bundle's wiring.
 class CorrectionsTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "api_version" => "v1", "features" => { "corrections" => true } }.freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_without_a_backend_renders_no_form
     html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
@@ -90,18 +80,10 @@ class CorrectionsTest < Minitest::Test
 
   # A page holding the form, under the given site configuration and front matter.
   def render(config, front_matter = "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "correction-report.html"),
-                 File.join(@dir, "_includes", "components", "correction-report.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    page = "---\nlayout: null\ntitle: Paper\n#{front_matter}---\n\n{% include components/correction-report.html %}\n"
-    File.write(File.join(@dir, "index.html"), page)
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Corrections",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Corrections")) do |source|
+      source.theme("_includes/components/correction-report.html", "_data/i18n")
+      source.page("index.html", "{% include components/correction-report.html %}",
+                  "layout: null\ntitle: Paper\n#{front_matter}")
+    end.html("index.html")
   end
 end

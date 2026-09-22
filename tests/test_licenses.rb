@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/licenses"
 
@@ -13,14 +11,6 @@ class LicensesTest < Minitest::Test
   CC_BY = "https://creativecommons.org/licenses/by/4.0/"
   MIT_URL = "https://spdx.org/licenses/MIT.html"
   INCLUDES = %w[components/license-notice.html components/license-link.html].freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def page(**data)
     { "date" => Time.new(2024, 2, 20), "author" => "Ada Lovelace" }.merge(data.transform_keys(&:to_s))
@@ -202,19 +192,10 @@ class LicensesTest < Minitest::Test
 
   # A page holding the notice, with the theme's translations.
   def render(front_matter, config = {})
-    INCLUDES.each do |name|
-      FileUtils.mkdir_p(File.join(@dir, "_includes", File.dirname(name)))
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", name), File.join(@dir, "_includes", name))
-    end
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    body = "{% include components/license-notice.html page=page %}"
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ndate: 2024-02-20\n#{front_matter}---\n\n#{body}\n")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Licences",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Licences")) do |source|
+      source.theme(*INCLUDES.map { |name| "_includes/#{name}" }, "_data/i18n")
+      source.page("index.html", "{% include components/license-notice.html page=page %}",
+                  "layout: null\ndate: 2024-02-20\n#{front_matter}")
+    end.html("index.html")
   end
 end

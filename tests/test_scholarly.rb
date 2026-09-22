@@ -194,18 +194,12 @@ class ScholarlyTest < Minitest::Test
 
   # A page holding the include, with the site's author and publisher.
   def render(front_matter, config = {})
-    INCLUDES.each do |name|
-      FileUtils.mkdir_p(File.join(@dir, "_includes", File.dirname(name)))
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", name), File.join(@dir, "_includes", name))
+    site = TestSite.build(config.merge(title: "Scholarly")) do |source|
+      source.theme(*INCLUDES.map { |name| "_includes/#{name}" })
+      source.page("index.html", "{% include meta/scholarly.html %}",
+                  "layout: null\ntitle: Paper\n#{front_matter}")
     end
-    body = "{% include meta/scholarly.html %}"
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Paper\n#{front_matter}---\n\n#{body}\n")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Scholarly",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    @html = File.read(File.join(@dir, "_site", "index.html"))
-    Nokogiri::HTML5.fragment(@html)
+    @html = site.read("index.html")
+    site.html("index.html")
   end
 end
