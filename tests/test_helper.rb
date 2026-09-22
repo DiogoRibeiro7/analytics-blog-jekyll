@@ -17,7 +17,7 @@ require "jekyll/commands/build"
 # `include_cached` is the one tag the layouts need that is not the theme's own;
 # lib/datalog-theme.rb requires it for the same reason, for a real site.
 require "jekyll-include-cache"
-Dir[File.expand_path("../_plugins/*.rb", __dir__)].sort.each { |plugin| require plugin }
+Dir[File.expand_path("../_plugins/*.rb", __dir__)].each { |plugin| require plugin }
 
 module SiteBuilder
   module_function

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Numbered figures and tables and the references to them (_plugins/references.rb).
@@ -13,14 +12,6 @@ class ReferencesTest < Minitest::Test
     %<caption>s
     {%% endfigure %%}
   LIQUID
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def figure(id, caption = "A caption.", alt: "A plot")
     format(FIGURE, id: id, alt: alt, caption: caption)
@@ -61,15 +52,15 @@ class ReferencesTest < Minitest::Test
   end
 
   def test_embedded_posts_keep_their_own_numbers_in_feeds_and_listings
-    FileUtils.mkdir_p(File.join(@dir, "_posts"))
-    %w[01 02].each do |day|
-      File.write(File.join(@dir, "_posts", "2024-05-#{day}-post.md"),
-                 "---\nlayout: null\ntitle: Post #{day}\n---\nSee {% ref fig-shared %}.\n\n#{figure('fig-shared')}")
+    posts = %w[01 02].to_h do |day|
+      ["2024-05-#{day}-post",
+       "---\nlayout: null\ntitle: Post #{day}\n---\nSee {% ref fig-shared %}.\n\n#{figure('fig-shared')}"]
     end
-    listing = build("{% for post in site.posts %}{{ post.content }}{% endfor %}",
-                    config: { "plugins" => ["jekyll-feed"] })
+    site = build_site("{% for post in site.posts %}{{ post.content }}{% endfor %}",
+                      config: { "plugins" => ["jekyll-feed"] }, posts: posts)
+    listing = site.html("index.html")
     assert_equal ["Figure 1", "Figure 1"], listing.css("a.datalog-ref").map(&:text)
-    feed = Nokogiri::XML(File.read(File.join(@dir, "_site", "feed.xml")))
+    feed = Nokogiri::XML(site.read("feed.xml"))
     contents = feed.xpath("//*[local-name()='entry']/*[local-name()='content']")
     assert_equal 2, contents.length
     contents.each do |entry|
@@ -178,11 +169,10 @@ class ReferencesTest < Minitest::Test
   # Jekyll runs no hooks for excerpts: a post whose first paragraph refers to a
   # figure showed "fig-power" in its summary and in listings.
   def test_an_excerpt_takes_its_numbers_from_its_post
-    FileUtils.mkdir_p(File.join(@dir, "_posts"))
-    File.write(File.join(@dir, "_posts", "2024-05-01-power.md"),
-               "---\nlayout: null\n---\nAs {% ref tab-runs %} and {% ref fig-power %} show.\n\n" \
-               "#{figure('fig-power')}\n#{table('tab-runs')}")
-    listing = build("{% for post in site.posts %}{{ post.excerpt }}{% endfor %}", config: { "baseurl" => "/blog" })
+    power = "---\nlayout: null\n---\nAs {% ref tab-runs %} and {% ref fig-power %} show.\n\n" \
+            "#{figure('fig-power')}\n#{table('tab-runs')}"
+    listing = build("{% for post in site.posts %}{{ post.excerpt }}{% endfor %}",
+                    config: { "baseurl" => "/blog" }, posts: { "2024-05-01-power" => power })
 
     links = listing.css("a.datalog-ref").to_h { |link| [link.text, link["href"]] }
     post = "/blog/2024/05/01/power.html"
@@ -202,20 +192,22 @@ class ReferencesTest < Minitest::Test
 
   private
 
-  def build(body, config: {}, front_matter: "")
-    Nokogiri::HTML5.fragment(build_html(body, config: config, front_matter: front_matter))
+  def build(body, **)
+    Nokogiri::HTML5.fragment(build_html(body, **))
   end
 
-  # A page with no layout, so the output is the page's own content.
-  def build_html(body, config: {}, front_matter: "")
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "index.md"), "---\nlayout: null\n#{front_matter}---\n\n#{body}")
-    site_config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true,
-      "title" => "References", "url" => "https://example.org", "author" => { "name" => "Test" }
-    ).merge(config)
-    Jekyll::Site.new(site_config).process
-    File.read(File.join(@dir, "_site", "index.html"))
+  def build_html(body, **)
+    build_site(body, **).read("index.html")
+  end
+
+  # A page with no layout, so the output is the page's own content. `posts`
+  # are whole files, front matter and all, for the tests about what a post
+  # carries into a listing or a feed.
+  def build_site(body, config: {}, front_matter: "", posts: {})
+    TestSite.build(config.merge(title: "References")) do |source|
+      source.theme("_data/i18n")
+      source.page("index.md", body, "layout: null\n#{front_matter}")
+      posts.each { |name, contents| source.write("_posts/#{name}.md", contents) }
+    end
   end
 end

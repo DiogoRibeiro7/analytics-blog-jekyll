@@ -106,7 +106,7 @@ class CommentsApiTest < Minitest::Test
     html[/content="([^"]*)"/, 1].to_s
   end
 
-  def site_for(config, &block)
-    TestSite.build({ title: "Comments", permalink: "/:year/:month/:day/:title/" }.merge(config), &block)
+  def site_for(config, &)
+    TestSite.build({ title: "Comments", permalink: "/:year/:month/:day/:title/" }.merge(config), &)
   end
 end

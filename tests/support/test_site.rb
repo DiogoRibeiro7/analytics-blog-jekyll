@@ -99,7 +99,7 @@ module TestSite
     end
 
     def data(name, contents)
-      write(File.join("_data", name), contents.is_a?(String) ? contents : "#{contents.to_yaml}")
+      write(File.join("_data", name), contents.is_a?(String) ? contents : contents.to_yaml)
     end
 
     def layout(name, body)
@@ -166,17 +166,21 @@ module TestSite
       Nokogiri::HTML5(read(relative))
     end
 
-    # For a page whose URL the permalink decides: `site.find("**/part-one/index.html")`.
+    # For a page whose URL the permalink decides:
+    # `site.find("**/part-one/index.html")`. Nil when nothing matched, so the
+    # test says what it expected rather than the helper raising past it.
     def find(pattern)
       match = Dir[File.join(@dir, "_site", pattern)].min
-      raise ArgumentError, "nothing built at #{pattern}" unless match
-
-      Nokogiri::HTML5.fragment(File.read(match))
+      Nokogiri::HTML5.fragment(File.read(match)) if match
     end
 
     def written
       Dir[File.join(@dir, "_site", "**", "*")].select { |entry| File.file?(entry) }
-          .map { |entry| entry.sub("#{File.join(@dir, '_site')}/", "") }
+                                              .map do |entry|
+        entry.sub(
+          "#{File.join(@dir, '_site')}/", ""
+        )
+      end
     end
   end
 end
