@@ -32,7 +32,8 @@ class DatasetSchemaTest < Minitest::Test
     variables = dataset["variableMeasured"]
 
     assert_equal 4, variables.size
-    assert_equal %w[timestamp station_id bike_count bus_passengers], variables.map { |v| v["name"] }
+    names = variables.map { |v| v["name"] }
+    assert_equal %w[timestamp station_id bike_count bus_passengers], names
     assert(variables.all? { |v| v["@type"] == "PropertyValue" })
     assert_equal "UTC timestamp of the observation", variables.first["description"]
   end
@@ -88,8 +89,8 @@ class DatasetSchemaTest < Minitest::Test
     downloads = rich_dataset["distribution"]
 
     assert_equal 3, downloads.size
-    assert_equal %w[text/csv application/vnd.apache.parquet application/x-netcdf],
-                 downloads.map { |d| d["encodingFormat"] }
+    formats = downloads.map { |d| d["encodingFormat"] }
+    assert_equal %w[text/csv application/vnd.apache.parquet application/x-netcdf], formats
     assert_equal "Tabular export", downloads.first["name"]
     # A relative path is made absolute, as a contentUrl has to be.
     assert_equal "https://example.test/data/readings.nc", downloads.last["contentUrl"]
