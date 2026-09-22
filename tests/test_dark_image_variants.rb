@@ -2,6 +2,7 @@
 
 require_relative "test_helper"
 require "nokogiri"
+require "rbconfig"
 require "tmpdir"
 
 # A plot exported for a white page is unreadable on a dark one, and the theme
@@ -200,22 +201,34 @@ class DarkImageVariantsTest < Minitest::Test
   # site but the one at the top of the page.
   def test_the_responsive_image_include_offers_the_companion_too
     picture = hero_markup.at_css("picture")
-    dark = picture.at_css("source[media]")
+    dark = picture.css("source[media]")
+    types = dark.map { |source| source["type"] }
+    first = picture.element_children.first(dark.size)
 
-    refute_nil dark, "the include should offer the dark companion"
-    assert_equal DARK_MEDIA, dark["media"]
-    assert_equal "/assets/img/plot-dark.png 1200w", dark["srcset"]
-    assert_equal "image/png", dark["type"]
-    refute_nil dark["data-dark-source"], "the toggle has to be able to find it"
-    assert_equal dark, picture.element_children.first
+    assert_equal dark.to_a, first, "a dark source after a light one of the same type is never reached"
+    assert_equal %w[image/avif image/webp image/png], types, "the companion's own format comes last"
+    assert(dark.all? { |source| source["media"] == DARK_MEDIA })
+    assert(dark.all? { |source| source["data-dark-source"] }, "the toggle has to be able to find them")
+    assert(dark.all? { |source| source["srcset"].include?("plot-dark") })
+    assert_includes dark.last["srcset"], "/assets/img/plot-dark.png 1200w"
+  end
+
+  def test_the_include_leaves_the_light_side_as_it_was
+    picture = hero_markup.at_css("picture")
+    light = picture.css("source:not([media])")
+    types = light.map { |source| source["type"] }
+
+    assert_equal %w[image/avif image/webp], types
+    assert(light.none? { |source| source["srcset"].include?("-dark") })
     assert_equal "/assets/img/plot.png", picture.at_css("img")["src"]
   end
 
   private
 
   # A site with plot.png and plot-dark.png, showing the first through the
-  # include. Without ImageMagick nothing is resized or converted, which leaves
-  # each image with one variant: its own file.
+  # include. A script stands in for ImageMagick and avifenc, writing a file
+  # where each variant goes, so the markup is the same on a machine that has
+  # the encoders and on one that does not.
   def hero_markup
     self.class.hero_markup ||= Dir.mktmpdir do |dir|
       FileUtils.mkdir_p(File.join(dir, "_includes/components"))
@@ -233,13 +246,27 @@ class DarkImageVariantsTest < Minitest::Test
                                 "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
                                 "title" => "Hero", "url" => "https://example.org", "author" => { "name" => "Test" }
                               ))
-      site.process
+      with_encoders(dir) { site.process }
       Nokogiri::HTML5.fragment(File.read(File.join(dir, "_site/index.html")))
     end
   end
 
   class << self
     attr_accessor :hero_markup
+  end
+
+  # A script file, not `ruby -e`: Ruby would read an argument such as
+  # -auto-orient as one of its own options.
+  def with_encoders(dir)
+    encoder = File.join(dir, "encoder.rb")
+    File.write(encoder, "File.binwrite(ARGV.last, ARGV.join(' '))")
+    command = [RbConfig.ruby, encoder]
+    stand_in = { "imagemagick" => command, "writable" => %w[PNG JPEG WEBP], "avifenc" => command }
+    original = Jekyll::ImageOptimizer.method(:tools)
+    Jekyll::ImageOptimizer.define_singleton_method(:tools) { stand_in }
+    yield
+  ensure
+    Jekyll::ImageOptimizer.define_singleton_method(:tools, original)
   end
 
   def image(src: PLOT, dark: nil)
