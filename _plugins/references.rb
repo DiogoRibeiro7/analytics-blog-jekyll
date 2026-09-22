@@ -196,14 +196,28 @@ module Datalog
         raise Liquid::ArgumentError, "{% figure id=\"#{id}\" %} needs alt text for its image"
       end
 
-      src = "#{context.registers[:site].config['baseurl'].to_s.chomp('/')}#{src}" if src.start_with?("/")
+      baseurl = context.registers[:site].config["baseurl"].to_s.chomp("/")
+      src = "#{baseurl}#{src}" if src.start_with?("/")
       caption = References.inline(References.markdown(context, super))
       classes = ["datalog-figure", attributes["class"]].compact.join(" ")
 
       alt = CGI.escapeHTML(attributes["alt"])
+      dark = dark_source(attributes, baseurl)
       %(<figure class="#{CGI.escapeHTML(classes)}" id="#{id}" data-ref-target="#{id}" data-ref-kind="figure">) +
-        %(<img src="#{CGI.escapeHTML(src)}" alt="#{alt}" loading="lazy" decoding="async">) +
+        %(<img src="#{CGI.escapeHTML(src)}" alt="#{alt}" loading="lazy" decoding="async"#{dark}>) +
         %(<figcaption><span class="datalog-ref-label" data-ref-for="#{id}"></span> #{caption}</figcaption></figure>\n)
+    end
+
+    # The same figure exported for a dark page, as `dark_src`. The image
+    # pipeline turns it into a <source media="(prefers-color-scheme: dark)">
+    # with the variants it built for it. The alt text stays on the one <img>:
+    # it is the same figure, and describing it twice would be wrong.
+    def dark_source(attributes, baseurl)
+      dark = attributes["dark_src"].to_s.strip
+      return "" if dark.empty?
+
+      dark = "#{baseurl}#{dark}" if dark.start_with?("/")
+      %( data-dark-src="#{CGI.escapeHTML(dark)}")
     end
   end
 

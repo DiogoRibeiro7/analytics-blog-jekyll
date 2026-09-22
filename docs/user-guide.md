@@ -94,6 +94,28 @@ Beyond $n = 50$, {% ref fig-power %} flattens.
 ```
 
 - `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. Attributes accept either quote style, with `\"`, `\'` and `\\` for literal quotes and backslashes: `alt="The \"null\" model"`. Malformed attributes stop the build and identify the page and tag. Tables, statements and proofs use the same syntax.
+- `{% figure %}` takes `dark_src`, the same figure exported for a dark page, and serves it to readers in dark mode. A `power-dark.png` beside `power.png` is found without being named; see [Dark figures](configuration-guide.md#dark-figures). To export both from matplotlib, draw under two rc contexts:
+
+  ```python
+  import matplotlib.pyplot as plt
+
+  DARK = {"figure.facecolor": "#171717", "axes.facecolor": "#171717",
+          "savefig.facecolor": "#171717", "text.color": "#f5f5f4",
+          "axes.labelcolor": "#f5f5f4", "axes.edgecolor": "#a8a29e",
+          "xtick.color": "#f5f5f4", "ytick.color": "#f5f5f4", "grid.color": "#2a2a2a"}
+
+  def save_both(draw, stem):
+      """draw(ax) twice: power.png for the light page, power-dark.png for the dark one."""
+      for suffix, overrides in (("", {}), ("-dark", DARK)):
+          with plt.rc_context(overrides):
+              fig, ax = plt.subplots()
+              draw(ax)
+              fig.savefig(f"assets/img/{stem}{suffix}.png", dpi=150, bbox_inches="tight")
+              plt.close(fig)
+  ```
+
+  Export both opaque. A transparent figure is worse than either: its black axes and labels land unreadable on the dark page.
+
 - `{% table %}` needs `id`. Its body is the caption, then one Markdown table; the caption goes into the table's `<caption>`.
 - `{% ref id %}` becomes a link reading "Figure 2" or "Table 1". It may come before its target. In a post's excerpt, on listings and in feeds, it links to the figure on the post's page.
 - A reference to an id no figure or table on the page has, or two figures or tables with the same id, stops the build and names the page.

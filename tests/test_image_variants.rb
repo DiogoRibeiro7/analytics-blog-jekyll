@@ -2,6 +2,7 @@
 
 require_relative "test_helper"
 require "fastimage"
+require "json"
 require "nokogiri"
 require "open3"
 require "rbconfig"
@@ -59,6 +60,47 @@ class ImageVariantsTest < Minitest::Test
         assert File.exist?(File.join(@dir, "_site", url.delete_prefix("/blog"))), "#{url} should be written"
       end
     end
+  end
+
+  # A plot exported for a white page is unreadable on a dark one, so an author
+  # puts plot-dark.png beside plot.png and the build pairs them (#335).
+  def test_a_dark_companion_beside_the_image_is_offered_behind_the_scheme_query
+    build(encoders: fake_encoders, dark: true)
+
+    picture = Nokogiri::HTML5(read("index.html")).at_css("picture")
+    sources = picture.css("source")
+    dark = sources.select { |source| source["media"] }
+    types = dark.map { |source| source["type"] }
+    queries = dark.map { |source| source["media"] }
+
+    assert_equal sources.first, dark.first, "a dark source after a light one of the same type is never reached"
+    assert_equal ["(prefers-color-scheme: dark)"] * 3, queries
+    assert_equal %w[image/avif image/webp image/png], types
+    dark.flat_map { |source| srcset_urls(source) }.each do |url|
+      assert_includes url, "plot-dark.png"
+      assert File.exist?(File.join(@dir, "_site", url.delete_prefix("/blog"))), "#{url} should be written"
+    end
+  end
+
+  # The figure is the same figure: one <img>, one alt text, one pair of
+  # dimensions, and the light file for a browser that ignores the query.
+  def test_the_dark_companion_does_not_change_the_image_it_belongs_to
+    build(encoders: fake_encoders, dark: true)
+
+    img = Nokogiri::HTML5(read("index.html")).at_css("picture img")
+
+    assert_equal "/blog/assets/img/plot.png", img["src"]
+    assert_equal "A plot", img["alt"]
+    assert_equal %w[1200 630], [img["width"], img["height"]]
+    assert(srcset_urls(img).none? { |url| url.include?("-dark") })
+  end
+
+  def test_the_companion_is_not_paired_with_one_of_its_own
+    build(encoders: fake_encoders, dark: true)
+    manifest = JSON.parse(read("assets/img/responsive/manifest.json"))
+
+    assert_equal "/assets/img/plot-dark.png", manifest["/assets/img/plot.png"]["dark"]["source"]
+    refute manifest["/assets/img/plot-dark.png"].key?("dark"), "plot-dark.png is the twin; it has none of its own"
   end
 
   def test_a_second_build_takes_the_variants_from_the_cache
@@ -213,10 +255,11 @@ class ImageVariantsTest < Minitest::Test
 
   # A site at /blog whose Markdown shows /assets/img/plot.png, once in a layout
   # and once without one.
-  def build(encoders: nil, config: {}, filename: "plot.png", image_url: "/blog/assets/img/plot.png")
+  def build(encoders: nil, config: {}, filename: "plot.png", image_url: "/blog/assets/img/plot.png", dark: false)
     FileUtils.mkdir_p(File.join(@dir, "assets/img"))
     FileUtils.mkdir_p(File.join(@dir, "_layouts"))
     FileUtils.cp(PLOT, File.join(@dir, "assets/img", filename))
+    FileUtils.cp(PLOT, File.join(@dir, "assets/img", filename.sub(/(\.\w+)\z/, '-dark\1'))) if dark
     File.write(File.join(@dir, "_layouts/default.html"),
                "<!DOCTYPE html><html><body><main class=\"post-content\">{{ content }}</main></body></html>")
     File.write(File.join(@dir, "index.md"), "---\nlayout: default\n---\n\n![A plot](#{image_url})\n")

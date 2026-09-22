@@ -143,6 +143,24 @@ class ReferencesTest < Minitest::Test
     assert_equal "The 'null' <model> & more", img["alt"]
   end
 
+  # The same figure exported for a dark page. The image pipeline picks the
+  # attribute up and turns it into a dark <source>; the alt text is not
+  # repeated, because it is the same figure (#335).
+  def test_a_figure_can_name_its_dark_companion
+    body = <<~LIQUID
+      {% figure id="fig-a" src="/img/power.png" dark_src="/img/power-dark.png" alt="Power" %}
+      A caption.
+      {% endfigure %}
+    LIQUID
+    figure = build(body, config: { "baseurl" => "/blog" }).at_css("figure")
+
+    dark = figure.at_css("picture > source")
+    assert_equal "(prefers-color-scheme: dark)", dark["media"]
+    assert_equal "/blog/img/power-dark.png", dark["srcset"]
+    assert_equal "/blog/img/power.png", figure.at_css("img")["src"]
+    assert_equal "Power", figure.at_css("img")["alt"]
+  end
+
   def test_labels_follow_the_page_language
     doc = build("{% ref tab-a %}\n\n#{figure('fig-a')}\n#{table('tab-a')}", front_matter: "lang: pt\n")
 
