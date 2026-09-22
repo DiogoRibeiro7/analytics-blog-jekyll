@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Require Jekyll 4.4 rather than 4.3. Jekyll 4.3 does not declare `csv`, which stopped being a default gem in Ruby 3.4, so a site that resolved 4.3.x on Ruby 3.4 died with `cannot load such file -- csv` before it built anything. The theme supports Ruby 3.2 and up and is tested on 3.3 and 3.4, so the old range allowed a combination that cannot work.
+
 ## [0.10.0] - 2026-09-21
 
 ### Upgrading from 0.9.x
