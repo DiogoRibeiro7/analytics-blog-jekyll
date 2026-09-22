@@ -20,14 +20,14 @@ Choose the workflow that matches how you plan to host and work with DataLog.
 
 ### 2.1 Add the Theme to a Jekyll Site
 
-The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.3 or later.
+The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.4 or later. Jekyll 4.3 does not declare `csv`, which stopped being a default gem in Ruby 3.4, so it cannot start there.
 
 1. **Add the gem** to your site's `Gemfile`:
 
    ```ruby
    source "https://rubygems.org"
 
-   gem "jekyll", "~> 4.3"
+   gem "jekyll", "~> 4.4"
    gem "datalog-theme", "~> 0.10.0"
    ```
 
@@ -117,7 +117,7 @@ releases, and the work that is not released yet:
 Bundler can install from any of them. Pin a release tag:
 
 ```ruby
-gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.10.0"
+gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.10.1"
 ```
 
 Write `branch: "main"` in place of the tag to follow releases, or

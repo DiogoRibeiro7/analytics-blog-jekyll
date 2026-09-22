@@ -65,7 +65,7 @@ Gem::Specification.new do |spec|
   # Each dependency stops below its next major version, so a breaking release
   # reaches sites through a pull request that updates this file rather than an
   # untested `bundle update`.
-  spec.add_runtime_dependency "jekyll", "~> 4.3"
+  spec.add_runtime_dependency "jekyll", "~> 4.4"
   spec.add_runtime_dependency "jekyll-sass-converter", "~> 3.0"
   spec.add_runtime_dependency "jekyll-feed", "~> 0.16"
   spec.add_runtime_dependency "jekyll-seo-tag", "~> 2.8"
