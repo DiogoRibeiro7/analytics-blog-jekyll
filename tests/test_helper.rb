@@ -13,6 +13,10 @@ require "jekyll/commands/build"
 # theme's tags and filters for the whole process. A test that builds a site of
 # its own in a temporary directory relied on that having happened, which is a
 # lot to ask of a side effect. They are loaded here instead, once, plainly.
+#
+# `include_cached` is the one tag the layouts need that is not the theme's own;
+# lib/datalog-theme.rb requires it for the same reason, for a real site.
+require "jekyll-include-cache"
 Dir[File.expand_path("../_plugins/*.rb", __dir__)].sort.each { |plugin| require plugin }
 
 module SiteBuilder

@@ -2,7 +2,6 @@
 
 require_relative "test_helper"
 require "nokogiri"
-require "tmpdir"
 require "yaml"
 
 # The header, the navigation, the breadcrumbs, the sharing buttons and the
@@ -106,23 +105,16 @@ class LocalizedChromeTest < Minitest::Test
   # source so that this build compiles no stylesheet: the Sass compiler the
   # suite's first build leaves behind cannot serve a second one.
   def build_portuguese_post
-    Dir.mktmpdir do |dir|
-      %w[_layouts _includes _data].each { |path| FileUtils.cp_r(File.join(SiteBuilder.root, path), dir) }
-      FileUtils.mkdir_p(File.join(dir, "_posts"))
-      front = { "layout" => "post", "title" => "Um artigo", "tags" => ["estatística"],
-                "categories" => ["investigação"] }
-      File.write(File.join(dir, "_posts/2026-01-01-post.md"),
-                 "#{front.to_yaml}---\n\n## Primeira secção\n\nCorpo.\n\n## Segunda secção\n\nCorpo.\n")
-
-      config = Jekyll.configuration(
-        "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
-        "url" => "https://example.test", "title" => "Sítio", "author" => { "name" => "Autora" },
-        "features" => { "search" => true, "dark_mode_toggle" => true },
-        "theme_options" => { "localization" => { "default_locale" => "pt" } }
-      )
-      site = Jekyll::Site.new(config)
-      site.process
-      Nokogiri::HTML5(site.posts.docs.first.output)
+    front = { "layout" => "post", "title" => "Um artigo", "tags" => ["estatística"],
+              "categories" => ["investigação"] }
+    site = TestSite.build(url: "https://example.test", title: "Sítio", author: { "name" => "Autora" },
+                          features: { "search" => true, "dark_mode_toggle" => true },
+                          theme_options: { "localization" => { "default_locale" => "pt" } }) do |source|
+      # No _sass: the Sass compiler the suite's first build leaves behind
+      # cannot serve a second one.
+      source.theme("_layouts", "_includes", "_data")
+      source.post("2026-01-01-post", "## Primeira secção\n\nCorpo.\n\n## Segunda secção\n\nCorpo.", front)
     end
+    Nokogiri::HTML5(site.jekyll.posts.docs.first.output)
   end
 end
