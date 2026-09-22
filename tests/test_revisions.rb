@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/revisions"
 
@@ -11,14 +10,6 @@ class RevisionsTest < Minitest::Test
   Doc = Struct.new(:data, :relative_path)
   DEMO_TITLE = "Statistical Analysis Blueprint for Experimental Design"
   INCLUDES = %w[components/revision-notice.html components/revision-history.html helpers/date-format.html].freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def normalize(data)
     doc = Doc.new(data, "_posts/2019-03-12-limits.md")

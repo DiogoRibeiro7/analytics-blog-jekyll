@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/scholarly"
 
@@ -27,14 +26,6 @@ class ScholarlyTest < Minitest::Test
     issn: 1234-5678
     keywords: [engines, notes]
   YAML
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def page(**data)
     { "title" => "Paper", "layout" => "post", "collection" => "posts" }.merge(data.transform_keys(&:to_s))

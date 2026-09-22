@@ -230,24 +230,14 @@ class DarkImageVariantsTest < Minitest::Test
   # where each variant goes, so the markup is the same on a machine that has
   # the encoders and on one that does not.
   def hero_markup
-    self.class.hero_markup ||= Dir.mktmpdir do |dir|
-      FileUtils.mkdir_p(File.join(dir, "_includes/components"))
-      FileUtils.mkdir_p(File.join(dir, "assets/img"))
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes/components/responsive-image.html"),
-                   File.join(dir, "_includes/components"))
-      %w[plot.png plot-dark.png].each do |name|
-        FileUtils.cp(File.join(SiteBuilder.root, "assets/img/social-card.png"), File.join(dir, "assets/img", name))
-      end
-      body = %({% include components/responsive-image.html src="#{PLOT}" alt="A plot" %})
-      # An .html page, not Markdown: Kramdown reads the include's indented
-      # output as a code block.
-      File.write(File.join(dir, "index.html"), "---\nlayout: null\n---\n#{body}\n")
-      site = Jekyll::Site.new(Jekyll.configuration(
-                                "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
-                                "title" => "Hero", "url" => "https://example.org", "author" => { "name" => "Test" }
-                              ))
-      with_encoders(dir) { site.process }
-      Nokogiri::HTML5.fragment(File.read(File.join(dir, "_site/index.html")))
+    self.class.hero_markup ||= with_encoders do
+      TestSite.build(title: "Hero") do |source|
+        source.theme("_includes/components/responsive-image.html")
+        %w[plot.png plot-dark.png].each { |name| source.copy("assets/img/social-card.png", "assets/img/#{name}") }
+        # An .html page, not Markdown: Kramdown reads the include's indented
+        # output as a code block.
+        source.page("index.html", %({% include components/responsive-image.html src="#{PLOT}" alt="A plot" %}))
+      end.html("index.html")
     end
   end
 
@@ -257,16 +247,20 @@ class DarkImageVariantsTest < Minitest::Test
 
   # A script file, not `ruby -e`: Ruby would read an argument such as
   # -auto-orient as one of its own options.
-  def with_encoders(dir)
-    encoder = File.join(dir, "encoder.rb")
-    File.write(encoder, "File.binwrite(ARGV.last, ARGV.join(' '))")
-    command = [RbConfig.ruby, encoder]
-    stand_in = { "imagemagick" => command, "writable" => %w[PNG JPEG WEBP], "avifenc" => command }
-    original = Jekyll::ImageOptimizer.method(:tools)
-    Jekyll::ImageOptimizer.define_singleton_method(:tools) { stand_in }
-    yield
-  ensure
-    Jekyll::ImageOptimizer.define_singleton_method(:tools, original)
+  def with_encoders
+    Dir.mktmpdir do |dir|
+      encoder = File.join(dir, "encoder.rb")
+      File.write(encoder, "File.binwrite(ARGV.last, ARGV.join(' '))")
+      command = [RbConfig.ruby, encoder]
+      stand_in = { "imagemagick" => command, "writable" => %w[PNG JPEG WEBP], "avifenc" => command }
+      original = Jekyll::ImageOptimizer.method(:tools)
+      Jekyll::ImageOptimizer.define_singleton_method(:tools) { stand_in }
+      begin
+        yield
+      ensure
+        Jekyll::ImageOptimizer.define_singleton_method(:tools, original)
+      end
+    end
   end
 
   def image(src: PLOT, dark: nil)

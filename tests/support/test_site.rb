@@ -39,8 +39,13 @@ module TestSite
   # Builds a site from the files the block writes and returns what it produced.
   # Options are Jekyll's own, as strings or symbols: `baseurl: "/blog"`,
   # `"permalink" => "/:year/:title/"`, `collections: {...}`.
+  #
+  # `dir:` builds an earlier site's source again, for a test about what a
+  # second build does differently — reusing a cache, or leaving a file alone.
   def build(options = {}, &block)
-    source = Source.new(Dir.mktmpdir("datalog-test-site"))
+    options = options.dup
+    dir = options.delete(:dir) || options.delete("dir")
+    source = dir ? Source.new(dir, track: false) : Source.new(Dir.mktmpdir("datalog-test-site"))
     block&.call(source)
     source.build(options)
   end
@@ -61,9 +66,9 @@ module TestSite
   class Source
     attr_reader :dir
 
-    def initialize(dir)
+    def initialize(dir, track: true)
       @dir = dir
-      TestSite.directories << dir
+      TestSite.directories << dir if track
     end
 
     # Copies part of the theme in, keeping where it sits: a single include, a
@@ -78,6 +83,15 @@ module TestSite
         FileUtils.mkdir_p(File.dirname(target))
         File.directory?(source) ? FileUtils.cp_r(source, File.dirname(target)) : FileUtils.cp(source, target)
       end
+      self
+    end
+
+    # A file of the theme's under a different name, for a fixture standing in
+    # for an author's: `copy("assets/img/social-card.png", "assets/img/plot.png")`.
+    def copy(theme_path, to)
+      target = File.join(@dir, to)
+      FileUtils.mkdir_p(File.dirname(target))
+      FileUtils.cp(File.join(TestSite.root, theme_path), target)
       self
     end
 
