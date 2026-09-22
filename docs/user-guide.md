@@ -179,6 +179,58 @@ a finite mean is enough.
 - Provide canonical URLs, `og:image`, and `twitter:image` paths for each post—especially visualizations and notebooks.
 - Use descriptive alt text for charts and code snippets to improve accessibility and search rankings.
 
+### Publishing a dataset so it can be found
+
+A page in `_datasets/` carries `schema.org/Dataset` structured data, which is
+what [Google Dataset Search](https://datasetsearch.research.google.com/)
+indexes — an ordinary `WebPage` description does not reach it. The front matter
+the dataset layout already renders is what fills it in, so most of this costs
+nothing extra:
+
+```yaml
+---
+title: Urban Mobility Sensor Dataset
+summary: Multimodal transit sensor readings across Porto.
+updated: 2024-05-01
+license: CC-BY-4.0            # resolved to the licence's own URL
+download_url: https://example.com/data/urban-mobility.zip
+schema:                       # each field becomes a variableMeasured
+  - name: timestamp
+    description: UTC timestamp of the observation
+---
+```
+
+Optional front matter, each left out of the output when absent:
+
+| Key | Becomes |
+| --- | --- |
+| `doi` | `identifier`, as a PropertyValue and a `https://doi.org/…` URL |
+| `keywords` | `keywords`; falls back to `tags` |
+| `temporal_coverage` | `temporalCoverage`, e.g. `2019-01-01/2021-12-31` |
+| `spatial_coverage` | `spatialCoverage` |
+| `measurement_technique` | `measurementTechnique` |
+| `citation` | `citation` |
+| `is_accessible_for_free: false` | marks a dataset behind a wall |
+| `distributions` | several downloads instead of one `download_url` |
+
+`distributions` takes a list, and each entry may be a bare URL or a hash:
+
+```yaml
+distributions:
+  - url: https://example.com/data/readings.csv
+    name: Tabular export
+  - url: /data/readings.parquet     # a site-relative path is made absolute
+```
+
+The media type is inferred from the extension — csv, tsv, json, jsonl, zip, gz,
+parquet, xlsx, nc, h5 — and `format:` on the entry overrides it.
+
+Two things worth knowing. A dataset with no `date:` in its front matter claims
+no `datePublished`: Jekyll gives a collection document the build time, and
+writing that out would both invent a date and change the page on every build.
+And every dataset names the site's `/datasets/` index as the `DataCatalog` it
+belongs to.
+
 ## 9. Accessibility Guidelines
 
 - Maintain semantic heading order and use `<figure>`/`<figcaption>` for charts and tables.

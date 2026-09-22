@@ -161,6 +161,13 @@ Defaults to TechArticle for posts, WebPage for other pages.
   {%- endif -%}
 }
 </script>
+{%- comment -%}
+  A dataset page also describes the dataset itself. Google Dataset Search
+  indexes `Dataset` and nothing else, so the WebPage above does not reach it.
+{%- endcomment -%}
+{%- if schema_page.collection == 'datasets' or schema_type == 'Dataset' -%}
+{%- include meta/dataset-json.html page=schema_page -%}
+{%- endif -%}
 {%- comment -%} Add BreadcrumbList schema for posts {%- endcomment -%}
 {%- if is_post -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">

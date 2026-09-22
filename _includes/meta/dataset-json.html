@@ -1,0 +1,178 @@
+{%- comment -%}
+---
+required:
+  - page
+---
+schema.org/Dataset for a page in the `datasets` collection.
+
+Google Dataset Search indexes `Dataset` and nothing else, so a dataset page
+described only as a `WebPage` cannot be found there. Everything this needs is
+already in the front matter the dataset layout renders: the summary, the
+licence, the download and the field schema.
+
+Front matter it reads, all optional beyond the title:
+
+  summary:        the description; the excerpt when there is none
+  updated:        dateModified
+  license:        resolved through `page_license`, so the URL is the licence's
+  download_url:   one distribution; `distributions:` takes a list
+  schema:         name/description per field, as variableMeasured
+  doi:            identifier, as a PropertyValue and a DOI URL
+  keywords:       falls back to `tags`
+  temporal_coverage, spatial_coverage, measurement_technique, citation
+  is_accessible_for_free: false marks a dataset behind a wall
+
+Every field is left out when it has no value: `"license": ""` is not valid
+structured data, and an empty one is worse than none.
+{%- endcomment -%}
+{%- assign ds = include.page -%}
+{%- assign ds_url = ds.url | absolute_url -%}
+{%- assign ds_excerpt = ds.excerpt | strip_html | strip_newlines -%}
+{%- assign ds_description = ds.summary | default: ds.description | default: ds_excerpt | strip_newlines -%}
+{%- assign ds_license = ds | page_license -%}
+{%- assign ds_authors = ds | page_authors -%}
+{%- assign ds_keywords = ds.keywords | default: ds.tags -%}
+{%- comment -%}
+  Jekyll gives a collection document without a `date:` the build time, so
+  `page.date` cannot be trusted to mean anything. Comparing it with the build
+  stamp tells a real publication date from that fallback, and keeps the output
+  the same from one build to the next.
+{%- endcomment -%}
+{%- assign ds_build_stamp = site.time | date_to_xmlschema -%}
+{%- assign ds_published = nil -%}
+{%- if ds.date -%}
+  {%- assign ds_date_stamp = ds.date | date_to_xmlschema -%}
+  {%- unless ds_date_stamp == ds_build_stamp -%}
+    {%- assign ds_published = ds.date -%}
+  {%- endunless -%}
+{%- endif -%}
+{%- assign ds_modified = ds.updated | default: ds.last_modified_at | default: ds_published -%}
+{%- comment -%} One download, or a list of them under `distributions`. {%- endcomment -%}
+{%- assign ds_downloads = ds.distributions -%}
+{%- unless ds_downloads -%}
+  {%- if ds.download_url -%}
+    {%- assign ds_downloads = '' | split: '' | push: ds.download_url -%}
+  {%- endif -%}
+{%- endunless -%}
+<script type="application/ld+json" nonce="{{ schema_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": {{ ds.title | jsonify_script }},
+  "description": {{ ds_description | jsonify_script }},
+  "url": {{ ds_url | jsonify_script }}
+  {%- if ds_license.url -%},
+  "license": {{ ds_license.url | jsonify_script }}
+  {%- elsif ds_license.name -%},
+  "license": {{ ds_license.name | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.doi -%},
+  "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "doi",
+    "value": {{ ds.doi | jsonify_script }},
+    "url": {{ ds.doi | prepend: 'https://doi.org/' | replace: 'https://doi.org/https://doi.org/', 'https://doi.org/' | jsonify_script }}
+  }
+  {%- endif -%}
+  {%- if ds_published -%},
+  "datePublished": "{{ ds_published | date_to_xmlschema }}"
+  {%- endif -%}
+  {%- if ds_modified -%},
+  "dateModified": "{{ ds_modified | date_to_xmlschema }}"
+  {%- endif -%}
+  {%- if ds_keywords and ds_keywords.size > 0 -%},
+  "keywords": {{ ds_keywords | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.temporal_coverage -%},
+  "temporalCoverage": {{ ds.temporal_coverage | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.spatial_coverage -%},
+  "spatialCoverage": {{ ds.spatial_coverage | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.measurement_technique -%},
+  "measurementTechnique": {{ ds.measurement_technique | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.citation -%},
+  "citation": {{ ds.citation | jsonify_script }}
+  {%- endif -%}
+  {%- if ds.is_accessible_for_free != nil -%},
+  "isAccessibleForFree": {% if ds.is_accessible_for_free == false %}false{% else %}true{% endif %}
+  {%- endif -%}
+  {%- if ds_authors.size > 0 -%},
+  "creator": {% if ds_authors.size > 1 %}[{% endif %}
+  {%- for author in ds_authors -%}
+  {% include meta/person-json.html person=author %}{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  {% if ds_authors.size > 1 %}]{% endif %}
+  {%- endif -%}
+  {%- if ds.schema and ds.schema.size > 0 -%},
+  "variableMeasured": [
+  {%- for field in ds.schema -%}
+    {
+      "@type": "PropertyValue",
+      "name": {{ field.name | jsonify_script }}
+      {%- if field.description -%},
+      "description": {{ field.description | jsonify_script }}
+      {%- endif -%}
+    }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+  {%- endif -%}
+  {%- if ds_downloads and ds_downloads.size > 0 -%},
+  "distribution": [
+  {%- for download in ds_downloads -%}
+    {%- comment -%} A plain URL, or a hash with `url` and optionally `format` and `name`. {%- endcomment -%}
+    {%- if download.url -%}
+      {%- assign download_url = download.url -%}
+      {%- assign download_format = download.format -%}
+      {%- assign download_name = download.name -%}
+    {%- else -%}
+      {%- assign download_url = download -%}
+      {%- assign download_format = nil -%}
+      {%- assign download_name = nil -%}
+    {%- endif -%}
+    {%- unless download_format -%}
+      {%- assign extension = download_url | split: '?' | first | split: '.' | last | downcase -%}
+      {%- case extension -%}
+        {%- when 'csv' -%}{%- assign download_format = 'text/csv' -%}
+        {%- when 'tsv' -%}{%- assign download_format = 'text/tab-separated-values' -%}
+        {%- when 'json' -%}{%- assign download_format = 'application/json' -%}
+        {%- when 'jsonl', 'ndjson' -%}{%- assign download_format = 'application/x-ndjson' -%}
+        {%- when 'zip' -%}{%- assign download_format = 'application/zip' -%}
+        {%- when 'gz', 'gzip' -%}{%- assign download_format = 'application/gzip' -%}
+        {%- when 'parquet' -%}{%- assign download_format = 'application/vnd.apache.parquet' -%}
+        {%- when 'xlsx' -%}{%- assign download_format = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' -%}
+        {%- when 'nc' -%}{%- assign download_format = 'application/x-netcdf' -%}
+        {%- when 'h5', 'hdf5' -%}{%- assign download_format = 'application/x-hdf5' -%}
+        {%- else -%}{%- assign download_format = nil -%}
+      {%- endcase -%}
+    {%- endunless -%}
+    {
+      "@type": "DataDownload",
+      "contentUrl": {{ download_url | absolute_url | jsonify_script }}
+      {%- if download_format -%},
+      "encodingFormat": {{ download_format | jsonify_script }}
+      {%- endif -%}
+      {%- if download_name -%},
+      "name": {{ download_name | jsonify_script }}
+      {%- endif -%}
+    }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+  {%- endif -%}
+  {%- if publisher_name -%},
+  "publisher": {
+    "@type": {{ publisher_type | jsonify_script }},
+    "name": {{ publisher_name | jsonify_script }},
+    "url": {{ publisher_url | jsonify_script }}
+  }
+  {%- endif -%}
+  {%- comment -%} The site's own dataset index, so each dataset names the catalogue it belongs to. {%- endcomment -%}
+  {%- assign datasets_index = '/datasets/' | absolute_url -%},
+  "includedInDataCatalog": {
+    "@type": "DataCatalog",
+    "name": {{ site.title | default: site.name | jsonify_script }},
+    "url": {{ datasets_index | jsonify_script }}
+  }
+}
+</script>
