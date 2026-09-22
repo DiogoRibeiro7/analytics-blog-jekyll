@@ -8,6 +8,11 @@ import {
   tokenize
 } from "./utils.js";
 
+// A result lists at most this many of the sections it matched. Enough to
+// show a reader where in a long article their words are; few enough that the
+// result list stays the length it was.
+const MAX_SECTION_LINKS = 3;
+
 export function createSearchEngine(initialDocuments = []) {
   let documents = Array.isArray(initialDocuments) ? [...initialDocuments] : [];
 
@@ -132,6 +137,10 @@ function evaluateDocument(doc, context) {
   } = normalizedFields(doc);
   const codeBlocks = Array.isArray(doc.code) ? doc.code : [];
   const mathSegments = Array.isArray(doc.math) ? doc.math : [];
+  // A match in a section is a match in its page, so the two are not separate
+  // results: the page is the result and its sections hang off it.
+  const scoredSections = scoreSections(doc, { rawQuery, normalizedQuery, queryTokens });
+  const sectionSnippet = (scoredSections.find((section) => section.snippet) || {}).snippet || "";
 
   let score = 0;
   let snippet = "";
@@ -213,7 +222,8 @@ function evaluateDocument(doc, context) {
 
   if (normalizedContent.includes(normalizedQuery)) {
     const index = normalizedContent.indexOf(normalizedQuery);
-    snippet = buildSnippet(doc.content || "", index, rawQuery.length);
+    // The section's own text is a tighter excerpt than the whole page's.
+    snippet = sectionSnippet || buildSnippet(doc.content || "", index, rawQuery.length);
     score += 10;
   } else if (normalizedSummary.includes(normalizedQuery)) {
     const index = normalizedSummary.indexOf(normalizedQuery);
@@ -239,8 +249,81 @@ function evaluateDocument(doc, context) {
     type: doc.type || "page",
     date: doc.date,
     readingTime: doc.reading_time,
+    // The text before the first heading has no title and nothing to link to;
+    // it is the page, which is already this result.
+    sections: scoredSections.filter((section) => section.title).slice(0, MAX_SECTION_LINKS),
     score
   };
+}
+
+// Every section that matched, best first. An index written before sections
+// existed, or one a site generates itself, simply has none.
+function scoreSections(doc, context) {
+  const sections = Array.isArray(doc.sections) ? doc.sections : [];
+  if (sections.length === 0) {
+    return [];
+  }
+  return sections
+    .map((section) => scoreSection(doc, section, context))
+    .filter((match) => match !== null)
+    .sort((a, b) => b.score - a.score);
+}
+
+function scoreSection(doc, section, { rawQuery, normalizedQuery, queryTokens }) {
+  const { title, content } = normalizedSection(section);
+  if (!title && !content) {
+    return null;
+  }
+
+  let score = 0;
+  if (title && title.includes(normalizedQuery)) {
+    score += 24;
+  }
+  queryTokens.forEach((token) => {
+    if (!token) {
+      return;
+    }
+    if (title.includes(token)) {
+      score += 8;
+    }
+    if (content.includes(token)) {
+      score += 3;
+    }
+  });
+
+  let snippet = "";
+  const index = content.indexOf(normalizedQuery);
+  if (index >= 0) {
+    score += 6;
+    snippet = buildSnippet(section.content || "", index, rawQuery.length);
+  }
+
+  if (score === 0) {
+    return null;
+  }
+
+  return { title: section.title || "", url: sectionUrl(doc, section), level: section.level || 2, snippet, score };
+}
+
+// kramdown will happily give a heading the id "1-introduction", which is not a
+// valid CSS identifier. A fragment in an href is the one place that never
+// minds: nothing here hands it to querySelector, which is what made the
+// contents list's links dead (#330).
+function sectionUrl(doc, section) {
+  const anchor = section.anchor;
+  return anchor ? `${doc.url}#${encodeURIComponent(anchor)}` : doc.url;
+}
+
+const normalizedSections = new WeakMap();
+
+function normalizedSection(section) {
+  const cached = normalizedSections.get(section);
+  if (cached) {
+    return cached;
+  }
+  const fields = { title: normalize(section.title || ""), content: normalize(section.content || "") };
+  normalizedSections.set(section, fields);
+  return fields;
 }
 
 // search.json carries each text field once. Its normalized form is worked out

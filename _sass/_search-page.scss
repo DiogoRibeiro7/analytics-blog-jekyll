@@ -397,6 +397,59 @@
   }
 }
 
+// The passages of the page that matched, under its result: a reader who
+// searched for a term buried in a long article can go straight to it.
+.search-result__sections {
+  margin-top: map.get($spacing, 2);
+  padding-left: map.get($spacing, 3);
+  border-left: 2px solid rgba($color-accent-primary, 0.25);
+}
+
+.search-result__sections-label {
+  margin: 0 0 map.get($spacing, 1);
+  font-size: map.get($font-size-scale, xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-ink-500;
+}
+
+.search-result__sections-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: map.get($spacing, 1);
+}
+
+.search-result__section {
+  font-size: map.get($font-size-scale, sm);
+  line-height: 1.5;
+}
+
+// A subsection is one step in, so the shape of the article shows in the result.
+.search-result__section--h3 {
+  padding-left: map.get($spacing, 3);
+}
+
+.search-result__section-link {
+  font-weight: 600;
+
+  &::after {
+    content: " · ";
+    color: $color-ink-500;
+    font-weight: 400;
+  }
+
+  &:last-child::after {
+    content: none;
+  }
+}
+
+.search-result__section-snippet {
+  color: $color-ink-600;
+}
+
 .search-result__footer {
   display: flex;
   flex-wrap: wrap;
@@ -492,6 +545,22 @@ body.dark-mode {
       background: rgba($dark-accent-secondary, 0.25);
       color: $dark-ink-900;
     }
+  }
+
+  .search-result__sections {
+    border-left-color: rgba($dark-accent-primary, 0.4);
+  }
+
+  .search-result__sections-label {
+    color: rgba($dark-ink-500, 0.85);
+  }
+
+  .search-result__section-link::after {
+    color: rgba($dark-ink-500, 0.85);
+  }
+
+  .search-result__section-snippet {
+    color: $dark-ink-700;
   }
 
   .search-result__math {
