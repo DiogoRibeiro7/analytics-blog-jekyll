@@ -8,6 +8,17 @@ require_relative "../lib/datalog/warning_filter"
 require "jekyll"
 require "jekyll/commands/build"
 
+# Jekyll loads a site's `_plugins/` when it builds it, and the demo site's
+# source is the theme itself, so building it used to be what registered the
+# theme's tags and filters for the whole process. A test that builds a site of
+# its own in a temporary directory relied on that having happened, which is a
+# lot to ask of a side effect. They are loaded here instead, once, plainly.
+#
+# `include_cached` is the one tag the layouts need that is not the theme's own;
+# lib/datalog-theme.rb requires it for the same reason, for a real site.
+require "jekyll-include-cache"
+Dir[File.expand_path("../_plugins/*.rb", __dir__)].each { |plugin| require plugin }
+
 module SiteBuilder
   module_function
 
@@ -52,7 +63,10 @@ module SiteBuilder
     raise
   end
 
+  # Every reader builds first. The build is memoised, so the demo site is made
+  # once per process however many of the 57 files that read it run.
   def destination_path(path)
+    build
     File.join(destination, path)
   end
 
@@ -75,4 +89,4 @@ module SiteBuilder
   end
 end
 
-SiteBuilder.build
+require_relative "support/test_site"

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Reading mode and print (_includes/components/reading-mode-toggle.html and
@@ -9,14 +8,6 @@ require_relative "test_helper"
 # on paper, and the print rules in the stylesheet (#248).
 class ReadingModeTest < Minitest::Test
   POST = "2024/04/05/sql-optimization-guide/index.html"
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_a_post_offers_the_control_and_its_address_on_paper
     html = SiteBuilder.read(POST)
@@ -68,20 +59,10 @@ class ReadingModeTest < Minitest::Test
   # parameters are positional: a bare `"key" => value` argument would be read
   # as keywords otherwise.
   def render(settings, lang = nil)
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "reading-mode-toggle.html"),
-                 File.join(@dir, "_includes", "components", "reading-mode-toggle.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    front_matter = { "layout" => nil, "title" => "Paper", "lang" => lang }.compact.to_yaml
-    File.write(File.join(@dir, "index.html"),
-               "#{front_matter}---\n\n{% include components/reading-mode-toggle.html %}\n")
-    config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Reading",
-      "url" => "https://example.org", "author" => { "name" => "Test" },
-      "theme_options" => { "reading_mode" => settings }
-    )
-    Jekyll::Site.new(config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(title: "Reading", theme_options: { "reading_mode" => settings }) do |source|
+      source.theme("_includes/components/reading-mode-toggle.html", "_data/i18n")
+      source.page("index.html", "{% include components/reading-mode-toggle.html %}",
+                  { "layout" => nil, "title" => "Paper", "lang" => lang }.compact)
+    end.html("index.html")
   end
 end

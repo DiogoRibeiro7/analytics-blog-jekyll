@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Local reading state (#260): the markup a post and the saved-articles page
@@ -9,14 +8,6 @@ require_relative "test_helper"
 # bundle's wiring (manifest, loader flag, preload).
 class ReadingStateTest < Minitest::Test
   POST = "2024/04/05/sql-optimization-guide/index.html"
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_a_post_carries_the_bookmark_the_panel_and_the_toolbar
     doc = Nokogiri::HTML5.fragment(SiteBuilder.read(POST))
@@ -93,24 +84,11 @@ class ReadingStateTest < Minitest::Test
 
   # A page holding the bookmark and the panel, under the given reading_state settings.
   def render(settings, lang = nil)
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    %w[reading-state-bookmark reading-state-panel reading-state-resume reading-list].each do |name|
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "#{name}.html"),
-                   File.join(@dir, "_includes", "components", "#{name}.html"))
-    end
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    front_matter = { "layout" => nil, "title" => "Paper", "lang" => lang }.compact.to_yaml
-    body = %w[reading-state-bookmark reading-state-resume reading-state-panel reading-list].map do |name|
-      "{% include components/#{name}.html %}"
-    end.join
-    File.write(File.join(@dir, "index.html"), "#{front_matter}---\n\n#{body}\n")
-    config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Reading",
-      "url" => "https://example.org", "author" => { "name" => "Test" },
-      "theme_options" => { "reading_state" => settings }
-    )
-    Jekyll::Site.new(config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    includes = %w[reading-state-bookmark reading-state-resume reading-state-panel reading-list]
+    body = includes.map { |name| "{% include components/#{name}.html %}" }.join
+    TestSite.build(title: "Reading", theme_options: { "reading_state" => settings }) do |source|
+      source.theme(*includes.map { |name| "_includes/components/#{name}.html" }, "_data/i18n")
+      source.page("index.html", body, { "layout" => nil, "title" => "Paper", "lang" => lang }.compact)
+    end.html("index.html")
   end
 end

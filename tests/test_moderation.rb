@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # The moderation inbox (#257): off and out of the way in the demo, the shell
@@ -11,14 +9,6 @@ require_relative "test_helper"
 class ModerationTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "features" => { "moderation" => true } }.freeze
   INBOX = "{% include components/moderation-inbox.html %}\n"
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_admin_page_is_off_out_of_the_index_and_linked_from_nowhere
     html = SiteBuilder.read("admin/moderation/index.html")
@@ -96,25 +86,14 @@ class ModerationTest < Minitest::Test
   private
 
   def render(body, config, front_matter = "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "moderation-inbox.html"),
-                 File.join(@dir, "_includes", "components", "moderation-inbox.html"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "csp-meta.html"),
-                 File.join(@dir, "_includes", "csp-meta.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Inbox\n#{front_matter}---\n\n#{body}")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Moderation",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Moderation")) do |source|
+      source.theme("_includes/components/moderation-inbox.html", "_includes/csp-meta.html", "_data/i18n")
+      source.page("index.html", body, "layout: null\ntitle: Inbox\n#{front_matter}")
+    end.html("index.html")
   end
 
   # The policy csp-meta.html writes for a page with the given front matter.
   def csp(config, front_matter = "")
-    render("{% include csp-meta.html %}\n", config, front_matter)
-    File.read(File.join(@dir, "_site", "index.html"))[/content="([^"]*)"/, 1].to_s
+    render("{% include csp-meta.html %}\n", config, front_matter).to_html[/content="([^"]*)"/, 1].to_s
   end
 end

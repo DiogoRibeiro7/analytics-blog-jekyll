@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Webmentions (#258): the receiver advertised in the head, the "Mentioned
@@ -11,14 +9,6 @@ require_relative "test_helper"
 class WebmentionsTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "features" => { "webmentions" => true } }.freeze
   RECEIVER = "https://mentions.example.org/webmention"
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_advertises_no_receiver_and_renders_no_section
     html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
@@ -81,20 +71,11 @@ class WebmentionsTest < Minitest::Test
   # A page holding the discovery link and the section, under the given
   # site configuration and front matter.
   def render(config, front_matter = "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "meta"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    %w[components/webmentions.html meta/webmention-discovery.html].each do |include|
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", include), File.join(@dir, "_includes", include))
-    end
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
     body = "{% include meta/webmention-discovery.html %}\n{% include components/webmentions.html %}\n"
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Paper\n#{front_matter}---\n\n#{body}")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Mentions",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Mentions")) do |source|
+      source.theme("_includes/components/webmentions.html",
+                   "_includes/meta/webmention-discovery.html", "_data/i18n")
+      source.page("index.html", body, "layout: null\ntitle: Paper\n#{front_matter}")
+    end.html("index.html")
   end
 end

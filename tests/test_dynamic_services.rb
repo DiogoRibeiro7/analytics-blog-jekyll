@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/config_validator"
 
@@ -15,14 +13,6 @@ class DynamicServicesTest < Minitest::Test
   }.freeze
   POLICY_AFTER = /http-equiv="Content-Security-Policy"\s+content="([^"]*)"/
   POLICY_BEFORE = /content="([^"]*)"\s+http-equiv="Content-Security-Policy"/
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_has_no_backend_and_inlines_nothing
     html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
@@ -88,18 +78,10 @@ class DynamicServicesTest < Minitest::Test
 
   # A page holding the settings include and the policy, under the given site configuration.
   def render(config)
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "meta"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "csp-meta.html"),
-                 File.join(@dir, "_includes", "csp-meta.html"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "meta", "dynamic-services-config.html"),
-                 File.join(@dir, "_includes", "meta", "dynamic-services-config.html"))
     body = "{% include csp-meta.html %}\n{% include meta/dynamic-services-config.html %}"
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Page\n---\n\n#{body}\n")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Services",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    File.read(File.join(@dir, "_site", "index.html"))
+    TestSite.build(config.merge(title: "Services")) do |source|
+      source.theme("_includes/csp-meta.html", "_includes/meta/dynamic-services-config.html")
+      source.page("index.html", body, "layout: null\ntitle: Page\n")
+    end.read("index.html")
   end
 end

@@ -3,7 +3,6 @@
 require_relative "test_helper"
 require "json"
 require "nokogiri"
-require "tmpdir"
 require "yaml"
 
 # schema.org/Dataset for the datasets collection. Google Dataset Search indexes
@@ -135,32 +134,26 @@ class DatasetSchemaTest < Minitest::Test
   end
 
   def build_rich_dataset
-    Dir.mktmpdir do |dir|
-      %w[_layouts _includes _data].each { |path| FileUtils.cp_r(File.join(SiteBuilder.root, path), dir) }
-      FileUtils.mkdir_p(File.join(dir, "_datasets"))
-      front = {
-        "title" => "Urban readings", "summary" => "Counts from the loop detectors.",
-        "date" => "2021-06-01", "updated" => "2024-05-01", "license" => "CC-BY-4.0",
-        "doi" => "10.5281/zenodo.1234567", "keywords" => %w[mobility sensors porto],
-        "temporal_coverage" => "2019-01-01/2021-12-31", "spatial_coverage" => "Porto, Portugal",
-        "measurement_technique" => "Inductive loop counters", "is_accessible_for_free" => false,
-        "distributions" => [
-          { "url" => "https://example.test/data/readings.csv", "name" => "Tabular export" },
-          { "url" => "https://example.test/data/readings.parquet" },
-          { "url" => "/data/readings.nc" }
-        ]
-      }
-      File.write(File.join(dir, "_datasets/readings.md"), "#{front.to_yaml}---\n\nBody.\n")
-
-      config = Jekyll.configuration(
-        "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
-        "url" => "https://example.test", "title" => "Example", "author" => { "name" => "Test" },
-        "collections" => { "datasets" => { "output" => true, "permalink" => "/datasets/:name/" } },
-        "defaults" => [{ "scope" => { "path" => "", "type" => "datasets" }, "values" => { "layout" => "dataset" } }]
-      )
-      site = Jekyll::Site.new(config)
-      site.process
-      dataset_schema_from(site.collections["datasets"].docs.first.output)
+    front = {
+      "title" => "Urban readings", "summary" => "Counts from the loop detectors.",
+      "date" => "2021-06-01", "updated" => "2024-05-01", "license" => "CC-BY-4.0",
+      "doi" => "10.5281/zenodo.1234567", "keywords" => %w[mobility sensors porto],
+      "temporal_coverage" => "2019-01-01/2021-12-31", "spatial_coverage" => "Porto, Portugal",
+      "measurement_technique" => "Inductive loop counters", "is_accessible_for_free" => false,
+      "distributions" => [
+        { "url" => "https://example.test/data/readings.csv", "name" => "Tabular export" },
+        { "url" => "https://example.test/data/readings.parquet" },
+        { "url" => "/data/readings.nc" }
+      ]
+    }
+    site = TestSite.build(
+      url: "https://example.test", title: "Example",
+      collections: { "datasets" => { "output" => true, "permalink" => "/datasets/:name/" } },
+      defaults: [{ "scope" => { "path" => "", "type" => "datasets" }, "values" => { "layout" => "dataset" } }]
+    ) do |source|
+      source.theme("_layouts", "_includes", "_data")
+      source.document("datasets", "readings", "Body.", front)
     end
+    dataset_schema_from(site.jekyll.collections["datasets"].docs.first.output)
   end
 end
