@@ -513,21 +513,10 @@ body.dark-mode .search-result__title a {
   font-size: map.get($font-size-scale, sm);
   margin: 0;
   line-height: $line-height-base;
-
-  mark {
-    background: rgba($color-warning, 0.25);
-    color: inherit;
-    border-radius: 2px;
-    padding: 0 0.125rem;
-  }
 }
 
 body.dark-mode .search-result__summary {
   color: $dark-ink-500;
-
-  mark {
-    background: rgba($color-warning, 0.3);
-  }
 }
 
 // Code and math previews
@@ -580,13 +569,6 @@ body.dark-mode .search-result__math {
   margin: 0;
 
   &[hidden] { display: none; }
-
-  mark {
-    background: rgba($color-warning, 0.25);
-    color: inherit;
-    border-radius: 2px;
-    padding: 0 0.125rem;
-  }
 }
 
 body.dark-mode .search-result__excerpt {
@@ -671,12 +653,6 @@ body.dark-mode .search-result:focus-within .search-result__title a {
   &__excerpt {
     margin: 0.75rem 0;
     color: var(--color-text-secondary, #4a5568);
-
-    mark {
-      background: #fef3c7;
-      padding: 0.125rem 0.25rem;
-      border-radius: 2px;
-    }
   }
 
   &__meta {
@@ -702,18 +678,14 @@ body.dark-mode .search-result:focus-within .search-result__title a {
 // The query highlight, in one place. Three rules gave it three backgrounds and
 // none of them a colour, so it inherited the card's: light grey on a light
 // amber wash in dark mode, 2.26:1. The wash decides the text colour (#365).
-.search-result mark,
-.search-result__summary mark,
-.search-result__excerpt mark {
+.search-result mark {
   background: rgba($color-warning, 0.25);
   color: $color-ink-900;
   border-radius: 2px;
   padding: 0 0.125rem;
 }
 
-body.dark-mode .search-result mark,
-body.dark-mode .search-result__summary mark,
-body.dark-mode .search-result__excerpt mark {
+body.dark-mode .search-result mark {
   background: rgba($color-warning, 0.3);
   color: $dark-ink-900;
 }
