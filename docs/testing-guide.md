@@ -1,483 +1,271 @@
 # Testing Guide
 
-This guide covers all aspects of testing in the DataLog Jekyll Theme, from running tests to writing new ones.
+What the suite is, which layer a new test belongs in, and the handful of things
+about this repository that will otherwise cost you an afternoon.
 
-## Table of Contents
+- [The four layers](#the-four-layers)
+- [Running them](#running-them)
+- [Writing a test](#writing-a-test)
+- [Fixtures](#fixtures)
+- [Coverage](#coverage)
+- [Continuous integration](#continuous-integration)
+- [Things that will catch you out](#things-that-will-catch-you-out)
+- [What the suite does not cover](#what-the-suite-does-not-cover)
 
-- [Overview](#overview)
-- [Test Types](#test-types)
-- [Running Tests](#running-tests)
-- [Writing Tests](#writing-tests)
-- [Coverage Requirements](#coverage-requirements)
-- [Continuous Integration](#continuous-integration)
-- [Troubleshooting](#troubleshooting)
+## The four layers
 
-## Overview
+| Layer | Where | Size | Runs in |
+| --- | --- | --- | --- |
+| Minitest | `tests/test_*.rb` | 68 files, 581 tests | ~112 s |
+| Vitest | `tests/js/*.test.js` | 38 files, 1,094 tests | ~15 s |
+| Playwright | `tests/integration/*.spec.js` | 24 files, 137 tests | builds and serves the site first |
+| axe-core | `tests/integration/axe.spec.js` | 9 pages × 2 themes | part of Playwright |
 
-DataLog uses a multi-layered testing strategy:
+Which one you want:
 
-| Test Type | Framework | Purpose | Run Time |
-|-----------|-----------|---------|----------|
-| **Unit Tests** | Vitest | Test JavaScript modules in isolation | ~4s |
-| **Integration Tests** | Playwright | Test interactions between components | ~30s |
-| **Accessibility Tests** | Playwright + axe-core | Check WCAG rules on key pages in both themes | ~20s |
-| **Ruby Tests** | Minitest | Test Jekyll plugins, generators and the built site | ~60s |
-| **E2E Tests** | Playwright | Test complete user workflows | ~60s |
+- **A Liquid filter, a tag, a plugin, a generator, or anything about what the
+  built site contains** — Minitest. Most of what this theme does only exists
+  once Jekyll has run, so the test builds a site and reads what came out.
+- **A browser module under `assets/js/`** — Vitest, in jsdom.
+- **Anything that needs layout, real CSS, a real network request, focus or a
+  keyboard** — Playwright. If you find yourself reaching for jsdom's geometry,
+  you want Playwright instead: jsdom has no layout.
+- **Anything about colour, contrast or an accessible name** — the axe sweep, in
+  both themes. Pa11y runs too, but it only ever sees light mode.
 
-### Test Coverage Goals
+## Running them
 
-- **Unit Tests**: the thresholds in `vitest.config.js` (see [Coverage Requirements](#coverage-requirements))
-- **Integration Tests**: All critical user paths
-- **Accessibility Tests**: No axe violations on the pages in `tests/integration/axe.spec.js`
-- **Ruby Tests**: All custom plugins
+```bash
+bundle install && npm install    # once
 
-## Test Types
-
-### 1. Unit Tests (JavaScript/Vitest)
-
-**Location**: `tests/js/*.test.js`
-
-**What They Test**:
-- Individual JavaScript functions and modules
-- Search engine logic
-- Math rendering utilities
-- Theme switching
-- Visualization loaders
-
-**Example**:
-```javascript
-// tests/js/search.test.js
-import { describe, it, expect } from 'vitest';
-import { debounce } from '../assets/js/search.js';
-
-describe('Search utilities', () => {
-  it('debounce delays function execution', async () => {
-    let callCount = 0;
-    const fn = debounce(() => callCount++, 100);
-
-    fn();
-    fn();
-    fn();
-
-    expect(callCount).toBe(0); // Not called yet
-
-    await new Promise(resolve => setTimeout(resolve, 150));
-
-    expect(callCount).toBe(1); // Called once after delay
-  });
-});
+bundle exec rake test            # Minitest, builds the demo site once
+npm test                         # Vitest
+npm run test:integration         # Playwright: builds the site and serves it for you
 ```
 
-### 2. Integration Tests (Playwright)
+One file, or one test:
 
-**Location**: `tests/integration/*.spec.js`
+```bash
+bundle exec ruby tests/test_licenses.rb
+bundle exec ruby tests/test_licenses.rb -n test_a_known_identifier_gives_a_name_and_a_url_however_it_is_spelt
+bundle exec ruby tests/test_licenses.rb -n "/identifier/"   # see the Git Bash note below
 
-**What They Test**:
-- Navigation between pages
-- Search workflow
-- Visualization loading
-- User interactions
-- The forms that post to the dynamic services, against a backend the spec plays itself: `npm run test:integration` builds the site with `tests/integration/site-config.yml` layered over `_config.yml`, which sets `dynamic_services.base_url` to `https://api.example.test`, and a spec answers that address with `page.route` (see `tests/integration/corrections.spec.js`)
+npx vitest run tests/js/theme.test.js
+npx vitest run -t "dark figures"          # by test name; --grep is not a vitest flag
+npx vitest                                 # watch mode
 
-**Example**:
-```javascript
-// tests/integration/navigation.spec.js
-import { test, expect } from '@playwright/test';
-
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
-
-test.describe('Site Navigation', () => {
-  test('should navigate from home to about page', async ({ page }) => {
-    await page.goto(baseUrl);
-    await page.click('a[href="/about/"]');
-    await expect(page).toHaveURL(`${baseUrl}/about/`);
-    await expect(page.locator('h1')).toContainText('About');
-  });
-});
+PLAYWRIGHT_GREP="search" npm run test:integration
+npm run test:integration -- tests/integration/search-workflow.spec.js
+npm run test:integration:direct            # against an existing PLAYWRIGHT_BASE_URL
 ```
 
-### 3. Ruby Tests (Minitest)
+On Git Bash, `-n "/regex/"` matches nothing: MSYS2 reads the slashes as a path
+and rewrites the argument. Use PowerShell for that form, or give the exact test
+name. The same conversion catches any argument that looks like a path.
 
-**Location**: `tests/test_*.rb`
+`npm run test:integration` builds the site with `tests/integration/site-config.yml`
+layered over `_config.yml`, starts a static server on port 4173 and sets
+`PLAYWRIGHT_BASE_URL` for you. The layered config points
+`dynamic_services.base_url` at `https://api.example.test`, which the specs
+answer themselves with `page.route` — see `tests/integration/corrections.spec.js`.
 
-**What They Test**:
-- Jekyll plugins
-- Liquid filters
-- Custom generators
-- Build process
+When something fails, Playwright keeps a trace:
 
-**Example**:
+```bash
+npx playwright show-trace test-results/<the-failing-test>/trace.zip
+```
+
+## Writing a test
+
+The suite has a house style. It is not enforced by a linter, so it is worth
+reading a neighbouring file before adding to one.
+
+**A test name is a sentence about behaviour**, not a label for a method:
+
 ```ruby
-# tests/test_filters.rb
-require 'minitest/autorun'
-require_relative '../_plugins/custom_filters'
+def test_a_heading_without_an_id_indexes_with_no_anchor
+def test_the_headings_the_layout_adds_are_not_sections
+```
 
-class TestCustomFilters < Minitest::Test
-  include CustomFilters
+**A comment above a test says which bug it is for and why the obvious fix was
+wrong.** This is the part that pays for itself. Six months later the test looks
+arbitrary without it:
 
-  def test_reading_time
-    text = "word " * 250
-    assert_equal "1 min read", reading_time(text)
-  end
+```ruby
+# "1. Introduction" gives id="1-introduction", which is not a valid CSS
+# identifier. It is a perfectly good URL fragment, and the section link is a
+# href, so it is kept exactly as written — the contents list's handler fed
+# one to querySelector and the links died (#330).
+def test_an_id_that_starts_with_a_digit_is_kept_as_it_is
+```
+
+**An assertion carries a message naming what failed**, because the suite builds
+whole sites and "expected true to be false" tells you nothing about which page:
+
+```ruby
+assert File.exist?(path), "#{url} should be written"
+assert_includes page, opening, "#{doc['url']} section #{section['title'].inspect}"
+```
+
+**Prefer a fixture that derives from the thing under test** over one that
+restates it. A search fixture builds its `content` by joining its `sections`,
+because that is how the index builds it — otherwise a fixture can claim a
+section the page does not contain, and the test passes for the wrong reason.
+
+## Fixtures
+
+### The shared demo site
+
+`SiteBuilder` builds this repository's own site once per process and 57 files
+read it. Requiring `tests/test_helper.rb` does not build it; the first call to
+`SiteBuilder.read`, `json`, `site` or `payload` does.
+
+```ruby
+html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
+index = SiteBuilder.json("search.json")
+post = SiteBuilder.site.posts.docs.first
+```
+
+It is shared, so **do not mutate it**. If a test needs different configuration
+or different content, it wants a site of its own.
+
+### A site of its own
+
+`TestSite` (in `tests/support/test_site.rb`) is the one way to build one. It
+owns a temporary directory, removed at the end of the run, so a test needs no
+`setup` or `teardown`:
+
+```ruby
+site = TestSite.build(title: "Licences", baseurl: "/blog") do |source|
+  source.theme("_includes/components/license-notice.html", "_data/i18n")
+  source.page("index.html", "{% include components/license-notice.html page=page %}",
+              "date: 2024-02-20\nlicense: CC-BY-4.0\n")
 end
+
+site.html("index.html")                 # a Nokogiri fragment
+site.document("index.html")             # a whole document, for a page with a layout
+site.read("search.json")                # the text
+site.json("search.json")
+site.find("**/part-one/index.html")     # for a URL the permalink decides; nil if absent
+site.exist?("feed.xml")
+site.jekyll                             # the Jekyll::Site, to inspect documents
 ```
 
-## Running Tests
+Writing into the source: `theme(*paths)` copies part of this repository in,
+keeping where it sits; `copy(theme_path, to)` copies one file under another
+name; `page`, `post`, `document(collection, …)`, `data`, `layout` and `write`
+add files. Front matter is YAML text or a hash. `build(dir: earlier.dir, …)`
+builds an earlier site's source again, for a test about what a second build
+does.
 
-### Quick Start
+Copy in only what the test needs. A test that renders one include copies that
+include, so its dependencies are visible at the call site.
+
+Three files deliberately do not use `TestSite`, and should stay that way:
+`test_gem_consumer.rb` and `test_config_validator.rb` build sites in
+subprocesses, which is the point of them, and `test_search_pages.rb`
+constructs a site it never builds in order to drive one generator.
+
+## Coverage
 
 ```bash
-# Run all unit tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run integration tests
-npm run test:integration
-
+bundle exec rake coverage     # Minitest under SimpleCov; ~3× the runtime of rake test
+npm run test:coverage         # Vitest, plus the per-module gate in scripts/check_coverage.js
 ```
 
-### Detailed Commands
-
-#### Unit Tests
-
-```bash
-# Run once
-npm run test
-
-# Watch mode (reruns on file changes)
-npx vitest
-
-# Run specific test file
-npx vitest tests/js/search.test.js
-
-# Run tests matching pattern
-npx vitest --grep "search"
-
-# Update snapshots
-npx vitest -u
-```
-
-#### Coverage
-
-```bash
-# Generate coverage report
-npm run test:coverage
-
-# View HTML report
-open coverage/index.html  # macOS
-xdg-open coverage/index.html  # Linux
-start coverage/index.html  # Windows
-```
-
-#### Integration Tests
-
-```bash
-# Run all integration tests
-npm run test:integration
-
-# Run specific test file
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test tests/integration/navigation.spec.js
-
-# Debug mode
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --debug
-
-# Headed mode (see browser)
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --headed
-```
-
-#### Ruby Tests
-
-```bash
-# Run all Ruby tests (builds the demo site once, then checks it)
-bundle exec rake test
-
-# Run specific test
-bundle exec ruby tests/test_filters.rb
-```
-
-## Writing Tests
-
-### Unit Test Best Practices
-
-1. **Test one thing per test**:
-   ```javascript
-   // ✅ Good
-   it('debounce delays function execution', () => {
-     // Test only debounce behavior
-   });
-
-   // ❌ Bad
-   it('search works', () => {
-     // Tests debounce, filtering, rendering, etc.
-   });
-   ```
-
-2. **Use descriptive names**:
-   ```javascript
-   // ✅ Good
-   it('returns empty array when no results match query', () => {});
-
-   // ❌ Bad
-   it('works correctly', () => {});
-   ```
-
-3. **Arrange, Act, Assert**:
-   ```javascript
-   it('filters results by category', () => {
-     // Arrange
-     const results = [
-       { title: 'Post 1', category: 'tech' },
-       { title: 'Post 2', category: 'design' }
-     ];
-
-     // Act
-     const filtered = filterByCategory(results, 'tech');
-
-     // Assert
-     expect(filtered).toHaveLength(1);
-     expect(filtered[0].title).toBe('Post 1');
-   });
-   ```
-
-4. **Mock external dependencies**:
-   ```javascript
-   import { vi } from 'vitest';
-
-   it('calls API endpoint', async () => {
-     const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-     global.fetch = mockFetch;
-
-     await fetchData('/api/posts');
-
-     expect(mockFetch).toHaveBeenCalledWith('/api/posts');
-   });
-   ```
-
-### Integration Test Best Practices
-
-1. **Test user workflows, not implementation**:
-   ```javascript
-   // ✅ Good
-   test('user can search and filter results', async ({ page }) => {
-     await page.goto(baseUrl);
-     await page.fill('[data-search-input]', 'jekyll');
-     await page.selectOption('[data-filter-category]', 'tech');
-     await expect(page.locator('.search-result')).toHaveCount(3);
-   });
-
-   // ❌ Bad
-   test('SearchEngine.filter() is called', async ({ page }) => {
-     // Testing implementation details
-   });
-   ```
-
-2. **Use data attributes for selectors**:
-   ```javascript
-   // ✅ Good
-   await page.click('[data-nav-toggle]');
-
-   // ❌ Bad (fragile)
-   await page.click('.header > nav > button.menu-toggle');
-   ```
-
-3. **Wait for elements properly**:
-   ```javascript
-   // ✅ Good
-   await page.waitForSelector('[data-search-results]');
-   await expect(page.locator('.result')).toHaveCount(5);
-
-   // ❌ Bad
-   await page.waitForTimeout(1000); // Arbitrary wait
-   ```
-
-## Coverage Requirements
-
-### Current Thresholds
-
-`npm run test:coverage` fails below the thresholds in `vitest.config.js`, and the Tests workflow runs it on every pull request:
-
-```javascript
-thresholds: {
-  statements: 88,
-  branches: 78,
-  functions: 83,
-  lines: 88
-}
-```
-
-They sit a few points below the measured coverage, so a change that drops coverage fails while ordinary changes pass. Raise them as coverage rises; if this page falls behind, `vitest.config.js` is the authority.
-
-### How to Improve Coverage
-
-1. **Identify uncovered code**:
-   ```bash
-   npm run test:coverage
-   open coverage/index.html
-   ```
-
-2. **Write tests for red/yellow lines**:
-   - Red = Not executed
-   - Yellow = Partial branch coverage
-
-3. **Focus on critical paths first**:
-   - Search functionality
-   - Navigation
-   - User authentication (if any)
-   - Data processing
-
-4. **Don't test framework code**:
-   - Test your code, not Jekyll or libraries
-
-## Continuous Integration
-
-### GitHub Actions
-
-Tests run automatically on:
-- **Push to develop**: Full test suite
-- **Pull requests**: Full test suite + visual regression
-- **Scheduled**: Security audits daily
-
-### Test Matrix
-
-Unit tests run on multiple Node.js versions:
-- Node 18 (LTS)
-- Node 20 (LTS)
-- Node 22 (Current)
-
-### Workflow Files
-
-- `.github/workflows/test.yml` - Main test suite
-- `.github/workflows/dependency-review.yml` - Security audits
-- `.github/workflows/codeql.yml` - Code security scanning
-
-### Required Status Checks
-
-Before merging:
-- ✅ All unit tests pass
-- ✅ Jekyll build succeeds
-- ✅ No security vulnerabilities
-- ✅ Code coverage meets threshold
-
-## Troubleshooting
-
-### Common Issues
-
-#### "PLAYWRIGHT_BASE_URL is not set"
-
-**Problem**: Integration tests fail with missing URL.
-
-**Solution**:
-```bash
-# Option 1: Use helper script (recommended)
-npm run test:integration
-
-# Option 2: Set environment variable
-export PLAYWRIGHT_BASE_URL=http://localhost:4000
-npx playwright test
-```
-
-#### "Cannot find module" errors
-
-**Problem**: Dependencies not installed.
-
-**Solution**:
-```bash
-npm ci
-bundle install
-```
-
-#### Tests timeout
-
-**Problem**: Site not building or server not responding.
-
-**Solution**:
-```bash
-# Build site first
-bundle exec jekyll build
-
-# Start server
-bundle exec jekyll serve &
-
-# Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test
-```
-
-#### Coverage threshold not met
-
-**Problem**: Coverage below threshold.
-
-**Solution**:
-1. Check coverage report: `open coverage/index.html`
-2. Write tests for uncovered code
-3. Or adjust thresholds temporarily in `vitest.config.js`
-
-### Debug Mode
-
-#### Vitest Debug
-
-```bash
-# Run in watch mode
-npx vitest
-
-# Run with debug output
-DEBUG=* npx vitest
-```
-
-#### Playwright Debug
-
-```bash
-# Debug mode with inspector
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --debug
-
-# Headed mode
-PLAYWRIGHT_BASE_URL=http://localhost:4000 npx playwright test --headed
-
-# Trace viewer
-npx playwright show-trace trace.zip
-```
-
-## Best Practices Summary
-
-### DO
-
-✅ Write tests before fixing bugs
-✅ Test behavior, not implementation
-✅ Use descriptive test names
-✅ Keep tests fast and focused
-✅ Mock external dependencies
-✅ Use data attributes for selectors
-✅ Wait for elements properly
-✅ Run tests before committing (the pre-commit hook runs the ones related to the staged JavaScript; `npm test` runs them all)
-
-### DON'T
-
-❌ Test framework code
-❌ Use arbitrary timeouts
-❌ Test implementation details
-❌ Write flaky tests
-❌ Skip failing tests
-❌ Commit without running tests
-❌ Ignore coverage reports
-
-## Resources
-
-- [Vitest Documentation](https://vitest.dev/)
-- [Playwright Documentation](https://playwright.dev/)
-- [Minitest Documentation](https://github.com/seattlerb/minitest)
-- [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
-
-## Contributing
-
-Found a bug? Want to add tests?
-
-1. Check [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines
-2. Write tests that demonstrate the bug
-3. Fix the bug
-4. Ensure all tests pass
-5. Submit a pull request
+Both write a readable report into `coverage/`. Both fail below their
+thresholds, which sit a few points under the measured value so that a
+regression fails and an ordinary change does not:
+
+| | Measured | Gate | Where |
+| --- | --- | --- | --- |
+| Ruby lines | 84.5% | 81% | `.simplecov` |
+| Ruby branches | 62.7% | 59% | `.simplecov` |
+| JS statements | 91.7% | 88% | `vitest.config.js` |
+| JS branches | 81.9% | 78% | `vitest.config.js` |
+| JS functions | 88.6% | 83% | `vitest.config.js` |
+| JS lines | 92.0% | 88% | `vitest.config.js` |
+
+The thresholds in those two files are the authority; this table is a summary
+and may lag. Coverage is reviewed each quarter — see
+[coverage-review-process.md](coverage-review-process.md).
+
+Two notes on the Ruby side. `rake coverage` merges results from the consumer
+builds `test_gem_consumer.rb` runs in subprocesses, which is worth about four
+points; without that merge, `lib/datalog/theme/*.rb` read 0% although they are
+exercised. And `lib/datalog/theme/package.rb` and `version.rb` are filtered
+out, because `bundle exec` puts `-rbundler/setup` in `RUBYOPT` and the Gemfile
+says `gemspec`, so Bundler loads them at interpreter startup, before Ruby's
+`Coverage` can start.
+
+The thresholds are written for the whole suite, so `COVERAGE=1` on a single
+file fails them by design. Use `rake coverage`.
+
+## Continuous integration
+
+`.github/workflows/test.yml` runs, on every pull request:
+
+| Job | What |
+| --- | --- |
+| Unit Tests (Node 22, 24) | Vitest; the 22 leg runs coverage and enforces the gate |
+| Jekyll Build & Ruby Tests | A full site build, then Minitest |
+| Ruby Tests (Ruby 3.3, 3.4) | Minitest; the 3.4 leg runs coverage and enforces the gate |
+| Browser Tests | Playwright, including the axe sweep |
+
+`accessibility.yml` runs Pa11y, `lighthouse.yml` the performance budgets, and
+`codeql.yml` static analysis. [TESTING.md](../TESTING.md) has the full map of
+which workflows gate a merge and which run on a schedule.
+
+Two things behave differently on CI. The image-variant tests skip their real
+encoder case unless ImageMagick and `avifenc` are installed, which the workflow
+does, setting `DATALOG_IMAGE_TOOLS=required` so it cannot skip silently. And
+the Playwright specs also run in the deploy after a merge, against the site
+that is about to be published.
+
+## Things that will catch you out
+
+**The script bundles have to be current.** `assets/js/dist` is checked against
+its sources during the build, so after any change under `assets/js/`,
+`test_gem_consumer.rb` fails until you run `npm run build:js`. It reads like a
+broken test and is a guard working correctly.
+
+**The demo site is shared and must not be mutated.** 57 files read it.
+
+**Everything shares one process.** A test that replaces a method —
+`Jekyll::ImageOptimizer.tools`, the CLI's `system` — must restore it in an
+`ensure`, or it leaks into every test that follows.
+
+**A test that builds a site and reads image markup depends on the machine.**
+Without ImageMagick an image has one variant; with it, three, and the AVIF one
+comes first. Stand an encoder in rather than assert whatever your machine
+produces — `tests/test_image_variants.rb` has `fake_encoders`, and
+`tests/test_dark_image_variants.rb` stubs `Jekyll::ImageOptimizer.tools`.
+
+**`scroll-behavior: smooth`.** A Playwright assertion about a fragment link
+cannot measure the scroll position after `load`; the jump is animated and has
+not started. Wait for the element to be in the viewport instead.
+
+**A heading id may start with a digit.** `## 1. Introduction` gives
+`id="1-introduction"`, which is a valid URL fragment and an invalid CSS
+identifier. Use `getElementById`, never `querySelector('#' + id)`.
+
+**Coverage cannot see a file loaded before it starts.** If a file reads 0% and
+you are sure it is tested, ask what loaded it — Bundler, a subprocess, or the
+gemspec.
+
+## What the suite does not cover
+
+Worth knowing, so its silence is not read as assurance:
+
+- **The axe sweep scans `/search/` before a query is typed**, so nothing the
+  search application renders is covered by it. Typing a query and scanning
+  finds real violations — [#365](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues/365).
+- **One browser.** Playwright runs Chromium only, at desktop size.
+- **No visual regression testing**, in any layer.
+- **Pa11y only sees light mode.** Dark mode is covered by the axe sweep, which
+  runs both.
 
 ---
 
-**Questions?** Open an [issue](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues) or [discussion](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/discussions).
+Found a gap? [CONTRIBUTING.md](../CONTRIBUTING.md) has the workflow. A test
+that demonstrates a bug, committed before the fix, is the most useful kind.
