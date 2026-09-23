@@ -24,6 +24,23 @@ class GemConsumerTest < Minitest::Test
   # data files and downloads.
   MAINTAINER_MARKERS = %w[Diogo Ribeiro ESMAD DiogoRibeiro7 dfr@esmad debastos 0009-0001-2022-7072].freeze
 
+  # These tests build a consumer site in a fresh process, which is the point
+  # of them: it is the only way to see what a site gets when it installs the
+  # theme rather than when it is the theme. It also means the parent never
+  # loads lib/datalog/theme/*.rb, so those files read 0% under an in-process
+  # coverage run although they are exercised here. The child measures itself
+  # and SimpleCov merges the two resultsets.
+  COVERAGE = <<~'RUBY'
+    if ENV["COVERAGE"]
+      require "simplecov"
+      theme = ENV.fetch("COVERAGE_ROOT")
+      SimpleCov.command_name("gem-consumer-#{Process.pid}")
+      SimpleCov.root(theme)
+      SimpleCov.coverage_dir(File.join(theme, "coverage"))
+      SimpleCov.start { track_files "{lib,_plugins}/**/*.rb" }
+    end
+  RUBY
+
   BUILD = <<~'RUBY'
     require "jekyll"
 
@@ -235,8 +252,15 @@ class GemConsumerTest < Minitest::Test
   end
 
   def build(site, theme_root, script = BUILD, *, env: {})
-    stdout, stderr, status = Open3.capture3(env, RbConfig.ruby, "-e", script, site, theme_root, *, chdir: site)
+    stdout, stderr, status = Open3.capture3(coverage_env(env), RbConfig.ruby, "-e",
+                                            "#{COVERAGE}#{script}", site, theme_root, *, chdir: site)
     ["#{stdout}#{stderr}", status]
+  end
+
+  def coverage_env(env)
+    return env unless ENV["COVERAGE"]
+
+    env.merge("COVERAGE" => "1", "COVERAGE_ROOT" => ROOT)
   end
 
   def assert_published_pages(site)

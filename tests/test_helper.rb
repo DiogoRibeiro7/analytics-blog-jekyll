@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
+
+# Before anything else of the theme's is loaded: Ruby's Coverage only sees a
+# file required after it starts. `.simplecov` holds the configuration, and
+# names the two files that cannot be reached even from here.
+if ENV["COVERAGE"]
+  require "simplecov"
+  SimpleCov.command_name "minitest"
+end
+
 require "minitest/autorun"
 require "fileutils"
 require "json"

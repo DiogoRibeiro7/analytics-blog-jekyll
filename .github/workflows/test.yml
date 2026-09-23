@@ -139,7 +139,11 @@ jobs:
   ruby-versions:
     name: Ruby Tests (Ruby ${{ matrix.ruby }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The 3.4 leg runs the suite under SimpleCov, which costs about three
+    # times the runtime of a plain run.
+    timeout-minutes: 25
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -169,7 +173,24 @@ jobs:
         run: npm run build:js
 
       - name: Run Minitest suite
+        if: matrix.ruby != '3.4'
         run: bundle exec rake test
+
+      # One leg runs it under SimpleCov, which enforces the thresholds in
+      # .simplecov. It costs about three times the runtime, so only one leg
+      # pays it — the same shape as the Node 22 leg above.
+      - name: Run Minitest suite with coverage
+        if: matrix.ruby == '3.4'
+        run: bundle exec rake coverage
+
+      - name: Upload coverage to Codecov
+        if: matrix.ruby == '3.4' && github.event_name == 'push' && env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./coverage/coverage.json
+          flags: ruby
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # The Playwright specs in tests/integration/ used to run only in the deploy
   # after a merge, so a browser regression reached develop with every pull
