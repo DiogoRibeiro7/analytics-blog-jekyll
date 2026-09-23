@@ -11,4 +11,13 @@ task :test do
   ruby "-Itests", "-e", "Dir['tests/test_*.rb'].sort.each { |file| require_relative file }"
 end
 
+# Roughly three times the runtime of `rake test`, which is why it is a task of
+# its own rather than the default. See .simplecov for what it measures and the
+# thresholds it holds the suite to.
+desc "Run the Minitest suite under SimpleCov and enforce the coverage thresholds"
+task :coverage do
+  ENV["COVERAGE"] = "1"
+  Rake::Task[:test].invoke
+end
+
 task default: :test

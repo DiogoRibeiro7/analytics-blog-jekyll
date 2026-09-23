@@ -318,6 +318,7 @@ When you're ready to publish a new version of DataLog or announce major updates:
 
 - **Playwright integration specs**: `tests/integration/` verifies the rendered site in a real browser: landmarks and keyboard access, the dark-mode toggle, responsive layout without horizontal overflow, blog navigation and reading progress, search, and visualization loading with accessible data tables. Run them with `npm run test:integration` (builds and serves the site for you) or `npm run test:integration:direct` against an existing `PLAYWRIGHT_BASE_URL`.
 - **Where they run**: the deploy workflow runs the same specs against the freshly built site before publishing, so a regression there blocks the deploy rather than the site.
+- **Coverage**: `bundle exec rake coverage` runs the Minitest suite under SimpleCov and holds it to the thresholds in `.simplecov`; `npm run test:coverage` does the same for the browser modules against `vitest.config.js`. Both write a readable report into `coverage/`. A plain `rake test` measures nothing and stays about three times quicker.
 
 For support or collaboration inquiries, reach out to **Diogo Ribeiro** (<dfr@esmad.ipp.pt>) or open a GitHub issue at [`DiogoRibeiro7/analytics-blog-jekyll`](https://github.com/DiogoRibeiro7/analytics-blog-jekyll).
 
