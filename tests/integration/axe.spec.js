@@ -41,6 +41,23 @@ const READY = {
   '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
 };
 
+// A page whose interesting markup only exists after someone has used it. The
+// sweep loaded /search/ and scanned an empty result list, so the result cards,
+// their code and math blocks and the query highlighting had never been looked
+// at once. They had 17 violations between them.
+const INTERACT = {
+  '/search/': async (page) => {
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', {
+      timeout: 15000,
+    });
+    await page.locator('[data-search-input]').fill('reproducibility');
+    await page.locator('.search-result').first().waitFor({ state: 'visible', timeout: 15000 });
+    // A result carrying each of the things a result can carry, so the scan
+    // covers them: a code sample, a LaTeX snippet and a section list.
+    await page.locator('[data-result-code]:not([hidden])').first().waitFor({ state: 'visible' });
+  },
+};
+
 // axe has to be injected as an inline script, which the site's Content Security
 // Policy forbids. The policy itself is covered by tests/test_csp.rb.
 test.use({ bypassCSP: true });
@@ -58,6 +75,9 @@ for (const theme of ['light', 'dark']) {
         await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
         if (READY[path]) {
           await page.locator(READY[path]).first().waitFor({ state: 'attached' });
+        }
+        if (INTERACT[path]) {
+          await INTERACT[path](page);
         }
 
         await page.addScriptTag({ content: axeSource });

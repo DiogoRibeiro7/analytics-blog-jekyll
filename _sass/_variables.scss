@@ -99,6 +99,8 @@ $dark-ink-000: #fafaf9 !default;
 $dark-accent-primary: #60a5fa;     // lighter blue for dark bg
 $dark-accent-secondary: #2dd4bf;   // lighter teal
 $dark-accent-tertiary: #a78bfa !default; // lighter purple
+// The same purple as text on its own 12% tint is 4.33:1, just under AA.
+$dark-accent-tertiary-ink: #c4b5fd !default; // 6.4:1 on that tint
 
 // Border colors
 $color-border: $color-neutral-200 !default;

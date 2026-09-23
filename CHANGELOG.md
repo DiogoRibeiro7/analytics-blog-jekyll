@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- Search results are an ordinary list again, so a screen reader can reach what is inside them. Each result was an `option` in a `listbox`, a role whose children are presentational, which put the title link and the matching-section links of every result out of reach in browse mode. The arrow keys now move real focus through the results rather than pointing `aria-activedescendant` at them, Tab reaches them as it reaches any link, Enter follows the focused link, and Escape from the list returns to the query without clearing it (#365).
+- The search results meet AA contrast in both themes. The query highlight took its colour from the card around it, which in dark mode put light grey on a light amber wash at 2.26:1; the tag and difficulty chips sat at 4.32:1 on their own tint; the loading text kept the light theme's grey on the dark surface at 3.27:1. The highlight now takes its colour from the wash it sits on, and the chips and the loading text have dark-mode colours of their own (#365).
+- Code and LaTeX previews in a search result can be scrolled from the keyboard, and the rendered maths beside the LaTeX is `inert`, so it is neither a focus stop nor announced twice (#365).
+
 ### Added
 
 - A page in `_datasets/` now carries `schema.org/Dataset` structured data, which is what Google Dataset Search indexes; the `WebPage` description a dataset page had could not reach it. The title, summary, `updated`, `license` and field `schema` it already declares fill most of it in, and `doi`, `keywords`, `temporal_coverage`, `spatial_coverage`, `measurement_technique`, `citation`, `is_accessible_for_free` and a `distributions` list are read when present. A dataset with no `date:` claims no publication date rather than the build time (#334).

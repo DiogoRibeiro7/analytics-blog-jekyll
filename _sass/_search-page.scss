@@ -597,3 +597,9 @@ body.dark-mode {
     border-color: rgba($dark-accent-primary, 0.55);
   }
 }
+
+// Nothing set this in dark mode, so it kept the light theme's mid grey on the
+// dark surface: 3.27:1.
+body.dark-mode .search-app__loading-text {
+  color: $dark-ink-500;
+}

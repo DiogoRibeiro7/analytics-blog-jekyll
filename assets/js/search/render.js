@@ -86,11 +86,14 @@ export function renderResults(results, query, elements) {
               display: false,
               enhance: false
             });
+            withdrawFromTabOrder(mathPreviewEl);
           } else if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
             mathPreviewEl.textContent = `\\(${result.mathSnippet}\\)`;
-            window.MathJax.typesetPromise([mathPreviewEl]).catch(() => {
-              mathPreviewEl.textContent = result.mathSnippet;
-            });
+            window.MathJax.typesetPromise([mathPreviewEl])
+              .then(() => withdrawFromTabOrder(mathPreviewEl))
+              .catch(() => {
+                mathPreviewEl.textContent = result.mathSnippet;
+              });
           } else {
             mathPreviewEl.textContent = result.mathSnippet;
           }
@@ -205,6 +208,20 @@ function renderSections(container, result, query) {
     }
 
     list.appendChild(item);
+  });
+}
+
+/**
+ * Takes whatever a renderer left behind out of the tab order. The preview is
+ * `aria-hidden`, because the LaTeX beside it is the accessible copy, and
+ * MathJax gives its container `tabindex="0"` — a focus stop a screen reader
+ * cannot describe, which is what aria-hidden-focus flags (#365).
+ * @param {Element} container - The aria-hidden preview
+ * @returns {void}
+ */
+function withdrawFromTabOrder(container) {
+  container.querySelectorAll("[tabindex]").forEach((node) => {
+    node.setAttribute("tabindex", "-1");
   });
 }
 

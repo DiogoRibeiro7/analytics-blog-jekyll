@@ -33,6 +33,11 @@ Which one you want:
 - **Anything about colour, contrast or an accessible name** — the axe sweep, in
   both themes. Pa11y runs too, but it only ever sees light mode.
 
+If the markup you care about only exists after someone has used the page, add
+an entry to `INTERACT` in `tests/integration/axe.spec.js` so the sweep uses it
+before scanning. The search results went unexamined for exactly that reason,
+and had 17 violations when someone finally looked (#365).
+
 ## Running them
 
 ```bash
@@ -257,9 +262,6 @@ gemspec.
 
 Worth knowing, so its silence is not read as assurance:
 
-- **The axe sweep scans `/search/` before a query is typed**, so nothing the
-  search application renders is covered by it. Typing a query and scanning
-  finds real violations — [#365](https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues/365).
 - **One browser.** Playwright runs Chromium only, at desktop size.
 - **No visual regression testing**, in any layer.
 - **Pa11y only sees light mode.** Dark mode is covered by the axe sweep, which

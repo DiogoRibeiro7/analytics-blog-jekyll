@@ -96,9 +96,19 @@ function setupSearchEnhancements() {
   // the filters to the results, and handling it here trapped focus among the
   // filters.
   input.addEventListener("keydown", handleInputNavigation);
+  resultsList.addEventListener("keydown", handleResultsNavigation);
+  // Clicking or tabbing into a card is the same selection the arrows make, so
+  // the highlight and the announcement follow focus wherever it comes from.
+  resultsList.addEventListener("focusin", (event) => {
+    const item = event.target.closest(".search-result");
+    const index = item ? resultItems.indexOf(item) : -1;
+    if (index >= 0 && index !== activeIndex) {
+      setActiveResult(index);
+    }
+  });
 
   function handleInputNavigation(event) {
-    if (!resultItems.length && ["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) {
+    if (!resultItems.length && ["ArrowDown", "ArrowUp"].includes(event.key)) {
       return false;
     }
     switch (event.key) {
@@ -110,16 +120,32 @@ function setupSearchEnhancements() {
         event.preventDefault();
         moveActive(-1);
         return true;
-      case "Enter":
-        if (activeIndex >= 0) {
-          event.preventDefault();
-          openActiveResult();
-          return true;
-        }
-        return false;
       case "Escape":
         event.preventDefault();
         clearSearch();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // Once focus is in the list the arrows keep moving through it, and Escape
+  // comes back to the query. Enter needs nothing: focus is on the result's
+  // own link, so the browser follows it.
+  function handleResultsNavigation(event) {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveActive(1);
+        return true;
+      case "ArrowUp":
+        event.preventDefault();
+        moveActive(-1);
+        return true;
+      case "Escape":
+        event.preventDefault();
+        input.focus();
+        clearActiveResult();
         return true;
       default:
         return false;
@@ -151,13 +177,14 @@ function setupSearchEnhancements() {
         return;
       }
       item.classList.add("is-active");
-      const id = ensureResultId(item);
-      input.setAttribute("aria-activedescendant", id);
+      const link = item.querySelector("[data-result-link]");
+      if (link) {
+        link.focus();
+      }
       const title = getResultTitle(item);
       updateLiveRegion(liveSelection, `Result ${activeIndex + 1} of ${resultItems.length}: ${title}`);
       item.scrollIntoView({ block: "nearest" });
     } else {
-      input.removeAttribute("aria-activedescendant");
       updateLiveRegion(liveSelection, "Search results selection cleared.");
     }
   }
@@ -167,7 +194,6 @@ function setupSearchEnhancements() {
       resultItems[activeIndex].classList.remove("is-active");
     }
     activeIndex = -1;
-    input.removeAttribute("aria-activedescendant");
     if (announce) {
       updateLiveRegion(liveSelection, "Search results selection cleared.");
     }
@@ -185,11 +211,7 @@ function setupSearchEnhancements() {
 
   function refreshResultItems() {
     resultItems = Array.from(resultsList.querySelectorAll(".search-result"));
-    resultItems.forEach((item) => {
-      ensureResultId(item);
-      item.setAttribute("role", "option");
-      item.setAttribute("tabindex", "-1");
-    });
+    resultItems.forEach((item) => ensureResultId(item));
     if (activeIndex >= resultItems.length) {
       clearActiveResult(false);
     }
@@ -253,17 +275,6 @@ function setupSearchEnhancements() {
       } else {
         finalize();
       }
-    }
-  }
-
-  function openActiveResult() {
-    const item = activeIndex >= 0 ? resultItems[activeIndex] : null;
-    if (!item) {
-      return;
-    }
-    const link = item.querySelector("[data-result-link]");
-    if (link && link.href) {
-      window.location.assign(link.href);
     }
   }
 
