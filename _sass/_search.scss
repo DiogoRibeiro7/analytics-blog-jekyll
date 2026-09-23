@@ -481,7 +481,7 @@ body.dark-mode .search-result__type {
 
 body.dark-mode .search-result__difficulty {
   background: rgba($dark-accent-tertiary, 0.12);
-  color: $dark-accent-tertiary;
+  color: $dark-accent-tertiary-ink;
 }
 
 .search-result__language {
@@ -622,7 +622,7 @@ body.dark-mode .search-result__excerpt {
 
 body.dark-mode .search-result__tags li {
   background: rgba($dark-accent-tertiary, 0.12);
-  color: $dark-accent-tertiary;
+  color: $dark-accent-tertiary-ink;
 }
 
 .search-result__date {
@@ -697,4 +697,23 @@ body.dark-mode .search-result:focus-within .search-result__title a {
 // ---------------------------------------------------------------------------
 @keyframes search-spinner {
   to { transform: rotate(360deg); }
+}
+
+// The query highlight, in one place. Three rules gave it three backgrounds and
+// none of them a colour, so it inherited the card's: light grey on a light
+// amber wash in dark mode, 2.26:1. The wash decides the text colour (#365).
+.search-result mark,
+.search-result__summary mark,
+.search-result__excerpt mark {
+  background: rgba($color-warning, 0.25);
+  color: $color-ink-900;
+  border-radius: 2px;
+  padding: 0 0.125rem;
+}
+
+body.dark-mode .search-result mark,
+body.dark-mode .search-result__summary mark,
+body.dark-mode .search-result__excerpt mark {
+  background: rgba($color-warning, 0.3);
+  color: $dark-ink-900;
 }

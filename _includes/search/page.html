@@ -14,7 +14,6 @@
             spellcheck="false"
             data-search-input
             aria-describedby="search-shortcuts"
-            aria-activedescendant=""
           />
           <button type="submit" class="search-app__submit">Search</button>
         </div>
@@ -84,9 +83,9 @@
         <p aria-live="polite" data-search-live="status" hidden></p>
       </div>
     </header>
-    <ol class="search-app__results-list" data-search-results role="listbox" aria-label="Search results"></ol>
+    <ol class="search-app__results-list" data-search-results aria-label="Search results"></ol>
     <template id="search-result-template">
-      <li class="search-result" role="option" data-result-item>
+      <li class="search-result" data-result-item>
         <article class="search-result__card">
           <header class="search-result__header">
             <p class="search-result__meta">
@@ -98,10 +97,12 @@
             <p class="search-result__summary" data-result-summary></p>
           </header>
           <div class="search-result__body">
-            <pre class="search-result__code language-none line-numbers" data-result-code><code></code></pre>
+            <pre class="search-result__code language-none line-numbers" data-result-code tabindex="0"
+                 role="group" aria-label="Code sample"><code></code></pre>
             <div class="search-result__math" data-result-math hidden>
-              <div class="search-result__math-preview" data-result-math-preview aria-hidden="true"></div>
-              <pre class="search-result__math-source"><code data-result-math-code></code></pre>
+              <div class="search-result__math-preview" data-result-math-preview aria-hidden="true" inert></div>
+              <pre class="search-result__math-source" tabindex="0" role="group"
+                   aria-label="LaTeX source"><code data-result-math-code></code></pre>
               <button type="button" class="search-result__math-copy" data-result-math-copy>
                 <span aria-hidden="true">⧉</span>
                 <span class="visually-hidden">Copy LaTeX</span>

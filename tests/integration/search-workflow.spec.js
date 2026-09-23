@@ -41,13 +41,13 @@ test.describe('Search workflow', () => {
     await input.focus();
     await page.keyboard.press('ArrowDown');
 
+    // The arrows move real focus into the list. They used to move
+    // aria-activedescendant around a listbox whose options held links, which
+    // meant a screen reader in browse mode could reach none of them (#365).
     const activeResult = resultsList.locator('.search-result.is-active').first();
     await expect(activeResult).toBeVisible();
-
-    const activeId = await activeResult.getAttribute('id');
-    if (activeId) {
-      await expect(input).toHaveAttribute('aria-activedescendant', activeId);
-    }
+    await expect(activeResult.locator('[data-result-link]')).toBeFocused();
+    expect(await input.getAttribute('aria-activedescendant')).toBeNull();
     await expect(liveSelection).toContainText(/Result 1/i);
 
     const initialUrl = page.url();
@@ -69,6 +69,34 @@ test.describe('Search workflow', () => {
     await expect(liveStatus).toContainText(/cleared/i);
     await expect(input).toHaveValue('');
     await expect(resultsList.locator('.search-result')).toHaveCount(0, { timeout: 5000 });
+  });
+
+  // A list of cards with links in them is not a listbox, and saying it was one
+  // hid everything inside each card from assistive technology (#365).
+  test('a result is an ordinary list item whose links can be reached', async ({ page }) => {
+    await page.goto(`${baseUrl}/search/`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', { timeout: 15000 });
+
+    await page.locator('[data-search-input]').fill('reproducibility');
+    const first = page.locator('.search-result').first();
+    await expect(first).toBeVisible({ timeout: 15000 });
+
+    const roles = await page.evaluate(() => ({
+      list: document.querySelector('[data-search-results]').getAttribute('role'),
+      item: document.querySelector('.search-result').getAttribute('role'),
+      tabindex: document.querySelector('.search-result').getAttribute('tabindex'),
+    }));
+    expect(roles).toEqual({ list: null, item: null, tabindex: null });
+
+    // Tab alone reaches the title, which is what role="option" prevented.
+    await page.locator('[data-search-input]').focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(first.locator('[data-result-link]')).toBeFocused();
+
+    // Escape from the list comes back to the query rather than clearing it.
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-search-input]')).toBeFocused();
+    await expect(page.locator('[data-search-input]')).toHaveValue('reproducibility');
   });
 
   // A result used to point at the top of a 6,000-word article. It now lists
