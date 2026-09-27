@@ -13,7 +13,7 @@ test.describe('Documentation guide', () => {
       await expect(page.locator('body')).toHaveAttribute('data-theme', mode);
       await expect(page.locator('.docs-sidebar [aria-current="page"]')).toHaveText('Installation');
       await expect(page.locator('.docs-on-this-page a[href="#requirements"]')).toBeVisible();
-      await expect(page.locator('.docs-content .code-copy')).toHaveCount(2);
+      await expect(page.locator('.docs-content .code-copy')).toHaveCount(3);
       await page.locator('.docs-content .code-copy').first().focus();
       await expect(page.locator('.docs-content .code-copy').first()).toBeFocused();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
