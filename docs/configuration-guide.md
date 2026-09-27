@@ -79,6 +79,24 @@ Code needs no settings. Rouge highlights it when the site builds (`highlighter: 
 
 A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
 
+#### Colour scheme
+
+DataLog opens in its dark indigo/cyan palette. The header toggle lets each
+visitor choose light or dark, and the choice persists across pages. To start a
+site in light mode, or to follow the visitor's operating-system setting until
+they use the toggle, set:
+
+```yaml
+theme_options:
+  color_scheme:
+    default: light  # or dark (the default), or system
+```
+
+The theme applies this initial palette before its script bundles load. A
+visitor's saved choice always takes precedence. Theme colours are defined in
+the Sass variables and CSS custom properties, so a site can also override
+the palette in its own stylesheet without changing the gem.
+
 #### Images
 
 When the site builds on a machine with [ImageMagick](https://imagemagick.org), each JPEG and PNG in the site's files gets resized copies and a WebP version; with `avifenc` from [libavif](https://github.com/AOMediaCodec/libavif) it also gets an AVIF version. Pages then offer them. A Markdown image such as `![Power curve](/assets/img/power.png)` becomes a `<picture>` with an AVIF and a WebP `<source>`, and its `<img>` keeps its attributes and gains a `srcset` of the resized copies. Without ImageMagick, no resized or converted copies are created. The optimizer still adds loading, decoding and known intrinsic dimensions, serializes optimized HTML, and writes the image manifest. A supplied width or height is preserved without adding an incompatible intrinsic counterpart. Relative image URLs are left alone; use site-root paths for optimization.
@@ -109,7 +127,7 @@ theme_options:
     dark_suffix: "-dark"   # "" turns the convention off
 ```
 
-`prefers-color-scheme` follows the operating system; this theme's toggle does not. `assets/js/core/dark-mode.js` closes that gap, overruling the query on those sources whenever a reader has chosen a mode for the site. With JavaScript off the figures follow the system, which is right for every reader who has not touched the toggle. The figure the browser first picked may be fetched before the script runs, so a reader whose choice disagrees with their system pays for one extra image on pages with figures.
+`prefers-color-scheme` follows the operating system; the site's default and its toggle may not. `assets/js/core/dark-mode.js` closes that gap, selecting the companion that matches the effective page palette. Without JavaScript, image sources still follow the operating system; on a site whose default differs, the plot may not match the page until the scripts run. The browser may briefly fetch the other file first.
 
 A figure that does not follow the convention names its companion itself:
 

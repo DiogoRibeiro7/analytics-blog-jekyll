@@ -23,6 +23,7 @@ html {
 }
 
 body {
+  color-scheme: light;
   margin: 0;
   font-family: $font-family-sans;
   color: $color-ink-900;
@@ -33,6 +34,7 @@ body {
 }
 
 body.dark-mode {
+  color-scheme: dark;
   color: $dark-ink-900;
   background-color: $dark-surface-100;
 }

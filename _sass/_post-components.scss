@@ -9,6 +9,7 @@
 // ============================================================================
 
 @use 'mixins' as *;
+@use 'variables' as *;
 
 // ============================================================================
 // Social Share Component
@@ -51,11 +52,11 @@
 
     &:hover,
     &:focus {
-      background-color: var(--color-accent, #3277f6);
+      background-color: var(--color-accent);
       color: #ffffff;
-      border-color: var(--color-accent, #3277f6);
+      border-color: var(--color-accent);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(50, 119, 246, 0.2);
+      box-shadow: 0 4px 12px rgba($color-accent-primary, 0.2);
     }
 
     &:active {
@@ -141,7 +142,7 @@
   }
 
   &__link {
-    color: var(--color-accent, #3277f6);
+    color: var(--color-accent);
     text-decoration: none;
     transition: color 0.2s ease;
 
@@ -197,14 +198,14 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-accent, #3277f6), #5b8ef7);
+    background: linear-gradient(135deg, var(--color-accent, #4338ca), $color-accent-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.75rem;
     font-weight: 700;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(50, 119, 246, 0.2);
+    box-shadow: 0 2px 8px rgba($color-accent-primary, 0.2);
   }
 
   &__content {
@@ -221,7 +222,7 @@
   &__affiliation {
     margin: 0 0 1rem 0;
     font-size: 0.95rem;
-    color: var(--color-accent, #3277f6);
+    color: var(--color-accent);
     font-weight: 500;
   }
 
@@ -268,11 +269,11 @@
 
     &:hover,
     &:focus {
-      background-color: var(--color-accent, #3277f6);
-      border-color: var(--color-accent, #3277f6);
+      background-color: var(--color-accent);
+      border-color: var(--color-accent);
       color: #ffffff;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(50, 119, 246, 0.2);
+      box-shadow: 0 4px 12px rgba($color-accent-primary, 0.2);
     }
 
     svg {
@@ -344,7 +345,7 @@
   &__progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--color-accent, #3277f6), #5b8ef7);
+    background: linear-gradient(90deg, var(--color-accent, #4338ca), $color-accent-secondary);
     transition: width 0.2s ease;
   }
 
@@ -381,8 +382,8 @@
     &:hover,
     &:focus {
       background-color: var(--color-background-secondary, #f5f7ff);
-      border-color: var(--color-accent, #3277f6);
-      color: var(--color-accent, #3277f6);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
     }
   }
 
@@ -434,16 +435,15 @@
 
       &:hover,
       &:focus {
-        color: var(--color-accent, #3277f6);
-        background-color: rgba(50, 119, 246, 0.05);
-        border-left-color: var(--color-accent, #3277f6);
+        color: var(--color-accent);
+        background-color: rgba($color-accent-primary, 0.05);
+        border-left-color: var(--color-accent);
       }
 
       &.is-active {
-        // On the tint below the plain accent reaches only 4.12:1.
-        color: var(--color-accent-text, #1d4ed8);
-        background-color: rgba(50, 119, 246, 0.1);
-        border-left-color: var(--color-accent, #3277f6);
+        color: var(--color-accent-text);
+        background-color: rgba($color-accent-primary, 0.1);
+        border-left-color: var(--color-accent);
         font-weight: 500;
       }
     }
@@ -454,14 +454,14 @@
     border-top: 1px solid var(--color-border, #e0e4ed);
     background-color: var(--color-background, #ffffff);
     font-size: 0.8125rem;
-    // The tertiary ink is for decoration: 2.41:1 in the light theme, 3.73:1 in the dark one.
+    // The secondary ink remains legible against the background in both modes.
     color: var(--color-text-secondary, #6f6862);
   }
 
   &__reading-progress {
     [data-progress-percent] {
       font-weight: 600;
-      color: var(--color-accent, #3277f6);
+      color: var(--color-accent);
     }
   }
 
@@ -763,6 +763,6 @@ body.dark-mode .difficulty-badge {
 .author-bio__social-link:focus-visible,
 .enhanced-toc a:focus-visible,
 .enhanced-toc__toggle:focus-visible {
-  outline: 3px solid var(--color-accent, #3277f6);
+  outline: 3px solid var(--color-accent);
   outline-offset: 2px;
 }

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Dark mode toggle functionality.
- * Persists user preference and respects system color scheme.
+ * Persists the visitor's choice and uses the site's color scheme default.
  * @module core/dark-mode
  */
 
@@ -20,13 +20,11 @@ const DARK_SOURCES = "picture > source[data-dark-source]";
  * `<source media="(prefers-color-scheme: dark)">`, which follows the operating
  * system. This toggle does not: a reader whose system is light can switch the
  * site to dark, and would otherwise keep the white plot on the dark page. So
- * when there is a stored preference, it overrules the query — "all" for dark,
- * "not all" for light — and when there is none the query is restored and the
- * system decides again.
+ * the effective page palette overrules the query — "all" for dark, "not all"
+ * for light. Passing null explicitly restores the system query.
  *
- * With no JavaScript nothing runs and the figures follow the system, which is
- * right for every reader who has not used the toggle.
- * @param {string|null} preference - "dark", "light" or null for the system's
+ * With no JavaScript the figures still follow the system.
+ * @param {"dark"|"light"|null} preference - Effective theme or null for the system query
  * @param {ParentNode} [root] - Where to look; the document by default
  * @returns {void}
  */
@@ -74,13 +72,14 @@ function storePreference(value) {
 }
 
 /**
- * Resolves the initial dark mode preference from storage or system settings.
+ * Resolves the initial mode from storage, the site default, or the system.
  * The inline script at the top of <body> in _layouts/default.html applies the
  * same rule before the first paint, so the two have to stay in step.
  * @param {MediaQueryList} prefersDarkScheme - Media query for dark scheme preference
+ * @param {"dark"|"light"|"system"} siteDefault - Site's configured initial mode
  * @returns {boolean} True if dark mode should be enabled
  */
-function resolveInitialPreference(prefersDarkScheme) {
+function resolveInitialPreference(prefersDarkScheme, siteDefault) {
   const storedPreference = readStoredPreference();
   if (storedPreference === "dark") {
     return true;
@@ -88,23 +87,27 @@ function resolveInitialPreference(prefersDarkScheme) {
   if (storedPreference === "light") {
     return false;
   }
-  return prefersDarkScheme.matches;
+  return siteDefault === "dark" || (siteDefault === "system" && prefersDarkScheme.matches);
 }
 
 /**
  * Initializes the dark mode toggle button and system preference listener.
- * Reads initial preference from localStorage or system settings.
+ * Reads the saved preference before falling back to the site's initial mode.
  * @returns {void}
  */
 export function initDarkModeToggle() {
   const toggleButton = document.querySelector("[data-toggle-dark-mode]");
   const body = document.body;
   const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const configuredDefault = body.dataset.defaultTheme;
+  /** @type {"dark"|"light"|"system"} */
+  const siteDefault = ["dark", "light", "system"].includes(configuredDefault)
+    ? configuredDefault
+    : "dark";
 
-  if (resolveInitialPreference(prefersDarkScheme)) {
-    body.classList.add(DARK_CLASS);
-  }
-  syncDarkFigures(readStoredPreference());
+  const isDark = resolveInitialPreference(prefersDarkScheme, siteDefault);
+  body.classList.toggle(DARK_CLASS, isDark);
+  syncDarkFigures(isDark ? "dark" : "light");
 
   /** Mirrors the effective theme on <body data-theme> for CSS hooks and tests. */
   const syncThemeAttribute = () => {
@@ -134,7 +137,7 @@ export function initDarkModeToggle() {
   }
 
   prefersDarkScheme.addEventListener("change", (event) => {
-    if (readStoredPreference()) {
+    if (readStoredPreference() || siteDefault !== "system") {
       return;
     }
     if (event.matches) {
@@ -142,6 +145,7 @@ export function initDarkModeToggle() {
     } else {
       body.classList.remove(DARK_CLASS);
     }
+    syncDarkFigures(event.matches ? "dark" : "light");
     syncButton();
   });
 }

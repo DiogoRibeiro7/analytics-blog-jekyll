@@ -180,6 +180,12 @@ module Datalog
       theme_options: {
         type: :hash,
         schema: {
+          color_scheme: {
+            type: :hash,
+            schema: {
+              default: { type: :string, enum: %w[dark light system] }
+            }
+          },
           math: {
             type: :hash,
             schema: {

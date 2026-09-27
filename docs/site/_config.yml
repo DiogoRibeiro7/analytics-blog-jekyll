@@ -16,6 +16,10 @@ author:
 
 hero_tagline: Build analytics narratives with notebooks, dashboards, and reproducible research in minutes.
 
+theme_options:
+  color_scheme:
+    default: dark
+
 defaults:
   - scope:
       path: ""

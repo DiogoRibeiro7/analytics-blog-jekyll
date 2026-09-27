@@ -45,6 +45,7 @@ class PageStructureTest < Minitest::Test
     html = SiteBuilder.read("index.html")
     script = html.match(%r{<body[^>]*>\s*<script nonce="([^"]*)">(.*?)</script>}m)
     refute_nil script, "the first element in <body> should be the color scheme script"
+    assert_match(/<body[^>]*class="[^"]*dark-mode[^"]*"[^>]*data-default-theme="dark"/, html)
     assert_equal html[/'nonce-([^']+)'/, 1], script[1], "the script needs the page's CSP nonce"
     assert_includes script[2], "datalog-color-mode"
   end

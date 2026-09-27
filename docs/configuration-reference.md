@@ -96,6 +96,8 @@ This guide documents the configuration keys validated by the automated configura
 | `sass` | Map | Any |
 | `sass.style` | String | `compressed`, `expanded` |
 | `theme_options` | Map | Any |
+| `theme_options.color_scheme` | Map | Any |
+| `theme_options.color_scheme.default` | String | `dark` (default), `light`, `system` |
 | `theme_options.math` | Map | Any |
 | `theme_options.math.engine` | String | `mathjax`, `katex` |
 | `theme_options.math.enabled` | Boolean | `true`, `false`; deprecated, with no effect |
@@ -334,6 +336,17 @@ This guide documents the configuration keys validated by the automated configura
 - **Required:** No
 - **Type:** Map
 - **Description:** Container for theme-specific configuration such as math rendering, typography, and component toggles.
+
+#### theme_options.color_scheme
+- **Required:** No
+- **Type:** Map
+- **Description:** Sets the first-visit palette. A visitor's explicit toggle choice is stored in the browser and takes precedence. The theme's default is dark, with indigo and cyan accents; `system` follows the operating-system preference until the visitor chooses a mode.
+- **Example:**
+  ```yaml
+  theme_options:
+    color_scheme:
+      default: light
+  ```
 
 #### theme_options.math
 - **Required:** No

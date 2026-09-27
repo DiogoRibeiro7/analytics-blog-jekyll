@@ -32,7 +32,7 @@ describe('with storage blocked', () => {
     window.matchMedia = originalMatchMedia;
   });
 
-  it('follows the system color scheme instead of throwing', () => {
+  it('uses the dark site default instead of throwing', () => {
     prefersDark(true);
 
     expect(() => initDarkModeToggle()).not.toThrow();
@@ -45,7 +45,7 @@ describe('with storage blocked', () => {
 
     document.querySelector('[data-toggle-dark-mode]').click();
 
-    expect(document.body.classList.contains('dark-mode')).toBe(true);
+    expect(document.body.classList.contains('dark-mode')).toBe(false);
   });
 
   it('runs the other core initializers when one throws', () => {

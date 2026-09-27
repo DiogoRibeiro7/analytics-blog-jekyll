@@ -279,10 +279,10 @@ body.dark-mode .footer {
     }
   }
 
-  // body.dark-mode a outranks the rule above; on the navy footer the dark
-  // accent needs the lighter shade to reach 4.5:1 through the muted paragraphs.
+  // body.dark-mode a outranks the rule above; use the readable dark accent
+  // on the navy footer too.
   body.dark-mode & a {
-    color: #93c5fd;
+    color: $dark-accent-primary;
   }
 
   p {
