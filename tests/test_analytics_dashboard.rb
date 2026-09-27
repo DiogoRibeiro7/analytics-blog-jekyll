@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
-require "minitest/mock"
 
 class AnalyticsDashboardTest < Minitest::Test
   def setup
@@ -59,11 +58,17 @@ class AnalyticsDashboardTest < Minitest::Test
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, JSON.generate(cached))
 
-      Datalog::Analytics.stub(:query_analytics, { "status" => "error", "message" => "GA4 unavailable" }) do
+      original_query = Datalog::Analytics.method(:query_analytics)
+      begin
+        Datalog::Analytics.define_singleton_method(:query_analytics) do |_site|
+          { "status" => "error", "message" => "GA4 unavailable" }
+        end
         result = Datalog::Analytics.fetch(site)
         assert_equal true, result["stale"]
         assert_equal cached["top_posts"], result["top_posts"]
         assert_equal cached["fetched_at"], result["fetched_at"]
+      ensure
+        Datalog::Analytics.define_singleton_method(:query_analytics, original_query)
       end
     end
   end
