@@ -9,6 +9,10 @@ class AnalyticsDashboardTest < Minitest::Test
 
   def test_page_renders_dashboard_container
     assert_includes @html, "analytics-dashboard"
+    assert_includes @html, 'data-status="missing_configuration"'
+    assert_includes @html, "Setup needed"
+    assert_includes @html, 'role="region"'
+    assert_includes @html, "View data table"
   end
 
   def test_includes_chart_js_reference
@@ -42,6 +46,24 @@ class AnalyticsDashboardTest < Minitest::Test
       assert_equal "missing_configuration", payload["status"]
       refute File.exist?(Datalog::Analytics.cache_path_for(site)), "a failed report should not be cached"
       refute Datalog::Analytics.fresh?(payload), "only a successful report counts as fresh"
+    end
+  end
+
+  def test_an_api_error_marks_successful_cached_results_as_stale
+    Dir.mktmpdir do |dir|
+      site = Struct.new(:source, :config).new(dir, {})
+      cached = { "status" => "ok", "fetched_at" => (Time.now.utc - 172_800).iso8601,
+                 "top_posts" => { "rows" => [{ "views" => 7 }] } }
+      path = Datalog::Analytics.cache_path_for(site)
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, JSON.generate(cached))
+
+      Datalog::Analytics.stub(:query_analytics, { "status" => "error", "message" => "GA4 unavailable" }) do
+        result = Datalog::Analytics.fetch(site)
+        assert_equal true, result["stale"]
+        assert_equal cached["top_posts"], result["top_posts"]
+        assert_equal cached["fetched_at"], result["fetched_at"]
+      end
     end
   end
 end

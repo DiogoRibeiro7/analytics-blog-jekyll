@@ -145,10 +145,27 @@ html[dir='rtl'] .site-search input {
 }
 
 .analytics-dashboard {
+  --analytics-series-1: #2155a6;
+  --analytics-series-2: #0c756b;
+  --analytics-series-3: #6b48a5;
+  --analytics-series-4: #9c4d13;
   display: flex;
   flex-direction: column;
   gap: map.get($spacing, 6);
   margin-top: map.get($spacing, 4);
+  min-width: 0;
+}
+
+body.dark-mode .analytics-dashboard {
+  --analytics-series-1: #88adff;
+  --analytics-series-2: #63daca;
+  --analytics-series-3: #c5a7ff;
+  --analytics-series-4: #ffb876;
+}
+
+.page-admin-analytics .site-main.container {
+  width: min(100% - 2rem, 80rem);
+  min-width: 0;
 }
 
 .analytics-header {
@@ -157,20 +174,21 @@ html[dir='rtl'] .site-search input {
   justify-content: space-between;
   gap: map.get($spacing, 4);
   align-items: flex-start;
+  min-width: 0;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: map.get($radius, lg);
+  background: var(--color-background-secondary);
 }
 
 .analytics-title {
   margin: 0;
-  font-size: map.get($font-size-scale, xl);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
 }
 
 .analytics-subtitle {
   margin: map.get($spacing, 2) 0 0;
-  color: rgba($color-neutral-700, 0.85);
-}
-
-body.dark-mode .analytics-subtitle {
-  color: rgba($dark-surface-50, 0.85);
+  color: var(--color-text-secondary);
 }
 
 .analytics-meta {
@@ -178,21 +196,37 @@ body.dark-mode .analytics-subtitle {
   flex-direction: column;
   gap: map.get($spacing, 2);
   font-size: map.get($font-size-scale, sm);
-  color: rgba($color-neutral-600, 0.9);
+  color: var(--color-text-secondary);
 }
 
-body.dark-mode .analytics-meta {
-  color: rgba($dark-surface-50, 0.75);
+.analytics-state {
+  align-self: flex-start;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--color-accent-text);
+  border-radius: 999px;
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+.analytics-dashboard[data-stale='true'] .analytics-state,
+.analytics-dashboard[data-status='missing_configuration'] .analytics-state,
+.analytics-dashboard[data-status='missing_credentials'] .analytics-state,
+.analytics-dashboard[data-status='missing_dependency'] .analytics-state,
+.analytics-dashboard[data-status='error'] .analytics-state {
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .analytics-grid {
   display: grid;
   gap: map.get($spacing, 4);
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
 }
 
 .analytics-card {
-  background: rgba($color-neutral-50, 0.6);
+  min-width: 0;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
   border-radius: map.get($radius, lg);
   padding: map.get($spacing, 4);
   box-shadow: $shadow-soft;
@@ -201,10 +235,7 @@ body.dark-mode .analytics-meta {
   gap: map.get($spacing, 3);
 }
 
-body.dark-mode .analytics-card {
-  background: rgba($dark-surface-200, 0.8);
-  box-shadow: none;
-}
+body.dark-mode .analytics-card { box-shadow: none; }
 
 .analytics-card header h3 {
   margin: 0;
@@ -212,31 +243,44 @@ body.dark-mode .analytics-card {
 }
 
 .analytics-card--wide {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
-@media (max-width: 56rem) {
-  .analytics-card--wide {
-    grid-column: span 1;
-  }
+.analytics-table-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+
+  &:focus-visible { outline: 2px solid var(--color-accent-text); outline-offset: -2px; }
 }
 
 .analytics-table {
   width: 100%;
+  min-width: 25rem;
   border-collapse: collapse;
   font-size: map.get($font-size-scale, sm);
 }
 
+.analytics-card--wide > .analytics-table-scroll .analytics-table { min-width: 39rem; }
+
 .analytics-table th,
 .analytics-table td {
-  padding: map.get($spacing, 2) map.get($spacing, 1);
-  border-bottom: 1px solid rgba($color-neutral-200, 0.7);
+  padding: map.get($spacing, 2) map.get($spacing, 3);
+  border-bottom: 1px solid var(--color-border);
   vertical-align: top;
+  white-space: nowrap;
 }
 
-body.dark-mode .analytics-table th,
-body.dark-mode .analytics-table td {
-  border-bottom: 1px solid rgba($dark-surface-100, 0.4);
+.analytics-table th {
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+.analytics-table th:first-child,
+.analytics-table td:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 9rem;
 }
 
 .analytics-table tbody tr:last-child td {
@@ -258,29 +302,57 @@ body.dark-mode .analytics-table td {
   flex-direction: column;
   gap: map.get($spacing, 2);
   font-size: map.get($font-size-scale, sm);
+
+  li { max-width: none; }
 }
 
 .analytics-definition-list {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: map.get($spacing, 2);
   font-size: map.get($font-size-scale, sm);
+
+  > div { min-width: 0; }
+  dd { margin: 0.4rem 0 0; color: var(--color-accent-text); font-size: 1.35rem; font-weight: 600; }
 }
 
 .analytics-definition-list dt {
   font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.analytics-chart {
+  position: relative;
+  min-width: 0;
+  height: 15rem;
+
+  canvas { display: block; width: 100% !important; height: 100% !important; }
+  &:has(canvas[hidden]) { height: auto; }
+  canvas[hidden] { display: none; }
+}
+
+.analytics-chart-status {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.analytics-chart-data {
+  min-width: 0;
+  summary { color: var(--color-accent-text); font-weight: 600; cursor: pointer; }
+  .analytics-table-scroll { margin-top: map.get($spacing, 3); }
+  .analytics-table { min-width: 36rem; }
 }
 
 .analytics-alert {
   padding: map.get($spacing, 3);
   border-radius: map.get($radius, md);
-  background: rgba($color-warning, 0.12);
-  color: color.adjust($color-warning, $lightness: -20%);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent-text);
+  color: var(--color-text-primary);
   font-size: map.get($font-size-scale, sm);
-}
 
-body.dark-mode .analytics-alert {
-  background: rgba($color-warning, 0.18);
-  color: color.adjust($color-warning, $lightness: 10%);
+  p { margin: 0; }
 }
 
 .analytics-dashboard [data-field],
