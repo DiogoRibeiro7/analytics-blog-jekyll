@@ -1,0 +1,110 @@
+@use 'sass:map';
+@use 'variables' as *;
+
+// The guide layout is opt-in. Other pages and theme consumers keep their layout.
+.layout-docs .site-main.container,
+.layout-docs .page > .container {
+  width: min(100% - 2rem, 76rem);
+  max-width: none;
+}
+
+.docs-shell {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
+  min-width: 0;
+}
+
+.docs-sidebar {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+
+  ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.15rem;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: block;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.35rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+
+    &:hover,
+    &:focus-visible,
+    &[aria-current='page'] {
+      color: var(--color-accent-text);
+      background: var(--color-background);
+    }
+
+    &[aria-current='page'] { font-weight: 700; }
+    &:focus-visible { outline: 2px solid var(--color-accent-text); outline-offset: 2px; }
+  }
+}
+
+.docs-sidebar__heading {
+  margin: 0.8rem 0 0.35rem;
+  padding-inline: 0.6rem;
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.docs-sidebar .docs-sidebar__home,
+.docs-sidebar .docs-sidebar__repo { color: var(--color-accent-text); font-weight: 600; }
+
+.docs-main,
+.docs-content,
+.docs-on-this-page { min-width: 0; }
+
+.docs-content {
+  max-width: 48rem;
+  overflow-wrap: anywhere;
+
+  // Code and tables scroll in their own column, never the full viewport.
+  pre,
+  .highlighter-rouge,
+  .code-block-wrapper { max-width: 100%; overflow-x: auto; }
+  table { display: block; max-width: 100%; overflow-x: auto; }
+}
+
+.docs-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-block: 2rem 1rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--color-border);
+
+  a { color: var(--color-accent-text); font-weight: 600; }
+  span { display: block; color: var(--color-text-secondary); font-size: 0.85rem; font-weight: 400; }
+}
+
+.docs-back-to-top { color: var(--color-accent-text); }
+
+@media (min-width: map.get($breakpoints, lg)) {
+  .docs-shell { grid-template-columns: 12rem minmax(0, 1fr) 12rem; }
+  .docs-shell:not(:has(.docs-on-this-page)) { grid-template-columns: 12rem minmax(0, 1fr); }
+  .docs-sidebar,
+  .docs-on-this-page { position: sticky; top: 8.5rem; max-height: calc(100vh - 9rem); overflow-y: auto; }
+  .docs-sidebar ul { grid-template-columns: 1fr; }
+  .docs-on-this-page .enhanced-toc { font-size: 0.9rem; }
+  .docs-on-this-page .enhanced-toc__heading { font-size: 0.9rem; }
+  .docs-on-this-page .enhanced-toc__content { padding: 0.5rem; }
+}
+
+@media (max-width: map.get($breakpoints, lg)) {
+  .docs-on-this-page { grid-row: 2; }
+  .docs-on-this-page .enhanced-toc__stats { display: none; }
+}

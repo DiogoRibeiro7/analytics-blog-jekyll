@@ -26,5 +26,5 @@ gem itself, so you can treat every component as an executable example.
 
 ## What's next
 
-Head over to the [feature catalog](/features/) for hands-on tutorials or jump straight into the
-[visualization gallery](/visualizations/) to copy embed-ready snippets.
+Head over to the [feature catalog]({{ '/features/' | relative_url }}) for hands-on tutorials or jump straight into the
+[visualization gallery]({{ '/visualizations/' | relative_url }}) to copy embed-ready snippets.

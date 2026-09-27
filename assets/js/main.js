@@ -1,4 +1,5 @@
 import { initCopyButtons } from "./core/copy-buttons.js";
+import { initCodeBlocks } from "./core/code-blocks.js";
 import { initDarkModeToggle } from "./core/dark-mode.js";
 import { initGitHubCards } from "./core/github-cards.js";
 import { initAllInstallTabs } from "./core/install-tabs.js";
@@ -18,6 +19,7 @@ const CORE_INITIALIZERS = [
   initSearchHotkeys,
   initGitHubCards,
   initCopyButtons,
+  initCodeBlocks,
   initToc,
   initAllInstallTabs
 ];
