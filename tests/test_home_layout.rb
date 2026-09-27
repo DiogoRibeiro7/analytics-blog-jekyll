@@ -17,6 +17,7 @@ class HomeLayoutTest < Minitest::Test
   def test_empty_consumer_site_and_custom_one_card_page
     built = TestSite.build(baseurl: "/sample", description: "A research home page") do |source|
       source.theme("_layouts/home.html", "_includes/components/hero.html", "_data/i18n")
+      source.theme("assets/img/hero-detail.webp", "assets/img/hero-detail-640.webp")
       source.layout("default", "{{ content }}")
       source.page("index.md", "", { "layout" => "home" })
       source.page("guide/index.md", "Guide")
@@ -24,6 +25,8 @@ class HomeLayoutTest < Minitest::Test
         "layout" => "home", "hero_title" => "Custom research",
         "hero_cta_url" => "/guide/", "hero_cta_label" => "Read guide",
         "hero_secondary_cta_url" => "/", "hero_secondary_cta_label" => "Home",
+        "hero_image" => "/assets/img/hero-detail.webp",
+        "hero_image_small" => "/assets/img/hero-detail-640.webp",
         "home_features" => [{ "title" => "One card", "description" => "Only the selected feature" }]
       })
     end
@@ -38,5 +41,8 @@ class HomeLayoutTest < Minitest::Test
     assert_equal ["/sample/guide/", "/sample/"], custom.css(".hero-actions a").map { |link| link["href"] }
     assert_equal ["One card"], custom.css(".home-feature-card h3").map(&:text)
     assert_empty custom.css(".home-feature-card a"), "a card without a URL should not become a broken link"
+    assert_equal ["/sample/assets/img/hero-detail-640.webp", "/sample/assets/img/hero-detail.webp"],
+                 custom.css('link[rel="preload"][as="image"]').map { |link| link["href"] }
+    assert custom.at_css(".hero--image"), "an explicitly configured image should be used behind the gradient"
   end
 end
