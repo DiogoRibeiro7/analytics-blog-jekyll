@@ -29,3 +29,43 @@ test.describe('Documentation guide', () => {
     });
   }
 });
+
+test.describe('Documentation homepage', () => {
+  test.skip(!process.env.DOCS_SITE_TESTS, 'Run against the built docs/site preview.');
+
+  test('the two actions and three feature cards reach published pages', async ({ page }) => {
+    await page.goto('/');
+    const actions = page.locator('.hero-actions a');
+    const cards = page.locator('.home-feature-card a');
+    await expect(actions).toHaveCount(2);
+    await expect(actions.first()).toHaveText('Get started');
+    await expect(cards).toHaveCount(3);
+    await expect(page.locator('.section-highlight article')).toHaveCount(2);
+    await expect(page.locator('.section-portfolio article')).toHaveCount(1);
+    await actions.first().focus();
+    await page.keyboard.press('Tab');
+    await expect(actions.nth(1)).toBeFocused();
+
+    for (const link of await page.locator('.hero-actions a, .home-feature-card a').all()) {
+      const href = await link.getAttribute('href');
+      const response = await page.request.get(new URL(href, page.url()).href);
+      expect(response.ok(), `${href} should be a published docs page`).toBe(true);
+    }
+  });
+
+  for (const width of [390, 1280]) {
+    for (const mode of ['dark', 'light']) {
+      test(`the landing layout fits ${width}px in ${mode} mode`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 860 });
+        await page.goto('/');
+        if (mode === 'light') await page.locator('[data-toggle-dark-mode]').click();
+
+        await expect(page.locator('body')).toHaveAttribute('data-theme', mode);
+        await expect(page.locator('.hero--contained')).toBeVisible();
+        await expect(page.locator('.home-feature-card')).toHaveCount(3);
+        await expect(page.locator('.section-intro .card')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      });
+    }
+  }
+});
