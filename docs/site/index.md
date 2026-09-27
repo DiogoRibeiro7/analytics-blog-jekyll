@@ -5,6 +5,19 @@ hero_title: DataLog Theme Documentation
 hero_tagline: Explore the analytics storytelling toolkit powering notebooks, datasets, dashboards, and research hubs.
 hero_cta_url: /features/
 hero_cta_label: Browse theme features
+hero_secondary_cta_url: /guides/
+hero_secondary_cta_label: Read the guides
+home_features_heading: Start exploring
+home_features:
+  - title: Layout reference
+    description: Compare posts, projects, research pages, and other layouts.
+    url: /features/layouts/
+  - title: Interactive visualizations
+    description: Adapt live charts and dashboards for your own analytics work.
+    url: /visualizations/
+  - title: Migration guides
+    description: Move from an existing theme with practical checklists.
+    url: /guides/migration/
 ---
 
 <section class="section section-intro">
@@ -27,26 +40,6 @@ hero_cta_label: Browse theme features
           <li><strong>{{ site.notebooks | size }}</strong> interactive notebook walk-throughs</li>
         </ul>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section-highlight">
-  <div class="container">
-    <h2 class="section-title">Featured highlights</h2>
-    <div class="card-grid">
-      <article class="card">
-        <h3><a href="/features/layouts/">Layout reference</a></h3>
-        <p>Side-by-side comparisons of every layout with tips on when to use posts, projects, research pages, and more.</p>
-      </article>
-      <article class="card">
-        <h3><a href="/visualizations/">Interactive visualization demos</a></h3>
-        <p>Plotly, D3, Observable, Bokeh, R Shiny, and ipywidgets examples that you can copy and adapt for your own dashboards.</p>
-      </article>
-      <article class="card">
-        <h3><a href="/guides/migration/">Migration guides</a></h3>
-        <p>Step-by-step migration checklists for upgrading from Minimal Mistakes, Chirpy, and Just the Docs.</p>
-      </article>
     </div>
   </div>
 </section>

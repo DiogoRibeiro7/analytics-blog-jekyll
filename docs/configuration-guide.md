@@ -93,7 +93,44 @@ The math engine is loaded from a CDN and weighs several hundred kilobytes, so by
 
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
-A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
+#### Homepage
+
+Create `index.md` with `layout: home`. Its hero uses a dark gradient and needs
+no image. Set one or both calls to action and list the feature cards in the
+page's front matter:
+
+```yaml
+---
+layout: home
+hero_title: Research worth exploring
+hero_tagline: Reproducible analysis, open data, and clear explanations.
+hero_cta_label: Read the research
+hero_cta_url: /blog/
+hero_secondary_cta_label: Explore projects
+hero_secondary_cta_url: /portfolio/
+home_features_heading: What you can explore
+home_features:
+  - title: Research notes
+    description: Methods, findings, and reproducible code.
+    url: /blog/
+  - title: Open datasets
+    description: Provenance and documentation alongside the data.
+    url: /datasets/
+  - title: Projects
+    description: Case studies and working demos.
+    url: /portfolio/
+---
+```
+
+Each action appears only when its URL is set. Each card needs a title; its
+description and link are optional. Remove a card, or omit `home_features`
+entirely, to hide it. Recent posts and featured portfolio entries appear
+below the cards only when those collections have content. Use site-root paths
+for local links so `baseurl` is applied.
+
+To add a hero background image, set `hero_image` on the page. An optional
+`hero_image_small` supplies a version around 640 px wide for phones. Only
+configured hero images are preloaded; the gradient works without one.
 
 #### Colour scheme
 

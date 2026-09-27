@@ -2,7 +2,30 @@
 layout: default
 ---
 {% assign localization_config = site.theme_options.localization %}
-{% include components/hero.html %}
+{% include components/hero.html contained=true %}
+{% assign home_features = page.home_features %}
+{% if home_features and home_features.size > 0 %}
+{% capture features_default_heading %}{% t 'home.features' %}{% endcapture %}
+<section class="section home-features" aria-labelledby="home-features-heading">
+  <div class="container">
+    <h2 id="home-features-heading" class="section-title">{{ page.home_features_heading | default: features_default_heading | strip | escape }}</h2>
+    <div class="card-grid">
+      {% for feature in home_features %}
+        {% if feature.title %}
+        <article class="card home-feature-card">
+          <h3>
+            {% if feature.url %}<a href="{{ feature.url | relative_url }}">{{ feature.title | escape }}</a>
+            {% else %}{{ feature.title | escape }}{% endif %}
+          </h3>
+          {% if feature.description %}<p>{{ feature.description | escape }}</p>{% endif %}
+        </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% if site.posts and site.posts.size > 0 %}
 <section class="section section-highlight">
   <div class="container">
     <h2 class="section-title">{% t 'home.latest_research' %}</h2>
@@ -31,6 +54,7 @@ layout: default
     </div>
   </div>
 </section>
+{% endif %}
 {% comment %}
   The portfolio collection is optional: a site that has not declared it gets
   nil here, and sorting nil raises rather than rendering an empty section.
