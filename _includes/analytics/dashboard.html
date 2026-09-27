@@ -2,7 +2,7 @@
 <div class="analytics-dashboard" data-status="{{ analytics.status | default: 'unavailable' }}" data-stale="{{ analytics.stale | default: false }}" data-chart-unavailable="{% t 'analytics.dashboard.chart_unavailable' fallback: 'Chart unavailable; use the data table below.' %}" data-no-chart-data="{% t 'analytics.dashboard.no_chart_data' fallback: 'No chart data available.' %}">
   <div class="analytics-header">
     <div>
-      <h1 class="analytics-title">{% t 'analytics.dashboard.title' fallback: 'Analytics Overview' %}</h1>
+      <h2 class="analytics-title">{% t 'analytics.dashboard.title' fallback: 'Analytics Overview' %}</h2>
       <p class="analytics-subtitle">
         {% if analytics.status == 'ok' %}
           {% t 'analytics.dashboard.description' fallback: 'Insights powered by Google Analytics 4, refreshed every 24 hours.' %}

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "minitest/mock"
 
 class AnalyticsDashboardTest < Minitest::Test
   def setup
