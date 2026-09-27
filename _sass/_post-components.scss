@@ -52,9 +52,9 @@
 
     &:hover,
     &:focus {
-      background-color: var(--color-accent, #3277f6);
+      background-color: var(--color-accent);
       color: #ffffff;
-      border-color: var(--color-accent, #3277f6);
+      border-color: var(--color-accent);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba($color-accent-primary, 0.2);
     }
@@ -142,7 +142,7 @@
   }
 
   &__link {
-    color: var(--color-accent, #3277f6);
+    color: var(--color-accent);
     text-decoration: none;
     transition: color 0.2s ease;
 
@@ -222,7 +222,7 @@
   &__affiliation {
     margin: 0 0 1rem 0;
     font-size: 0.95rem;
-    color: var(--color-accent, #3277f6);
+    color: var(--color-accent);
     font-weight: 500;
   }
 
@@ -269,8 +269,8 @@
 
     &:hover,
     &:focus {
-      background-color: var(--color-accent, #3277f6);
-      border-color: var(--color-accent, #3277f6);
+      background-color: var(--color-accent);
+      border-color: var(--color-accent);
       color: #ffffff;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba($color-accent-primary, 0.2);
@@ -382,8 +382,8 @@
     &:hover,
     &:focus {
       background-color: var(--color-background-secondary, #f5f7ff);
-      border-color: var(--color-accent, #3277f6);
-      color: var(--color-accent, #3277f6);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
     }
   }
 
@@ -435,15 +435,15 @@
 
       &:hover,
       &:focus {
-        color: var(--color-accent, #3277f6);
+        color: var(--color-accent);
         background-color: rgba($color-accent-primary, 0.05);
-        border-left-color: var(--color-accent, #3277f6);
+        border-left-color: var(--color-accent);
       }
 
       &.is-active {
-        color: var(--color-accent-text, #3730a3);
+        color: var(--color-accent-text);
         background-color: rgba($color-accent-primary, 0.1);
-        border-left-color: var(--color-accent, #3277f6);
+        border-left-color: var(--color-accent);
         font-weight: 500;
       }
     }
@@ -461,7 +461,7 @@
   &__reading-progress {
     [data-progress-percent] {
       font-weight: 600;
-      color: var(--color-accent, #3277f6);
+      color: var(--color-accent);
     }
   }
 
@@ -763,6 +763,6 @@ body.dark-mode .difficulty-badge {
 .author-bio__social-link:focus-visible,
 .enhanced-toc a:focus-visible,
 .enhanced-toc__toggle:focus-visible {
-  outline: 3px solid var(--color-accent, #3277f6);
+  outline: 3px solid var(--color-accent);
   outline-offset: 2px;
 }

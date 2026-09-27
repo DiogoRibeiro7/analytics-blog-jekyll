@@ -143,11 +143,11 @@ body.dark-mode .btn--ghost:hover {
   transition: all 0.2s ease;
 
   &--primary {
-    background: var(--color-accent, #3b82f6);
-    color: white;
+    background: var(--color-accent);
+    color: var(--accent-foreground, white);
 
     &:hover {
-      background: var(--color-accent-dark, #2563eb);
+      background: var(--color-accent-dark);
     }
   }
 
@@ -159,14 +159,6 @@ body.dark-mode .btn--ghost:hover {
     &:hover {
       background: var(--color-background-secondary, #f7fafc);
     }
-  }
-}
-
-body.dark-mode .button--primary {
-  color: $dark-surface-100;
-
-  &:hover {
-    background: color.adjust($dark-accent-primary, $lightness: -6%);
   }
 }
 

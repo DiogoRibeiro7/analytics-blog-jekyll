@@ -5,13 +5,18 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 test.describe('Dark Mode Toggle', () => {
   test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
 
+  test('first visit starts in dark mode', async ({ page }) => {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+    await expect(page.locator('body')).toHaveClass(/(^|\s)dark-mode(\s|$)/);
+    await expect(page.locator('body')).toHaveAttribute('data-theme', 'dark');
+  });
+
   test('dark mode toggle is visible', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
     // Look for dark mode toggle
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     const toggleCount = await toggle.count();
     if (toggleCount === 0) {
@@ -25,9 +30,7 @@ test.describe('Dark Mode Toggle', () => {
   test('clicking toggle changes theme', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     if ((await toggle.count()) === 0) {
       test.skip(true, 'Dark mode toggle not found');
@@ -64,9 +67,7 @@ test.describe('Dark Mode Toggle', () => {
   test('theme persists after navigation', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     if ((await toggle.count()) === 0) {
       test.skip(true, 'Dark mode toggle not found');
@@ -108,9 +109,7 @@ test.describe('Dark Mode Toggle', () => {
   test('theme persists after page reload', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     if ((await toggle.count()) === 0) {
       test.skip(true, 'Dark mode toggle not found');
@@ -147,9 +146,7 @@ test.describe('Dark Mode Toggle', () => {
   test('toggle has proper accessibility attributes', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     if ((await toggle.count()) === 0) {
       test.skip(true, 'Dark mode toggle not found');
@@ -175,9 +172,7 @@ test.describe('Dark Mode Toggle', () => {
   test('toggle is keyboard accessible', async ({ page }) => {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-    const toggle = page.locator(
-      '[class*="dark-mode"], [class*="theme-toggle"], [aria-label*="theme"], [aria-label*="dark"], button[class*="theme"]'
-    );
+    const toggle = page.locator('[data-toggle-dark-mode]');
 
     if ((await toggle.count()) === 0) {
       test.skip(true, 'Dark mode toggle not found');

@@ -47,10 +47,10 @@
 }
 
 .academic-profile {
-  border: 1px solid rgba(12, 35, 64, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.5rem;
-  background: rgba(12, 35, 64, 0.03);
+  background: var(--surface-elevated);
   display: grid;
   gap: 1rem;
 }
@@ -69,7 +69,7 @@
 .academic-profile a {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--accent, #3277f6);
+  color: var(--accent);
 }
 
 .academic-profile dl {
@@ -177,9 +177,9 @@
   min-height: 16rem;
   font-family: var(--font-mono, "Fira Code", monospace);
   border-radius: 0.75rem;
-  border: 1px solid rgba(12, 35, 64, 0.2);
+  border: 1px solid var(--color-border);
   padding: 1.25rem;
-  background: rgba(12, 35, 64, 0.04);
+  background: var(--surface-elevated);
 }
 
 .bibliography-export__actions {
@@ -221,7 +221,7 @@
 .opportunity-list li,
 .mentorship-list li,
 .workflow-list li {
-  border: 1px solid rgba(12, 35, 64, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.25rem;
   background: var(--surface-card);
@@ -255,42 +255,6 @@
   gap: 1.25rem;
 }
 
-body.dark-mode {
-  .academic-profile {
-    border-color: rgba($dark-accent-primary, 0.2);
-    background: rgba($dark-accent-primary, 0.06);
-  }
-
-  .academic-profile dt {
-    color: $dark-ink-500;
-  }
-
-  .citation-metrics {
-    background: rgba($dark-accent-primary, 0.08);
-  }
-
-  .citation-metrics__timeline li {
-    background: linear-gradient(90deg, rgba($dark-accent-primary, 0.15) var(--timeline-value, 35%), transparent 0);
-  }
-
-  .bibliography-export textarea {
-    background: $dark-surface-200;
-    border-color: $dark-surface-300;
-  }
-
-  .submission-card,
-  .calendar-list li,
-  .funding-list li,
-  .opportunity-list li,
-  .mentorship-list li,
-  .workflow-list li {
-    border-color: $dark-surface-300;
-  }
-
-  .status-badge {
-    background: rgba($dark-accent-primary, 0.15);
-  }
-}
 
 @media (min-width: 48rem) {
   .networking-grid {
