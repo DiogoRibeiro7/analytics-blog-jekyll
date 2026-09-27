@@ -81,6 +81,7 @@ markdown: kramdown
 highlighter: rouge
 
 plugins:
+  - datalog-theme
   - jekyll-feed
   - jekyll-seo-tag
 
