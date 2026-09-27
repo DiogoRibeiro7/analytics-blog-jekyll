@@ -33,6 +33,7 @@ your team.
 - **`visualizations/`** – Interactive demos for Plotly, D3, Observable, Bokeh, Shiny, and ipywidgets embeds.
 - **`showcase/`** – Curated gallery of public sites that rely on the theme.
 - **`guides/`** – Migration playbooks for switching from other Jekyll themes to DataLog.
+- **`_data/navigation.yml`** – Header/footer links and grouped guide sidebar links. The order of the guide links drives previous/next navigation.
 - **Collections** – Rich sample content for posts, datasets, notebooks, and portfolio entries that power the
   landing page.
 

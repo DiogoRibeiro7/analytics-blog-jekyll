@@ -231,6 +231,19 @@ jobs:
           CI: 'true'
         run: npm run test:integration
 
+      - name: Build documentation preview
+        run: bundle exec jekyll build --source docs/site --config docs/site/_config.yml --destination tmp/docs-preview --trace
+
+      - name: Run documentation browser checks
+        env:
+          CI: 'true'
+          DOCS_SITE_TESTS: '1'
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+        run: |
+          npx http-server tmp/docs-preview -p 4173 --silent > /tmp/datalog-docs-server.log 2>&1 &
+          npx wait-on http-get://127.0.0.1:4173
+          npx playwright test tests/integration/docs-site.spec.js
+
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

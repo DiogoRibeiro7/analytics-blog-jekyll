@@ -36,9 +36,8 @@ class PerformanceBundlesTest < Minitest::Test
 
   # The demo turns every optional feature on, so this measures the complete
   # stylesheet; sites without those features get less (see _sass/_features.scss).
-  # The budget rose from 28 KB to 29 KB for the contained hero, its two actions,
-  # and feature cards. Sites without optional components still ship less CSS;
-  # the cap keeps later growth visible.
+  # The contained hero, feature cards, and documentation guide navigation
+  # raised the deliberate limit to 29 KB. Keep the cap to catch later growth.
   def test_stylesheet_under_29kb_gzipped
     stylesheet = SiteBuilder.destination_path("assets/css/main.css")
     assert File.exist?(stylesheet), "the build should produce assets/css/main.css"

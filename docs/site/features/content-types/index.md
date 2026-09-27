@@ -17,7 +17,7 @@ summary: Walk through the documentation site structure and highlights.
 tags: [release, documentation]
 ---
 ```
-    <p>See the <a href="/blog/introducing-datalog-theme/">launch post</a> for the rendered output.</p>
+    <p>See the <a href="{{ '/blog/' | relative_url }}">blog examples</a> for the rendered output.</p>
   </div>
 </section>
 
@@ -36,7 +36,7 @@ data_source: https://example.com/datasets/retail-demand.csv
 license: CC-BY-4.0
 ---
 ```
-    <p>Inspect the <a href="/datasets/retail-demand-benchmark/">retail demand benchmark</a> entry for the final look.</p>
+    <p>Inspect the <a href="{{ '/datasets/retail-demand-benchmark/' | relative_url }}">retail demand benchmark</a> entry for the final look.</p>
   </div>
 </section>
 
@@ -58,7 +58,7 @@ notebook:
     language: python
 ---
 ```
-    <p>The <a href="/notebooks/batch-anomaly-detection/">example notebook</a> includes binder/Colab integration links.</p>
+    <p>The <a href="{{ '/notebooks/batch-anomaly-detection/' | relative_url }}">example notebook</a> includes binder/Colab integration links.</p>
   </div>
 </section>
 
@@ -78,7 +78,7 @@ links:
   deck: https://example.com/workbench/slides.pdf
 ---
 ```
-    <p>Open the <a href="/portfolio/interactive-forecasting-workbench/">interactive forecasting workbench</a> page to see the
+    <p>Open the <a href="{{ '/portfolio/interactive-forecasting-workbench/' | relative_url }}">interactive forecasting workbench</a> page to see the
     layout populated.</p>
   </div>
 </section>

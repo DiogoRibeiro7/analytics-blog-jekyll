@@ -31,5 +31,5 @@ links:
 ---
 
 The retail demand benchmark helps data teams test forecasting workflows in a controlled environment. Combine it with the
-[interactive forecasting workbench](/portfolio/interactive-forecasting-workbench/) to explore seasonality decomposition,
+[interactive forecasting workbench]({{ '/portfolio/interactive-forecasting-workbench/' | relative_url }}) to explore seasonality decomposition,
 model comparison, and scenario planning.

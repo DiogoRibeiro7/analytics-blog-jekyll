@@ -20,6 +20,13 @@ theme_options:
   color_scheme:
     default: dark
 
+features:
+  search: true
+  dark_mode_toggle: true
+
+search:
+  title: Search documentation
+
 defaults:
   - scope:
       path: ""
@@ -49,7 +56,7 @@ defaults:
   - scope:
       path: guides
     values:
-      layout: page
+      layout: docs
   - scope:
       path: showcase
     values:
@@ -74,6 +81,7 @@ markdown: kramdown
 highlighter: rouge
 
 plugins:
+  - datalog-theme
   - jekyll-feed
   - jekyll-seo-tag
 
