@@ -7,7 +7,8 @@ class HomeLayoutTest < Minitest::Test
   def test_demo_has_both_actions_and_three_feature_cards_before_latest_posts
     doc = Nokogiri::HTML5(SiteBuilder.read("index.html"))
 
-    assert_equal %w[/blog/ /portfolio/], doc.css(".hero-actions a").map { |link| link["href"] }
+    action_urls = doc.css(".hero-actions a").map { |link| link["href"] }
+    assert_equal %w[/blog/ /portfolio/], action_urls
     assert_equal 3, doc.css(".home-feature-card").size
     assert doc.at_css(".section-highlight .card"), "latest posts should follow the features"
     assert doc.at_css(".section-portfolio .card"), "featured projects should follow the posts"
@@ -21,14 +22,15 @@ class HomeLayoutTest < Minitest::Test
       source.layout("default", "{{ content }}")
       source.page("index.md", "", { "layout" => "home" })
       source.page("guide/index.md", "Guide")
-      source.page("custom/index.md", "", {
+      custom_front_matter = {
         "layout" => "home", "hero_title" => "Custom research",
         "hero_cta_url" => "/guide/", "hero_cta_label" => "Read guide",
         "hero_secondary_cta_url" => "/", "hero_secondary_cta_label" => "Home",
         "hero_image" => "/assets/img/hero-detail.webp",
         "hero_image_small" => "/assets/img/hero-detail-640.webp",
         "home_features" => [{ "title" => "One card", "description" => "Only the selected feature" }]
-      })
+      }
+      source.page("custom/index.md", "", custom_front_matter)
     end
 
     empty = built.html("index.html")
@@ -38,11 +40,13 @@ class HomeLayoutTest < Minitest::Test
     assert_empty empty.css('link[rel="preload"][as="image"]')
 
     custom = built.html("custom/index.html")
-    assert_equal ["/sample/guide/", "/sample/"], custom.css(".hero-actions a").map { |link| link["href"] }
-    assert_equal ["One card"], custom.css(".home-feature-card h3").map(&:text)
+    action_urls = custom.css(".hero-actions a").map { |link| link["href"] }
+    assert_equal ["/sample/guide/", "/sample/"], action_urls
+    card_titles = custom.css(".home-feature-card h3").map { |heading| heading.text.strip }
+    assert_equal ["One card"], card_titles
     assert_empty custom.css(".home-feature-card a"), "a card without a URL should not become a broken link"
-    assert_equal ["/sample/assets/img/hero-detail-640.webp", "/sample/assets/img/hero-detail.webp"],
-                 custom.css('link[rel="preload"][as="image"]').map { |link| link["href"] }
+    preloads = custom.css('link[rel="preload"][as="image"]').map { |link| link["href"] }
+    assert_equal ["/sample/assets/img/hero-detail-640.webp", "/sample/assets/img/hero-detail.webp"], preloads
     assert custom.at_css(".hero--image"), "an explicitly configured image should be used behind the gradient"
   end
 end
