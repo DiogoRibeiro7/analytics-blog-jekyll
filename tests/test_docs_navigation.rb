@@ -24,6 +24,7 @@ class DocsNavigationTest < Minitest::Test
       assert html.at_css('.docs-sidebar__repo[href*="analytics-blog-jekyll"]')
 
       assert_docs_home(dir)
+      assert_technical_guide(dir)
 
       assert File.exist?(File.join(dir, "site/search/index.html")), "search page should be generated"
       index = JSON.parse(File.read(File.join(dir, "site/search.json")))
@@ -42,5 +43,14 @@ class DocsNavigationTest < Minitest::Test
     home.css(".home-feature-card a").each do |link|
       assert link["href"].start_with?("/preview/"), "feature link should include the project path"
     end
+  end
+
+  def assert_technical_guide(dir)
+    guide = Nokogiri::HTML5(File.read(File.join(dir, "site/guides/technical-content/index.html")))
+    assert_equal "Technical content", guide.at_css('.docs-sidebar [aria-current="page"]').text
+    assert guide.at_css('.docs-on-this-page a[href="#equations"]')
+    assert_equal "Example observations used to estimate the mean", guide.at_css(".docs-content table caption").text
+    assert guide.at_css('.docs-content .callout[role="note"]')
+    assert_equal 2, guide.css(".docs-content pre > code").size
   end
 end
