@@ -23,9 +23,24 @@ class DocsNavigationTest < Minitest::Test
       assert html.at_css(".docs-content h2#requirements"), "the contents target should exist"
       assert html.at_css('.docs-sidebar__repo[href*="analytics-blog-jekyll"]')
 
+      assert_docs_home(dir)
+
       assert File.exist?(File.join(dir, "site/search/index.html")), "search page should be generated"
       index = JSON.parse(File.read(File.join(dir, "site/search.json")))
       assert_includes index.to_s, "Install DataLog", "the guide should be discoverable in search"
+    end
+  end
+
+  private
+
+  def assert_docs_home(dir)
+    home = Nokogiri::HTML5(File.read(File.join(dir, "site/index.html")))
+    action_urls = home.css(".hero-actions a").map { |link| link["href"] }
+    assert_equal ["/preview/guides/installation/", "/preview/features/"], action_urls
+    assert_equal 3, home.css(".home-feature-card a").size
+    assert_equal "Documentation quick stats", home.at_css(".section-intro .card h3").text
+    home.css(".home-feature-card a").each do |link|
+      assert link["href"].start_with?("/preview/"), "feature link should include the project path"
     end
   end
 end

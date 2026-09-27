@@ -30,13 +30,13 @@ class HomeLayoutTest < Minitest::Test
         "hero_image_small" => "/assets/img/hero-detail-640.webp",
         "home_features" => [{ "title" => "One card", "description" => "Only the selected feature" }]
       }
-      source.page("custom/index.md", "", custom_front_matter)
+      source.page("custom/index.md", "<section><h2>Custom introduction</h2></section>", custom_front_matter)
     end
 
     empty = built.html("index.html")
     assert_equal "Test site", empty.at_css(".hero h1").text
     assert_equal "A research home page", empty.at_css(".hero-tagline").text
-    assert_empty empty.css(".hero-actions, .home-features, .section-highlight, .section-portfolio")
+    assert_empty empty.css(".hero-actions, .home-features, .home-body, .section-highlight, .section-portfolio")
     assert_empty empty.css('link[rel="preload"][as="image"]')
 
     custom = built.html("custom/index.html")
@@ -44,6 +44,7 @@ class HomeLayoutTest < Minitest::Test
     assert_equal ["/sample/guide/", "/sample/"], action_urls
     card_titles = custom.css(".home-feature-card h3").map { |heading| heading.text.strip }
     assert_equal ["One card"], card_titles
+    assert_equal "Custom introduction", custom.at_css(".home-body h2").text
     assert_empty custom.css(".home-feature-card a"), "a card without a URL should not become a broken link"
     preloads = custom.css('link[rel="preload"][as="image"]').map { |link| link["href"] }
     assert_equal ["/sample/assets/img/hero-detail-640.webp", "/sample/assets/img/hero-detail.webp"], preloads
