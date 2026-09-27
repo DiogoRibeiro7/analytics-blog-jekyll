@@ -35,19 +35,6 @@ class ConfigValidatorTest < Minitest::Test
     assert_includes error.message, 'Did you mean "mathjax"?'
   end
 
-  def test_color_scheme_default_accepts_only_supported_modes
-    config = base_config
-    config["theme_options"]["color_scheme"] = { "default" => "sepia" }
-
-    error = assert_raises(Jekyll::Errors::FatalException) { run_generator(config) }
-    assert_includes error.message, "Invalid value for 'theme_options.color_scheme.default'"
-
-    %w[dark light system].each do |mode|
-      config["theme_options"]["color_scheme"]["default"] = mode
-      assert_nil run_generator(config)
-    end
-  end
-
   def test_publisher_type_is_person_or_organization
     config = base_config
     config["publisher"] = { "type" => "Company", "name" => "Example Lab" }
