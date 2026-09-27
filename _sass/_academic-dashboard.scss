@@ -97,7 +97,7 @@
   gap: 1.5rem;
   border-radius: 1.25rem;
   padding: 2rem;
-  background: rgba(50, 119, 246, 0.08);
+  background: rgba($color-accent-primary, 0.08);
 }
 
 .citation-metrics__totals {
@@ -112,7 +112,7 @@
 }
 
 .citation-metrics .metric {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface-card);
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
@@ -133,7 +133,7 @@
 }
 
 .citation-metrics__details {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-card);
   border-radius: 1rem;
   padding: 1rem 1.5rem;
 }
@@ -164,7 +164,7 @@
   gap: 1rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  background: linear-gradient(90deg, rgba(50, 119, 246, 0.15) var(--timeline-value, 35%), transparent 0);
+  background: linear-gradient(90deg, rgba($color-accent-primary, 0.15) var(--timeline-value, 35%), transparent 0);
 }
 
 .bibliography-export {
@@ -224,7 +224,7 @@
   border: 1px solid rgba(12, 35, 64, 0.12);
   border-radius: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-card);
 }
 
 .status-badge {
@@ -233,8 +233,8 @@
   gap: 0.4rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: rgba(50, 119, 246, 0.15);
-  color: var(--accent-foreground, #0b1d3d);
+  background: rgba($color-accent-primary, 0.15);
+  color: var(--color-accent-text);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -253,6 +253,43 @@
 .networking-grid {
   display: grid;
   gap: 1.25rem;
+}
+
+body.dark-mode {
+  .academic-profile {
+    border-color: rgba($dark-accent-primary, 0.2);
+    background: rgba($dark-accent-primary, 0.06);
+  }
+
+  .academic-profile dt {
+    color: $dark-ink-500;
+  }
+
+  .citation-metrics {
+    background: rgba($dark-accent-primary, 0.08);
+  }
+
+  .citation-metrics__timeline li {
+    background: linear-gradient(90deg, rgba($dark-accent-primary, 0.15) var(--timeline-value, 35%), transparent 0);
+  }
+
+  .bibliography-export textarea {
+    background: $dark-surface-200;
+    border-color: $dark-surface-300;
+  }
+
+  .submission-card,
+  .calendar-list li,
+  .funding-list li,
+  .opportunity-list li,
+  .mentorship-list li,
+  .workflow-list li {
+    border-color: $dark-surface-300;
+  }
+
+  .status-badge {
+    background: rgba($dark-accent-primary, 0.15);
+  }
 }
 
 @media (min-width: 48rem) {

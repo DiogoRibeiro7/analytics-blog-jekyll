@@ -219,6 +219,10 @@ critical_css:
 # Theme Options
 # -----------------------------------------------------------------------------
 theme_options:
+  # First visit uses the dark palette. Visitors can switch modes in the header;
+  # their explicit choice takes precedence over this site-wide default.
+  color_scheme:
+    default: dark  # dark, light, or system
   # The "Reading mode" control on posts: the article without the site around it.
   reading_mode:
     enabled: true

@@ -9,6 +9,7 @@ describe('theme controls', () => {
     }
     localStorage.clear();
     document.body.classList.remove('dark-mode'); // Reset dark mode state
+    delete document.body.dataset.defaultTheme;
   });
 
   it('initializes dark mode toggle and respects stored preferences', () => {
@@ -36,6 +37,7 @@ describe('theme controls', () => {
 
   it('respects stored light mode preference', () => {
     document.body.innerHTML = '<button data-toggle-dark-mode></button>';
+    document.body.classList.add('dark-mode'); // Liquid preselects the dark site default
     localStorage.setItem('datalog-color-mode', 'light');
 
     const mediaQuery = {
@@ -53,12 +55,12 @@ describe('theme controls', () => {
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('falls back to system preference when no stored preference', () => {
+  it('starts dark on a first visit', () => {
     document.body.innerHTML = '<button data-toggle-dark-mode></button>';
     // No stored preference
 
     const mediaQuery = {
-      matches: true, // System prefers dark
+      matches: false, // A light system preference does not change the site default
       media: '(prefers-color-scheme: dark)',
       addEventListener: vi.fn(),
       removeEventListener: vi.fn()
@@ -70,9 +72,9 @@ describe('theme controls', () => {
     expect(document.body.classList.contains('dark-mode')).toBe(true);
   });
 
-  it('falls back to light when system prefers light and no stored preference', () => {
+  it('uses a site-configured light default when there is no saved choice', () => {
     document.body.innerHTML = '<button data-toggle-dark-mode></button>';
-    // No stored preference
+    document.body.dataset.defaultTheme = 'light';
 
     const mediaQuery = {
       matches: false, // System prefers light
@@ -103,9 +105,9 @@ describe('theme controls', () => {
     expect(document.body.classList.contains('dark-mode')).toBe(true);
   });
 
-  it('responds to system theme changes when no stored preference', () => {
+  it('responds to system theme changes when the site chooses system mode', () => {
     document.body.innerHTML = '<button data-toggle-dark-mode></button>';
-    // No stored preference
+    document.body.dataset.defaultTheme = 'system';
 
     let changeHandler;
     const mediaQuery = {
@@ -132,9 +134,9 @@ describe('theme controls', () => {
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('responds to system theme changes to light when no stored preference', () => {
+  it('responds to system theme changes to light in system mode', () => {
     document.body.innerHTML = '<button data-toggle-dark-mode></button>';
-    // No stored preference
+    document.body.dataset.defaultTheme = 'system';
 
     let changeHandler;
     const mediaQuery = {
@@ -187,6 +189,22 @@ describe('theme controls', () => {
 
     // Should still be light because user has explicit preference
     expect(document.body.classList.contains('dark-mode')).toBe(false);
+  });
+
+  it('ignores system changes with the dark site default', () => {
+    document.body.innerHTML = '<button data-toggle-dark-mode></button>';
+    let changeHandler;
+    globalThis.matchMedia.mockReturnValue({
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      addEventListener: vi.fn((_event, handler) => { changeHandler = handler; }),
+      removeEventListener: vi.fn()
+    });
+
+    initDarkModeToggle();
+    expect(document.body.classList.contains('dark-mode')).toBe(true);
+    changeHandler({ matches: false });
+    expect(document.body.classList.contains('dark-mode')).toBe(true);
   });
 
   it('manages navigation disclosure state and keyboard shortcuts', () => {
@@ -248,6 +266,7 @@ describe('dark figures', () => {
   beforeEach(() => {
     localStorage.clear();
     document.body.classList.remove('dark-mode');
+    delete document.body.dataset.defaultTheme;
     document.body.innerHTML = `<button data-toggle-dark-mode></button>${FIGURE}`;
   });
 
@@ -298,6 +317,19 @@ describe('dark figures', () => {
 
     document.querySelector('[data-toggle-dark-mode]').click();
     expect(media()).toEqual(['not all', 'not all']);
+  });
+
+  it('selects the dark companion on a first visit even with a light system setting', () => {
+    globalThis.matchMedia.mockReturnValue({
+      matches: false,
+      media: DARK_MEDIA,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    });
+
+    initDarkModeToggle();
+
+    expect(media()).toEqual(['all', 'all']);
   });
 
   it('does nothing on a page with no dark figures', () => {

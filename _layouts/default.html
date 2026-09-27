@@ -13,19 +13,21 @@
   {% capture body_classes %}
     site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}
   {% endcapture %}
-  <body class="{{ body_classes | strip }}" data-theme="{{ page.theme | default: 'system' }}">
+  {% assign default_color_mode = page.theme | default: site.theme_options.color_scheme.default | default: 'dark' %}
+  <body class="{{ body_classes | strip }}{% if default_color_mode == 'dark' %} dark-mode{% endif %}" data-default-theme="{{ default_color_mode }}" data-theme="{{ default_color_mode }}">
     {%- comment -%}
-    Applies the saved or system color scheme before anything is drawn. core/dark-mode.js
-    applies the same rule, but only once the script bundles have loaded, so readers who
-    chose dark saw the light theme first; keep the two in step.
+    Applies the saved choice or site default before anything is drawn. The
+    core bundle applies the same rule when it loads; keep the two in step.
     {%- endcomment %}
     <script nonce="{{ page.csp_nonce }}">
-      try {
-        var mode = localStorage.getItem("datalog-color-mode");
-        if (mode === "dark" || (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-          document.body.classList.add("dark-mode");
-        }
-      } catch (error) {}
+      var mode;
+      try { mode = localStorage.getItem("datalog-color-mode"); } catch (error) {}
+      var siteDefault = document.body.dataset.defaultTheme;
+      var isDark = mode === "dark" || (mode !== "light" &&
+        (siteDefault === "dark" || (siteDefault === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)));
+      document.body.classList.toggle("dark-mode", isDark);
+      document.body.dataset.theme = isDark ? "dark" : "light";
+      document.documentElement.dataset.theme = document.body.dataset.theme;
     </script>
     {%- comment -%} The skip link and the footer take nothing from the page, so each is rendered once per build (the skip link once per language). {%- endcomment -%}
     {% include_cached skip-link.html lang=page.lang %}

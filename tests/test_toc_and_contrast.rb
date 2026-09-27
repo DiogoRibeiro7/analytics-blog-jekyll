@@ -7,8 +7,8 @@ require_relative "test_helper"
 # layout of a post that has no contents, and the colours of code.
 class TocAndContrastTest < Minitest::Test
   POST_WITH_TOC = "2024/04/05/sql-optimization-guide/index.html"
-  LIGHT_CODE = "#f6f6f5"   # rgba($color-surface-900, 0.02) over the page
-  DARK_CODE = "#272727"    # rgba($dark-surface-300, 0.8) over the page
+  LIGHT_CODE = "#f3f6f8"   # rgba($color-surface-900, 0.02) over the page
+  DARK_CODE = "#1b2840"    # rgba($dark-surface-300, 0.8) over the page
 
   def test_the_table_of_contents_is_a_nav_with_the_doc_toc_role
     html = SiteBuilder.read(POST_WITH_TOC)
@@ -29,11 +29,11 @@ class TocAndContrastTest < Minitest::Test
 
   def test_the_contents_use_readable_inks
     assert rule?(/\.is-active\{color:var\(--color-accent-text/), "the active entry uses the accent as text"
-    assert rule?(/--color-accent-text:\s*#1d4ed8/), "the light theme defines the accent as text"
-    assert rule?(/--color-accent-text:\s*#60a5fa/), "and so does the dark one"
+    assert rule?(/--color-accent-text:\s*#3730a3/), "the light theme defines the accent as text"
+    assert rule?(/--color-accent-text:\s*#a5b4fc/), "and so does the dark one"
     assert rule?(/\.enhanced-toc__stats\{[^}]*color:var\(--color-text-secondary/),
            "the progress line uses the secondary ink"
-    assert_operator contrast("#1d4ed8", "#e0e6f0"), :>=, 4.5
+    assert_operator contrast("#3730a3", "#eeeefa"), :>=, 4.5
   end
 
   def test_every_code_token_is_readable_on_the_code_background
