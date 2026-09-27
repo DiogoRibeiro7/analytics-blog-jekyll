@@ -73,13 +73,31 @@ body.dark-mode .page-meta {
 // ---------------------------------------------------------------------------
 .hero {
   position: relative;
-  // Solid base under the image: keeps the white text legible if the image
-  // fails to load, and gives contrast checkers a real colour to measure.
-  background: $color-surface-900 var(--hero-bg) center / cover no-repeat;
+  // A dark base keeps the white copy readable with or without an image.
+  background: $color-surface-900;
   color: #fff;
   padding: clamp(4rem, 10vw, 8rem) 0;
   text-align: center;
   overflow: hidden;
+}
+
+.hero--image {
+  background: $color-surface-900 var(--hero-bg) center / cover no-repeat;
+}
+
+.hero--contained {
+  border-radius: map.get($radius, xl);
+  padding: clamp(2.5rem, 6vw, 5rem);
+  text-align: left;
+
+  .hero-content {
+    width: 100%;
+    padding: 0;
+  }
+
+  .hero-tagline {
+    margin-inline: 0;
+  }
 }
 
 .hero-overlay {
@@ -95,6 +113,33 @@ body.dark-mode .page-meta {
     rgba(color.mix($color-accent-primary, $color-surface-900, 60%), 0.8) 100%
   );
   pointer-events: none;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: map.get($spacing, 3);
+
+  .btn {
+    min-height: 2.75rem;
+    align-items: center;
+  }
+}
+
+.hero .btn-secondary,
+body.dark-mode .hero .btn-secondary {
+  color: #fff;
+  border-color: rgba(#fff, 0.75);
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    background: rgba(#fff, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-actions .btn { transition: none; }
 }
 
 .hero-content {
@@ -189,6 +234,14 @@ body.dark-mode .section-title {
   @include respond-to(lg) {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.home-feature-card {
+  border-top: 3px solid $color-accent-secondary;
+}
+
+body.dark-mode .home-feature-card {
+  border-top-color: $dark-accent-secondary;
 }
 
 .card-meta {

@@ -147,6 +147,8 @@ navigation:
       julia: Julia
       javascript: JavaScript
 home:
+  features: O que pode publicar
+  explore_more: Explorar mais
   latest_research: Notas de investigação recentes
   reading_time_one: Leitura de 1 min
   reading_time_many: "Leitura de {{minutes}} min"

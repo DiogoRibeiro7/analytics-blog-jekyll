@@ -7,9 +7,9 @@ permalink: /features/layouts/
 <section class="section">
   <div class="container">
     <h2>Landing page</h2>
-    <p>The <strong>home</strong> layout powers the documentation front page. It renders the hero include plus recent posts and
-    portfolio highlights automatically. Customize the hero copy via front matter on <code>index.md</code> and add featured
-    collections by adding posts and portfolio entries.</p>
+    <p>The <strong>home</strong> layout powers the documentation front page. Its gradient hero accepts two optional links, and
+    <code>home_features</code> in <code>index.md</code> supplies the feature cards. Add posts or portfolio entries to show the
+    sections below them; an empty collection leaves no heading behind.</p>
     <a class="btn" href="/">View live example</a>
   </div>
 </section>
