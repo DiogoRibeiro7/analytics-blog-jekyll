@@ -18,8 +18,8 @@ permalink: /plugins/
         <dt>Configuration highlights</dt>
         <dd>
           <ul>
-          {% for key, value in plugin.configuration %}
-            <li><strong>{{ key }}:</strong> {{ value }}</li>
+          {% for setting in plugin.configuration %}
+            <li><strong>{{ setting[0] }}:</strong> {{ setting[1] }}</li>
           {% endfor %}
           </ul>
         </dd>
