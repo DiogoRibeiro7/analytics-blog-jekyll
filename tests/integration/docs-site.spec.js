@@ -69,3 +69,40 @@ test.describe('Documentation homepage', () => {
     }
   }
 });
+
+test.describe('Documentation technical content', () => {
+  test.skip(!process.env.DOCS_SITE_TESTS, 'Run against the built docs/site preview.');
+
+  test('technical examples, guide links, and code copying work', async ({ page }) => {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/guides/technical-content/');
+    await expect(page.locator('.docs-sidebar [aria-current="page"]')).toHaveText('Technical content');
+    await expect(page.locator('.docs-content .code-copy')).toHaveCount(2);
+    await expect(page.locator('.docs-content table caption')).toHaveText('Example observations used to estimate the mean');
+    await expect(page.locator('.docs-content .callout[role="note"]')).toBeVisible();
+    await expect(page.locator('.docs-on-this-page a[href="#equations"]')).toBeVisible();
+
+    const copy = page.locator('.docs-content .code-copy').first();
+    await copy.click();
+    await expect(copy).toHaveText('Copied!');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('layout: post');
+    await page.locator('.docs-on-this-page a[href="#equations"]').click();
+    await expect(page).toHaveURL(/#equations$/);
+  });
+
+  for (const width of [390, 1280]) {
+    for (const mode of ['dark', 'light']) {
+      test(`technical guide fits ${width}px in ${mode} mode`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 860 });
+        await page.goto('/guides/technical-content/');
+        if (mode === 'light') await page.locator('[data-toggle-dark-mode]').click();
+
+        await expect(page.locator('body')).toHaveAttribute('data-theme', mode);
+        await expect(page.locator('.docs-content table')).toBeVisible();
+        await expect(page.locator('.docs-content .math-expression')).toBeVisible();
+        await expect(page.locator('.docs-content .callout')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      });
+    }
+  }
+});

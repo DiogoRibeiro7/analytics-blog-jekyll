@@ -71,11 +71,44 @@
   max-width: 48rem;
   overflow-wrap: anywhere;
 
-  // Code and tables scroll in their own column, never the full viewport.
+  :is(h2, h3, h4) { scroll-margin-top: calc(var(--header-height, 96px) + 1rem); }
+  h2 { padding-bottom: 0.45rem; border-bottom: 1px solid var(--color-border); }
+  :is(p, li) { line-height: 1.7; }
+
+  // Keep long examples inside the reading column, including rendered math.
   pre,
   .highlighter-rouge,
   .code-block-wrapper { max-width: 100%; overflow-x: auto; }
-  table { display: block; max-width: 100%; overflow-x: auto; }
+  :is(.math-expression, mjx-container[display='true'], .katex-display, figure) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  table:not(.rouge-table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin-block: 1.5rem;
+
+    th, td { padding: 0.65rem 0.9rem; border: 1px solid var(--color-border); text-align: left; }
+    th { background: var(--color-background-secondary); }
+    caption { color: var(--color-text-secondary); }
+  }
+
+  .callout {
+    margin-block: 1.5rem;
+    border-left-color: var(--color-accent-text);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+
+    p:last-child { margin-bottom: 0; }
+  }
+
+  .code-copy:focus-visible {
+    outline: 2px solid var(--color-accent-text);
+    outline-offset: 2px;
+  }
 }
 
 .docs-pagination {
