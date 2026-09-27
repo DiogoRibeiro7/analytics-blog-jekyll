@@ -25,6 +25,10 @@ layout: default
   </div>
 </section>
 {% endif %}
+{% assign home_body = content | strip %}
+{% if home_body != '' %}
+<div class="home-body">{{ content }}</div>
+{% endif %}
 {% if site.posts and site.posts.size > 0 %}
 <section class="section section-highlight">
   <div class="container">
