@@ -12,6 +12,22 @@ Where the DataLog theme's settings live and how to change the common ones.
 
 `_config.yml` is organised in labelled sections (Jekyll core, site identity, features, theme customization, integrations, notebooks, plugins). Search for the banner comment of the section you need.
 
+### Documentation guides
+
+Use `layout: docs` for a guide that needs a section sidebar, an on-page contents list, and previous/next guide links. The sidebar reads optional `docs` groups from `_data/navigation.yml`:
+
+```yaml
+docs:
+  - title: Start here
+    links:
+      - title: Installation
+        url: /guides/installation/
+      - title: Configuration
+        url: /guides/configuration/
+```
+
+Links use Jekyll's `relative_url` for project sites. Guide pagination follows the order of links under `/guides/`; omit the `docs` groups when you do not use this layout. Set `features.search: true` to generate the search page and index, and `features.dark_mode_toggle: true` to expose the palette control.
+
 ## Quick Start
 
 ### 1. Update your profile

@@ -1,0 +1,53 @@
+---
+layout: page
+---
+{% assign docs_groups = site.data.navigation.docs %}
+{% assign guide_pages = '' | split: '' %}
+{% for group in docs_groups %}
+  {% for link in group.links %}
+    {% if link.url contains '/guides/' %}
+      {% assign guide_pages = guide_pages | push: link %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+<div class="docs-shell">
+  <nav class="docs-sidebar" aria-label="Documentation sections">
+    <a class="docs-sidebar__home" href="{{ '/' | relative_url }}">Documentation home</a>
+    {% for group in docs_groups %}
+      <h2 class="docs-sidebar__heading">{{ group.title | escape }}</h2>
+      <ul>
+        {% for link in group.links %}
+          <li><a href="{{ link.url | relative_url }}"{% if page.url == link.url %} aria-current="page"{% endif %}>{{ link.title | escape }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+    <a class="docs-sidebar__repo" href="https://github.com/DiogoRibeiro7/analytics-blog-jekyll">View on GitHub</a>
+  </nav>
+
+  <div class="docs-main">
+    <div class="docs-content">{{ content }}</div>
+    <nav class="docs-pagination" aria-label="Guide navigation">
+      {% for link in guide_pages %}
+        {% if page.url == link.url %}
+          {% assign previous_index = forloop.index0 | minus: 1 %}
+          {% assign next_index = forloop.index0 | plus: 1 %}
+          {% if previous_index >= 0 %}
+            {% assign previous_guide = guide_pages[previous_index] %}
+            <a href="{{ previous_guide.url | relative_url }}"><span>Previous</span>{{ previous_guide.title | escape }}</a>
+          {% endif %}
+          {% if next_index < guide_pages.size %}
+            {% assign next_guide = guide_pages[next_index] %}
+            <a href="{{ next_guide.url | relative_url }}"><span>Next</span>{{ next_guide.title | escape }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </nav>
+    <a class="docs-back-to-top" href="#main-content">Back to top ↑</a>
+  </div>
+
+  {% capture page_contents %}{% include components/enhanced-toc.html html=content heading="On this page" show_progress=false %}{% endcapture %}
+  {% if page_contents contains 'enhanced-toc' %}
+    <aside class="docs-on-this-page">{{ page_contents }}</aside>
+  {% endif %}
+</div>

@@ -39,11 +39,12 @@ class PerformanceBundlesTest < Minitest::Test
   # The budget rose from 25 KB to 28 KB with the article components added
   # after 0.8.0 (statements, revisions, licence, series, reproducibility,
   # reading mode and print, reading state), a few hundred bytes gzipped each;
-  # it stays to catch growth that is not deliberate.
-  def test_stylesheet_under_28kb_gzipped
+  # The documentation guide columns and navigation add under 1 KB of CSS.
+  # Keep the 29 KB cap to catch growth that is not deliberate.
+  def test_stylesheet_under_29kb_gzipped
     stylesheet = SiteBuilder.destination_path("assets/css/main.css")
     assert File.exist?(stylesheet), "the build should produce assets/css/main.css"
-    assert_operator gzip_size(stylesheet), :<, 28 * 1024, "The stylesheet exceeds 28KB gzipped"
+    assert_operator gzip_size(stylesheet), :<, 29 * 1024, "The stylesheet exceeds 29KB gzipped"
   end
 
   def test_feature_bundles_load_on_demand

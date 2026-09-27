@@ -8,15 +8,15 @@ permalink: /features/
 
 <div class="card-grid">
   <article class="card">
-    <h3><a href="/features/layouts/">Layouts</a></h3>
+    <h3><a href="{{ '/features/layouts/' | relative_url }}">Layouts</a></h3>
     <p>Compare the home, post, notebook, dataset, portfolio, project, and research layouts side-by-side.</p>
   </article>
   <article class="card">
-    <h3><a href="/features/components/">Components</a></h3>
+    <h3><a href="{{ '/features/components/' | relative_url }}">Components</a></h3>
     <p>Use heroes, analytics callouts, citation badges, and academic dashboards in your own documentation.</p>
   </article>
   <article class="card">
-    <h3><a href="/features/content-types/">Content types</a></h3>
+    <h3><a href="{{ '/features/content-types/' | relative_url }}">Content types</a></h3>
     <p>Wire up posts, datasets, notebooks, and portfolio collections with YAML front matter recipes.</p>
   </article>
 </div>

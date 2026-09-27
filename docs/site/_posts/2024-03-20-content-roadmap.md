@@ -31,4 +31,4 @@ quarter. Each initiative now links to its tracking issue so ownership, scope, an
 ## Feedback loop
 
 We love hearing how teams are using the DataLog theme. Share your deployments so we can include them in the
-[showcase](/showcase/) and inspire others.
+[showcase]({{ '/showcase/' | relative_url }}) and inspire others.

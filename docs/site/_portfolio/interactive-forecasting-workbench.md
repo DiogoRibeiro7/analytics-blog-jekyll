@@ -18,9 +18,9 @@ metrics:
 
 This project packages an end-to-end forecasting workflow built on top of the DataLog theme. It includes:
 
-- **Notebook handoff** – Analysts publish Jupyter notebooks with the [notebook layout](/notebooks/batch-anomaly-detection/)
+- **Notebook handoff** – Analysts publish Jupyter notebooks with the [notebook layout]({{ '/notebooks/batch-anomaly-detection/' | relative_url }})
   and link the outputs to the workbench.
-- **Dataset governance** – The [retail demand benchmark dataset](/datasets/retail-demand-benchmark/) tracks data freshness
+- **Dataset governance** – The [retail demand benchmark dataset]({{ '/datasets/retail-demand-benchmark/' | relative_url }}) tracks data freshness
   and schema drift.
 - **Interactive dashboards** – The workbench renders Plotly and D3 components for multi-horizon forecasts and driver analysis.
 

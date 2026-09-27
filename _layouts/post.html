@@ -326,65 +326,7 @@ schema_type: TechArticle
 </div>
 
 <script nonce="{{ page.csp_nonce }}">
-  // Enhance code blocks with a copy button and language badge.
   document.addEventListener('DOMContentLoaded', function () {
-    const codeBlocks = document.querySelectorAll('.post-content pre > code');
-    codeBlocks.forEach(function (codeBlock) {
-      const pre = codeBlock.parentElement;
-      if (!pre || pre.querySelector('.code-copy')) return;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-block-wrapper';
-      pre.parentNode.insertBefore(wrapper, pre);
-      wrapper.appendChild(pre);
-
-      const metaBar = document.createElement('div');
-      metaBar.className = 'code-block-meta';
-
-      // Rouge puts the language on the block's wrapper rather than on the code.
-      // With line numbers on, the code is a table whose first column holds the
-      // numbers, and the copy leaves them out.
-      const langHolder = codeBlock.matches('[class*="language-"]') ? codeBlock : codeBlock.closest('.highlighter-rouge');
-      const lang = langHolder && langHolder.getAttribute('class');
-      const source = codeBlock.querySelector('.rouge-code') || codeBlock;
-      if (lang) {
-        const m = lang.match(/language-([a-z0-9+#]+)/i);
-        if (m) {
-          const langBadge = document.createElement('span');
-          langBadge.className = 'code-language';
-          langBadge.textContent = m[1].toUpperCase();
-          metaBar.appendChild(langBadge);
-        }
-      }
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'code-copy';
-      button.setAttribute('aria-label', 'Copy code to clipboard');
-      button.textContent = 'Copy';
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        button.addEventListener('click', function () {
-          navigator.clipboard.writeText(source.textContent).then(function () {
-            button.textContent = 'Copied!';
-            button.classList.add('is-copied');
-            setTimeout(function () {
-              button.textContent = 'Copy';
-              button.classList.remove('is-copied');
-            }, 2000);
-          }).catch(function () {
-            button.textContent = 'Error';
-          });
-        });
-      } else {
-        button.disabled = true;
-        button.title = 'Clipboard copying is not supported in this browser';
-      }
-
-      metaBar.appendChild(button);
-      wrapper.insertBefore(metaBar, pre);
-    });
-
     // Make equation references focus their targets for accessibility. This runs
     // on DOMContentLoaded, before MathJax has loaded, when window.MathJax is
     // still the configuration object and has no startup.promise; reading it

@@ -14,7 +14,7 @@
  */
 
 const ACTIVE = "is-active";
-const HEADING_SELECTOR = ".post-content h2[id], .post-content h3[id], .post-content h4[id]";
+const HEADING_SELECTOR = ".post-content h2[id], .post-content h3[id], .post-content h4[id], .docs-content h2[id], .docs-content h3[id], .docs-content h4[id]";
 /** Where a heading sits when nothing says otherwise, and how far past it the section starts. */
 const FALLBACK_READING_LINE = 100;
 const PAST_THE_HEADING = 8;
