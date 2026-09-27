@@ -153,7 +153,6 @@ html[dir='rtl'] .site-search input {
   flex-direction: column;
   gap: map.get($spacing, 6);
   margin-top: map.get($spacing, 4);
-  min-width: 0;
 }
 
 body.dark-mode .analytics-dashboard {
@@ -299,7 +298,6 @@ body.dark-mode .analytics-dashboard {
 
 .analytics-definition-list dt {
   font-weight: 600;
-  overflow-wrap: anywhere;
 }
 
 .analytics-chart {
