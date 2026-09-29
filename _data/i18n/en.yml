@@ -2,6 +2,7 @@
 date:
   formats:
     long: "%B %-d, %Y"
+    month: "%B"
     datetime: "%B %-d, %Y %H:%M"
   months:
     1: January
@@ -45,6 +46,14 @@ date:
     4: Thu
     5: Fri
     6: Sat
+archive:
+  jump: Jump to archive section
+  count: "({{count}} posts)"
+  show_all: "Show all ({{count}} more)"
+  series: Series
+  parts: "({{count}} parts)"
+  articles: Articles
+  empty: No articles published yet.
 global:
   skip_to_main: Skip to main content
   math_ready: Mathematical content is ready

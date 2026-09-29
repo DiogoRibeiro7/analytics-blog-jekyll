@@ -1375,6 +1375,40 @@ Components are mobile-first. Customize breakpoints:
 
 ---
 
+## Archive pages
+
+The gem ships an `archive` layout and `components/post-list.html`. Add a page under your site's `_pages` directory with `layout: archive`, a `title`, and `archive: year`, `tag`, or `category`. The starter template already includes these three pages at `/archives/years/`, `/tags/`, and `/categories/`. Tag and category section IDs match the links on posts and in breadcrumbs. A site with different archive paths should set `tag_archive.path` and `category_archive.path` in `_config.yml` to those paths.
+
+```yaml
+---
+layout: archive
+title: Tags
+archive: tag
+permalink: /tags/
+archive_limit: 20 # optional; each group reveals the rest in a native details element
+---
+```
+
+The year archive lists years newest first. Set `archive_months: true` on that page to split each year into months. Each index has an anchor jump list, counts, and dated entries. The layout uses one page title as its H1 and its sections as H2 (months as H3). Page body text appears before the index.
+
+A curated hub uses `archive: topic` with `topic.tags` and/or `topic.categories`. Matches are case insensitive, and the page body is its introduction. `topic.featured` takes post URLs; matching featured posts appear first. Parts of a series appear once under Series, linking to the most recent matching part. Other posts appear under Articles. A topic with no matches shows an empty state.
+
+```yaml
+---
+layout: archive
+title: Data methods
+archive: topic
+permalink: /archives/data-methods/
+topic:
+  tags: [statistics, research]
+  categories: [Methods]
+  featured: [/2026/02/01/field-notes/]
+---
+```
+
+Run `datalog new archive --type tag` to scaffold a page; `--type year`, `category`, and `topic` are also available. `--title` and `--path` override the defaults. The shared post list accepts `posts` and `variant: compact`, `dated` (default), or `teaser`; it escapes titles and descriptions and renders localized dates in the dated variant. The demo's language and difficulty pages use the same layout with `archive: facet`, `archive_field`, and `archive_terms` to select terms from post front matter.
+
+
 ## Troubleshooting
 
 ### Social Sharing Not Appearing
