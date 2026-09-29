@@ -1408,6 +1408,32 @@ topic:
 
 Run `datalog new archive --type tag` to scaffold a page; `--type year`, `category`, and `topic` are also available. `--title` and `--path` override the defaults. The shared post list accepts `posts` and `variant: compact`, `dated` (default), or `teaser`; it escapes titles and descriptions and renders localized dates in the dated variant. The demo's language and difficulty pages use the same layout with `archive: facet`, `archive_field`, and `archive_terms` to select terms from post front matter.
 
+## Related posts
+
+The theme selects related posts once during a Jekyll build. It indexes tags, categories and keywords, then ranks only posts sharing one of those terms. Shared tags carry an inverse document frequency weight: a tag used on two posts contributes more than one used on most of the site. Categories have a smaller weight. Newer posts win ties in relevance. The post layout renders the selected list using the existing related-post markup and shows the archive message when no candidate qualifies.
+
+Configure the limit, threshold and weights in `_config.yml`:
+
+```yaml
+related_posts:
+  limit: 3
+  min_score: 0.1
+  weights:
+    tags: 3.0
+    categories: 0.35
+    keywords: 1.5
+    text: 0.0 # optional shared title and excerpt words; off by default
+```
+
+The score adds each shared tag's weight times `1 + ln((number of posts + 1) / (posts with that tag + 1))`, and adds the configured weight for each shared category or keyword. With `text` above zero, it also adds that weight per shared title or excerpt word of at least three characters. `min_score` applies to automatic matches, not author-selected picks.
+
+To choose recommendations, set `related_posts` to a list of post URLs, `_posts/…` paths or exact titles in a post's front matter. Picks appear in the given order; the scorer fills remaining slots. A missing or ambiguous pick stops the build and names the source post. Parts of the source post's own series do not appear, and another series contributes at most one part. `related: false` removes a post from other posts' recommendations. `related_posts: false` on a post hides its entire related-post section.
+
+```yaml
+related_posts:
+  - /2024/02/10/sql-analytics-guide/
+  - "Experimental Design"
+```
 
 ## Troubleshooting
 
