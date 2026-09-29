@@ -3,57 +3,31 @@
 required:
   - page
 optional:
-  - limit
   - date_format
 ---
-Builds a list of related posts based on overlapping tags or categories.
+Renders the posts selected at build time by _plugins/related_posts.rb.
 Falls back to a friendly message when no related content is available.
 {%- endcomment -%}
-{%- assign related_limit = include.limit | default: 3 -%}
-{%- comment -%} site.posts is already newest first. {%- endcomment -%}
-{%- assign rendered_count = 0 -%}
 <section class="post-related" aria-labelledby="post-related-heading">
   <h2 id="post-related-heading">Related posts</h2>
   <ul class="post-related-list">
-    {%- for candidate in site.posts -%}
-      {%- if rendered_count >= related_limit -%}{%- break -%}{%- endif -%}
-      {%- if candidate.url != include.page.url -%}
-        {%- assign overlap = 0 -%}
-        {%- if include.page.tags and candidate.tags -%}
-          {%- for tag in include.page.tags -%}
-            {%- if candidate.tags contains tag -%}
-              {%- assign overlap = overlap | plus: 1 -%}
-            {%- endif -%}
-          {%- endfor -%}
-        {%- endif -%}
-        {%- assign category_match = false -%}
-        {%- if include.page.categories and candidate.categories -%}
-          {%- for category in include.page.categories -%}
-            {%- if candidate.categories contains category -%}
-              {%- assign category_match = true -%}
-            {%- endif -%}
-          {%- endfor -%}
-        {%- endif -%}
-        {%- if overlap > 0 or category_match -%}
-          {%- assign rendered_count = rendered_count | plus: 1 -%}
-          <li>
-            <article class="related-post">
-              {%- if candidate.teaser -%}
-              <a class="related-post__media" href="{{ candidate.url | relative_url }}" tabindex="-1" aria-hidden="true"><img src="{{ candidate.teaser | relative_url }}" alt="" loading="lazy" decoding="async" /></a>
-              {%- endif -%}
-              <h3><a href="{{ candidate.url | relative_url }}">{{ candidate.title | escape }}</a></h3>
-              <p class="related-post-meta">
-                {% include helpers/date-format.html date=candidate.date format=include.date_format %} · {{ candidate.excerpt | strip_html | default: '' | truncate: 140 }}
-              </p>
-              {%- if candidate.tags -%}
-                <p class="related-post-tags">Topics: {% include helpers/array-to-sentence.html items=candidate.tags %}</p>
-              {%- endif -%}
-            </article>
-          </li>
-        {%- endif -%}
-      {%- endif -%}
+    {%- for candidate in include.page.related -%}
+      <li>
+        <article class="related-post">
+          {%- if candidate.teaser -%}
+          <a class="related-post__media" href="{{ candidate.url | relative_url }}" tabindex="-1" aria-hidden="true"><img src="{{ candidate.teaser | relative_url }}" alt="" loading="lazy" decoding="async" /></a>
+          {%- endif -%}
+          <h3><a href="{{ candidate.url | relative_url }}">{{ candidate.title | escape }}</a></h3>
+          <p class="related-post-meta">
+            {% include helpers/date-format.html date=candidate.date format=include.date_format %} · {{ candidate.excerpt | strip_html | default: '' | truncate: 140 }}
+          </p>
+          {%- if candidate.tags -%}
+            <p class="related-post-tags">Topics: {% include helpers/array-to-sentence.html items=candidate.tags %}</p>
+          {%- endif -%}
+        </article>
+      </li>
     {%- endfor -%}
-    {%- if rendered_count == 0 -%}
+    {%- if include.page.related.size == 0 -%}
       <li>No related posts yet. Explore the archive for more content.</li>
     {%- endif -%}
   </ul>

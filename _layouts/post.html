@@ -281,8 +281,9 @@ schema_type: TechArticle
   {% assign subscribe_placement = site.subscriptions.placement | default: 'footer' %}
   {% if subscribe_placement contains 'post' %}{% include components/subscribe-form.html where='post' %}{% endif %}
 
-  {%- comment -%} ===== Robust related posts (no where_exp, no nil sort) ===== {%- endcomment -%}
-  {% include post/related-posts.html page=page date_format=date_format %}
+  {%- unless page.related_posts == false -%}
+    {% include post/related-posts.html page=page date_format=date_format %}
+  {%- endunless -%}
 
   <nav class="post-pagination" aria-label="Post navigation">
     {% if page.previous %}
