@@ -36,6 +36,10 @@ module Datalog
 
       private
 
+      def report(message)
+        @report.call(message)
+      end
+
       def checkout_path
         gemfile = File.join(@root, "Gemfile")
         return unless File.file?(gemfile)
@@ -107,13 +111,7 @@ module Datalog
         else
           report("No Gemfile detected—skipping Bundler update")
         end
-        if File.file?(File.join(@root, "package.json"))
-          if @available.call("npm")
-            run!("npm install", @root, "npm could not install the site's packages.")
-          else
-            report("Node.js tooling not available—skipping npm install")
-          end
-        end
+        update_site_npm
         return 0 if @options[:dry_run]
 
         after = locked_version
@@ -123,9 +121,20 @@ module Datalog
         before && after && before != after ? 2 : 0
       end
 
+      def update_site_npm
+        return unless File.file?(File.join(@root, "package.json"))
+
+        if @available.call("npm")
+          run!("npm install", @root, "npm could not install the site's packages.")
+        else
+          report("Node.js tooling not available—skipping npm install")
+        end
+      end
+
       def run!(command, dir, error = "#{command} failed")
         report(@options[:dry_run] ? "Would run #{command} in #{dir}" : "Running #{command} in #{dir}")
         return if @options[:dry_run]
+
         env = command.start_with?("bundle ") ? { "BUNDLE_GEMFILE" => File.join(@root, "Gemfile") } : {}
         return if @execute.call(env, command, dir)
 
@@ -164,8 +173,8 @@ module Datalog
       end
 
       def current_tag(theme)
-        git("tag", "--points-at", "HEAD", dir: theme).lines.map(&:strip)
-           .select { |tag| version(tag) }.max_by { |tag| version(tag) }
+        tags = git("tag", "--points-at", "HEAD", dir: theme).lines.map(&:strip)
+        tags.select { |tag| version(tag) }.max_by { |tag| version(tag) }
       end
 
       def version(tag)
@@ -258,8 +267,9 @@ module Datalog
         files.filter_map do |relative|
           own = File.join(@root, relative)
           source = File.join(theme, relative)
-          "#{relative} differs from the theme's file" if File.file?(source) && File.file?(own) &&
-                                                      !FileUtils.compare_file(own, source)
+          next unless File.file?(source) && File.file?(own)
+
+          "#{relative} differs from the theme's file" unless FileUtils.compare_file(own, source)
         end
       end
     end
