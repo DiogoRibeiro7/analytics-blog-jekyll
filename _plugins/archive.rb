@@ -65,35 +65,42 @@ module Datalog
           group["posts"] << post unless group["posts"].include?(post)
         end
       end
-      groups.values.each do |group|
+      groups.each_value do |group|
         group["count"] = group["posts"].size
         group["remaining"] = group["posts"].drop(limit)
         group["posts"] = group["posts"].first(limit)
       end
+      groups.values
     end
 
     def topic(posts, page, limit)
-      config = page["topic"].is_a?(Hash) ? page["topic"] : {}
+      config = page["topic"] || {}
       tags = Array(config["tags"]).map { |value| value.to_s.downcase }
       categories = Array(config["categories"]).map { |value| value.to_s.downcase }
       featured = Array(config["featured"]).map(&:to_s)
-      matches = posts.select do |post|
-        (Array(post.data["tags"]).map { |value| value.to_s.downcase } & tags).any? ||
-          (Array(post.data["categories"]).map { |value| value.to_s.downcase } & categories).any?
-      end
+      matches = posts.select { |post| topic_match?(post, tags, categories) }
       series, loose = matches.partition do |post|
         post.data["series"].is_a?(Hash) && post.data["series"]["id"]
       end
-      series_groups = series.group_by { |post| post.data["series"]["id"] }
-      series = series_groups.map do |_id, parts|
+      series = topic_series(series, featured)
+      loose.sort_by! { |post| [featured.include?(post.url) ? 0 : 1, -post.date.to_i, post.url] }
+      { "series" => series, "posts" => loose.first(limit), "remaining" => loose.drop(limit),
+        "count" => matches.size }
+    end
+
+    def topic_match?(post, tags, categories)
+      Array(post.data["tags"]).map { |value| value.to_s.downcase }.intersect?(tags) ||
+        Array(post.data["categories"]).map { |value| value.to_s.downcase }.intersect?(categories)
+    end
+
+    def topic_series(posts, featured)
+      groups = posts.group_by { |post| post.data["series"]["id"] }
+      series = groups.map do |_id, parts|
         data = parts.first.data["series"]
         { "title" => data["title"], "url" => parts.first.url,
           "count" => parts.size, "featured" => parts.any? { |post| featured.include?(post.url) } }
       end
-      series.sort_by! { |item| [item["featured"] ? 0 : 1, item["title"].to_s.downcase] }
-      loose.sort_by! { |post| [featured.include?(post.url) ? 0 : 1, -post.date.to_i, post.url] }
-      { "series" => series, "posts" => loose.first(limit), "remaining" => loose.drop(limit),
-        "count" => matches.size }
+      series.sort_by { |item| [item["featured"] ? 0 : 1, item["title"].to_s.downcase] }
     end
   end
 

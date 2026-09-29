@@ -9,8 +9,8 @@ class ArchiveTest < Minitest::Test
     categories = site.document("categories/index.html")
 
     assert_equal 1, tags.css("h1").size
-    assert_equal %w[research ruby], tags.css(".archive-section h2").map { |heading| heading["id"] }
-    assert_equal ["#research", "#ruby"], tags.css(".archive-section nav a").map { |link| link["href"] }
+    assert_equal %w[research ruby], (tags.css(".archive-section h2").map { |heading| heading["id"] })
+    assert_equal ["#research", "#ruby"], (tags.css(".archive-section nav a").map { |link| link["href"] })
     assert_equal 2, tags.css("#ruby + .archive-list li, #ruby ~ details li").size
     assert_equal 1, tags.css("details").size
     assert_equal "Research", categories.at_css("#research").text.split.first
@@ -21,8 +21,8 @@ class ArchiveTest < Minitest::Test
     site = fixture(archive_months: true)
     years = site.document("years/index.html")
 
-    assert_equal %w[2026 2025], years.css(".archive-section > section > h2").map { |heading| heading["id"] }
-    assert_equal ["2026-02", "2026-01"], years.css("[id='2026'] ~ section h3").map { |heading| heading["id"] }
+    assert_equal %w[2026 2025], (years.css(".archive-section > section > h2").map { |heading| heading["id"] })
+    assert_equal ["2026-02", "2026-01"], (years.css("[id='2026'] ~ section h3").map { |heading| heading["id"] })
     assert_equal 1, years.css("h1").size
     assert_equal 3, years.css(".archive-section time").size
   end
@@ -57,9 +57,15 @@ class ArchiveTest < Minitest::Test
       source.page("years/index.md", "Browse by year.",
                   { "layout" => "archive", "title" => "Years", "archive" => "year" }
                     .merge(year_options.transform_keys(&:to_s)))
-      source.page("topic/index.md", "A curated introduction.",
-                  "layout: archive\ntitle: Topic\narchive: topic\ntopic:\n" \
-                  "  tags: [ruby]\n  categories: [Research]\n  featured: [/2026/02/01/standalone/]\n")
+      source.page("topic/index.md", "A curated introduction.", <<~YAML)
+        layout: archive
+        title: Topic
+        archive: topic
+        topic:
+          tags: [ruby]
+          categories: [Research]
+          featured: [/2026/02/01/standalone/]
+      YAML
       source.post("2025-01-01-part-one", "Part one.",
                   "layout: null\ntitle: Part One\ntags: [ruby]\ncategories: [Research]\n" \
                   "series:\n  id: study\n  title: Study series\n  order: 1\n")
