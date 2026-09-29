@@ -71,7 +71,8 @@ class RelatedRankingTest < Minitest::Test
     end
 
     post = site.jekyll.posts.docs.find { |item| item.data["title"] == "Source" }
-    assert_equal ["Match"], post.data["related"].map { |item| item["title"] }
+    titles = post.data["related"].map { |item| item["title"] }
+    assert_equal ["Match"], titles
     assert_includes post.output, "post-related"
   end
 
