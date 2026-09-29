@@ -750,6 +750,15 @@ analytics:
     last_updated: Última actualización
     last_updated_unknown: "Última actualización: pendiente"
     cache_window: Datos en caché por 24 horas
+    current: Resultados actuales
+    stale: Resultados en caché
+    stale_note: GA4 no está disponible. Se muestran los últimos resultados guardados.
+    setup_needed: Configuración necesaria
+    unavailable: No disponible
+    empty: Aún no hay resultados
+    view_data: Ver tabla de datos
+    chart_unavailable: Gráfico no disponible; consulta la tabla de datos de abajo.
+    no_chart_data: No hay datos para el gráfico.
     top_posts: Entradas destacadas
     search_terms: Consultas de búsqueda
     visitor_trends: Tendencias de visitantes

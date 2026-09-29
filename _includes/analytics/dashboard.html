@@ -1,5 +1,5 @@
 {% assign analytics = site.data.analytics_dashboard | default: {} %}
-<div class="analytics-dashboard" data-status="{{ analytics.status | default: 'unavailable' }}">
+<div class="analytics-dashboard" data-status="{{ analytics.status | default: 'unavailable' }}" data-stale="{{ analytics.stale | default: false }}" data-chart-unavailable="{% t 'analytics.dashboard.chart_unavailable' fallback: 'Chart unavailable; use the data table below.' %}" data-no-chart-data="{% t 'analytics.dashboard.no_chart_data' fallback: 'No chart data available.' %}">
   <div class="analytics-header">
     <div>
       <h2 class="analytics-title">{% t 'analytics.dashboard.title' fallback: 'Analytics Overview' %}</h2>
@@ -12,9 +12,15 @@
       </p>
     </div>
     <div class="analytics-meta">
+      <span class="analytics-state" role="status" data-empty-label="{% t 'analytics.dashboard.empty' fallback: 'No results yet' %}">
+        {% if analytics.stale %}{% t 'analytics.dashboard.stale' fallback: 'Cached results' %}
+        {% elsif analytics.status == 'ok' %}{% t 'analytics.dashboard.current' fallback: 'Current results' %}
+        {% elsif analytics.status == 'missing_configuration' or analytics.status == 'missing_credentials' or analytics.status == 'missing_dependency' %}{% t 'analytics.dashboard.setup_needed' fallback: 'Setup needed' %}
+        {% else %}{% t 'analytics.dashboard.unavailable' fallback: 'Unavailable' %}{% endif %}
+      </span>
       <span class="analytics-refresh">
         {% assign fetched = analytics.fetched_at %}
-        {% if fetched %}
+        {% if fetched and analytics.status == 'ok' %}
           {% t 'analytics.dashboard.last_updated' fallback: 'Last updated' %}: <time datetime="{{ fetched }}">{{ fetched | date: '%Y-%m-%d %H:%M' }}</time>
         {% else %}
           {% t 'analytics.dashboard.last_updated_unknown' fallback: 'Last updated: pending' %}
@@ -24,17 +30,18 @@
     </div>
   </div>
 
-  {% unless analytics.status == 'ok' %}
-    <div class="analytics-alert">
-      <p>{{ analytics.message | default: "Configure GA4 credentials via GA4_PROPERTY_ID and GA4_CREDENTIALS_JSON." }}</p>
+  {% if analytics.stale or analytics.status != 'ok' %}
+    <div class="analytics-alert" role="status">
+      <p>{% if analytics.stale %}{% t 'analytics.dashboard.stale_note' fallback: 'GA4 is unavailable. Showing the last successful cached results.' %}{% else %}{{ analytics.message | default: "Configure GA4 credentials via GA4_PROPERTY_ID and GA4_CREDENTIALS_JSON." }}{% endif %}</p>
     </div>
-  {% endunless %}
+  {% endif %}
 
   <div class="analytics-grid">
     <section class="analytics-card">
       <header>
         <h3>{% t 'analytics.dashboard.top_posts' fallback: 'Top posts' %}</h3>
       </header>
+      <div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.top_posts' fallback: 'Top posts' %}">
       <table class="analytics-table" aria-live="polite">
         <thead>
           <tr>
@@ -49,12 +56,14 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </section>
 
     <section class="analytics-card">
       <header>
         <h3>{% t 'analytics.dashboard.search_terms' fallback: 'Search queries' %}</h3>
       </header>
+      <div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.search_terms' fallback: 'Search queries' %}">
       <table class="analytics-table" aria-live="polite">
         <thead>
           <tr>
@@ -68,20 +77,23 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </section>
 
     <section class="analytics-card analytics-card--wide">
       <header>
         <h3>{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}</h3>
       </header>
-      <canvas id="analytics-visitors-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}"></canvas>
+      <div class="analytics-chart"><canvas id="analytics-visitors-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}"></canvas><p class="analytics-chart-status" role="status">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</p></div>
+      <details class="analytics-chart-data" hidden><summary>{% t 'analytics.dashboard.view_data' fallback: 'View data table' %}</summary><div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.visitor_trends' fallback: 'Visitor trends' %}"><table class="analytics-table"><thead></thead><tbody></tbody></table></div></details>
     </section>
 
     <section class="analytics-card analytics-card--wide">
       <header>
         <h3>{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}</h3>
       </header>
-      <canvas id="analytics-engagement-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}"></canvas>
+      <div class="analytics-chart"><canvas id="analytics-engagement-chart" height="240" role="img" aria-label="{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}"></canvas><p class="analytics-chart-status" role="status">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</p></div>
+      <details class="analytics-chart-data" hidden><summary>{% t 'analytics.dashboard.view_data' fallback: 'View data table' %}</summary><div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.engagement' fallback: 'Engagement by post' %}"><table class="analytics-table"><thead></thead><tbody></tbody></table></div></details>
     </section>
 
     <section class="analytics-card">
@@ -111,13 +123,15 @@
           <dd data-field="scholar-i10-index">—</dd>
         </div>
       </dl>
-      <canvas id="analytics-scholar-chart" height="200" role="img" aria-label="{% t 'analytics.dashboard.scholar_trend' fallback: 'Citations by year' %}"></canvas>
+      <div class="analytics-chart"><canvas id="analytics-scholar-chart" height="200" role="img" aria-label="{% t 'analytics.dashboard.scholar_trend' fallback: 'Citations by year' %}"></canvas><p class="analytics-chart-status" role="status">{% t 'analytics.dashboard.loading' fallback: 'Loading analytics…' %}</p></div>
+      <details class="analytics-chart-data" hidden><summary>{% t 'analytics.dashboard.view_data' fallback: 'View data table' %}</summary><div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.scholar_trend' fallback: 'Citations by year' %}"><table class="analytics-table"><thead></thead><tbody></tbody></table></div></details>
     </section>
 
     <section class="analytics-card analytics-card--wide">
       <header>
         <h3>{% t 'analytics.dashboard.monthly_reports' fallback: 'Monthly reports' %}</h3>
       </header>
+      <div class="analytics-table-scroll" role="region" tabindex="0" aria-label="{% t 'analytics.dashboard.monthly_reports' fallback: 'Monthly reports' %}">
       <table class="analytics-table" aria-live="polite">
         <thead>
           <tr>
@@ -134,6 +148,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </section>
   </div>
 

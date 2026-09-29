@@ -144,59 +144,109 @@ export function formatDateLabel(value) {
   return value;
 }
 
+/** Read the effective theme tokens at chart creation time. */
+function chartColors() {
+  const root = document.querySelector('.analytics-dashboard') || document.body;
+  const style = window.getComputedStyle(root);
+  const token = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+  return {
+    text: token('--color-text-secondary', '#64748b'),
+    grid: token('--color-border', '#cbd5e1'),
+    series: [
+      token('--analytics-series-1', '#2155a6'),
+      token('--analytics-series-2', '#0c756b'),
+      token('--analytics-series-3', '#6b48a5'),
+      token('--analytics-series-4', '#9c4d13'),
+    ],
+  };
+}
+
+/**
+ * Keep chart data available as an accessible table and explain empty charts.
+ * @param {HTMLCanvasElement} canvas - Chart element
+ * @param {string} category - Label for the first table column
+ * @param {Array<string|number>} labels - Chart categories
+ * @param {Array<{label: string, data: number[]}>} datasets - Plotted values
+ */
+function renderChartData(canvas, category, labels, datasets) {
+  const dashboard = canvas.closest('.analytics-dashboard');
+  const status = canvas.parentElement?.querySelector('.analytics-chart-status');
+  const details = canvas.closest('.analytics-card')?.querySelector('.analytics-chart-data');
+  const hasData = labels.length > 0;
+  const hasChart = typeof Chart !== 'undefined';
+
+  canvas.hidden = !hasData || !hasChart;
+  if (status) {
+    status.hidden = hasData && hasChart;
+    status.textContent = hasData
+      ? dashboard?.dataset.chartUnavailable || 'Chart unavailable; use the data table below.'
+      : dashboard?.dataset.noChartData || 'No chart data available.';
+  }
+  if (!details) return;
+
+  details.hidden = !hasData;
+  if (!hasData) return;
+  const head = details.querySelector('thead');
+  const body = details.querySelector('tbody');
+  if (!head || !body) return;
+  const heading = document.createElement('tr');
+  [category, ...datasets.map((dataset) => dataset.label)].forEach((label) => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.textContent = label;
+    heading.appendChild(th);
+  });
+  head.replaceChildren(heading);
+  body.replaceChildren();
+  labels.forEach((label, index) => {
+    const row = document.createElement('tr');
+    const th = document.createElement('th');
+    th.scope = 'row';
+    th.textContent = String(label);
+    row.appendChild(th);
+    datasets.forEach((dataset) => {
+      const cell = document.createElement('td');
+      cell.textContent = formatNumber(dataset.data[index]);
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+
+/** Replace an existing Chart.js instance when the theme changes. */
+function replaceChart(canvas, config) {
+  Chart.getChart?.(canvas)?.destroy();
+  new Chart(canvas, config);
+}
+
 export function renderVisitorChart() {
   const canvas = document.getElementById("analytics-visitors-chart");
-  if (!canvas || typeof Chart === "undefined") return;
+  if (!canvas) return;
 
   const rows = parseRows(getAnalyticsData().visitor_trends);
-  if (!rows.length) return;
+  if (!rows.length) {
+    renderChartData(canvas, 'Date', [], []);
+    return;
+  }
 
   const labels = rows.map((row) => formatDateLabel(row.dimensionValues?.[0]?.value));
   const totalUsers = rows.map((row) => Number(row.metricValues?.[0]?.value || 0));
   const newUsers = rows.map((row) => Number(row.metricValues?.[1]?.value || 0));
   const sessions = rows.map((row) => Number(row.metricValues?.[2]?.value || 0));
   const pageViews = rows.map((row) => Number(row.metricValues?.[3]?.value || 0));
+  const colors = chartColors();
+  const datasets = [
+    { label: 'Total users', data: totalUsers, borderColor: colors.series[0], tension: 0.35, fill: false },
+    { label: 'New users', data: newUsers, borderColor: colors.series[1], tension: 0.35, fill: false },
+    { label: 'Sessions', data: sessions, borderColor: colors.series[2], tension: 0.35, fill: false },
+    { label: 'Page views', data: pageViews, borderColor: colors.series[3], borderDash: [6, 6], tension: 0.35, fill: false },
+  ];
+  renderChartData(canvas, 'Date', labels, datasets);
+  if (typeof Chart === 'undefined') return;
 
-  new Chart(canvas, {
+  replaceChart(canvas, {
     type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Total users",
-          data: totalUsers,
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37, 99, 235, 0.15)",
-          tension: 0.35,
-          fill: true,
-        },
-        {
-          label: "New users",
-          data: newUsers,
-          borderColor: "#10b981",
-          backgroundColor: "rgba(16, 185, 129, 0.12)",
-          tension: 0.35,
-          fill: false,
-        },
-        {
-          label: "Sessions",
-          data: sessions,
-          borderColor: "#9333ea",
-          backgroundColor: "rgba(147, 51, 234, 0.1)",
-          tension: 0.35,
-          fill: false,
-        },
-        {
-          label: "Page views",
-          data: pageViews,
-          borderColor: "#f97316",
-          backgroundColor: "rgba(249, 115, 22, 0.1)",
-          borderDash: [6, 6],
-          tension: 0.35,
-          fill: false,
-        },
-      ],
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -204,11 +254,13 @@ export function renderVisitorChart() {
       scales: {
         y: {
           beginAtZero: true,
-          ticks: { callback: (val) => formatNumber(val) },
+          ticks: { color: colors.text, callback: (val) => formatNumber(val) },
+          grid: { color: colors.grid },
         },
+        x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
       },
       plugins: {
-        legend: { position: "top" },
+        legend: { position: "top", labels: { color: colors.text } },
       },
     },
   });
@@ -216,40 +268,37 @@ export function renderVisitorChart() {
 
 export function renderEngagementChart() {
   const canvas = document.getElementById("analytics-engagement-chart");
-  if (!canvas || typeof Chart === "undefined") return;
+  if (!canvas) return;
   const rows = parseRows(getAnalyticsData().engagement_by_page).slice(0, 10);
-  if (!rows.length) return;
+  if (!rows.length) {
+    renderChartData(canvas, 'Post', [], []);
+    return;
+  }
 
   const labels = rows.map((row) => row.dimensionValues?.[0]?.value || "—");
   const engagedSessions = rows.map((row) => Number(row.metricValues?.[2]?.value || 0));
   const views = rows.map((row) => Number(row.metricValues?.[0]?.value || 0));
+  const colors = chartColors();
+  const datasets = [
+    { label: 'Engaged sessions', data: engagedSessions, backgroundColor: colors.series[0] },
+    { label: 'Page views', data: views, backgroundColor: colors.series[1] },
+  ];
+  renderChartData(canvas, 'Post', labels, datasets);
+  if (typeof Chart === 'undefined') return;
 
-  new Chart(canvas, {
+  replaceChart(canvas, {
     type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Engaged sessions",
-          data: engagedSessions,
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-        {
-          label: "Page views",
-          data: views,
-          backgroundColor: "rgba(14, 165, 233, 0.5)",
-        },
-      ],
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: "y",
       scales: {
-        x: { beginAtZero: true, ticks: { callback: (val) => formatNumber(val) } },
+        x: { beginAtZero: true, ticks: { color: colors.text, callback: (val) => formatNumber(val) }, grid: { color: colors.grid } },
+        y: { ticks: { color: colors.text }, grid: { color: colors.grid } },
       },
       plugins: {
-        legend: { position: "top" },
+        legend: { position: "top", labels: { color: colors.text } },
       },
     },
   });
@@ -290,31 +339,32 @@ export function renderScholar() {
   if (i10Field) i10Field.textContent = metrics.i10_index ? formatNumber(Number(metrics.i10_index)) : "—";
 
   const canvas = document.getElementById("analytics-scholar-chart");
-  if (!canvas || typeof Chart === "undefined") return;
+  if (!canvas) return;
   const yearly = metrics.yearly_totals || {};
   const entries = Object.entries(yearly)
     .map(([year, value]) => [Number(year), Number(value)])
     .sort((a, b) => a[0] - b[0]);
-  if (!entries.length) return;
+  if (!entries.length) {
+    renderChartData(canvas, 'Year', [], []);
+    return;
+  }
+  const colors = chartColors();
+  const labels = entries.map((item) => item[0]);
+  const datasets = [{ label: 'Citations', data: entries.map((item) => item[1]), backgroundColor: colors.series[2] }];
+  renderChartData(canvas, 'Year', labels, datasets);
+  if (typeof Chart === 'undefined') return;
 
-  new Chart(canvas, {
+  replaceChart(canvas, {
     type: "bar",
-    data: {
-      labels: entries.map((item) => item[0]),
-      datasets: [
-        {
-          label: "Citations",
-          data: entries.map((item) => item[1]),
-          backgroundColor: "rgba(99, 102, 241, 0.8)",
-        },
-      ],
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { beginAtZero: true, ticks: { callback: (val) => formatNumber(val) } },
+        y: { beginAtZero: true, ticks: { color: colors.text, callback: (val) => formatNumber(val) }, grid: { color: colors.grid } },
+        x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
       },
+      plugins: { legend: { labels: { color: colors.text } } },
     },
   });
 }
@@ -362,8 +412,23 @@ export function render() {
       li.textContent = getAnalyticsData().message || "Analytics data unavailable.";
       events.replaceChildren(li);
     }
+    renderVisitorChart();
+    renderEngagementChart();
     renderScholar();
     return;
+  }
+
+  const data = getAnalyticsData();
+  const hasResults = ['top_posts', 'search_terms', 'visitor_trends', 'engagement_by_page', 'key_events']
+    .some((name) => parseRows(data[name]).length > 0)
+    || (Array.isArray(data.monthly_reports) && data.monthly_reports.length > 0);
+  const dashboard = document.querySelector('.analytics-dashboard');
+  if (dashboard) {
+    dashboard.dataset.state = hasResults ? 'populated' : 'empty';
+    const state = dashboard.querySelector('.analytics-state');
+    if (!hasResults && dashboard.dataset.stale !== 'true' && state) {
+      state.textContent = state.dataset.emptyLabel || 'No results yet';
+    }
   }
 
   renderTopPosts();
@@ -378,5 +443,15 @@ export function render() {
 // Auto-initialize when module loads (backward compatibility)
 // Skip auto-init in test environment
 if (typeof window !== 'undefined' && !window.__VITEST__) {
-  onReady(render);
+  onReady(() => {
+    render();
+    if (!document.querySelector('.analytics-dashboard')) return;
+    // Chart.js paints colours into the canvas, so rebuild charts when the
+    // effective theme changes. Other dashboard content stays in place.
+    new MutationObserver(() => {
+      renderVisitorChart();
+      renderEngagementChart();
+      renderScholar();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
 }

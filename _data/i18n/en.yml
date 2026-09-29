@@ -750,6 +750,15 @@ analytics:
     last_updated: Last updated
     last_updated_unknown: "Last updated: pending"
     cache_window: Data cached for 24 hours
+    current: Current results
+    stale: Cached results
+    stale_note: GA4 is unavailable. Showing the last successful cached results.
+    setup_needed: Setup needed
+    unavailable: Unavailable
+    empty: No results yet
+    view_data: View data table
+    chart_unavailable: Chart unavailable; use the data table below.
+    no_chart_data: No chart data available.
     top_posts: Top posts
     search_terms: Search queries
     visitor_trends: Visitor trends

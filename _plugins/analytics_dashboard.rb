@@ -25,12 +25,15 @@ module Datalog
     module_function
 
     def fetch(site)
+      cached = nil
       cache_path = cache_path_for(site)
       cached = read_cache(cache_path)
       return cached if fresh?(cached)
 
       data = query_analytics(site)
       data["fetched_at"] = Time.now.utc.iso8601
+      return cached.merge("stale" => true) if data["status"] == "error" && cached&.fetch("status", nil) == "ok"
+
       # Only a successful report is cached. A missing-configuration or error
       # payload used to be kept for CACHE_TTL as well, so a site that had just
       # set GA4_PROPERTY_ID went on reporting the old problem for a day.
@@ -38,7 +41,7 @@ module Datalog
       data
     rescue StandardError => e
       Jekyll.logger.warn("Analytics", "Falling back to cached analytics data: #{e.message}")
-      cached || fallback_payload("error", e.message)
+      cached&.fetch("status", nil) == "ok" ? cached.merge("stale" => true) : fallback_payload("error", e.message)
     end
 
     def cache_path_for(site)
