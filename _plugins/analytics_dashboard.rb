@@ -25,6 +25,7 @@ module Datalog
     module_function
 
     def fetch(site)
+      cached = nil
       cache_path = cache_path_for(site)
       cached = read_cache(cache_path)
       return cached if fresh?(cached)
