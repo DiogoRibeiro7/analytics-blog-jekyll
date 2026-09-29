@@ -13,6 +13,38 @@ require_relative "slug"
 require_relative "theme/version"
 
 module Datalog
+  module ArchiveScaffold
+    private
+
+    def scaffold_archive
+      type = options[:type].to_s.downcase
+      unless %w[year tag category topic].include?(type)
+        say_status :error, "Archive type must be year, tag, category, or topic", :red
+        exit 1
+      end
+
+      path = options[:path] || { "year" => "/archives/years/", "tag" => "/tags/",
+                                 "category" => "/categories/", "topic" => "/archives/topic/" }.fetch(type)
+      unless path.match?(%r{\A/[a-zA-Z0-9/_-]+/\z}) && !path.include?("//")
+        say_status :error, "Archive path must be a site URL such as /tags/", :red
+        exit 1
+      end
+
+      title = options[:title] || { "year" => "Years", "tag" => "Tags", "category" => "Categories",
+                                   "topic" => "Topic" }.fetch(type)
+      file = File.join(ensure_directory!("_pages"), "archive-#{type}.md")
+      if File.exist?(file)
+        say_status :error, "Archive already exists: #{file}", :red
+        exit 1
+      end
+
+      topic = type == "topic" ? "topic:\n  tags: [example-topic]\n  categories: []\n  featured: []\n" : ""
+      front = "---\nlayout: archive\ntitle: #{title.to_json}\narchive: #{type}\n"
+      create_file(file, "#{front}permalink: #{path.to_json}\n#{topic}---\n\n")
+      say_status :create, relative_to_root(file), :green
+    end
+  end
+
   # Command line interface for automating common theme workflows.
   class CLI < Thor
     include Thor::Actions
@@ -135,41 +167,9 @@ module Datalog
       say "Theme dependencies are up to date!"
     end
 
-    module ArchiveScaffold
-      private
-
-      def scaffold_archive
-        type = options[:type].to_s.downcase
-        unless %w[year tag category topic].include?(type)
-          say_status :error, "Archive type must be year, tag, category, or topic", :red
-          exit 1
-        end
-
-        path = options[:path] || { "year" => "/archives/years/", "tag" => "/tags/",
-                                   "category" => "/categories/", "topic" => "/archives/topic/" }.fetch(type)
-        unless path.match?(%r{\A/[a-zA-Z0-9/_-]+/\z}) && !path.include?("//")
-          say_status :error, "Archive path must be a site URL such as /tags/", :red
-          exit 1
-        end
-
-        title = options[:title] || { "year" => "Years", "tag" => "Tags", "category" => "Categories",
-                                     "topic" => "Topic" }.fetch(type)
-        file = File.join(ensure_directory!("_pages"), "archive-#{type}.md")
-        if File.exist?(file)
-          say_status :error, "Archive already exists: #{file}", :red
-          exit 1
-        end
-
-        topic = type == "topic" ? "topic:\n  tags: [example-topic]\n  categories: []\n  featured: []\n" : ""
-        front = "---\nlayout: archive\ntitle: #{title.to_json}\narchive: #{type}\n"
-        create_file(file, "#{front}permalink: #{path.to_json}\n#{topic}---\n\n")
-        say_status :create, relative_to_root(file), :green
-      end
-    end
-
     class New < Thor
       include Thor::Actions
-      include ArchiveScaffold
+      include Datalog::ArchiveScaffold
 
       class_option :root,
                    type: :string,

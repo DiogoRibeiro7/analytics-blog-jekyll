@@ -9,8 +9,10 @@ class ArchiveTest < Minitest::Test
     categories = site.document("categories/index.html")
 
     assert_equal 1, tags.css("h1").size
-    assert_equal %w[research ruby], (tags.css(".archive-section h2").map { |heading| heading["id"] })
-    assert_equal ["#research", "#ruby"], (tags.css(".archive-section nav a").map { |link| link["href"] })
+    tag_ids = tags.css(".archive-section h2").map { |heading| heading["id"] }
+    jump_links = tags.css(".archive-section nav a").map { |link| link["href"] }
+    assert_equal %w[research ruby], tag_ids
+    assert_equal ["#research", "#ruby"], jump_links
     assert_equal 2, tags.css("#ruby + .archive-list li, #ruby ~ details li").size
     assert_equal 1, tags.css("details").size
     assert_equal "Research", categories.at_css("#research").text.split.first
@@ -21,8 +23,10 @@ class ArchiveTest < Minitest::Test
     site = fixture(archive_months: true)
     years = site.document("years/index.html")
 
-    assert_equal %w[2026 2025], (years.css(".archive-section > section > h2").map { |heading| heading["id"] })
-    assert_equal ["2026-02", "2026-01"], (years.css("[id='2026'] ~ section h3").map { |heading| heading["id"] })
+    year_ids = years.css(".archive-section > section > h2").map { |heading| heading["id"] }
+    month_ids = years.css("[id='2026'] ~ section h3").map { |heading| heading["id"] }
+    assert_equal %w[2026 2025], year_ids
+    assert_equal ["2026-02", "2026-01"], month_ids
     assert_equal 1, years.css("h1").size
     assert_equal 3, years.css(".archive-section time").size
   end
@@ -63,7 +67,7 @@ class ArchiveTest < Minitest::Test
         archive: topic
         topic:
           tags: [ruby]
-          categories: [Research]
+          categories: [Research, Methods]
           featured: [/2026/02/01/standalone/]
       YAML
       source.post("2025-01-01-part-one", "Part one.",
@@ -73,7 +77,7 @@ class ArchiveTest < Minitest::Test
                   "layout: null\ntitle: Part Two\ntags: [ruby]\ncategories: [Research]\n" \
                   "series:\n  id: study\n  order: 2\n")
       source.post("2026-02-01-standalone", "Standalone.",
-                  "layout: null\ntitle: Standalone\ntags: [research]\n")
+                  "layout: null\ntitle: Standalone\ntags: [research]\ncategories: [Methods]\n")
     end
   end
 end
