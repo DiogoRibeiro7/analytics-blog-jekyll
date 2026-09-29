@@ -140,31 +140,25 @@ module Datalog
     end
 
     desc "update", "Update the DataLog theme and related assets to the latest version"
+    method_option :to, type: :string, default: "latest", desc: "Release tag to check out (default: latest stable)"
+    method_option :dry_run, type: :boolean, default: false, desc: "Show the update without changing files"
+    method_option :build, type: :boolean, default: false, desc: "Build the site in a temporary directory after updating"
     long_desc <<~DESC
-      Runs Bundler to update the datalog-theme dependency to the latest compatible
-      release and refreshes npm packages if a package.json file is present.
+      For a path-installed Git checkout, checks out a release, builds its script
+      bundles, installs site gems, checks for stale files and stages the submodule.
+      For a published gem, updates Bundler and the site's npm packages.
+      Exit codes: 0 already current, 2 updated, 1 failed.
     DESC
     def update
-      root = site_root
-      gemfile = gemfile_path(root)
-
-      if File.exist?(gemfile)
-        run_or_exit(:bundle, "bundle update datalog-theme", root, "Bundler could not update datalog-theme.",
-                    { "BUNDLE_GEMFILE" => gemfile })
-      else
-        say_status :skip, "No Gemfile detected—skipping Bundler update", :yellow
-      end
-
-      package_json = File.join(root, "package.json")
-      if File.exist?(package_json) && command_available?("npm")
-        # npm's exit status used to be dropped, so a failed install still ended
-        # with "Theme dependencies are up to date!".
-        run_or_exit(:npm, "npm install", root, "npm could not install the site's packages.")
-      elsif File.exist?(package_json)
-        say_status :warn, "Node.js tooling not available—skipping npm install", :yellow
-      end
-
-      say "Theme dependencies are up to date!"
+      require_relative "theme/updater"
+      status = Theme::Updater.new(root: site_root, options: options,
+                                  report: ->(message) { say(message) },
+                                  execute: ->(env, command, dir) { system(env, command, chdir: dir) },
+                                  available: ->(command) { command_available?(command) }).run
+      exit status if status == 2
+    rescue Theme::Updater::Error => e
+      say_error e.message
+      exit 1
     end
 
     class New < Thor

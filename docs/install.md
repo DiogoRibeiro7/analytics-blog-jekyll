@@ -195,15 +195,30 @@ Layouts, includes, Sass, assets and the theme's `_data` then all come from
   update. Delete it. Your own `assets/css/main.scss`, translations in
   `_data/i18n` and images still override the theme's as they should.
 
-To update, check out another tag, build the bundles again and commit the
-submodule:
+To update, run the CLI from your site's directory. It lists newer release
+tags, chooses the latest stable tag by default, checks for local changes,
+builds the theme bundles, installs the site's gems, checks for stale site
+copies and configuration, and stages the submodule pointer:
 
 ```bash
-git -C vendor/datalog fetch --tags
-git -C vendor/datalog checkout vX.Y.Z
-(cd vendor/datalog && npm ci && npm run build:js)
-git add vendor/datalog && git commit -m "Update the DataLog theme to vX.Y.Z"
+bundle exec datalog update --dry-run
+bundle exec datalog update --to vX.Y.Z
+# or: bundle exec datalog update --to latest --build
 ```
+
+`--to latest` skips prerelease tags; name a prerelease tag explicitly to use
+one. `--dry-run` only reports the intended steps, and `--build` verifies the
+site in a temporary output directory. The command prints Removed, Changed and
+Deprecated changelog entries across the selected releases. It never commits
+or pushes: inspect the staged pointer and use the printed `git commit` command
+when ready. Exit status 0 means already current, 2 means updated, and 1 means
+the update failed. If preflight finds a stale copy or old `*_dir` setting,
+resolve every reported check and run the command again. A failed build also
+needs attention before committing.
+
+For a site using the published gem, the same command runs `bundle update
+datalog-theme`, refreshes the site's npm packages when available, and prints
+the relevant changelog sections after a version change.
 
 On GitHub Actions, check out the submodule and build the bundles before
 Jekyll:
