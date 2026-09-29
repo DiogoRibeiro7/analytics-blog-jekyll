@@ -2,17 +2,14 @@
 ---
 optional: []
 ---
-"Report an error or suggest a correction" (assets/js/corrections/form.js):
-structured feedback about an article, apart from comments, sent to the
-site's dynamic services (docs/dynamic-services.md) and never shown on the
-page. Renders only when the site has a backend with the corrections feature
-on, `corrections.enabled` is not false, and the page does not say
-`corrections: false`. The categories come from `corrections.categories`,
-their labels from `corrections.categories.*` in _data/i18n.
+"Report an error or suggest a correction": a private form when dynamic
+services offer corrections, or an issue/email link on a static site.
+`corrections.enabled: false` or page `corrections: false` removes both.
 {%- endcomment -%}
 {%- assign services = site.dynamic_services -%}
 {%- assign corrections = site.corrections -%}
-{%- if services.base_url and services.base_url != '' and services.features.corrections != false and corrections.enabled != false and page.corrections != false -%}
+{%- if corrections.enabled != false and page.corrections != false -%}
+{%- if services.base_url and services.base_url != '' and services.features.corrections != false -%}
 {%- assign categories = corrections.categories -%}
 {%- if categories == nil or categories.size == 0 -%}
   {%- assign categories = "mathematical-error,factual-error,citation,code,reproducibility,typo,accessibility,other" | split: "," -%}
@@ -79,4 +76,14 @@ their labels from `corrections.categories.*` in _data/i18n.
     <p class="service-form__status" data-form-status role="status" aria-live="polite" hidden></p>
   </form>
 </details>
+{%- else -%}
+{%- assign article_url = page.url | absolute_url -%}
+{%- assign fallback = page | correction_fallback: article_url -%}
+{%- if fallback -%}
+<div class="correction-report correction-report--fallback" id="correction-report">
+  <a href="{{ fallback.href | escape }}" data-correction-fallback data-correction-body-param="{{ fallback.body_param | escape }}" data-correction-section-label="{{ 'corrections.fallback.section' | t | escape }}" data-correction-quote-label="{{ 'corrections.fallback.quote' | t | escape }}">{% t 'corrections.summary' %}</a>
+  {% if fallback.kind == 'issue' %}<p class="correction-report__note">{% t 'corrections.fallback.public_note' %}</p>{% endif %}
+</div>
+{%- endif -%}
+{%- endif -%}
 {%- endif -%}

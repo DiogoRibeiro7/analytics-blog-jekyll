@@ -6,11 +6,17 @@
  */
 
 import { initCorrectionReports } from "./corrections/form.js";
+import { initCorrectionFallbacks } from "./corrections/fallback.js";
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => initCorrectionReports());
-} else {
+function initCorrections() {
   initCorrectionReports();
+  initCorrectionFallbacks();
 }
 
-export { initCorrectionReports };
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCorrections);
+} else {
+  initCorrections();
+}
+
+export { initCorrectionReports, initCorrectionFallbacks };

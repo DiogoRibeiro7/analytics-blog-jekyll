@@ -8,17 +8,19 @@ require_relative "test_helper"
 class CorrectionsTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "api_version" => "v1", "features" => { "corrections" => true } }.freeze
 
-  def test_the_demo_without_a_backend_renders_no_form
+  def test_the_demo_without_a_backend_offers_email_instead_of_a_form
     html = SiteBuilder.read("2024/04/05/sql-optimization-guide/index.html")
 
     refute_includes html, "data-correction-report"
-    assert_includes html, 'body.dataset.featureCorrections = "false"'
+    assert_includes html, "data-correction-fallback"
+    assert_includes html, 'body.dataset.featureCorrections = "auto"'
     refute_match(%r{rel="modulepreload"[^>]*/corrections\.js}, html)
   end
 
   def test_a_site_with_a_backend_renders_the_form
     doc = render("dynamic_services" => SERVICES)
     root = doc.at_css("details[data-correction-report]")
+    assert_nil doc.at_css("[data-correction-fallback]")
 
     assert_equal ["https://example.org/", "Paper"], [root["data-article-url"], root["data-article-title"]]
     assert_equal "Report an error or suggest a correction", root.at_css("summary").text
@@ -54,6 +56,49 @@ class CorrectionsTest < Minitest::Test
     assert_nil form_in(render({})), "no backend, no form"
   end
 
+  def test_a_static_github_site_has_an_encoded_issue_link_and_public_notice
+    doc = render({ "repository" => "https://github.com/example/research",
+                   "corrections" => { "issue_labels" => ["correction", "needs review"] } },
+                 "title: 'Paper <script> & findings'\n")
+    link = doc.at_css("[data-correction-fallback]")
+    params = URI.decode_www_form(URI.parse(link["href"]).query).to_h
+
+    assert_equal "https://github.com/example/research/issues/new", link["href"].split("?").first
+    assert_equal "Correction: Paper <script> & findings", params["title"]
+    assert_includes params["body"], "https://example.org/"
+    assert_equal "correction,needs review", params["labels"]
+    assert_equal "body", link["data-correction-body-param"]
+    assert_includes doc.at_css(".correction-report__note").text, "public"
+    refute_includes doc.to_html, "<script> & findings"
+    assert_nil form_in(doc)
+  end
+
+  def test_gitlab_email_and_opt_out_modes
+    gitlab = render("repository" => "https://gitlab.com/team/subgroup/project")
+    link = gitlab.at_css("[data-correction-fallback]")
+    assert_equal "https://gitlab.com/team/subgroup/project/-/issues/new", link["href"].split("?").first
+    assert_equal "Correction: Paper", URI.decode_www_form(URI.parse(link["href"]).query).to_h["issue[title]"]
+
+    email = render("contact_email" => "reader@example.org")
+    link = email.at_css("[data-correction-fallback]")
+    assert_match(/\Amailto:reader@example\.org\?/, link["href"])
+    assert_includes URI.decode_www_form(link["href"].split("?", 2).last).to_h["body"], "https://example.org/"
+    assert_nil email.at_css(".correction-report__note")
+
+    assert_nil render("repository" => "javascript:alert(1)").at_css("[data-correction-fallback]")
+    assert_nil render("repository" => "https://github.com.evil.example/a/b").at_css("[data-correction-fallback]")
+    missing_issue = render("corrections" => { "fallback" => "issue" }, "contact_email" => "reader@example.org")
+    assert_nil missing_issue.at_css("[data-correction-fallback]")
+    no_fallback = render("corrections" => { "fallback" => "none" }, "repository" => "https://github.com/a/b")
+    assert_nil no_fallback.at_css("[data-correction-fallback]")
+    opted_out = render({ "repository" => "https://github.com/a/b" }, "corrections: false\n")
+    assert_nil opted_out.at_css("[data-correction-fallback]")
+    disabled = render("repository" => "https://github.com/a/b", "corrections" => { "enabled" => false })
+    assert_nil disabled.at_css("[data-correction-fallback]")
+    assert render("repository" => "https://github.com/a/b", "dynamic_services" =>
+                  SERVICES.merge("features" => { "corrections" => false })).at_css("[data-correction-fallback]")
+  end
+
   def test_the_categories_are_configurable_and_localized
     doc = render("dynamic_services" => SERVICES, "corrections" => { "categories" => %w[code typo] })
 
@@ -82,8 +127,9 @@ class CorrectionsTest < Minitest::Test
   def render(config, front_matter = "")
     TestSite.build(config.merge(title: "Corrections")) do |source|
       source.theme("_includes/components/correction-report.html", "_data/i18n")
+      title_line = front_matter.start_with?("title:") ? "" : "title: Paper\n"
       source.page("index.html", "{% include components/correction-report.html %}",
-                  "layout: null\ntitle: Paper\n#{front_matter}")
+                  "layout: null\n#{title_line}#{front_matter}")
     end.html("index.html")
   end
 end

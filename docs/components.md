@@ -813,17 +813,19 @@ mark.reading-highlight { }        // a highlight, without it
 
 ### What It Does
 
-A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, as structured feedback apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history: a collapsed block with a category, the section (filled from the article's headings), the message, an optional email for a reply, and, when the reader had text selected as they opened it, that passage attached. The article's address and title go with the report.
+A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history. With a backend, it is a collapsed form with a category, section, message, optional reply email and selected passage. Without one, it is a link to a pre-filled issue or email.
 
-The report goes to the site's backend through the [dynamic services](dynamic-services.md) and is **never shown on the page**. It is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it. Nothing turns a report into a public notice on its own.
+The form sends reports privately through [dynamic services](dynamic-services.md). An issue fallback is **public**; the link says so before the reader follows it. An email fallback opens the reader's email client. A report is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it.
 
 ### Usage
 
-The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`), and:
+The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`). Otherwise, the site offers a plain link when a supported repository or contact email is configured:
 
 ```yaml
 corrections:
-  enabled: true                   # false removes the form from every post
+  enabled: true                   # false removes the form and fallback from every post
+  fallback: issue                 # issue | email | none; optional
+  issue_labels: [correction]      # optional; default: [correction]
   categories:                     # the choices, in this order; the labels are in _data/i18n under corrections.categories
     - mathematical-error
     - factual-error
@@ -835,7 +837,7 @@ corrections:
     - other
 ```
 
-A post opts out with `corrections: false` in its front matter. A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`.
+A post opts out of both with `corrections: false` in its front matter. Without an explicit `fallback`, a valid `repository` URL on GitHub or GitLab selects `issue`; otherwise `contact_email` (or `author.email`) selects `email`; otherwise no link appears. `fallback: none` suppresses the link. A requested issue/email mode with no valid destination displays no link. The new-issue subject and body include the article title and canonical address; labels are included for issues. JavaScript adds the last article heading above the viewport and selected passage when the reader follows the link. The original link still works without JavaScript, and the address is capped to avoid excessively long URLs. Issue links are only formed from `https://github.com/<owner>/<repo>` or `https://gitlab.com/<group>/<project>` (nested GitLab groups are supported). A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`; fallback labels and public notice live under `corrections.fallback.*`.
 
 ### What the Service Receives
 
@@ -860,12 +862,13 @@ The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, 
 
 ### From a Report to a Revision
 
-A report is private and unverified. The workflow the theme supports: the report arrives in the backend's store or inbox; the author checks it; if the article changes, the author edits it and adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which is what readers then see, dated, under the metadata and in the revision history. The reporter's email, if any, is for a reply; it never appears on the site.
+A report is unverified. With a backend it arrives privately in the service's store or inbox; with the issue fallback it is public on the repository; with the email fallback it goes through the reader's email client. The author checks it and, if the article changes, adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which readers then see in the article's revision history.
 
 ### Styling
 
 ```scss
 .correction-report { }             // the collapsed block
+.correction-report--fallback { }   // the static link and, for issues, its public notice
 .service-form { }                  // the form, shared with the contact form; [data-state="…"]
 .service-form__field { }           // a label, its control, hint and error
 .service-form__status { }          // the announced state
