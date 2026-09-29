@@ -164,6 +164,14 @@ article:
     authors: Authors
 corrections:
   summary: Report an error or suggest a correction
+  fallback:
+    subject: "Correction: {{title}}"
+    article: Article
+    url: Address
+    prompt: "Describe the error and the suggested correction."
+    section: Section
+    quote: Selected passage
+    public_note: "Issue reports are public. Do not include private information."
   intro: "Spotted a mistake in the mathematics, the facts, a citation, the code or the reproducibility? Say what and where. The report goes to the author, not onto the page."
   category: What kind of problem
   section: Where

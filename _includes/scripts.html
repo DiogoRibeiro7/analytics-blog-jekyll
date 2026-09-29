@@ -37,9 +37,9 @@
   {% assign reading_state_flag = 'auto' %}
 {% endif %}
 
-{%- comment -%} The correction-report form needs a backend with the feature on (components/correction-report.html). {%- endcomment -%}
+{%- comment -%} Posts may have the backend form or a static correction link. {%- endcomment -%}
 {% assign corrections_flag = 'false' %}
-{% if site.dynamic_services.base_url and site.dynamic_services.base_url != '' and site.dynamic_services.features.corrections != false and site.corrections.enabled != false %}
+{% if page.layout == 'post' and page.corrections != false and site.corrections.enabled != false %}
   {% assign corrections_flag = 'auto' %}
 {% endif %}
 

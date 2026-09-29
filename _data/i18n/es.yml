@@ -164,6 +164,14 @@ article:
     authors: Autores
 corrections:
   summary: Informar de un error o sugerir una corrección
+  fallback:
+    subject: "Corrección: {{title}}"
+    article: Artículo
+    url: Dirección
+    prompt: "Describe el error y la corrección sugerida."
+    section: Sección
+    quote: Pasaje seleccionado
+    public_note: "Los informes mediante incidencias son públicos. No incluyas datos privados."
   intro: "¿Has visto un error en las matemáticas, los hechos, una cita, el código o la reproducibilidad? Di qué y dónde. El informe va al autor, no a la página."
   category: Qué tipo de problema
   section: Dónde
