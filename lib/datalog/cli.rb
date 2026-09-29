@@ -13,6 +13,38 @@ require_relative "slug"
 require_relative "theme/version"
 
 module Datalog
+  module ArchiveScaffold
+    private
+
+    def scaffold_archive
+      type = options[:type].to_s.downcase
+      unless %w[year tag category topic].include?(type)
+        say_status :error, "Archive type must be year, tag, category, or topic", :red
+        exit 1
+      end
+
+      path = options[:path] || { "year" => "/archives/years/", "tag" => "/tags/",
+                                 "category" => "/categories/", "topic" => "/archives/topic/" }.fetch(type)
+      unless path.match?(%r{\A/[a-zA-Z0-9/_-]+/\z}) && !path.include?("//")
+        say_status :error, "Archive path must be a site URL such as /tags/", :red
+        exit 1
+      end
+
+      title = options[:title] || { "year" => "Years", "tag" => "Tags", "category" => "Categories",
+                                   "topic" => "Topic" }.fetch(type)
+      file = File.join(ensure_directory!("_pages"), "archive-#{type}.md")
+      if File.exist?(file)
+        say_status :error, "Archive already exists: #{file}", :red
+        exit 1
+      end
+
+      topic = type == "topic" ? "topic:\n  tags: [example-topic]\n  categories: []\n  featured: []\n" : ""
+      front = "---\nlayout: archive\ntitle: #{title.to_json}\narchive: #{type}\n"
+      create_file(file, "#{front}permalink: #{path.to_json}\n#{topic}---\n\n")
+      say_status :create, relative_to_root(file), :green
+    end
+  end
+
   # Command line interface for automating common theme workflows.
   class CLI < Thor
     include Thor::Actions
@@ -137,6 +169,7 @@ module Datalog
 
     class New < Thor
       include Thor::Actions
+      include Datalog::ArchiveScaffold
 
       class_option :root,
                    type: :string,
@@ -237,6 +270,14 @@ module Datalog
 
         create_file(filename, body)
         say_status :create, relative_to_root(filename), :green
+      end
+
+      desc "archive", "Scaffold a year, tag, category, or topic archive page"
+      method_option :type, type: :string, default: "year", desc: "Archive type: year, tag, category, or topic"
+      method_option :title, type: :string, desc: "Page title"
+      method_option :path, type: :string, desc: "URL path, such as /archives/years/"
+      def archive
+        scaffold_archive
       end
 
       desc "notebook", "Generate a notebook landing page and starter .ipynb file"
@@ -429,7 +470,7 @@ module Datalog
       CriticalCss.command(site_root, options[:critical], ->(*line) { say_status(*line) })
     end
 
-    register(New, "new", "new COMMAND", "Scaffold posts, notebooks, and portfolio projects")
+    register(New, "new", "new COMMAND", "Scaffold posts, archives, notebooks, and portfolio projects")
 
     private
 

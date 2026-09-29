@@ -23,6 +23,9 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const PAGES = [
   '/',
   '/blog/',
+  '/tags/',
+  '/categories/',
+  '/archives/years/',
   '/visualizations/',
   '/portfolio/',
   '/search/',

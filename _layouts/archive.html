@@ -1,0 +1,66 @@
+---
+layout: default
+---
+{%- assign archive = page | archive_data -%}
+<div class="archive-section">
+  {{ content }}
+  {%- if page.archive == 'topic' %}
+    {%- if archive.series.size > 0 %}
+      <section aria-labelledby="archive-series">
+        <h2 id="archive-series">{% t 'archive.series' %}</h2>
+        <ul class="archive-list">
+          {%- for item in archive.series %}
+            <li><a href="{{ item.url | relative_url }}">{{ item.title | escape }}</a> <span class="archive-meta">{% t 'archive.parts' count: item.count %}</span></li>
+          {%- endfor %}
+        </ul>
+      </section>
+    {%- endif %}
+    {%- if archive.posts.size > 0 %}
+      <section aria-labelledby="archive-articles">
+        <h2 id="archive-articles">{% t 'archive.articles' %}</h2>
+        {% include components/post-list.html posts=archive.posts variant='teaser' %}
+        {%- if archive.remaining.size > 0 %}
+          <details><summary>{% t 'archive.show_all' count: archive.remaining.size %}</summary>
+            {% include components/post-list.html posts=archive.remaining variant='teaser' %}
+          </details>
+        {%- endif %}
+      </section>
+    {%- endif %}
+    {%- if archive.count == 0 %}<p>{% t 'archive.empty' %}</p>{%- endif %}
+  {%- else %}
+    {%- if archive.size > 0 %}
+      <nav aria-label="{% t 'archive.jump' %}">
+        <ul class="archive-list">
+          {%- for group in archive %}
+            <li><a href="#{{ group.slug }}">{{ group.name | escape }}</a> <span class="archive-meta">{% t 'archive.count' count: group.count %}</span></li>
+          {%- endfor %}
+        </ul>
+      </nav>
+      {%- for group in archive %}
+        <section aria-labelledby="{{ group.slug }}">
+          <h2 id="{{ group.slug }}">{{ group.name | escape }} <small>{% t 'archive.count' count: group.count %}</small></h2>
+          {%- if group.months %}
+            {%- for month in group.months %}
+              <section aria-labelledby="{{ month.slug }}">
+                <h3 id="{{ month.slug }}">{{ month.name | append: '-01' | localize_date: 'month' | escape }} <small>{% t 'archive.count' count: month.count %}</small></h3>
+                {% include components/post-list.html posts=month.posts variant='dated' %}
+                {%- if month.remaining.size > 0 %}
+                  <details><summary>{% t 'archive.show_all' count: month.remaining.size %}</summary>
+                    {% include components/post-list.html posts=month.remaining variant='dated' %}
+                  </details>
+                {%- endif %}
+              </section>
+            {%- endfor %}
+          {%- else %}
+            {% include components/post-list.html posts=group.posts variant='dated' %}
+            {%- if group.remaining.size > 0 %}
+              <details><summary>{% t 'archive.show_all' count: group.remaining.size %}</summary>
+                {% include components/post-list.html posts=group.remaining variant='dated' %}
+              </details>
+            {%- endif %}
+          {%- endif %}
+        </section>
+      {%- endfor %}
+    {%- else %}<p>{% t 'archive.empty' %}</p>{%- endif %}
+  {%- endif %}
+</div>

@@ -1,6 +1,7 @@
 ---
 date:
   formats:
+    month: "%B"
     long: "%d de %B de %Y"
     datetime: "%d de %B de %Y %H:%M"
   months:
@@ -45,6 +46,14 @@ date:
     4: Jue
     5: Vie
     6: Sáb
+archive:
+  jump: Ir a la sección del archivo
+  count: "({{count}} artículos)"
+  show_all: "Mostrar todos ({{count}} más)"
+  series: Series
+  parts: "({{count}} partes)"
+  articles: Artículos
+  empty: Aún no hay artículos publicados.
 global:
   skip_to_main: Ir al contenido principal
   math_ready: El contenido matemático está disponible

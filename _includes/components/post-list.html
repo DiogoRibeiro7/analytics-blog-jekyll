@@ -1,0 +1,14 @@
+{%- assign variant = include.variant | default: 'dated' -%}
+<ul class="archive-list archive-list--{{ variant | escape }}">
+  {%- for post in include.posts %}
+    <li>
+      <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+      {%- if variant == 'teaser' and post.description %}
+        <p>{{ post.description | strip_html | escape }}</p>
+      {%- endif %}
+      {%- if variant == 'dated' %}
+        <time class="archive-meta" datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | localize_date | escape }}</time>
+      {%- endif %}
+    </li>
+  {%- endfor %}
+</ul>
