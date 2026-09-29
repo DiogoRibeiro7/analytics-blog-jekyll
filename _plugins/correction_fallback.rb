@@ -17,15 +17,10 @@ module Datalog
     def resolve(page, site, article_url, context)
       settings = Authors.value(site, "corrections")
       settings = {} unless settings.respond_to?(:[])
-      mode = Authors.value(settings, "fallback")&.to_s
       repository = repository_url(Authors.value(site, "repository"))
-      email = Authors.value(site, "contact_email")
-      email = Authors.value(Authors.value(site, "author"), "email") if email.to_s.strip.empty?
-      email = email.to_s.strip
-      email = nil unless email&.match?(EMAIL)
-      mode = repository ? "issue" : (email ? "email" : "none") if mode.nil? || mode.empty?
-      return unless %w[issue email].include?(mode)
-      return if mode == "issue" && !repository || mode == "email" && !email
+      email = recipient(site)
+      mode = fallback_mode(settings, repository, email)
+      return unless (mode == "issue" && repository) || (mode == "email" && email)
 
       title = Authors.value(page, "title").to_s.strip[0, MAX_TITLE]
       subject = I18n.translate(context, "corrections.fallback.subject", "title" => title)
@@ -43,6 +38,21 @@ module Datalog
       else
         issue_link(repository, subject, body, minimum, settings)
       end
+    end
+
+    def recipient(site)
+      email = Authors.value(site, "contact_email")
+      email = Authors.value(Authors.value(site, "author"), "email") if email.to_s.strip.empty?
+      email.to_s.strip if email.to_s.strip.match?(EMAIL)
+    end
+
+    def fallback_mode(settings, repository, email)
+      requested = Authors.value(settings, "fallback").to_s
+      return requested unless requested.empty?
+      return "issue" if repository
+      return "email" if email
+
+      "none"
     end
 
     def issue_link(repository, subject, body, minimum, settings)
@@ -68,17 +78,25 @@ module Datalog
 
     def repository_url(value)
       uri = URI.parse(value.to_s.strip)
-      return unless uri.scheme == "https" && HOSTS.include?(uri.host&.downcase)
-      return if uri.userinfo || uri.port != 443 || uri.query || uri.fragment
+      return unless valid_repository_uri?(uri)
 
       parts = uri.path.to_s.sub(%r{/$}, "").split("/").reject(&:empty?)
-      valid_parts = parts.all? { |part| part.match?(/\A[a-zA-Z0-9_.-]+\z/) && !%w[. ..].include?(part) }
-      return unless parts.length >= 2 && valid_parts
-      return unless uri.host.downcase == "gitlab.com" || parts.length == 2
+      return unless valid_repository_parts?(parts, uri.host)
 
       "https://#{uri.host.downcase}/#{parts.join('/').sub(/\.git\z/, '')}"
     rescue URI::InvalidURIError
       nil
+    end
+
+    def valid_repository_uri?(uri)
+      uri.scheme == "https" && HOSTS.include?(uri.host&.downcase) && uri.port == 443 &&
+        !uri.userinfo && !uri.query && !uri.fragment
+    end
+
+    def valid_repository_parts?(parts, host)
+      return false unless parts.length >= 2 && (host.downcase == "gitlab.com" || parts.length == 2)
+
+      parts.all? { |part| part.match?(/\A[a-zA-Z0-9_.-]+\z/) && !%w[. ..].include?(part) }
     end
   end
 

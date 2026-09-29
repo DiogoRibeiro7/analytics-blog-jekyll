@@ -81,20 +81,20 @@ class CorrectionsTest < Minitest::Test
 
     email = render("contact_email" => "reader@example.org")
     link = email.at_css("[data-correction-fallback]")
-    assert_match(%r{\Amailto:reader@example\.org\?}, link["href"])
-    assert_includes URI.decode_www_form(URI.parse(link["href"]).query).to_h["body"], "https://example.org/"
+    assert_match(/\Amailto:reader@example\.org\?/, link["href"])
+    assert_includes URI.decode_www_form(link["href"].split("?", 2).last).to_h["body"], "https://example.org/"
     assert_nil email.at_css(".correction-report__note")
 
     assert_nil render("repository" => "javascript:alert(1)").at_css("[data-correction-fallback]")
     assert_nil render("repository" => "https://github.com.evil.example/a/b").at_css("[data-correction-fallback]")
-    assert_nil render("corrections" => { "fallback" => "issue" }, "contact_email" => "reader@example.org")
-                    .at_css("[data-correction-fallback]")
-    assert_nil render("corrections" => { "fallback" => "none" }, "repository" => "https://github.com/a/b")
-                    .at_css("[data-correction-fallback]")
-    assert_nil render({ "repository" => "https://github.com/a/b" }, "corrections: false\n")
-                    .at_css("[data-correction-fallback]")
-    assert_nil render("repository" => "https://github.com/a/b", "corrections" => { "enabled" => false })
-                    .at_css("[data-correction-fallback]")
+    missing_issue = render("corrections" => { "fallback" => "issue" }, "contact_email" => "reader@example.org")
+    assert_nil missing_issue.at_css("[data-correction-fallback]")
+    no_fallback = render("corrections" => { "fallback" => "none" }, "repository" => "https://github.com/a/b")
+    assert_nil no_fallback.at_css("[data-correction-fallback]")
+    opted_out = render({ "repository" => "https://github.com/a/b" }, "corrections: false\n")
+    assert_nil opted_out.at_css("[data-correction-fallback]")
+    disabled = render("repository" => "https://github.com/a/b", "corrections" => { "enabled" => false })
+    assert_nil disabled.at_css("[data-correction-fallback]")
     assert render("repository" => "https://github.com/a/b", "dynamic_services" =>
                   SERVICES.merge("features" => { "corrections" => false })).at_css("[data-correction-fallback]")
   end

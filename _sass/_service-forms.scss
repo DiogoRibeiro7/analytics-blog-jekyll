@@ -20,15 +20,6 @@
   color: $color-ink-900;
 }
 
-.correction-report--fallback a {
-  font-weight: 600;
-}
-
-.correction-report__note {
-  margin: map.get($spacing, 2) 0 0;
-  color: $color-ink-500;
-}
-
 .contact-form {
   margin-top: map.get($spacing, 5);
   max-width: $max-width-reading;
@@ -172,10 +163,6 @@ body.dark-mode {
 
   .correction-report__summary {
     color: $dark-ink-900;
-  }
-
-  .correction-report__note {
-    color: $dark-ink-500;
   }
 
   .service-form__intro,
