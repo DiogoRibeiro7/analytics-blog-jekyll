@@ -22,6 +22,8 @@ module Datalog
     }.freeze
     PROFILE_LINKS = %w[researchgate google_scholar].freeze
     ORCID_ID = /\A\d{4}-\d{4}-\d{4}-\d{3}[\dX]\z/
+    # Profile links open in a new tab; no `profile_rel` setting removes these.
+    SAFE_REL = %w[noopener noreferrer].freeze
 
     # `authors:`, else `author:`, else the site's author.
     def authors(page, site)
@@ -107,6 +109,31 @@ module Datalog
       record
     end
 
+    # The `rel` of a person's profile links. The site's own author gets `me`,
+    # which says the profile belongs to whoever owns the site: the relationship
+    # the JSON-LD `sameAs` states, in the form IndieAuth and Mastodon's
+    # verified links read. Anyone else gets it only when their record sets
+    # `profile_rel`, so a guest is never claimed as the site's owner. A record's
+    # `profile_rel` replaces `me`, and `author.profile_rel` in _config.yml does
+    # so for the site author; neither can drop noopener or noreferrer.
+    def profile_rel(person, site)
+      record = person.is_a?(String) ? { "name" => person } : present(person)
+      owner = site_author?(record, site)
+      configured = record["profile_rel"]
+      configured = site_author_profile(site)&.fetch("profile_rel", nil) if configured.nil? && owner
+      tokens = configured.to_s.downcase.split
+      tokens = ["me"] if configured.nil? && owner
+      (tokens + SAFE_REL).uniq.join(" ")
+    end
+
+    # A record from `page_authors` knows; a raw data record is compared by name.
+    def site_author?(record, site)
+      return record["site_author"] == true if record.key?("site_author")
+
+      name = site_author_profile(site)&.fetch("name")
+      !name.nil? && record["name"] == name
+    end
+
     def profiles(record)
       urls = [record["orcid"]]
       urls += PROFILE_URLS.map { |key, template| format(template, record[key]) if record[key] }
@@ -144,6 +171,10 @@ module Datalog
 
     def page_contributors(page)
       Authors.contributors(page, @context["site"])
+    end
+
+    def author_profile_rel(person)
+      Authors.profile_rel(person, @context["site"])
     end
   end
 end

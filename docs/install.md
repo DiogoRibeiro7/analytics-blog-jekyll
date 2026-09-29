@@ -94,11 +94,15 @@ supply, and the theme leaves it out when you do not:
 - **Social links and feeds.** `_data/social.yml` lists the profiles in the
   footer's "Connect" column under `primary:` and its feeds under `rss:`. Without
   it the footer shows `author.email`, if you set one, and a link to `/feed.xml`.
+  Each link takes a `rel`, `noopener` when it has none; give your own profiles
+  `me noopener` to claim them, as the author card does for the site's author
+  ([components.md: Identity Links](components.md#identity-links-relme)).
 
   ```yaml
   primary:
     - label: GitHub
       url: https://github.com/your-name
+      rel: me noopener
   rss:
     - label: All posts
       url: /feed.xml

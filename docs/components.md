@@ -212,6 +212,34 @@ author:
 - `show_social` - Show social links (default: true)
 - `compact` - Avatar, name, affiliation and links only, without the biography and research interests (default: false)
 
+### Identity Links (`rel="me"`)
+
+`rel="me"` on a link says that the profile it points to belongs to whoever owns the page, which is how IndieAuth, Mastodon's verified links and other identity checks connect a site to its owner's accounts. The JSON-LD says the same thing with `sameAs`.
+
+The theme adds `me` to the profile links of the **site's own author**, the person named by `author` in `_config.yml`. Everyone else's profile links keep `noopener noreferrer` alone, so a guest's GitHub or ORCID is never claimed as the site owner's. The rule is the same everywhere the theme links an author's profiles:
+
+| Where | Site author | Any other author |
+| --- | --- | --- |
+| Author card (GitHub, Twitter/X, LinkedIn, ORCID, Google Scholar) | `me noopener noreferrer` | `noopener noreferrer` |
+| Research layout, each author's ORCID link | `me noopener noreferrer` | `noopener noreferrer` |
+| Footer ORCID link (`author.orcid`) | `me noopener noreferrer` | — |
+| Footer "Connect" links (`_data/social.yml`) | Each link's own `rel`, `noopener` when it has none | — |
+
+`profile_rel` changes the `rel` for one person. On the site author it goes under `author` in `_config.yml`, and on anyone else in their `_data/authors.yml` record or their entry in front matter:
+
+```yaml
+author:
+  name: Your Name
+  profile_rel: noopener noreferrer   # stop claiming the profiles with me
+
+# _data/authors.yml: the site owner writing under another name
+pen_name:
+  name: Y. Name
+  profile_rel: me
+```
+
+`noopener` and `noreferrer` are added back to any value that leaves them out, so a setting can only add link types or remove `me`. Set `me` on another record only when those profiles really are the site owner's. The footer's "Connect" links are listed by hand, so mark your own profiles there with `rel: me noopener` in `_data/social.yml`.
+
 ### Authors and Contributors
 
 Without anything in its front matter, a post was written by the site's `author`. A collaborative article lists its authors, in order, and the people who contributed in other ways:

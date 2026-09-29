@@ -17,6 +17,7 @@ This guide documents the configuration keys validated by the automated configura
 | `author` | String or map, required | A name, or a map with `name` |
 | `author.name` | String, required when `author` is a map | Any |
 | `author.email` | String | An email address |
+| `author.profile_rel` | String | Link types separated by spaces, such as `me noopener noreferrer` |
 | `publisher` | Map | Any |
 | `publisher.type` | String | `Person`, `Organization` |
 | `publisher.name` | String | Any |
@@ -156,6 +157,17 @@ This guide documents the configuration keys validated by the automated configura
   ```yaml
   author:
     email: author@example.com
+  ```
+
+#### author.profile_rel
+- **Required:** No
+- **Type:** String (link types separated by spaces)
+- **Default:** `me noopener noreferrer`
+- **Description:** The `rel` of the author's profile links in the author card, the research layout and the footer's ORCID link. `me` marks them as the site owner's own profiles, which IndieAuth and Mastodon's verified links read. Other authors never get `me` by default. `noopener` and `noreferrer` are added to any value that leaves them out. See [components.md: Identity Links](components.md#identity-links-relme).
+- **Example:**
+  ```yaml
+  author:
+    profile_rel: noopener noreferrer   # no rel="me"
   ```
 
 ## Publisher

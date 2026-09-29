@@ -73,7 +73,7 @@ schema_type: ScholarlyArticle
             {% endif %}
             {% if author_orcid %}
               <span class="research-author-orcid">
-                <a href="{{ author_orcid }}" target="_blank" rel="noopener noreferrer" itemprop="identifier" aria-label="ORCID profile for {{ author_name }}">
+                <a href="{{ author_orcid }}" target="_blank" rel="{{ author | author_profile_rel | escape }}" itemprop="identifier" aria-label="ORCID profile for {{ author_name }}">
                   ORCID
                 </a>
               </span>

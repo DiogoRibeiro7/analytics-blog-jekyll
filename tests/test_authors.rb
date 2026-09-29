@@ -90,6 +90,45 @@ class AuthorsTest < Minitest::Test
 
     assert_equal ["https://github.com/siteauthor"], only(authors({}, site))["same_as"]
   end
+
+  def rel(person, site = SITE)
+    Datalog::Authors.profile_rel(person, site)
+  end
+
+  # rel="me" says a profile belongs to whoever owns the site (#323).
+  def test_profile_links_claim_me_for_the_site_author_alone
+    site_author, guest = authors("authors" => ["Site Author", { "name" => "Guest", "github" => "guest" }])
+
+    assert_equal "me noopener noreferrer", rel(site_author)
+    assert_equal "noopener noreferrer", rel(guest)
+    assert_equal "noopener noreferrer", rel(SITE["data"]["authors"]["jane_doe"]), "a data record, as author= passes"
+    assert_equal "me noopener noreferrer", rel(SITE["author"]), "site.author, as the footer passes"
+    assert_equal "me noopener noreferrer", rel("Site Author"), "an author given as a name"
+    assert_equal "noopener noreferrer", rel({ "name" => "Anyone" }, {}), "a site without an author claims no one"
+  end
+
+  def test_profile_rel_replaces_me_and_keeps_the_safety_values
+    pen_name = only(authors("author" => { "name" => "D. Author", "profile_rel" => "me" }))
+    assert_equal "me noopener noreferrer", rel(pen_name), "a record may opt in"
+
+    site = SITE.merge("author" => SITE["author"].merge("profile_rel" => "Author NoOpener"))
+    assert_equal "author noopener noreferrer", rel(only(authors({}, site)), site)
+
+    keyed = site.merge("data" => { "authors" => { "me" => { "name" => "Site Author" } } })
+    assert_equal "author noopener noreferrer", rel(only(authors({ "author" => "me" }, keyed)), keyed),
+                 "the setting in _config.yml follows the site author into a _data/authors.yml record"
+  end
+
+  def test_the_validator_takes_profile_rel_as_a_string
+    validate = lambda do |rel|
+      config = { "title" => "T", "url" => "https://example.org", "author" => { "name" => "A", "profile_rel" => rel } }
+      Datalog::ConfigValidator.new.generate(Struct.new(:config).new(config))
+    end
+
+    assert_nil validate.call("me noopener")
+    error = assert_raises(Jekyll::Errors::FatalException) { validate.call(%w[me]) }
+    assert_includes error.message, "Invalid type for 'author.profile_rel'"
+  end
 end
 
 # What the templates make of the model, rendered against the demo site, whose
@@ -163,5 +202,52 @@ class AuthorMarkupTest < Minitest::Test
     assert_includes head, '<meta name="citation_author" content="Diogo Ribeiro" />'
     assert_includes head, '<meta name="citation_author_institution" content="ESMAD - Instituto Politécnico do Porto" />'
     assert_includes head, '<meta name="citation_author_orcid" content="https://orcid.org/0009-0001-2022-7072" />'
+  end
+end
+
+# The same rule in every template that links an author's profiles, on a site
+# built from the theme: the bio card, the research layout's ORCID link and the
+# footer's (#323).
+class AuthorIdentityLinksTest < Minitest::Test
+  GUEST = { "name" => "Guest Writer", "github" => "guestwriter", "orcid" => "0000-0002-1825-0097" }.freeze
+
+  OWNER = { "name" => "Site Owner", "github" => "owner", "orcid" => "0000-0001-2345-6789" }.freeze
+  RESEARCH = { "layout" => "research", "title" => "Joint work", "permalink" => "/research.html",
+               "authors" => ["Site Owner", GUEST] }.freeze
+
+  def self.site
+    @site ||= TestSite.build(title: "Identity", permalink: "/:title/", author: OWNER) do |source|
+      source.theme("_layouts", "_includes", "_data")
+      source.post("2026-01-01-owned", "Body.", "layout: post\ntitle: Owned\n")
+      source.post("2026-01-02-guest", "Body.", { "layout" => "post", "title" => "Guest post", "authors" => [GUEST] })
+      source.page("research.md", "Body.", RESEARCH)
+    end
+  end
+
+  def rels(doc, selector)
+    doc.css(selector).map { |link| link["rel"] }.uniq
+  end
+
+  def test_the_site_authors_card_says_me
+    doc = self.class.site.document("owned/index.html")
+
+    assert_equal ["me noopener noreferrer"], rels(doc, ".author-bio__social-link[itemprop=sameAs]")
+  end
+
+  def test_a_guests_card_does_not
+    doc = self.class.site.document("guest/index.html")
+
+    assert_equal 2, doc.css(".author-bio__social-link[itemprop=sameAs]").size
+    assert_equal ["noopener noreferrer"], rels(doc, ".author-bio__social-link[itemprop=sameAs]")
+  end
+
+  def test_the_research_layout_tells_the_two_apart
+    links = self.class.site.document("research.html").css(".research-author-orcid a")
+
+    assert_equal(["me noopener noreferrer", "noopener noreferrer"], links.map { |link| link["rel"] })
+  end
+
+  def test_the_footer_orcid_link_follows_the_same_rule
+    assert_equal ["me noopener noreferrer"], rels(self.class.site.document("research.html"), ".footer-orcid a")
   end
 end
