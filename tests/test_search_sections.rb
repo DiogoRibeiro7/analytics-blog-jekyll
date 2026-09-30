@@ -167,9 +167,18 @@ class SearchSectionsIndexTest < Minitest::Test
     assert_operator split, :>, posts.size / 2, "most posts have headings and should be split at them"
   end
 
+  # Headings a layout adds, which a page's own content may hold as well: the
+  # academic dashboard that /academic/ renders includes the open-science
+  # badges, which are then a section of that page (#355).
+  CONTENT_HEADINGS = { "/academic/" => %w[open-science-badges-heading] }.freeze
+
   def test_the_headings_the_layout_adds_are_not_sections
-    leaked = sections.select do |section|
-      section["anchor"] && LAYOUT_HEADINGS.any? { |heading| section["anchor"].include?(heading) }
+    leaked = @documents.flat_map do |doc|
+      own = CONTENT_HEADINGS.fetch(doc["url"], [])
+      (doc["sections"] || []).select do |section|
+        anchor = section["anchor"]
+        anchor && LAYOUT_HEADINGS.any? { |heading| anchor.include?(heading) && !own.include?(heading) }
+      end
     end
 
     assert_empty leaked.map { |section| section["title"] },

@@ -21,9 +21,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 15. [Reactions](#reactions)
 16. [Webmentions](#webmentions)
 17. [Newsletter Subscriptions](#newsletter-subscriptions)
-18. [Front Matter](#front-matter)
-19. [Customization](#customization)
-20. [Troubleshooting](#troubleshooting)
+18. [Academic Dashboard](#academic-dashboard)
+19. [Front Matter](#front-matter)
+20. [Customization](#customization)
+21. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1328,6 +1329,78 @@ The form is a `.service-form` with `data-state` as the other forms (`idle`, `pen
 .subscribe__topics, .subscribe__topic { }
 .subscription-manage { }           // the manage page's block; [data-state="…"]
 .subscription-manage__status, .subscription-manage__panel { }
+```
+
+---
+
+## Academic Dashboard
+
+### What It Does
+
+`components/academic-dashboard.html` sets out a researcher's working life from `_data/academic.yml`: the Google Scholar, ORCID, ResearchGate and Academia.edu profiles, citation metrics (with a "since" period and a per-publication snapshot) and citations by year, the bibliography export, the submission tracker, peer review and collaborations, the academic calendar, funding, collaboration opportunities, mentorship, the open-science badges and networking channels. Each section appears only when the data has it. The demo renders it at `/academic/`.
+
+The submission tracker filters by status and the calendar by event type. `assets/js/academic.js` runs both filters and sizes the bars for citations by year. The labels are translated in English, Portuguese and Spanish.
+
+### Usage
+
+```liquid
+---
+title: Academic Operations
+layout: page
+permalink: /academic/
+---
+{% include components/academic-dashboard.html %}
+```
+
+The page gives the title, and the dashboard's sections start at `h2`. Its styles are compiled into the stylesheet when the site sets:
+
+```yaml
+features:
+  academic_dashboard: true
+```
+
+To render other data, pass a map shaped like `_data/academic.yml` as `academic`, for example from the page's front matter: `{% include components/academic-dashboard.html academic=page.academic %}`. The citation metrics then come from that map. Without `academic`, they come from `_data/publications.yml` where the publications generator computes them, and otherwise from `_data/academic.yml`. The site's own bibliography export is shown only without `academic`.
+
+### The Data
+
+```yaml
+profiles:
+  google_scholar: { label: Google Scholar, url: "https://scholar.google.com/...", user_id: abc123, auto_update: true }
+  orcid: { url: "https://orcid.org/...", sync: { scope: [works, funding], last_synced: 2026-03-01 } }
+  researchgate: { url: "...", projects: [Energy forecasting] }
+  academia: { url: "...", collections: [Teaching portfolio] }
+citations:
+  metrics: { total: 245, h_index: 9, i10_index: 12, since_2019: { total: 210, h_index: 8, i10_index: 11 } }
+  per_publication: { datalog2024: { total: 18, last_updated: 2026-03-01 } }
+  yearly_totals: { "2023": 62, "2024": 58 }   # citations received each year
+bibliography:
+  exports: [{ format: bibtex, filename: publications.bib }]   # files under /assets/publications/
+submissions: [{ title: ..., venue: ..., type: journal, status: In review, deadline: 2026-04-15, submitted: 2026-03-18, collaborators: [...], notes: ... }]
+workflow:
+  peer_review: [{ title: ..., journal: ..., status: ..., assigned_date: ..., due_date: ..., notes: ... }]
+  collaborations: [{ name: ..., role: ..., stage: ..., contact: name@example.org, notes: ... }]
+calendar:
+  description: ...
+  events: [{ name: ..., type: conference, location: ..., start_date: 2026-07-10, end_date: 2026-07-13, submission_deadline: 2026-04-15 }]
+funding: [{ title: ..., agency: ..., role: ..., amount: ..., status: ..., deadline: ... }]   # or period instead of deadline
+collaboration_opportunities: [{ title: ..., description: ..., tags: [...], contact: ... }]
+mentorship: [{ program: ..., offering: ..., cohorts: ..., schedule: ..., application_deadline: ..., contact: ... }]
+badges: [{ label: Open Data, description: ..., criteria: ... }]
+networking:
+  platforms: [{ name: ..., role: ..., url: ... }]
+  mentorship_channels: [{ channel: ..., description: ... }]
+```
+
+A calendar event shows times when its dates carry them (`2026-07-10 09:00`); a date alone shows as a date. The profile links are the site owner's, so they carry `rel="me"` like the author card's (see [Identity Links](#identity-links-relme)).
+
+### Styling
+
+```scss
+.academic-dashboard { }                     // the whole dashboard
+.academic-dashboard__profiles, .academic-profile { }
+.citation-metrics, .citation-metrics__totals, .citation-metrics__timeline { }
+.submission-list, .submission-card, .status-badge { }
+.calendar-list, .funding-list, .opportunity-list, .mentorship-list, .workflow-list { }
 ```
 
 ---

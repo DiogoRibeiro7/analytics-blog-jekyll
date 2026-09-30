@@ -571,9 +571,6 @@ notebook:
     launch_binder: Launch in Binder
     open_colab: Open in Colab
 academic_dashboard:
-  header:
-    title: Academic integration hub
-    description: Monitor publication metrics, synchronize academic profiles, and coordinate submissions, funding, and mentorship opportunities.
   profiles:
     title: Academic profiles & synchronization
     view_profile: View profile
@@ -586,6 +583,7 @@ academic_dashboard:
     featured_projects: Featured projects
     collections: Collections
     auto_update: Auto update
+    auto_update_on: "On"
   citations:
     title: Citation metrics
     total: Total citations

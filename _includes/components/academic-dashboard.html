@@ -1,70 +1,98 @@
-{% assign academic = include.academic | default: site.data.academic %}
-{% assign publication_data = site.data.publications %}
-{% assign citation_metrics = publication_data.metrics | default: academic.citations.metrics %}
-{% assign localization_config = site.theme_options.localization %}
-{% assign date_format = localization_config.date_format | default: 'long' %}
-{% assign datetime_format = localization_config.datetime_format | default: 'datetime' %}
-{% assign since_stats = nil %}
-{% assign since_period = nil %}
-{% if citation_metrics %}
-  {% for metric_pair in citation_metrics %}
-    {% assign metric_key = metric_pair[0] %}
-    {% if metric_key contains 'since_' %}
-      {% assign since_stats = metric_pair[1] %}
-      {% assign since_period = metric_key | remove: 'since_' %}
-      {% break %}
-    {% endif %}
-  {% endfor %}
-{% endif %}
-{% if since_period == nil or since_period == '' %}
-  {% assign since_period = academic.citations.reporting_period %}
-{% endif %}
-<section class="academic-dashboard">
-  <header class="academic-dashboard__header">
-    <h1>{% t 'academic_dashboard.header.title' %}</h1>
-    <p>{% t 'academic_dashboard.header.description' %}</p>
-  </header>
+{%- comment -%}
+---
+optional:
+  - academic
+---
+The academic operations dashboard: profiles, citation metrics, the
+bibliography export, submissions, peer review and collaborations, the academic
+calendar, funding, collaboration opportunities, mentorship, open-science
+badges and networking, each section shown only when the data has it.
 
+It reads `_data/academic.yml`, or the map passed as `academic`, in the same
+shape; citation metrics come from `_data/publications.yml` when the site
+generates them there and no map is passed. The page supplies the heading: the
+sections start at h2. assets/js/academic.js fills in the metrics and runs the
+submission and calendar filters. The demo renders it at /academic/.
+{%- endcomment -%}
+{%- assign academic = include.academic | default: site.data.academic -%}
+{%- assign publication_data = site.data.publications -%}
+{%- if include.academic -%}
+  {%- assign citation_metrics = academic.citations.metrics -%}
+{%- else -%}
+  {%- assign citation_metrics = publication_data.metrics | default: academic.citations.metrics -%}
+{%- endif -%}
+{%- assign localization_config = site.theme_options.localization -%}
+{%- assign date_format = localization_config.date_format | default: 'long' -%}
+{%- assign datetime_format = localization_config.datetime_format | default: 'datetime' -%}
+{%- assign since_stats = nil -%}
+{%- assign since_period = nil -%}
+{%- if citation_metrics -%}
+  {%- for metric_pair in citation_metrics -%}
+    {%- assign metric_key = metric_pair[0] -%}
+    {%- if metric_key contains 'since_' -%}
+      {%- assign since_stats = metric_pair[1] -%}
+      {%- assign since_period = metric_key | remove: 'since_' -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+{%- if since_period == nil or since_period == '' -%}
+  {%- assign since_period = academic.citations.reporting_period -%}
+{%- endif -%}
+{%- comment -%} The profiles are the site owner's, so they say rel="me", as the author card's do {%- endcomment -%}
+{%- assign profile_rel = site.author | author_profile_rel | escape -%}
+<div class="academic-dashboard">
+  {%- if academic.profiles %}
   <section class="academic-dashboard__profiles" aria-labelledby="academic-profiles-heading">
     <h2 id="academic-profiles-heading">{% t 'academic_dashboard.profiles.title' %}</h2>
     <div class="academic-profiles__grid">
-      {% for key in 'google_scholar|orcid|researchgate|academia' | split: '|' %}
-        {% assign profile = academic.profiles[key] %}
-        {% if profile %}
+      {%- comment -%} A for loop takes no filter on its collection: this list never rendered while it had one {%- endcomment -%}
+      {%- assign profile_keys = 'google_scholar|orcid|researchgate|academia' | split: '|' -%}
+      {%- for key in profile_keys %}
+        {%- assign profile = academic.profiles[key] -%}
+        {%- if profile %}
+        {%- case key -%}
+          {%- when 'google_scholar' -%}{%- assign profile_name = 'Google Scholar' -%}
+          {%- when 'orcid' -%}{%- assign profile_name = 'ORCID' -%}
+          {%- when 'researchgate' -%}{%- assign profile_name = 'ResearchGate' -%}
+          {%- else -%}{%- assign profile_name = 'Academia.edu' -%}
+        {%- endcase %}
         <article class="academic-profile" data-profile="{{ key }}">
           <header>
-            <h3>{{ profile.label | default: key | replace: '_', ' ' | capitalize }}</h3>
-            {% if profile.url %}<a class="academic-profile__link" href="{{ profile.url }}" target="_blank" rel="noopener">{% t 'academic_dashboard.profiles.view_profile' %}</a>{% endif %}
+            <h3>{{ profile.label | default: profile_name }}</h3>
+            {% if profile.url %}<a class="academic-profile__link" href="{{ profile.url }}" target="_blank" rel="{{ profile_rel }}">{% t 'academic_dashboard.profiles.view_profile' %}</a>{% endif %}
           </header>
           <dl class="academic-profile__meta">
-            {% if key == 'google_scholar' %}
+            {%- if key == 'google_scholar' %}
               {% if profile.user_id %}<div><dt>{% t 'academic_dashboard.profiles.user_id' %}</dt><dd>{{ profile.user_id }}</dd></div>{% endif %}
-              {% if academic.citations.metrics.total %}<div><dt>{% t 'academic_dashboard.profiles.total_citations' %}</dt><dd data-citation-metric="total">{{ academic.citations.metrics.total }}</dd></div>{% endif %}
-              {% if academic.citations.metrics.h_index %}<div><dt>{% t 'academic_dashboard.profiles.h_index' %}</dt><dd data-citation-metric="h_index">{{ academic.citations.metrics.h_index }}</dd></div>{% endif %}
-              {% if academic.citations.metrics.i10_index %}<div><dt>{% t 'academic_dashboard.profiles.i10_index' %}</dt><dd data-citation-metric="i10_index">{{ academic.citations.metrics.i10_index }}</dd></div>{% endif %}
-            {% endif %}
-            {% if key == 'orcid' and profile.sync %}
-              <div><dt>{% t 'academic_dashboard.profiles.sync_scope' %}</dt><dd>{{ profile.sync.scope | join: ', ' }}</dd></div>
-              <div><dt>{% t 'academic_dashboard.profiles.last_synced' %}</dt><dd data-profile-last-synced>{{ profile.sync.last_synced | localize_date: date_format }}</dd></div>
-            {% endif %}
-            {% if key != 'google_scholar' and key != 'orcid' %}
-              {% if profile.projects %}<div><dt>{% t 'academic_dashboard.profiles.featured_projects' %}</dt><dd>{{ profile.projects | array_to_sentence_string }}</dd></div>{% endif %}
-              {% if profile.collections %}<div><dt>{% t 'academic_dashboard.profiles.collections' %}</dt><dd>{{ profile.collections | array_to_sentence_string }}</dd></div>{% endif %}
-            {% endif %}
-            {% if profile.auto_update %}<div><dt>{% t 'academic_dashboard.profiles.auto_update' %}</dt><dd>{{ profile.auto_update | default: false }}</dd></div>{% endif %}
+              {% if citation_metrics.total %}<div><dt>{% t 'academic_dashboard.profiles.total_citations' %}</dt><dd data-citation-metric="total">{{ citation_metrics.total }}</dd></div>{% endif %}
+              {% if citation_metrics.h_index %}<div><dt>{% t 'academic_dashboard.profiles.h_index' %}</dt><dd data-citation-metric="h_index">{{ citation_metrics.h_index }}</dd></div>{% endif %}
+              {% if citation_metrics.i10_index %}<div><dt>{% t 'academic_dashboard.profiles.i10_index' %}</dt><dd data-citation-metric="i10_index">{{ citation_metrics.i10_index }}</dd></div>{% endif %}
+            {%- endif %}
+            {%- if key == 'orcid' and profile.sync %}
+              {% if profile.sync.scope %}<div><dt>{% t 'academic_dashboard.profiles.sync_scope' %}</dt><dd>{{ profile.sync.scope | join: ', ' }}</dd></div>{% endif %}
+              {% if profile.sync.last_synced %}<div><dt>{% t 'academic_dashboard.profiles.last_synced' %}</dt><dd data-profile-last-synced>{{ profile.sync.last_synced | localize_date: date_format }}</dd></div>{% endif %}
+            {%- endif %}
+            {%- if key != 'google_scholar' and key != 'orcid' %}
+              {% if profile.projects %}<div><dt>{% t 'academic_dashboard.profiles.featured_projects' %}</dt><dd>{{ profile.projects | join: ', ' }}</dd></div>{% endif %}
+              {% if profile.collections %}<div><dt>{% t 'academic_dashboard.profiles.collections' %}</dt><dd>{{ profile.collections | join: ', ' }}</dd></div>{% endif %}
+            {%- endif %}
+            {% if profile.auto_update %}<div><dt>{% t 'academic_dashboard.profiles.auto_update' %}</dt><dd>{% t 'academic_dashboard.profiles.auto_update_on' %}</dd></div>{% endif %}
           </dl>
         </article>
-        {% endif %}
-      {% endfor %}
+        {%- endif %}
+      {%- endfor %}
     </div>
   </section>
+  {%- endif %}
 
-  {% if citation_metrics %}
+  {%- comment -%} The publications generator counts zeros for a site with no publications {%- endcomment -%}
+  {%- if academic.citations.metrics or citation_metrics.total > 0 %}
   <section class="academic-dashboard__citations" aria-labelledby="citation-metrics-heading">
     <h2 id="citation-metrics-heading">{% t 'academic_dashboard.citations.title' %}</h2>
     <div class="citation-metrics">
-      <div class="citation-metrics__totals">
-        <div class="metric" data-citation-metric-card>
+      <dl class="citation-metrics__totals">
+        <div class="metric">
           <dt>{% t 'academic_dashboard.citations.total' %}</dt>
           <dd data-citation-metric="total">{{ citation_metrics.total | default: 0 }}</dd>
         </div>
@@ -76,67 +104,70 @@
           <dt>{% t 'academic_dashboard.citations.i10_index' %}</dt>
           <dd data-citation-metric="i10_index">{{ citation_metrics.i10_index | default: 0 }}</dd>
         </div>
-      </div>
-      <aside class="citation-metrics__details">
-        {% if since_stats %}
+      </dl>
+      {%- if since_stats or academic.citations.per_publication %}
+      <div class="citation-metrics__details">
+        {%- if since_stats %}
         <h3>{% t 'academic_dashboard.citations.since_title' period: since_period %}</h3>
         <ul>
           <li><strong>{% t 'academic_dashboard.citations.total_label' %}</strong> <span data-citation-metric="since_total">{{ since_stats.total }}</span></li>
           <li><strong>{% t 'academic_dashboard.citations.h_index_label' %}</strong> <span data-citation-metric="since_h_index">{{ since_stats.h_index }}</span></li>
           <li><strong>{% t 'academic_dashboard.citations.i10_index_label' %}</strong> <span data-citation-metric="since_i10">{{ since_stats.i10_index }}</span></li>
         </ul>
-        {% endif %}
-        {% if academic.citations.per_publication %}
+        {%- endif %}
+        {%- if academic.citations.per_publication %}
         <details>
           <summary>{% t 'academic_dashboard.citations.per_publication' %}</summary>
           <ul class="citation-metrics__per-publication">
-            {% for keyval in academic.citations.per_publication %}
+            {%- for keyval in academic.citations.per_publication %}
             <li>
               <span class="citation-metrics__pub-id">{{ keyval[0] }}</span>
               <span class="citation-metrics__pub-value" data-publication-citations="{{ keyval[0] }}">{{ keyval[1].total }}</span>
-              {% if keyval[1].last_updated %}
-                {% assign publication_updated = keyval[1].last_updated | localize_date: date_format %}
+              {%- if keyval[1].last_updated %}
+                {%- assign publication_updated = keyval[1].last_updated | localize_date: date_format %}
                 <span class="citation-metrics__pub-updated">{% t 'academic_dashboard.citations.updated' date: publication_updated %}</span>
-              {% endif %}
+              {%- endif %}
             </li>
-            {% endfor %}
+            {%- endfor %}
           </ul>
         </details>
-        {% endif %}
-      </aside>
-      {% if academic.citations.yearly_totals %}
+        {%- endif %}
+      </div>
+      {%- endif %}
+      {%- if academic.citations.yearly_totals %}
       <div class="citation-metrics__timeline" data-citation-timeline>
         <h3>{% t 'academic_dashboard.citations.timeline' %}</h3>
         <ul>
-          {% for year in academic.citations.yearly_totals %}
+          {%- for year in academic.citations.yearly_totals %}
           <li data-year="{{ year[0] }}"><span>{{ year[0] }}</span><span data-year-total>{{ year[1] }}</span></li>
-          {% endfor %}
+          {%- endfor %}
         </ul>
       </div>
-      {% endif %}
+      {%- endif %}
     </div>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if publication_data.bibliography %}
+  {%- if publication_data.bibliography and include.academic == nil %}
+  {%- capture blank_line %}
+
+{% endcapture %}
   <section class="academic-dashboard__bibliography" aria-labelledby="bibliography-heading">
     <h2 id="bibliography-heading">{% t 'academic_dashboard.bibliography.title' %}</h2>
     <p>{% t 'academic_dashboard.bibliography.description' %}</p>
     <div class="bibliography-export">
-      <textarea readonly id="bibliography-export" data-bibliography>{{ publication_data.bibliography | join: '\n\n' }}</textarea>
+      <textarea readonly id="bibliography-export" aria-labelledby="bibliography-heading" data-bibliography>{{ publication_data.bibliography | join: blank_line }}</textarea>
       <div class="bibliography-export__actions">
         <button type="button" class="btn" data-copy-bibliography data-target="bibliography-export">{% t 'academic_dashboard.bibliography.copy' %}</button>
-        {% if academic.bibliography.exports %}
-          {% for export in academic.bibliography.exports %}
-            <a class="btn btn--ghost" href="{{ '/assets/publications/' | append: export.filename | relative_url }}" download>{% t 'academic_dashboard.bibliography.download' format: export.format | upcase %}</a>
-          {% endfor %}
-        {% endif %}
+        {%- for export in academic.bibliography.exports %}
+        <a class="btn btn--ghost" href="{{ '/assets/publications/' | append: export.filename | relative_url }}" download>{% t 'academic_dashboard.bibliography.download' format: export.format | upcase %}</a>
+        {%- endfor %}
       </div>
     </div>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.submissions %}
+  {%- if academic.submissions and academic.submissions.size > 0 %}
   <section class="academic-dashboard__submissions" id="submission-tracker" aria-labelledby="submission-tracker-heading">
     <h2 id="submission-tracker-heading">{% t 'academic_dashboard.submissions.title' %}</h2>
     <p>{% t 'academic_dashboard.submissions.description' %}</p>
@@ -144,76 +175,76 @@
       <label for="submission-filter">{% t 'academic_dashboard.submissions.filter_label' %}</label>
       <select id="submission-filter" data-submission-filter>
         <option value="">{% t 'academic_dashboard.submissions.all_statuses' %}</option>
-        {% assign statuses = academic.submissions | map: 'status' | uniq %}
-        {% for status in statuses %}
+        {%- assign statuses = academic.submissions | map: 'status' | uniq %}
+        {%- for status in statuses %}
         <option value="{{ status | slugify }}">{{ status }}</option>
-        {% endfor %}
+        {%- endfor %}
       </select>
     </div>
     <ul class="submission-list">
-      {% for submission in academic.submissions %}
+      {%- for submission in academic.submissions %}
       <li class="submission-card" data-submission-status="{{ submission.status | slugify }}">
         <article>
           <header>
             <h3>{{ submission.title | escape }}</h3>
-            <p class="submission-venue">{{ submission.venue }} · <span class="submission-type">{{ submission.type | capitalize }}</span></p>
+            <p class="submission-venue">{{ submission.venue }}{% if submission.type %} · <span class="submission-type">{{ submission.type | capitalize }}</span>{% endif %}</p>
           </header>
           <dl class="submission-meta">
             {% if submission.deadline %}<div><dt>{% t 'academic_dashboard.submissions.deadline' %}</dt><dd>{{ submission.deadline | localize_date: date_format }}</dd></div>{% endif %}
             {% if submission.status %}<div><dt>{% t 'academic_dashboard.submissions.status' %}</dt><dd><span class="status-badge">{{ submission.status }}</span></dd></div>{% endif %}
             {% if submission.submitted %}<div><dt>{% t 'academic_dashboard.submissions.submitted' %}</dt><dd>{{ submission.submitted | localize_date: date_format }}</dd></div>{% endif %}
-            {% if submission.collaborators %}<div><dt>{% t 'academic_dashboard.submissions.collaborators' %}</dt><dd>{{ submission.collaborators | array_to_sentence_string }}</dd></div>{% endif %}
+            {% if submission.collaborators %}<div><dt>{% t 'academic_dashboard.submissions.collaborators' %}</dt><dd>{{ submission.collaborators | join: ', ' }}</dd></div>{% endif %}
           </dl>
           {% if submission.notes %}<p class="submission-notes">{{ submission.notes }}</p>{% endif %}
         </article>
       </li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.workflow %}
+  {%- if academic.workflow.peer_review or academic.workflow.collaborations %}
   <section class="academic-dashboard__workflow" aria-labelledby="workflow-heading">
     <h2 id="workflow-heading">{% t 'academic_dashboard.workflow.title' %}</h2>
     <div class="workflow-grid">
-      {% if academic.workflow.peer_review %}
+      {%- if academic.workflow.peer_review %}
       <article class="workflow-panel" aria-label="{% t 'academic_dashboard.workflow.peer_review.aria_label' %}">
         <h3>{% t 'academic_dashboard.workflow.peer_review.title' %}</h3>
         <ul class="workflow-list">
-          {% for review in academic.workflow.peer_review %}
+          {%- for review in academic.workflow.peer_review %}
           <li>
             <strong>{{ review.title | escape }}</strong>
             <p>{{ review.journal }}</p>
             <p>{% t 'academic_dashboard.workflow.peer_review.status_label' %} <span class="status-badge">{{ review.status }}</span></p>
-            {% assign assigned_label = review.assigned_date | localize_date: date_format %}
-            {% assign due_label = review.due_date | localize_date: date_format %}
+            {%- assign assigned_label = review.assigned_date | localize_date: date_format %}
+            {%- assign due_label = review.due_date | localize_date: date_format %}
             <p>{% t 'academic_dashboard.workflow.peer_review.dates' assigned: assigned_label, due: due_label %}</p>
             {% if review.notes %}<p class="workflow-notes">{{ review.notes }}</p>{% endif %}
           </li>
-          {% endfor %}
+          {%- endfor %}
         </ul>
       </article>
-      {% endif %}
-      {% if academic.workflow.collaborations %}
+      {%- endif %}
+      {%- if academic.workflow.collaborations %}
       <article class="workflow-panel" aria-label="{% t 'academic_dashboard.workflow.collaborations.aria_label' %}">
         <h3>{% t 'academic_dashboard.workflow.collaborations.title' %}</h3>
         <ul class="workflow-list">
-          {% for collab in academic.workflow.collaborations %}
+          {%- for collab in academic.workflow.collaborations %}
           <li>
             <strong>{{ collab.name }}</strong>
             <p>{{ collab.role }} · {{ collab.stage }}</p>
             {% if collab.contact %}<p>{% t 'academic_dashboard.workflow.collaborations.contact' %} <a href="mailto:{{ collab.contact }}">{{ collab.contact }}</a></p>{% endif %}
             {% if collab.notes %}<p class="workflow-notes">{{ collab.notes }}</p>{% endif %}
           </li>
-          {% endfor %}
+          {%- endfor %}
         </ul>
       </article>
-      {% endif %}
+      {%- endif %}
     </div>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.calendar and academic.calendar.events %}
+  {%- if academic.calendar.events and academic.calendar.events.size > 0 %}
   <section class="academic-dashboard__calendar" aria-labelledby="academic-calendar-heading">
     <h2 id="academic-calendar-heading">{% t 'academic_dashboard.calendar.title' %}</h2>
     {% if academic.calendar.description %}<p>{{ academic.calendar.description }}</p>{% endif %}
@@ -221,42 +252,46 @@
       <label for="calendar-filter">{% t 'academic_dashboard.calendar.filter_label' %}</label>
       <select id="calendar-filter" data-calendar-filter>
         <option value="">{% t 'academic_dashboard.calendar.all_types' %}</option>
-        {% assign event_types = academic.calendar.events | map: 'type' | uniq %}
-        {% for type in event_types %}
+        {%- assign event_types = academic.calendar.events | map: 'type' | uniq %}
+        {%- for type in event_types %}
         <option value="{{ type | slugify }}">{{ type | capitalize }}</option>
-        {% endfor %}
+        {%- endfor %}
       </select>
     </div>
     <ul class="calendar-list" data-academic-calendar>
-      {% for event in academic.calendar.events %}
+      {%- for event in academic.calendar.events %}
       <li data-event-type="{{ event.type | slugify }}">
         <article>
           <header>
             <h3>{{ event.name }}</h3>
-            <p class="calendar-event__type">{{ event.type | capitalize }} · {{ event.location }}</p>
+            <p class="calendar-event__type">{{ event.type | capitalize }}{% if event.location %} · {{ event.location }}{% endif %}</p>
           </header>
+          {%- comment -%} A time only where the data gives one: a date alone read "00:00" {%- endcomment -%}
+          {%- assign event_times = event.start_date | append: event.end_date | append: event.submission_deadline -%}
+          {%- assign event_format = date_format -%}
+          {%- if event_times contains ':' -%}{%- assign event_format = datetime_format -%}{%- endif %}
           <dl class="calendar-event__meta">
-            <div><dt>{% t 'academic_dashboard.calendar.starts' %}</dt><dd>{{ event.start_date | localize_date: datetime_format }}</dd></div>
-            <div><dt>{% t 'academic_dashboard.calendar.ends' %}</dt><dd>{{ event.end_date | localize_date: datetime_format }}</dd></div>
-            {% if event.submission_deadline %}<div><dt>{% t 'academic_dashboard.calendar.submission_deadline' %}</dt><dd>{{ event.submission_deadline | localize_date: datetime_format }}</dd></div>{% endif %}
+            {% if event.start_date %}<div><dt>{% t 'academic_dashboard.calendar.starts' %}</dt><dd>{{ event.start_date | localize_date: event_format }}</dd></div>{% endif %}
+            {% if event.end_date %}<div><dt>{% t 'academic_dashboard.calendar.ends' %}</dt><dd>{{ event.end_date | localize_date: event_format }}</dd></div>{% endif %}
+            {% if event.submission_deadline %}<div><dt>{% t 'academic_dashboard.calendar.submission_deadline' %}</dt><dd>{{ event.submission_deadline | localize_date: event_format }}</dd></div>{% endif %}
           </dl>
         </article>
       </li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.funding %}
+  {%- if academic.funding and academic.funding.size > 0 %}
   <section class="academic-dashboard__funding" aria-labelledby="funding-heading">
     <h2 id="funding-heading">{% t 'academic_dashboard.funding.title' %}</h2>
     <ul class="funding-list">
-      {% for grant in academic.funding %}
+      {%- for grant in academic.funding %}
       <li>
         <article>
           <header>
             <h3>{{ grant.title | escape }}</h3>
-            <p>{{ grant.agency }} · {{ grant.role }}</p>
+            <p>{{ grant.agency }}{% if grant.role %} · {{ grant.role }}{% endif %}</p>
           </header>
           <dl class="funding-meta">
             {% if grant.amount %}<div><dt>{% t 'academic_dashboard.funding.amount' %}</dt><dd>{{ grant.amount }}</dd></div>{% endif %}
@@ -266,36 +301,36 @@
           {% if grant.focus %}<p class="funding-focus">{{ grant.focus }}</p>{% endif %}
         </article>
       </li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.collaboration_opportunities %}
+  {%- if academic.collaboration_opportunities and academic.collaboration_opportunities.size > 0 %}
   <section class="academic-dashboard__opportunities" aria-labelledby="collaboration-heading">
     <h2 id="collaboration-heading">{% t 'academic_dashboard.opportunities.title' %}</h2>
     <ul class="opportunity-list">
-      {% for opportunity in academic.collaboration_opportunities %}
+      {%- for opportunity in academic.collaboration_opportunities %}
       <li>
         <article>
           <header>
             <h3>{{ opportunity.title | escape }}</h3>
-            {% if opportunity.tags %}<p class="opportunity-tags">{{ opportunity.tags | array_to_sentence_string }}</p>{% endif %}
+            {% if opportunity.tags %}<p class="opportunity-tags">{{ opportunity.tags | join: ', ' }}</p>{% endif %}
           </header>
           <p>{{ opportunity.description }}</p>
           {% if opportunity.contact %}<p class="opportunity-contact"><a href="mailto:{{ opportunity.contact }}">{{ opportunity.contact }}</a></p>{% endif %}
         </article>
       </li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
   </section>
-  {% endif %}
+  {%- endif %}
 
-  {% if academic.mentorship %}
+  {%- if academic.mentorship and academic.mentorship.size > 0 %}
   <section class="academic-dashboard__mentorship" aria-labelledby="mentorship-heading">
     <h2 id="mentorship-heading">{% t 'academic_dashboard.mentorship.title' %}</h2>
     <ul class="mentorship-list">
-      {% for program in academic.mentorship %}
+      {%- for program in academic.mentorship %}
       <li>
         <article>
           <header>
@@ -310,38 +345,38 @@
           {% if program.contact %}<p><a href="mailto:{{ program.contact }}">{{ program.contact }}</a></p>{% endif %}
         </article>
       </li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
   </section>
-  {% endif %}
+  {%- endif %}
 
   {% include components/open-science-badges.html badges=academic.badges %}
 
-  {% if academic.networking %}
+  {%- if academic.networking.platforms or academic.networking.mentorship_channels %}
   <section class="academic-dashboard__networking" aria-labelledby="networking-heading">
     <h2 id="networking-heading">{% t 'academic_dashboard.networking.title' %}</h2>
     <div class="networking-grid">
-      {% if academic.networking.platforms %}
+      {%- if academic.networking.platforms %}
       <article>
         <h3>{% t 'academic_dashboard.networking.communities' %}</h3>
         <ul>
-          {% for platform in academic.networking.platforms %}
-          <li><a href="{{ platform.url }}" target="_blank" rel="noopener">{{ platform.name }}</a> · {{ platform.role }}</li>
-          {% endfor %}
+          {%- for platform in academic.networking.platforms %}
+          <li><a href="{{ platform.url }}" target="_blank" rel="noopener noreferrer">{{ platform.name }}</a>{% if platform.role %} · {{ platform.role }}{% endif %}</li>
+          {%- endfor %}
         </ul>
       </article>
-      {% endif %}
-      {% if academic.networking.mentorship_channels %}
+      {%- endif %}
+      {%- if academic.networking.mentorship_channels %}
       <article>
         <h3>{% t 'academic_dashboard.networking.mentorship_channels' %}</h3>
         <ul>
-          {% for channel in academic.networking.mentorship_channels %}
+          {%- for channel in academic.networking.mentorship_channels %}
           <li><strong>{{ channel.channel }}</strong>: {{ channel.description }}</li>
-          {% endfor %}
+          {%- endfor %}
         </ul>
       </article>
-      {% endif %}
+      {%- endif %}
     </div>
   </section>
-  {% endif %}
-</section>
+  {%- endif %}
+</div>

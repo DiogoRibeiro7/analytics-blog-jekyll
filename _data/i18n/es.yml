@@ -571,9 +571,6 @@ notebook:
     launch_binder: Abrir en Binder
     open_colab: Abrir en Colab
 academic_dashboard:
-  header:
-    title: Centro de integración académica
-    description: Supervise métricas de publicación, sincronice perfiles académicos y coordine envíos, financiación y mentorías.
   profiles:
     title: Perfiles académicos y sincronización
     view_profile: Ver perfil
@@ -586,6 +583,7 @@ academic_dashboard:
     featured_projects: Proyectos destacados
     collections: Colecciones
     auto_update: Actualización automática
+    auto_update_on: "Activada"
   citations:
     title: Métricas de citación
     total: Total de citas
