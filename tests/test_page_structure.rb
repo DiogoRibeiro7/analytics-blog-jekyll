@@ -50,9 +50,13 @@ class PageStructureTest < Minitest::Test
     assert_includes script[2], "datalog-color-mode"
   end
 
-  def test_academic_year_chart_sets_bar_heights_the_policy_allows
-    html = SiteBuilder.read("academic/index.html")
-    refute_match(/class="year-chart__fill"[^>]*style=/, html, "the Content Security Policy drops style attributes")
-    assert_match(/<style nonce="[^"]+">\s*\.year-chart__fill\[data-year="[^"]+"\] \{ --bar-height: \d+%; \}/, html)
+  # /academic/ renders the academic dashboard (#355), whose bars for citations
+  # by year academic.js sizes through the CSSOM, which the Content Security
+  # Policy allows. A style attribute in the markup it would drop.
+  def test_academic_citation_bars_carry_no_style_attributes
+    timeline = Nokogiri::HTML(SiteBuilder.read("academic/index.html")).at_css("[data-citation-timeline]")
+
+    refute_nil timeline, "the dashboard draws citations by year"
+    assert_empty timeline.css("[style]").map(&:to_html), "the Content Security Policy drops style attributes"
   end
 end

@@ -89,26 +89,42 @@ export function populatePublicationCitations() {
  * @returns {void}
  */
 export function populateCitationTimeline() {
+  const timelineContainer = document.querySelector('[data-citation-timeline]');
+  if (!timelineContainer) {
+    return;
+  }
+
+  // The citations received each year are academic.citations.yearly_totals, the
+  // series the dashboard renders. The publication data's yearly_totals count
+  // citations by the year a paper came out, and papers without citations as
+  // one each: another series, used only when the academic data has none.
   const academicData = window.DatalogAcademic || {};
   const publicationsData = window.DatalogPublications || {};
-  const yearlyTotals = publicationsData.yearly_totals || (academicData.citations ? academicData.citations.yearly_totals : {}) || {};
+  const yearlyTotals = (academicData.citations && academicData.citations.yearly_totals) ||
+    publicationsData.yearly_totals || {};
 
-  const timelineContainer = document.querySelector('[data-citation-timeline]');
-  if (timelineContainer && yearlyTotals) {
-    const listItems = timelineContainer.querySelectorAll('li[data-year]');
-    listItems.forEach((item) => {
-      const year = item.getAttribute('data-year');
-      if (!year) {
-        return;
-      }
-      const display = item.querySelector('[data-year-total]');
-      const total = yearlyTotals[year];
-      if (display && typeof total !== 'undefined') {
+  const items = Array.from(timelineContainer.querySelectorAll('li[data-year]'))
+    .filter((item) => item.getAttribute('data-year'));
+  const totals = items.map((item) => {
+    const display = item.querySelector('[data-year-total]');
+    const total = yearlyTotals[item.getAttribute('data-year')];
+    if (typeof total !== 'undefined') {
+      if (display) {
         display.textContent = Number(total).toLocaleString();
-        item.style.setProperty('--timeline-value', Math.min(Number(total) / 5, 100));
       }
-    });
-  }
+      return Number(total) || 0;
+    }
+    // Nothing inlined for this year: the number the page rendered.
+    return Number(((display && display.textContent) || '').replace(/[^\d.]/g, '')) || 0;
+  });
+
+  // Each bar is a share of the busiest year, as a percentage: the bar is a
+  // gradient stop, where a bare number is not a valid length.
+  const largest = Math.max(0, ...totals);
+  items.forEach((item, index) => {
+    const share = largest > 0 ? Math.round((totals[index] / largest) * 100) : 0;
+    item.style.setProperty('--timeline-value', `${share}%`);
+  });
 }
 
 /**

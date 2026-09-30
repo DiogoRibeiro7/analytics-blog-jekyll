@@ -196,36 +196,54 @@ describe('Academic Module', () => {
       expect(items[2].textContent).toBe('50');
     });
 
-    it('should set CSS custom property for timeline visualization', () => {
+    // A bare number is not a valid gradient stop, and a fixed scale (a fifth of
+    // the count) filled every bar past 500 citations.
+    it('sizes each bar as a percentage of the busiest year', () => {
       window.DatalogPublications = {
-        yearly_totals: { '2024': 75 }
+        yearly_totals: { '2022': 10, '2023': 25, '2024': 50 }
       };
       document.body.innerHTML = `
         <ul data-citation-timeline>
+          <li data-year="2022"><span data-year-total></span></li>
+          <li data-year="2023"><span data-year-total></span></li>
           <li data-year="2024"><span data-year-total></span></li>
         </ul>
       `;
 
       populateCitationTimeline();
 
-      const item = document.querySelector('[data-year="2024"]');
-      expect(item.style.getPropertyValue('--timeline-value')).toBe('15');
+      const widths = Array.from(document.querySelectorAll('li[data-year]'))
+        .map((item) => item.style.getPropertyValue('--timeline-value'));
+      expect(widths).toEqual(['20%', '50%', '100%']);
     });
 
-    it('should cap timeline value at 100', () => {
-      window.DatalogPublications = {
-        yearly_totals: { '2024': 1000 }
-      };
+    it('prefers the citations received each year to the publication data', () => {
+      window.DatalogAcademic = { citations: { yearly_totals: { '2024': 30 } } };
+      window.DatalogPublications = { yearly_totals: { '2024': 1 } };
       document.body.innerHTML = `
         <ul data-citation-timeline>
-          <li data-year="2024"><span data-year-total></span></li>
+          <li data-year="2024"><span data-year-total>30</span></li>
         </ul>
       `;
 
       populateCitationTimeline();
 
-      const item = document.querySelector('[data-year="2024"]');
-      expect(item.style.getPropertyValue('--timeline-value')).toBe('100');
+      expect(document.querySelector('[data-year-total]').textContent).toBe('30');
+    });
+
+    it('sizes the bars from the rendered numbers when no data is inlined', () => {
+      document.body.innerHTML = `
+        <ul data-citation-timeline>
+          <li data-year="2023"><span data-year-total>5</span></li>
+          <li data-year="2024"><span data-year-total>1,000</span></li>
+        </ul>
+      `;
+
+      populateCitationTimeline();
+
+      const widths = Array.from(document.querySelectorAll('li[data-year]'))
+        .map((item) => item.style.getPropertyValue('--timeline-value'));
+      expect(widths).toEqual(['1%', '100%']);
     });
 
     it('should skip timeline items without year', () => {

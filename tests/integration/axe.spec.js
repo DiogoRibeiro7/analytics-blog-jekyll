@@ -37,11 +37,15 @@ const PAGES = [
   // The package docs: a dark sidebar, tinted panels, API signatures and the
   // installation tabs, in a stylesheet that had no dark mode of its own.
   '/packages/statflow/',
+  // The academic dashboard: profiles, citation metrics, the filtered
+  // submission and calendar lists, which nothing rendered before #355.
+  '/academic/',
 ];
 
 // What a page shows once its scripts have finished what the scan is about.
 const READY = {
   '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
+  '/academic/': '[data-citation-timeline] li[style]',
 };
 
 // A page whose interesting markup only exists after someone has used it. The
