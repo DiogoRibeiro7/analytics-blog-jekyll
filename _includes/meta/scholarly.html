@@ -9,7 +9,8 @@ Dublin Core equivalents. Only a page the `scholarly` filter accepts gets them
 or every post when _config.yml sets `scholarly: true`. A field the page
 lacks leaves its tag out. The authors are the page's (page_authors), as in
 the byline, the JSON-LD and the citation exports; `citation_authors` names
-the indexed authors alone.
+the indexed authors alone. Each work the page cites with {% raw %}{% cite %}{% endraw %} is
+a citation_reference (lib/datalog/plugins/citations.rb).
 {%- endcomment -%}
 {%- assign is_scholarly = page | scholarly -%}
 {%- if is_scholarly and page.title -%}
@@ -95,6 +96,9 @@ the indexed authors alone.
 {%- if scholarly_keywords and scholarly_keywords.size > 0 %}
 <meta name="citation_keywords" content="{{ scholarly_keywords | join: '; ' | escape }}" />
 {%- endif %}
+{%- for work in page.datalog_cited_works %}
+<meta name="citation_reference" content="{{ work.reference | escape }}" />
+{%- endfor %}
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
 <meta name="DC.title" content="{{ scholarly_title | escape }}" />
 {%- for name in scholarly_names %}

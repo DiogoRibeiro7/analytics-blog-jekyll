@@ -166,6 +166,61 @@ a finite mean is enough.
 - Theorems, lemmas, propositions and corollaries share one accent colour, definitions and assumptions another, and examples and remarks a neutral one. Screen readers announce each statement and proof as a group named by its heading, and skip the ∎. In print, a statement is kept on one page where it fits.
 - The words come from `references.theorem` to `references.remark`, `references.proof` and `references.proof_of` in `_data/i18n`, so a page with `lang: pt` reads "Teorema 1" and "Demonstração de Teorema 1".
 
+### Citations
+
+With the `datalog-citations` plugin on (`datalog_plugins.enabled` in `_config.yml`), a page cites the works in a BibTeX or CSL-JSON file, and the theme numbers the citations and lists what the page cites, as it numbers figures and tables:
+
+```markdown
+---
+title: Handling missing data
+bibliography: _bibliography/missing-data.bib
+---
+
+Multiple imputation {% cite rubin1987 %} replaced listwise deletion, though its
+variance estimate {% cite rubin1987 p="76" %} has its critics
+{% cite allison2001 vanbuuren2018 %}.
+```
+
+with the entries in `_bibliography/missing-data.bib`:
+
+```bibtex
+@book{rubin1987,
+  author    = {Rubin, Donald B.},
+  title     = {Multiple Imputation for Nonresponse in Surveys},
+  publisher = {Wiley},
+  year      = {1987},
+  doi       = {10.1002/9780470316696}
+}
+
+@book{allison2001,
+  author    = {Allison, Paul D.},
+  title     = {Missing Data},
+  publisher = {Sage},
+  year      = {2001}
+}
+
+@book{vanbuuren2018,
+  author    = {van Buuren, Stef},
+  title     = {Flexible Imputation of Missing Data},
+  edition   = {2},
+  publisher = {Chapman and Hall/CRC},
+  year      = {2018},
+  doi       = {10.1201/9780429492259}
+}
+```
+
+The text reads "[1]", "[1, p. 76]" and "[2, 3]", each number a link to its entry, and the article ends with a numbered list of the three works under "References", each with its DOI as a link and a ↩ back to each place it is cited.
+
+- `bibliography` names a file or a list of them, from the site's folder or the page's own: `.bib` is BibTeX, `.json` is CSL-JSON, which Zotero, Mendeley and most reference managers export. `citations.bibliography` in `_config.yml` names the file for the pages that name none. Entries can also sit in the page's front matter, under `citations:`.
+- `{% cite a b %}` cites several works at once. `p=`, `pp=`, `chap=` and `sec=` add a locator ("p. 76"), and `loc=` any other text.
+- Only the cited works are listed, in the order they are first cited. `nocite: [key]` lists a work the text does not cite, and `nocite: all` every entry.
+- `citations.style: author-year` in `_config.yml`, or `citation_style: author-year` on a page, writes "(Rubin 1987)" and "(Allison 2001; van Buuren 2018)" instead and sorts the list by author and year. Two works by the same authors in the same year become 2018a and 2018b.
+- A key that none of the page's sources has, or one that two entries share, stops the build and names the page and the key, as a `{% ref %}` to nothing does.
+- On a research article, each cited work is also a `citation_reference` meta tag for Google Scholar and a `CreativeWork` in the JSON-LD `citation`.
+- The words ("and", "et al.", "n.d.", "p.") come from `citations.*` in `_data/i18n`, so a page with `lang: pt` reads "e" and "s.d.".
+
+[components.md: Citations](components.md#citations) has the fields read from each format and the markup.
+
 ## 4. Interactive Visualization Embedding
 
 - **Plotly/D3/Bokeh**: Wrap serialized chart specs in `<div class="viz" data-viz-type="plotly" data-viz-src="/assets/plots/sample.json"></div>` and the visualization runtime handles lazy loading.
@@ -182,7 +237,7 @@ a finite mean is enough.
 
 ## 6. Academic Writing & Citation Guidelines
 
-- Cite literature with the built-in citation blocks: include a `citations` array in front matter referencing BibTeX keys.
+- Cite literature with `{% cite key %}` from a BibTeX or CSL-JSON file, which numbers the citations and lists the cited works; see [Citations](#citations) above.
 - Export references via the citation toolbar (BibTeX, RIS, EndNote). Users can download ready-made bibliography files located in `assets/publications/`.
 - Provide data availability statements in research layouts to align with open science expectations.
 - Include ORCID IDs and institutional affiliations (e.g., *ESMAD – Instituto Politécnico do Porto*) for transparent authorship.

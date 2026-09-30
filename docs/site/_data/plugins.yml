@@ -1,15 +1,15 @@
 - id: datalog-citations
   name: DataLog Citations
-  summary: Generate numbered references, render inline citation tags, and add citation metadata to the search index.
+  summary: Cite works from a BibTeX or CSL-JSON file, numbered or author-year, with a list of the cited works linked both ways, build errors for unknown keys, and citation metadata for Google Scholar.
   hooks:
     - before_render
     - custom_liquid_tags
     - search_indexing
   includes:
-    - '{% datalog_cite li2010 %} — render an inline citation link.'
-    - '{% datalog_bibliography %} — output the formatted reference list.'
+    - '{% cite rubin1987 %} — a citation, linked to its entry; {% cite a b p="12" %} for several, with a locator.'
+    - '{% datalog_bibliography %} — the list of the cited works, which the post and research layouts place themselves.'
   configuration:
-    bibliography_title: Customize the bibliography heading per site.
+    bibliography_title: The heading of the list.
   status: bundled
 
 - id: datalog-slides

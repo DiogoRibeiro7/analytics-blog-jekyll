@@ -22,9 +22,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 16. [Webmentions](#webmentions)
 17. [Newsletter Subscriptions](#newsletter-subscriptions)
 18. [Academic Dashboard](#academic-dashboard)
-19. [Front Matter](#front-matter)
-20. [Customization](#customization)
-21. [Troubleshooting](#troubleshooting)
+19. [Citations](#citations)
+20. [Front Matter](#front-matter)
+21. [Customization](#customization)
+22. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1401,6 +1402,101 @@ A calendar event shows times when its dates carry them (`2026-07-10 09:00`); a d
 .citation-metrics, .citation-metrics__totals, .citation-metrics__timeline { }
 .submission-list, .submission-card, .status-badge { }
 .calendar-list, .funding-list, .opportunity-list, .mentorship-list, .workflow-list { }
+```
+
+---
+
+## Citations
+
+### What It Does
+
+The `datalog-citations` plugin turns `{% cite key %}` into a citation of a work in the page's bibliography, and puts the list of the cited works after the article: numbered in the order they are first cited, or by author and year. Each citation links to its entry, and each entry links back to every place it is cited. A key the page's sources lack stops the build. The Highwire `citation_reference` tags and the JSON-LD `citation` list describe the cited works on a research article. The plugin needs no other plugin. With `datalog-search` on, it also adds the keys a page cites to the search index.
+
+### Usage
+
+```yaml
+# _config.yml
+datalog_plugins:
+  enabled:
+    - datalog-citations
+citations:
+  style: numeric                         # or author-year
+  bibliography: _bibliography/main.bib   # for pages that name none; a list is fine too
+```
+
+```markdown
+---
+bibliography: _bibliography/missing-data.bib   # or [a.bib, b.json]
+---
+Multiple imputation {% cite rubin1987 %}, its variance {% cite rubin1987 p="76" %},
+and its critics {% cite allison2001 vanbuuren2018 %}.
+```
+
+| Tag | Reads |
+| --- | --- |
+| `{% cite key %}` | "[1]" or "(Rubin 1987)" |
+| `{% cite key1 key2 %}` | "[2, 3]" or "(Allison 2001; van Buuren 2018)" |
+| `{% cite key p="76" %}` | "[1, p. 76]"; also `pp=`, `chap=`, `sec=`, and `loc=` for any text |
+| `{% datalog_cite ... %}` | The same as `{% cite %}`, under the name it had before |
+
+The post layout puts the list under "References" after the article, and the research layout in its References section. `{% datalog_bibliography %}` renders it anywhere else a layout wants it. `datalog_plugins.options.datalog-citations.bibliography_title` changes the heading.
+
+### Front Matter
+
+| Key | Meaning |
+| --- | --- |
+| `bibliography` | A file or a list of files, from the site's folder or the page's own; `false` for none, over the site's |
+| `citations` | Entries in front matter: maps with `id`, `title`, `authors` (`["Last, First", ...]`), `journal`, `year`, `volume`, `issue`, `pages`, `doi`, `url`, `publisher`, `note`; or strings, cited by their slug |
+| `references` | Read as entries only when it is a list of maps. The research layout's hand-written list of strings is left to it |
+| `citation_group` | A group of entries in `_data/citations.yml` |
+| `citation_style` | `numeric` or `author-year`, over the site's `citations.style` |
+| `nocite` | Keys to list without citing them, or `all` |
+
+### What Is Read
+
+**BibTeX**, without a dependency:
+- **Entries:** every entry type, with `@string` macros, `#` concatenation and the month names. `@comment` and `@preamble` are skipped.
+- **Fields:** `author` (or `editor`), `title`, `journal` / `journaltitle` / `booktitle` / `series`, `publisher` / `school` / `institution` / `organization`, `year` (or `date`), `volume`, `number` (or `issue`), `pages`, `doi`, `url` (or a URL in `howpublished`) and `note`. Others are read and not shown.
+- **Names:** "Last, First" and "First von Last" are split into family and given names. A braced name (`{World Health Organization}`) stays whole, and `and others` becomes "et al.".
+- **LaTeX:** the common accents (`{\"u}`, `\'e`, `\c{c}`, `\v{s}`), `\ss`, `\o`, the escaped characters and `--`/`---` become the characters they stand for, and the braces that protect capitals are dropped.
+- **Errors:** a malformed entry stops the build with the file and the line.
+
+**CSL-JSON**: `id`, `type`, `title`, `author` (or `editor`, with `family`/`given` or `literal`), `issued` (`date-parts`), `container-title`, `publisher`, `volume`, `issue`, `page`, `DOI`, `URL` and `note`.
+
+### What Renders
+
+```html
+<span class="datalog-cite">[<a href="#cite-rubin1987" id="cite-ref-rubin1987-1">1</a>]</span>
+
+<ol class="datalog-bibliography datalog-bibliography--numeric">   <!-- <ul> in author-year -->
+  <li id="cite-rubin1987">Rubin, D. B. (1987). <em>Multiple Imputation for Nonresponse in Surveys</em>. Wiley.
+    <a href="https://doi.org/10.1002/9780470316696">https://doi.org/10.1002/9780470316696</a>
+    <span class="datalog-bibliography__back">↩ <a href="#cite-ref-rubin1987-1" aria-label="Back to citation 1">a</a> <a href="#cite-ref-rubin1987-2" aria-label="Back to citation 2">b</a></span>
+  </li>
+</ol>
+```
+
+- **Entries:** set in the manner of APA. Every value is escaped.
+- **Links:** only a DOI (as `https://doi.org/...`) or an `http(s)` address becomes a link, and its address is the link's text, so a printed page keeps it.
+- **Keys:** a citation key may hold any character but spaces, quotes, `<`, `>`, `&`, braces and `%`.
+- **Excerpts:** a citation in an excerpt on a listing page reads as it does in the post, and links to the post's list.
+
+### Errors
+
+The build stops, naming the page, when it:
+- cites a key none of its sources has, or lists one in `nocite`;
+- has two entries with the same key;
+- names a bibliography that is not a file in the site, or is neither `.bib` nor `.json`;
+- has a bibliography that cannot be parsed.
+
+`{% cite %}` on a site without the plugin stops the build with the setting to add.
+
+### Styling
+
+```scss
+.datalog-cite { }                    // the marker in the text
+.datalog-bibliography { }            // the list; --numeric or --author-year
+.datalog-bibliography__back { }      // the links back to the text
 ```
 
 ---

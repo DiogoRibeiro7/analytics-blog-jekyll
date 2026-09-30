@@ -13,8 +13,9 @@ class PluginLoaderTest < Minitest::Test
 
     extensions = doc.fetch("extensions", {})
     assert extensions.key?("citations"), "citations extension should be present"
-    assert_equal 2, extensions.dig("citations", "count")
-    assert_includes extensions.dig("citations", "keys"), "li2010"
+    # The four works the post cites from _bibliography/research-paper.bib.
+    assert_equal 4, extensions.dig("citations", "count")
+    assert_equal %w[agrawal2012 li2010 russo2018 zafar2017], extensions.dig("citations", "keys")
   end
 
   def test_slides_metadata_is_captured

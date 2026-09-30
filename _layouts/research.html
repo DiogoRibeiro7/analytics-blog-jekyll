@@ -32,6 +32,7 @@ schema_type: ScholarlyArticle
 {% assign supplementary = page.supplementary | default: page.supplementary_materials %}
 {% assign references = page.references %}
 {% assign references_array = references | arrayify %}
+{% capture bibliography_label %}{% t 'post.bibliography.label' %}{% endcapture %}
 {% assign funding = page.funding %}
 {% assign rights = page.rights %}
 {% assign research_license = page | page_license %}
@@ -302,7 +303,13 @@ schema_type: ScholarlyArticle
     </section>
   {% endif %}
 
-  {% if references_array and references_array.size > 0 %}
+  {%- comment -%} The works the article cites with {% raw %}{% cite %}{% endraw %}; a hand-written `references:` list otherwise {%- endcomment -%}
+  {% if page.datalog_bibliography and page.datalog_bibliography.size > 0 %}
+    <section class="research-references" aria-labelledby="references-heading">
+      <h2 id="references-heading">{{ page.datalog_bibliography_title | default: bibliography_label }}</h2>
+      {% datalog_bibliography %}
+    </section>
+  {% elsif references_array and references_array.size > 0 %}
     <section class="research-references" aria-labelledby="references-heading">
       <h2 id="references-heading">References</h2>
       {% assign references_markup = references_array | join: '' %}

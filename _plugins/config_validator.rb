@@ -159,6 +159,15 @@ module Datalog
       timezone: { type: :string },
       collections: { type: :hash },
       plugins: { type: :array },
+      # In-text citations (the datalog-citations plugin): the style, and the
+      # bibliography a page uses when it names none of its own.
+      citations: {
+        type: :hash,
+        schema: {
+          style: { type: :string, enum: %w[numeric author-year] },
+          bibliography: { type: %i[string array] }
+        }
+      },
       features: {
         type: :hash,
         schema: {

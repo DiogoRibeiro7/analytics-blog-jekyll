@@ -153,8 +153,9 @@ full node, which search engines read as the site's name and owner.
     "value": {{ schema_page.doi | jsonify_script }}
   }
   {%- endif -%}
-  {%- if schema_page.citation_key -%},
-  "citation": {{ schema_page.citation_key | jsonify_script }}
+  {%- comment -%} The works the page cites with {% raw %}{% cite %}{% endraw %}; its own citation key is not one of them {%- endcomment -%}
+  {%- if schema_page.datalog_cited_works and schema_page.datalog_cited_works.size > 0 -%},
+  "citation": {{ schema_page.datalog_cited_works | map: 'json_ld' | jsonify_script }}
   {%- endif -%}
   {%- comment -%} The licence of the text and figures, and who holds the copyright. {%- endcomment -%}
   {%- assign content_license = schema_page | page_license -%}

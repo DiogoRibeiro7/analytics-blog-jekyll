@@ -30,14 +30,14 @@ Each entry in `enabled` must match the plugin identifier returned by `MyPlugin.i
 The base class exposes two helpers so plugins can express ordering requirements:
 
 ```ruby
-class Citations < Datalog::PluginSystem::Plugin
-  id "datalog-citations"
+class Comments < Datalog::PluginSystem::Plugin
+  id "datalog-comments"
   depends_on "datalog-search"   # ensure the search index is ready
-  priority :high                 # run before lower priority plugins
+  priority :low                  # run after higher priority plugins
 end
 ```
 
-* `depends_on(*ids)` accepts one or more plugin identifiers. The loader will raise a `PluginDependencyError` if any dependency is missing or if a cycle is detected. The error message lists the dependency chain, available plugins, and a remediation hint (for example: `Cannot load 'datalog-citations'` followed by the missing plugin).
+* `depends_on(*ids)` accepts one or more plugin identifiers. The loader will raise a `PluginDependencyError` if any dependency is missing or if a cycle is detected. The error message lists the dependency chain, available plugins, and a remediation hint (for example: `Cannot load 'datalog-comments'` followed by the missing plugin).
 * `priority` replaces Jekyll's generator priority. Accepted values are `:highest`, `:high`, `:normal`, `:low`, and `:lowest`. When multiple plugins are eligible to load, higher priority plugins win the tie-break. Dependencies always take precedence over priority.
 
 To inspect the resolved graph, run `ruby scripts/visualize_plugins.rb` to output a GraphViz DOT diagram summarizing load order and edges. This is helpful when integrating new plugins into larger stacks.
@@ -53,7 +53,7 @@ Plugins can implement any of the following methods. All hooks are optional.
 | `custom_liquid_tags` | During plugin boot. Return a hash of `{ "tag_name" => Liquid::TagSubclass }`. | Expose custom Liquid tags or blocks so layouts can call into your plugin. |
 | `search_indexing(document)` | After a document is rendered. Must return a hash. | Append structured metadata that will be merged into `doc.datalog_search_extensions` for use in `search.json`. |
 
-The loader automatically catches and logs exceptions raised inside hooks so a failing plugin will not crash the entire build.
+The loader catches and logs exceptions raised inside hooks, so a failing plugin does not crash the build. The exception is `Jekyll::Errors::FatalException`, which a plugin raises for a mistake in the site, such as a citation of a key no bibliography has: it stops the build with its message, as a `{% ref %}` to nothing does.
 
 ## Creating a plugin
 
