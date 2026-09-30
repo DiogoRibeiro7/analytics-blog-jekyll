@@ -54,6 +54,24 @@ export function createAvailabilityCheck(client, feature, form, labels = {}) {
   };
 }
 
+/**
+ * Runs `check` the first time the reader reaches into the form: on its first
+ * focusin, or at once when focus is already inside it. The script loads after
+ * the page, so a reader who clicked into the form early had focus there before
+ * any listener existed, and would otherwise not learn that the service does not
+ * take the form until they sent it.
+ * @param {HTMLFormElement} form
+ * @param {Function} check
+ */
+export function whenReached(form, check) {
+  const doc = form.ownerDocument;
+  if (doc && doc.activeElement && form.contains(doc.activeElement)) {
+    check();
+    return;
+  }
+  form.addEventListener("focusin", () => check(), { once: true });
+}
+
 function fieldsOf(form, name) {
   const found = form.elements.namedItem(name);
   if (!found) {

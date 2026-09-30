@@ -135,6 +135,23 @@ describe('the form', () => {
     document.body.innerHTML = '';
   });
 
+  it('asks at once when the reader opened the report before the script arrived', async () => {
+    const client = fakeClient();
+    root.open = true;
+    initCorrectionReport(root, { client });
+    await Promise.resolve();
+
+    expect(client.feature).toHaveBeenCalledWith('corrections');
+  });
+
+  it('does not ask before the reader opens the report', async () => {
+    const client = fakeClient();
+    initCorrectionReport(root, { client });
+    await Promise.resolve();
+
+    expect(client.feature).not.toHaveBeenCalled();
+  });
+
   it('retries an unchanged submission with its original key, and recovers capability failures', async () => {
     const client = fakeClient();
     client.feature.mockRejectedValueOnce(new ServiceError('network', 'offline'));

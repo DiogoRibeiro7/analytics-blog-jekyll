@@ -161,6 +161,10 @@ export function initCorrectionReport(root, deps = {}) {
       }
       ensureAvailable().catch(() => {});
     });
+    // Opened before this script arrived: the toggle has already happened.
+    if (details.open) {
+      ensureAvailable().catch(() => {});
+    }
   }
 
   const controller = {
