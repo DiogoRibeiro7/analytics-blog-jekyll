@@ -44,7 +44,9 @@ module Datalog
         end
       end
 
-      LIQUID = /\{\{.*?\}\}|\{%.*?%\}/m
+      # Liquid output and tags; neither holds a brace, so a scan from one {{
+      # stops at the next brace and the file is read in linear time.
+      LIQUID = /\{\{[^{}]*\}\}|\{%(?:[^{}%]|%(?!\}))*%\}/
 
       # The properties a page's own Liquid reads, such as a showcase page that
       # passes `page.academic_demo` to an include, or a listing that shows

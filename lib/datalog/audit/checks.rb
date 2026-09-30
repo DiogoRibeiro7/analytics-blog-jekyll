@@ -2,6 +2,7 @@
 
 require "date"
 require "time"
+require "uri"
 
 module Datalog
   class Audit
@@ -15,17 +16,25 @@ module Datalog
       TYPED_NUMBER = /\b(Figure|Fig\.|Table)\s+(\d+)\b/
       REFERENCES = /\A\s{0,3}(?:\#{1,6}\s+|\*\*)
                     (References|Bibliography|Works\ cited|Literature\ cited|Sources)(?:\*\*)?[\s\#]*\z/ix
-      REPOSITORY = %r{https?://(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org|codeberg\.org)/[\w.-]+/[\w.-]+}i
-      NOTEBOOK = /\.ipynb\b|colab\.research\.google\.com|mybinder\.org|nbviewer\./i
-      DOI = %r{doi\.org/10\.\d{4,9}/|\bdoi:\s*10\.\d{4,9}/}i
-      MARKDOWN_IMAGE = /!\[([^\]\n]*)\]\(\s*<?([^)\s>]+)/
+      # Addresses are found with one plain pattern and judged by their host,
+      # compared whole: a pattern for the host would also match it inside
+      # another address.
+      URL = %r{https?://[^\s)<>\]"'`]+}i
+      REPOSITORY_HOSTS = %w[github.com gitlab.com bitbucket.org codeberg.org].freeze
+      NOTEBOOK_HOSTS = %w[colab.research.google.com mybinder.org nbviewer.org nbviewer.jupyter.org].freeze
+      DOI_HOSTS = %w[doi.org dx.doi.org].freeze
+      NOTEBOOK_FILE = /\.ipynb\b/i
+      BARE_DOI = %r{\bdoi:\s*10\.\d{4,9}/}i
+      # Link and image text stops at a bracket, so every [ starts a scan that
+      # ends at the next one, and a line of brackets takes linear time.
+      MARKDOWN_IMAGE = /!\[([^\[\]\n]*)\]\(\s*<?([^)\s>]+)/
       HTML_IMAGE = /<img\b[^>]*>/i
       IMAGE_FILE = /\.(?:png|jpe?g|gif|svg|webp|avif|bmp|tiff?)\z/i
-      MARKDOWN_LINK = %r{(?<!!)\[[^\]\n]*\]\(\s*<?(/(?!/)[^)\s>]*)}
+      MARKDOWN_LINK = %r{(?<!!)\[[^\[\]\n]*\]\(\s*<?(/(?!/)[^)\s>]*)}
       HTML_LINK = %r{\bhref\s*=\s*["'](/(?!/)[^"']*)["']}i
       PART = /\bpart[\s_-]*(\d+|[ivx]+)\b/i
       # A link to a page of the site, and link text that names another part.
-      SITE_LINK = %r{\[([^\]\n]*)\]\(\s*<?/}
+      SITE_LINK = %r{\[([^\[\]\n]*)\]\(\s*<?/}
       SEQUENCE_TEXT = /\b(?:part\s+(?:\d+|[ivx]+)|(?:next|previous)\s+(?:part|post|article|chapter))\b/i
 
       def initialize(reader:, known_keys:, settings:)
@@ -73,7 +82,7 @@ module Datalog
         return [] if !file.post? || file.front_matter.key?("reproducibility")
 
         file.each_line do |line, number|
-          found = line[REPOSITORY] || line[NOTEBOOK] || line[DOI]
+          found = research_link(line)
           if found
             return [[number, "links #{found} but has no reproducibility: block, which sets out the code, " \
                              "data and environment behind the article"]]
@@ -190,6 +199,25 @@ module Datalog
       end
 
       private
+
+      # The first address on the line that is a repository, a notebook or a DOI,
+      # or a notebook file or DOI written without an address.
+      def research_link(line)
+        line.scan(URL).find { |url| research_address?(url) } ||
+          line.split.find { |word| word.match?(NOTEBOOK_FILE) } || line[BARE_DOI]
+      end
+
+      def research_address?(url)
+        uri = URI.parse(url)
+        host = uri.host.to_s.downcase.delete_prefix("www.")
+        segments = uri.path.to_s.split("/").reject(&:empty?)
+        return segments.size >= 2 if REPOSITORY_HOSTS.include?(host)
+        return segments.first.to_s.start_with?("10.") if DOI_HOSTS.include?(host)
+
+        NOTEBOOK_HOSTS.include?(host) || uri.path.to_s.match?(NOTEBOOK_FILE)
+      rescue URI::InvalidURIError
+        false
+      end
 
       def alt_problem(alt, src)
         text = alt.to_s.strip

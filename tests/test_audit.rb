@@ -169,6 +169,31 @@ class AuditTest < Minitest::Test
     assert_empty found(audit(root, only: "front-matter"))
   end
 
+  # A repository is judged by an address's host, not by its name anywhere in
+  # the address; and lines of brackets or braces, which took quadratic time
+  # in the patterns these replaced, are read in linear time.
+  def test_links_are_judged_by_host_and_long_lines_stay_fast
+    reader = Struct.new(:config, :git_dates) { def built?(_) = true }.new({}, {})
+    checks = Datalog::Audit::Checks.new(reader: reader, known_keys: Set.new, settings: {})
+    source = lambda do |body|
+      dir = Dir.mktmpdir("datalog-audit-lines").tap { |made| TestSite.directories << made }
+      path = File.join(dir, "_posts", "2024-01-01-x.md")
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, "---\ntitle: X\n---\n#{body}\n")
+      Datalog::Audit::SourceFile.new(path, "_posts/2024-01-01-x.md")
+    end
+
+    assert_empty checks.reproducibility(source.call("See https://example.com/?next=https://github.com/a/b."))
+    refute_empty checks.reproducibility(source.call("See https://www.github.com/a/b."))
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    long = source.call("#{'[' * 40_000}\n#{'![' * 40_000}\n#{'[a](' * 20_000}")
+    %i[images links series].each { |check| checks.public_send(check, long) }
+    Datalog::Audit::KnownKeys.from_content("{{" * 40_000)
+
+    assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 3
+  end
+
   def test_the_demo_has_no_unknown_front_matter_keys
     report = audit(TestSite.root, only: "front-matter")
 
