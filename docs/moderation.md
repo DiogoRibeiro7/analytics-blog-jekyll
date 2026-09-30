@@ -117,36 +117,13 @@ Every action is recorded by the service with the action, the time, the moderator
 
 ## Reference Deployment
 
-One shape, none of it required: the serverless functions of [dynamic-services.md](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) plus two routes behind the provider's authentication.
+The [reference service](dynamic-services.md#the-reference-service) implements this API, with moderators signing in through GitHub and the logins allowed to moderate in its settings; [its deployment guide](https://github.com/DiogoRibeiro7/datalog-services/blob/main/docs/deploy-cloudflare.md#6-moderate-the-inbox-and-its-sign-in) sets it up, including the cookie and CSRF settings above. A backend of another kind needs three things from it:
 
-```js
-// api/v1/moderation/items.js
-export default async function handler(request, response) {
-  cors(request, response);                       // exact origin + Access-Control-Allow-Credentials: true
-  const moderator = await session(request);      // the provider's session, or the identity proxy's signed header
-  if (!moderator) return response.status(401).json({ error: { code: "unauthorized" } });
-  if (!MODERATORS.includes(moderator.id)) return response.status(403).json({ error: { code: "forbidden" } });
+- a session check on every request, answering `401` or `403` before reading anything;
+- the table above enforced with a conditional update, `UPDATE … WHERE id = ? AND status = <the status read>`, so that two moderators acting at once cannot both win;
+- the history line written in the same transaction as the change, with the moderator the session names.
 
-  const { type, status, path, category, since, q, cursor } = request.query;
-  const filter = status ? { status } : { status: { $in: ["pending", "new", "reviewed", "accepted", "open"] } };
-  // … type, path, category, since, q narrow the filter; cursor pages it
-  const items = await db.collection("moderation_view").find(filter).sort({ created_at: -1 }).limit(20).toArray();
-  return response.status(200).json({ items: items.map(publicShape), next_cursor: nextCursor(items) });
-}
-```
-
-```js
-// api/v1/moderation/items/[id]/actions.js
-const allowed = ALLOWED[item.type]?.[item.status] ?? [];
-if (!allowed.includes(action)) return response.status(409).json({ error: { code: "conflict" } });
-await db.collection(collectionOf(item.type)).updateOne(
-  { _id: item._id, status: item.status },                      // the status it had: two moderators cannot both win
-  { $set: { status: RESULT[action], ...(link && { resolution: { url: link } }) },
-    $push: { history: { action, at: new Date(), moderator: moderator.id, note } } }
-);
-```
-
-`moderation_view` can be a MongoDB view over the `comments`, `corrections` and `abuse_reports` collections, a SQL `UNION`, or three queries merged in the function. `MODERATORS` and every credential live in the function's environment. MongoDB is not required.
+The queue can be a view over the comments, correction reports and abuse reports, a SQL `UNION` (as the reference service does), or three queries merged in code.
 
 ## The Page
 

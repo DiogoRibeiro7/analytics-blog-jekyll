@@ -2,7 +2,7 @@
 
 A DataLog site is static and deploys to GitHub Pages. Some features a research site wants (correction reports, a contact form, comments, reactions, subscriptions, Webmentions) need a server. This document is the contract between the site and that server: one configuration model, one browser client, one error model, one security boundary. Every feature that talks to a backend uses it; none ships a fetch wrapper of its own.
 
-The contract is backend- and database-agnostic. The reference deployment at the end uses serverless functions and MongoDB Atlas, but anything that answers the same HTTP is fine.
+The contract is backend- and database-agnostic. [datalog-services](https://github.com/DiogoRibeiro7/datalog-services), the [reference service](#the-reference-service), implements all of it and deploys to Cloudflare Workers without a server to run; anything that answers the same HTTP is fine, and its conformance suite checks that it does.
 
 ## Configuration
 
@@ -118,69 +118,34 @@ const { data, requestId } = await client.post(client.pathFor("corrections"), pay
 - Feature-specific error `code`s, for the widgets and for logs.
 - Nothing here reports to an analytics product: the service layer is independent of GA4 or any other tracker.
 
-## Reference deployment: serverless functions and MongoDB Atlas
+## The reference service
 
-One way to run the service, with nothing in it the contract depends on. A Cloudflare Worker, a Vercel or Netlify function, or a small Express app all fit; the shape below is a Vercel-style handler.
+[datalog-services](https://github.com/DiogoRibeiro7/datalog-services) is a backend for everything on this page: the seven features, the error model, idempotency keys, CSRF, rate limits and request ids. It runs as a Cloudflare Worker with a D1 database, and lives outside the gem, on its own release cycle. Its repository holds the contract's working documents:
 
-```js
-// api/v1/capabilities.js
-export default function handler(request, response) {
-  cors(request, response);
-  response.status(200).json({
-    api_version: "1",
-    features: { corrections: true, contact: true, comments: false }
-  });
-}
+| Document | What it is |
+| --- | --- |
+| [OpenAPI description](https://github.com/DiogoRibeiro7/datalog-services/blob/main/openapi/datalog-services.v1.yaml) | Every route, status, header and body of API version 1, kept equal to the service's routes by its tests |
+| [Deployment guide](https://github.com/DiogoRibeiro7/datalog-services/blob/main/docs/deploy-cloudflare.md) | From an empty Cloudflare account to a base URL: secrets, the site's origin, the moderation account, mail, spam controls, retention and deletion, and the `_config.yml` to write afterwards |
+| [Conformance suite](https://github.com/DiogoRibeiro7/datalog-services/blob/main/conformance/README.md) | Checks any backend at a base URL against the contract, validating each answer against the OpenAPI description, and reports what failed and why |
+
+Once it is deployed, turning a feature on is configuration, with no code of the site's own:
+
+```yaml
+dynamic_services:
+  base_url: https://datalog-services.your-subdomain.workers.dev
+  features:
+    comments: true
+    reactions: true
+    corrections: true
 ```
 
-```js
-// api/v1/corrections.js
-import { MongoClient } from "mongodb";
-import { randomUUID } from "node:crypto";
+Comments also need the `api` provider, which [components.md: Comments](components.md#comments) shows.
 
-const client = new MongoClient(process.env.MONGODB_URI);   // the credential lives here, never in the site
+What those documents leave to the site:
 
-export default async function handler(request, response) {
-  cors(request, response);
-  const requestId = randomUUID();
-  response.setHeader("X-Request-Id", requestId);
-  if (request.method === "OPTIONS") return response.status(204).end();
-  if (request.method !== "POST") return response.status(405).end();
-
-  if (await tooMany(request)) {
-    response.setHeader("Retry-After", "60");
-    return response.status(429).json({ error: { code: "rate_limited", message: "Too many reports." }, request_id: requestId });
-  }
-
-  const report = validateCorrection(request.body);          // shape, lengths, allowed categories, no HTML
-  if (report.errors) {
-    return response.status(422).json({ error: { code: "invalid", message: "Check the fields.", errors: report.errors }, request_id: requestId });
-  }
-
-  const key = request.headers["idempotency-key"];
-  const reports = client.db("datalog").collection("corrections");
-  await reports.updateOne(
-    { idempotency_key: key || requestId },
-    { $setOnInsert: { ...report.value, idempotency_key: key || requestId, received_at: new Date(), status: "new" } },
-    { upsert: true }
-  );
-  return response.status(202).json({ status: "received", request_id: requestId });
-}
-
-function cors(request, response) {
-  response.setHeader("Access-Control-Allow-Origin", "https://example.org");   // the site's origin, not *
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");   // PATCH and DELETE for subscriptions
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Idempotency-Key");
-  response.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After");
-}
-```
-
-Notes for that deployment:
-
-- `MONGODB_URI` and any mail or GitHub token are environment variables of the function, set in the provider's dashboard, never in the repository or `_config.yml`.
-- Rate limiting: the provider's own (Cloudflare, Vercel firewall) or a counter collection keyed by IP hash and hour.
-- A moderation queue is a collection with a `status` field and an admin route behind the provider's authentication; readers never see it.
-- Keep `api_version` in the capabilities answer in step with the site's `dynamic_services.api_version`; bump both together, and an old site meeting a new service shows the mismatch instead of breaking quietly.
+- **Another backend is welcome.** The theme knows only the HTTP. Serverless functions with MongoDB Atlas, a small Express app, or a mailing-list provider behind the subscription routes all fit. Write to the OpenAPI description, and run the conformance suite against a test deployment until it passes.
+- **Keep `api_version` in step.** The service reports it in `capabilities`, and the site expects it in `dynamic_services.api_version`. Bump both together: an old site meeting a new service then shows the mismatch instead of breaking quietly.
+- **Credentials stay in the backend's environment**, set as its provider's secrets, never in the repository or `_config.yml`: the database, the mail provider, the moderators' sign-in.
 
 ## Relationship to the feature issues
 

@@ -882,7 +882,7 @@ A post opts out of both with `corrections: false` in its front matter. Without a
 }
 ```
 
-`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the reference deployment in [dynamic-services.md](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) does the first.
+`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the [reference service](dynamic-services.md#the-reference-service) stores it for the [moderation inbox](moderation.md).
 
 ### States
 
@@ -1036,7 +1036,7 @@ Writing, `POST /v1/comments` with `Content-Type: application/json` and an `Idemp
 }
 ```
 
-`email` and `url` are present only when given. The service answers `201` with `{ "comment": { … }, "status": "published" }` when the comment is up, or `202` with `"status": "pending"` when it is held for moderation (the theme then shows it to its author with the badge); a `422` with `error.errors` keyed `name`, `email`, `url` or `body` marks the fields; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), with the request id.
+`email` and `url` are present only when given. The service answers `201` with `{ "comment": { … }, "status": "published" }` when the comment is up, or `202` with `"status": "pending"` when it is held for moderation (the theme then shows it to its author with the badge); a `422` with `error.errors` keyed `name`, `email`, `url` or `body` marks the fields; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#errors), with the request id.
 
 What the backend does, and the theme cannot: validate and limit the size of every field; strip or escape markup (the theme renders text, but another consumer of the store may not); hash or drop the email; rate-limit by IP or token; restrict CORS to the site's origin; keep a `status` (`pending`, `approved`, `spam`, `deleted`) and serve only `approved` on `GET`; run whatever anti-spam challenge it likes before storing, the theme's own defence being a honeypot field that bots fill and readers never see.
 
@@ -1058,7 +1058,7 @@ A document in MongoDB, or a row anywhere else:
 }
 ```
 
-An index on `(page_id, status, created_at)` serves the `GET`; `idempotency_key` keeps a retried `POST` from storing twice. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows the handler shape and where the credential lives (in the function's environment, never in the site). MongoDB is not required: the contract is HTTP and JSON.
+An index on `(page_id, status, created_at)` serves the `GET`; `idempotency_key` keeps a retried `POST` from storing twice. The [reference service](dynamic-services.md#the-reference-service) keeps the same fields in a SQL table, with the email only as a keyed hash; any store fits, since the contract is HTTP and JSON.
 
 ### States
 
@@ -1121,7 +1121,7 @@ Writing, `POST /v1/reactions` with an `Idempotency-Key`:
 { "path": "/2024/04/05/sql-optimization-guide/", "reaction": "useful" }
 ```
 
-The service answers `201` with `{ "counts": { … }, "reaction": "useful" }`; returning the counts is what lets the strip update them, and without them it keeps the ones it had rather than adding one itself. A `409` means the service already holds this reader's reaction, shown as counted; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), and change nothing.
+The service answers `201` with `{ "counts": { … }, "reaction": "useful" }`; returning the counts is what lets the strip update them, and without them it keeps the ones it had rather than adding one itself. A `409` means the service already holds this reader's reaction, shown as counted; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#errors), and change nothing.
 
 ### Honesty and Privacy
 
@@ -1206,7 +1206,7 @@ One shape, none of it required: a receiver route (`POST /webmention` with `sourc
 { "_id": "m1", "source": "…", "target": "…", "type": "reply", "author": { "name": "…", "url": "…" }, "title": "…", "excerpt": "…", "published_at": "…", "received_at": "…", "verified": true, "status": "approved" }
 ```
 
-in MongoDB or any store, with an index on `(target, status, published_at)`; and a read route under the dynamic services that returns the approved, verified entries of a target in the shape above. A hosted receiver (webmention.io) with a small read proxy that normalizes its answer into that shape works just as well. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows where the credentials live.
+in MongoDB or any store, with an index on `(target, status, published_at)`; and a read route under the dynamic services that returns the approved, verified entries of a target in the shape above. A hosted receiver (webmention.io) with a small read proxy that normalizes its answer into that shape works just as well. The [reference service](dynamic-services.md#the-reference-service) has both routes: its `/webmention` receiver is the endpoint to advertise.
 
 ### States
 
@@ -1264,7 +1264,7 @@ Subscribing, `POST /v1/subscriptions` with an `Idempotency-Key`:
 { "email": "reader@example.org", "topics": ["new-articles", "datasets"], "source_url": "https://example.org/", "locale": "en" }
 ```
 
-`topics` is present only when the site lists topics. The service answers `202` with `{ "status": "pending" }` when it has sent a confirmation email (double opt-in), or `201` with `{ "status": "confirmed" }`; without a `status` the form goes by `double_opt_in`. A `409` means the address is already subscribed, shown as such and not as an error; a service that would rather not disclose membership answers `202` instead, and the form cannot tell the difference. A `422` with `error.errors.email` (or `.topics`) marks the field; `429` and `5xx` show as in the [error model](dynamic-services.md#the-error-model).
+`topics` is present only when the site lists topics. The service answers `202` with `{ "status": "pending" }` when it has sent a confirmation email (double opt-in), or `201` with `{ "status": "confirmed" }`; without a `status` the form goes by `double_opt_in`. A `409` means the address is already subscribed, shown as such and not as an error; a service that would rather not disclose membership answers `202` instead, and the form cannot tell the difference. A `422` with `error.errors.email` (or `.topics`) marks the field; `429` and `5xx` show as in the [error model](dynamic-services.md#errors).
 
 From the emails, all keyed by the token the backend put in the link:
 
