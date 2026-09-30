@@ -5,7 +5,6 @@ date: 2024-04-08
 tags: [mathematics, proof, latex]
 difficulty: advanced
 summary: Showcase theorem statements, numbered equations, and cross-references rendered via MathJax within the DataLog theme.
-hero: /assets/images/posts/math-proof.jpg
 ---
 
 Document rigorous mathematics directly inside your documentation hub. This template illustrates how theorem statements, lemmas, and numbered equations render cleanly on the **DataLog** theme.

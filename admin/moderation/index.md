@@ -6,7 +6,6 @@ exclude_from_search: true
 title: Moderation
 permalink: /admin/moderation/
 page_class: admin-moderation
-nav_exclude: true
 show_author: false
 moderation_inbox: true
 ---

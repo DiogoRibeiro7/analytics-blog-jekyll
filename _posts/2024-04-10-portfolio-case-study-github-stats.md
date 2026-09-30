@@ -5,7 +5,6 @@ date: 2024-04-10
 tags: [portfolio, case-study, github]
 difficulty: beginner
 summary: Showcase a machine learning portfolio project, surface GitHub activity, and link supporting datasets inside the theme.
-hero: /assets/images/posts/portfolio-case-study.jpg
 ---
 
 Case studies shine when readers can verify the underlying code. This example highlights a recommendation engine project, pulling GitHub stats directly into the narrative and linking supporting resources.

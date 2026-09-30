@@ -23,6 +23,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- **`bundle exec datalog audit`** reports, with the file and line of each finding, what the theme's newer authoring features would improve. It reads the site through Jekyll's reader and never builds or writes it. `docs/scripts-reference.md` describes each check.
+  - **Opportunities** (advice): statements typed as bold "**Theorem**" or "**Definition**"; "Figure 3" typed by hand; posts that look like parts of a series; posts linking a repository, notebook or DOI with no reproducibility block; posts edited long after publication with no revision entry; hand-written reference lists.
+  - **Problems** (warnings, exit 1 with `--strict`): front matter keys that nothing in the theme or the site reads, with the known keys taken from the sources rather than kept as a list; images without alt text; links to pages the site does not build; `math` switched against a post's content.
+  - **Options:** `--format json` or `markdown`, `--only`, `--path`; `audit.known_keys`, `audit.ignore_links` and `audit.revision_after_days` in `_config.yml`.
+  - **Demo:** its first run found dead front matter, which is now removed: `hero:` on eleven posts, pointing at images that do not exist, and `nav_exclude:`, a Just the Docs field, on four pages (#296).
 - **Citations work like `{% ref %}`.**
   - **Sources:** a page names a BibTeX (`.bib`) or CSL-JSON (`.json`) file in `bibliography`, or the site does in `citations.bibliography`. Entries in front matter still work.
   - **Tags:** `{% cite key %}`, `{% cite a b %}` and `{% cite key p="12" %}` become "[1]", "[2, 3]" and "[1, p. 12]", each linked to its entry. With `citations.style: author-year` (or `citation_style` on a page) they read "(Rubin 1987)".

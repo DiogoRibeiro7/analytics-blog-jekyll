@@ -46,9 +46,79 @@ module Datalog
     end
   end
 
+  # Publishing to a branch through a temporary git worktree: `datalog publish`.
+  module PublishWorktree
+    private
+
+    def remote_branch?(root, branch)
+      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL,
+                                                                                  chdir: root)
+    end
+
+    def prepare_worktree(root, branch, worktree_path)
+      unless system("git", "show-ref", "--verify", "--quiet", "refs/heads/#{branch}", chdir: root)
+        say_status :info, "Creating #{branch} branch", :blue
+        if remote_branch?(root, branch)
+          system("git", "branch", branch, "origin/#{branch}", chdir: root)
+        else
+          system("git", "branch", branch, chdir: root)
+        end
+      end
+
+      say_status :git, "git worktree add --force #{worktree_path} #{branch}", :blue
+      return if system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
+
+      say_error "Unable to create git worktree for #{branch}."
+      exit 1
+    end
+
+    def copy_site_output(root, worktree_path)
+      say_status :sync, "Copying _site to #{worktree_path}", :blue
+      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"),
+                               File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."),
+                                                      File.join(worktree_path, ".git")])
+      Dir.glob(File.join(root, "_site", "*"), File::FNM_DOTMATCH).each do |entry|
+        next if [".", ".."].include?(File.basename(entry))
+
+        FileUtils.cp_r(entry, worktree_path, preserve: true)
+      end
+    end
+
+    # Returns whether the branch now holds the site. The exit status of commit
+    # and push used to be ignored, so a rejected push still ended as a publish.
+    def commit_and_push(worktree_path, branch, message)
+      Dir.chdir(worktree_path) do
+        system("git", "add", "--all")
+        if system("git", "diff", "--cached", "--quiet")
+          say_status :skip, "No changes to publish", :yellow
+          return true
+        end
+
+        unless system("git", "commit", "-m", message)
+          say_error "git commit failed, so nothing was published."
+          return false
+        end
+
+        say_status :git, "git push origin #{branch}", :blue
+        return true if system("git", "push", "origin", branch)
+
+        say_error "git push to #{branch} failed, so the site was not published."
+        false
+      end
+    end
+
+    def cleanup_worktree(root, worktree_path)
+      say_status :git, "git worktree remove --force #{worktree_path}", :blue
+      system("git", "worktree", "remove", "--force", worktree_path, chdir: root)
+    ensure
+      FileUtils.rm_rf(File.dirname(worktree_path)) if worktree_path && File.directory?(File.dirname(worktree_path))
+    end
+  end
+
   # Command line interface for automating common theme workflows.
   class CLI < Thor
     include Thor::Actions
+    include Datalog::PublishWorktree
 
     class_option :root,
                  type: :string,
@@ -93,6 +163,36 @@ module Datalog
       summarize_checks(critical_failures, warnings)
 
       exit 1 unless critical_failures.empty?
+    end
+
+    desc "audit", "Report pages that would gain from newer authoring features, and content problems"
+    method_option :strict, type: :boolean, default: false, desc: "Exit 1 when the audit finds a problem"
+    method_option :format, type: :string, default: "text", enum: %w[text json markdown], desc: "Output format"
+    method_option :only, type: :string, desc: "Comma-separated checks to run, such as statements,series"
+    method_option :path, type: :string, desc: "Audit only the files under this path, such as _posts/statistics"
+    long_desc <<~DESC
+      Reads the site's pages and posts, without building or writing anything, and
+      lists two kinds of finding with the file and line of each. Opportunities are
+      content the theme's newer features would number, link or describe (statements
+      and figure numbers typed by hand, parts of a series, links to code with no
+      reproducibility block, edits with no revision entry, hand-written references).
+      Problems are front matter keys nothing reads, images without alt text, links
+      to pages the site does not build, and math switched on or off against the
+      page's content. Exit codes: 0, or 1 with --strict when there is a problem;
+      2 when the audit cannot run.
+    DESC
+    def audit
+      require_relative "audit"
+      report = Audit.new(root: site_root, only: options[:only], path: options[:path]).run
+      case options[:format]
+      when "json" then say report.to_json
+      when "markdown" then say report.to_markdown
+      else say report.to_text
+      end
+      exit 1 if options[:strict] && report.problems.any?
+    rescue Audit::Error => e
+      say_error e.message
+      exit 2
     end
 
     desc "publish", "Build the site and deploy the _site artifacts to GitHub Pages"
@@ -581,70 +681,6 @@ module Datalog
                   end
         say_status :warn, message, :yellow
       end
-    end
-
-    def remote_branch?(root, branch)
-      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL,
-                                                                                  chdir: root)
-    end
-
-    def prepare_worktree(root, branch, worktree_path)
-      unless system("git", "show-ref", "--verify", "--quiet", "refs/heads/#{branch}", chdir: root)
-        say_status :info, "Creating #{branch} branch", :blue
-        if remote_branch?(root, branch)
-          system("git", "branch", branch, "origin/#{branch}", chdir: root)
-        else
-          system("git", "branch", branch, chdir: root)
-        end
-      end
-
-      say_status :git, "git worktree add --force #{worktree_path} #{branch}", :blue
-      return if system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
-
-      say_error "Unable to create git worktree for #{branch}."
-      exit 1
-    end
-
-    def copy_site_output(root, worktree_path)
-      say_status :sync, "Copying _site to #{worktree_path}", :blue
-      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"),
-                               File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."),
-                                                      File.join(worktree_path, ".git")])
-      Dir.glob(File.join(root, "_site", "*"), File::FNM_DOTMATCH).each do |entry|
-        next if [".", ".."].include?(File.basename(entry))
-
-        FileUtils.cp_r(entry, worktree_path, preserve: true)
-      end
-    end
-
-    # Returns whether the branch now holds the site. The exit status of commit
-    # and push used to be ignored, so a rejected push still ended as a publish.
-    def commit_and_push(worktree_path, branch, message)
-      Dir.chdir(worktree_path) do
-        system("git", "add", "--all")
-        if system("git", "diff", "--cached", "--quiet")
-          say_status :skip, "No changes to publish", :yellow
-          return true
-        end
-
-        unless system("git", "commit", "-m", message)
-          say_error "git commit failed, so nothing was published."
-          return false
-        end
-
-        say_status :git, "git push origin #{branch}", :blue
-        return true if system("git", "push", "origin", branch)
-
-        say_error "git push to #{branch} failed, so the site was not published."
-        false
-      end
-    end
-
-    def cleanup_worktree(root, worktree_path)
-      say_status :git, "git worktree remove --force #{worktree_path}", :blue
-      system("git", "worktree", "remove", "--force", worktree_path, chdir: root)
-    ensure
-      FileUtils.rm_rf(File.dirname(worktree_path)) if worktree_path && File.directory?(File.dirname(worktree_path))
     end
 
     def say_error(message)
