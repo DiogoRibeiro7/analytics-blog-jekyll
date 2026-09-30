@@ -73,7 +73,9 @@ module Datalog
         required: true,
         schema: {
           name: { type: :string, required: true },
-          email: { type: :string, format: :email }
+          email: { type: :string, format: :email },
+          # The `rel` of the author's profile links, `me noopener noreferrer` unless set.
+          profile_rel: { type: :string }
         }
       },
       # Who publishes the site in structured data and citations. Without it, the author does.

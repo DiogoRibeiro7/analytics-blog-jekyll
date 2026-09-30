@@ -25,6 +25,8 @@ Parameters:
   {%- assign author_data = bio_authors | first -%}
 {%- endif -%}
 {%- assign author_name = author_data.name | default: include.author | default: site.author.name | escape -%}
+{%- comment -%} `me` on the site author's profiles, never on a guest's unless their record sets profile_rel {%- endcomment -%}
+{%- assign profile_rel = author_data | author_profile_rel | escape -%}
 
 <aside class="author-bio{% if compact %} author-bio--compact{% endif %}" itemscope itemtype="https://schema.org/Person">
   <div class="author-bio__inner">
@@ -95,7 +97,7 @@ Parameters:
               <a href="https://github.com/{{ author_data.github }}"
                  class="author-bio__social-link author-bio__social-link--github"
                  target="_blank"
-                 rel="noopener noreferrer"
+                 rel="{{ profile_rel }}"
                  itemprop="sameAs"
                  aria-label="{{ author_name }} on GitHub">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -111,7 +113,7 @@ Parameters:
               <a href="https://twitter.com/{{ author_data.twitter }}"
                  class="author-bio__social-link author-bio__social-link--twitter"
                  target="_blank"
-                 rel="noopener noreferrer"
+                 rel="{{ profile_rel }}"
                  itemprop="sameAs"
                  aria-label="{{ author_name }} on Twitter">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -127,7 +129,7 @@ Parameters:
               <a href="https://linkedin.com/in/{{ author_data.linkedin }}"
                  class="author-bio__social-link author-bio__social-link--linkedin"
                  target="_blank"
-                 rel="noopener noreferrer"
+                 rel="{{ profile_rel }}"
                  itemprop="sameAs"
                  aria-label="{{ author_name }} on LinkedIn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -143,7 +145,7 @@ Parameters:
               <a href="{{ author_data.orcid }}"
                  class="author-bio__social-link author-bio__social-link--orcid"
                  target="_blank"
-                 rel="noopener noreferrer"
+                 rel="{{ profile_rel }}"
                  itemprop="sameAs"
                  aria-label="{{ author_name }} ORCID profile">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -159,7 +161,7 @@ Parameters:
               <a href="{{ author_data.google_scholar }}"
                  class="author-bio__social-link author-bio__social-link--scholar"
                  target="_blank"
-                 rel="noopener noreferrer"
+                 rel="{{ profile_rel }}"
                  itemprop="sameAs"
                  aria-label="{{ author_name }} Google Scholar profile">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -16,7 +16,7 @@
       </p>
       {% if site.author.orcid %}
       <p class="footer-orcid">
-        <a href="{{ site.author.orcid }}" rel="me noopener" target="_blank">ORCID {{ site.author.orcid | replace: 'https://orcid.org/', '' }}</a>
+        <a href="{{ site.author.orcid }}" rel="{{ site.author | author_profile_rel | escape }}" target="_blank">ORCID {{ site.author.orcid | replace: 'https://orcid.org/', '' }}</a>
       </p>
       {% endif %}
     </section>
