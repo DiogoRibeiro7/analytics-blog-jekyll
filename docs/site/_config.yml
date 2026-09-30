@@ -1,5 +1,6 @@
 title: DataLog Theme Documentation
 description: Official documentation, demos, and migration guides for the DataLog analytics storytelling theme.
+# Where the site is meant to be published. Nothing publishes it yet: see README.md.
 url: https://datalog-theme.github.io
 baseurl: ""
 lang: en
