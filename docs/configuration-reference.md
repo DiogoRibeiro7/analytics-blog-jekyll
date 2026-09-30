@@ -91,6 +91,9 @@ This guide documents the configuration keys validated by the automated configura
 | `timezone` | String | Any |
 | `collections` | Map | Any |
 | `plugins` | List | Any |
+| `citations` | Map | Any |
+| `citations.style` | String | `numeric` (default), `author-year` |
+| `citations.bibliography` | String or list | Paths of BibTeX (`.bib`) or CSL-JSON (`.json`) files in the site |
 | `features` | Map | Any |
 | `features.mathjax` | Boolean | `true`, `false` |
 | `features.search` | Boolean | `true`, `false` |
@@ -395,6 +398,17 @@ This guide documents the configuration keys validated by the automated configura
   ```
   ```yaml
   scholarly: [posts, notebooks]
+  ```
+
+### citations
+- **Required:** No
+- **Type:** Map
+- **Description:** In-text citations, for a site with the `datalog-citations` plugin in `datalog_plugins.enabled`. `style` is `numeric` ("[1]", the list in citation order) or `author-year` ("(Rubin 1987)", the list by author and year); a page overrides it with `citation_style`. `bibliography` names the BibTeX or CSL-JSON files a page cites from when its front matter names none. See [components.md: Citations](components.md#citations).
+- **Example:**
+  ```yaml
+  citations:
+    style: author-year
+    bibliography: _bibliography/main.bib
   ```
 
 ## Theme Options

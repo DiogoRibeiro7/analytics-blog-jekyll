@@ -241,6 +241,7 @@ keywords: [normality, diagnostics]
 | `citation_publisher` | `publisher` on the page, else the site's publisher |
 | `citation_language` | `lang`, else the site locale |
 | `citation_keywords` | `keywords`, else `tags`, joined with `; ` |
+| `citation_reference`, one per cited work | the works the page cites with `{% cite %}` ([components.md: Citations](components.md#citations)), each as `citation_title=...; citation_author=...; citation_doi=...` |
 | `DC.title`, `DC.creator`, `DC.date`, `DC.identifier`, `DC.type`, `DC.language`, `DC.publisher`, `DC.rights`, `DC.description` | the same fields; the identifier is the DOI as a URL, else the page's URL; the rights are the page's licence; the type is `Text` |
 
 A field the page lacks leaves its tag out, so nothing is emitted empty.

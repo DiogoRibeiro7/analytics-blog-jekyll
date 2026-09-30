@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- The citations plugin escapes every value it writes into the page. The in-text link took `url` straight into `href`, and the list took the formatted entry and the title unescaped. Only an `http(s)` address or a DOI becomes a link now (#289).
 - The academic dashboard (`components/academic-dashboard.html`) works, and the demo renders it at `/academic/` in place of a hand-written English copy. Nothing had rendered it, and it had decayed:
   - its profiles never appeared, because a `for` loop cannot filter its own collection;
   - it carried a second `h1`, and a heading for each section even when the data had nothing for it;
@@ -22,6 +23,13 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- **Citations work like `{% ref %}`.**
+  - **Sources:** a page names a BibTeX (`.bib`) or CSL-JSON (`.json`) file in `bibliography`, or the site does in `citations.bibliography`. Entries in front matter still work.
+  - **Tags:** `{% cite key %}`, `{% cite a b %}` and `{% cite key p="12" %}` become "[1]", "[2, 3]" and "[1, p. 12]", each linked to its entry. With `citations.style: author-year` (or `citation_style` on a page) they read "(Rubin 1987)".
+  - **The list:** the article ends with the cited works in citation order (numeric) or by author and year, each entry with its DOI or address as a link and a link back to each place it is cited. `nocite` lists works the text does not cite.
+  - **Errors:** a key no source has, or one two entries share, stops the build and names the page and the key.
+  - **Metadata:** on a research article, each cited work is a `citation_reference` meta tag and a `CreativeWork` in the JSON-LD `citation`.
+  - **Plugin:** it no longer needs `datalog-search`, and adds the cited keys to the index only when search is on. The BibTeX subset is read without a dependency, and the words are translated in English, Portuguese and Spanish. `docs/user-guide.md` has a worked example and `docs/components.md` the reference (#289).
 - An `archive` layout for year, tag, category and curated topic pages, with jump lists, counts per section, localized dates, optional month sections and series grouping for topics, sharing `components/post-list.html` (compact, dated and teaser variants) with the rest of the theme. The starter template includes `/archives/years/`, `/tags/` and `/categories/`; `datalog new archive --type year|tag|category|topic` scaffolds another; a site whose archives live elsewhere sets `tag_archive.path` and `category_archive.path` so tag and category links reach them (#293).
 - Posts offer a way to report an error on a site without dynamic services: a link to a pre-filled GitHub or GitLab issue, labelled with `corrections.issue_labels` and saying before the reader follows it that the issue is public, or an email to `contact_email` (else `author.email`). `corrections.fallback` chooses `issue`, `email` or `none`, and by default takes the issue link when `repository` is a GitHub or GitLab address. The link works without JavaScript; with it, the section and the selected passage are added. The form still takes over wherever the service offers corrections (#292).
 - `datalog update` updates a theme installed from a Git submodule or a local path: it moves the checkout to the latest stable release tag, or the one `--to` names, refuses a checkout with local changes, rebuilds the script bundles, installs the site's gems, prints the release's Removed, Changed and Deprecated notes, and stages the new submodule pointer without committing. `--dry-run` says what it would do and `--build` builds the site into a temporary directory first. It exits 0 when already current, 2 after an update and 1 on failure; installs from RubyGems update as before (#295).
@@ -36,6 +44,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- **A page lists only the works it cites.** The citations plugin listed every entry of a page that cited none of them; `nocite: all` restores that.
+  - **Research layout:** its `references:` list of strings is no longer read as citation entries (a list of maps still is), and it shows the cited works in its References section.
+  - **JSON-LD:** `citation` lists the cited works, not the page's own `citation_key`.
+  - **The old tag:** `{% datalog_cite key label %}` is now an alias of `{% cite %}`, so a second word is a second key rather than a custom label.
+  - **Plugin errors:** a `Jekyll::Errors::FatalException` raised in a plugin hook now stops the build instead of being logged as a warning (#289).
 - **Display equations are set plain, and only the ones the text can refer to are numbered.** Each display equation was a bordered, shadowed card, 106 px tall around a 16 px formula, and every one was numbered. An equation now stands on its own line with a `1.25rem` margin and adds nothing to the page but its height and margins; its copy and edit tools appear at the end of its line when the pointer or the focus reaches it, and stay in the tab order. MathJax numbers what amsmath numbers (`equation`, `align`, `gather` and the rest, not their starred forms) and any `$$…$$` display with a `\label{}`, so `\eqref{}` still finds it, and leaves `$$x = 1$$` unnumbered. To keep the old look and numbering, set `theme_options.math.display_style: card` and `theme_options.math.numbering: all`; `numbering: none` numbers only a `\tag{}` of the author's. The validator accepts only those values. The card's styles are compiled only for a site that asks for it, so a plain site's stylesheet does not grow (#318).
 - **The author and editorial note follows the article.** The note that `why_this_exists`, `evidence`, `methodology` and `reviewed_at` make stood between the topics and the body, a screenful on a phone before the first sentence. It now comes after the body and the reproducibility panel, before the revision history and "How to cite", in the document and so for screen readers and in print as well as on screen. A row of the metadata, "Author and editorial note", says when the article was reviewed and links to it. `theme_options.provenance.position: start` puts the note back where it was, and `provenance_position` in a post's front matter chooses for that post (#317).
 - **A first visit is dark.** The palette is indigo and cyan, and a site without `theme_options.color_scheme.default` now opens dark, where it used to follow the operating system. Set `default: system` to keep the old behaviour, or `light`; a reader's choice with the toggle still wins, and dark figure variants follow the mode in effect (#374).

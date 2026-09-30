@@ -389,6 +389,16 @@ dynamic_services:
     aborted: The request was cancelled.
     retry_after: "Try again in {{seconds}} seconds."
     reference: "Reference: {{id}}"
+citations:
+  and: and
+  et_al: et al.
+  no_date: n.d.
+  back: "Back to citation {{n}}"
+  locators:
+    p: p.
+    pp: pp.
+    chap: ch.
+    sec: sec.
 references:
   figure: Figure
   table: Table
