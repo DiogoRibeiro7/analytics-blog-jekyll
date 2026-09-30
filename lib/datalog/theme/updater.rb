@@ -8,6 +8,7 @@ require "pathname"
 require "shellwords"
 require "tmpdir"
 require "yaml"
+require_relative "../site_config"
 
 module Datalog
   module Theme
@@ -241,8 +242,7 @@ module Datalog
 
       def preflight(theme)
         require_relative "installed_files"
-        config_file = File.join(@root, "_config.yml")
-        config = File.file?(config_file) ? YAML.safe_load_file(config_file) || {} : {}
+        config = SiteConfig.load(File.join(@root, "_config.yml"))
         issues = InstalledFiles.stale_bundle_reasons(theme)
         issues.concat(stale_copies(theme))
         CONFIG_DIRS.each do |key|

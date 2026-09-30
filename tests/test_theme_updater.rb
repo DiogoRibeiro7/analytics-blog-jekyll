@@ -75,6 +75,26 @@ class ThemeUpdaterTest < Minitest::Test
     end
   end
 
+  # The preflight read _config.yml with a loader that permitted no dates, so a
+  # site Jekyll builds failed the update after the checkout had moved.
+  def test_a_configuration_with_dates_and_aliases_does_not_stop_the_update
+    with_site do |site, theme|
+      File.write(File.join(site, "_config.yml"), <<~YAML)
+        theme: datalog-theme
+        launched: 2024-01-01
+        defaults_shared: &post
+          layout: post
+        defaults:
+          - scope: { path: "" }
+            values: *post
+      YAML
+
+      assert_equal 2, updater(site, { to: "latest" }, [], []).run
+      assert_equal "v0.9.0", git(theme, "tag", "--points-at", "HEAD")
+      assert_equal "vendor/datalog", git(site, "diff", "--cached", "--name-only")
+    end
+  end
+
   private
 
   def updater(site, options, output, commands)

@@ -9,6 +9,7 @@ require "tmpdir"
 require "yaml"
 require "thor"
 
+require_relative "site_config"
 require_relative "slug"
 require_relative "theme/version"
 
@@ -557,7 +558,7 @@ module Datalog
     end
 
     def load_config(path)
-      YAML.safe_load_file(path, permitted_classes: [Date, Time]) || {}
+      SiteConfig.load(path)
     end
 
     def summarize_checks(critical, warnings)
