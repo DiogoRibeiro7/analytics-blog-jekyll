@@ -36,7 +36,7 @@
 <meta name="robots" content="{{ page.robots | default: 'index,follow' }}" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="application-name" content="{{ site.title | escape }}" />
-<meta property="og:site_name" content="{{ site.title | escape }}" />
+{% assign head_identity = site | site_identity %}<meta property="og:site_name" content="{{ head_identity.name | default: site.title | escape }}" />
 {% if page.layout == 'post' or page.collection == 'posts' %}
 <meta property="og:type" content="article" />
 {% else %}
@@ -154,10 +154,17 @@
 <link rel="shortcut icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" />
 <meta name="msapplication-TileColor" content="#0b1d3d" />
 
+{%- comment -%}
+  ` | <site title>` follows a page's own title. `seo_title_suffix: false` leaves
+  it out, for a title that already names the site; a string replaces the site
+  title after the bar.
+{%- endcomment %}
+{% assign title_suffix = site.title %}
+{% if page.seo_title_suffix == false or page.seo_title_suffix == '' %}{% assign title_suffix = nil %}{% elsif page.seo_title_suffix %}{% assign title_suffix = page.seo_title_suffix %}{% endif %}
 {% if page.seo_title %}
-<title>{{ page.seo_title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
+<title>{{ page.seo_title | normalize_whitespace | escape }}{% if title_suffix %} | {{ title_suffix | escape }}{% endif %}</title>
 {% elsif page.title and page.title != site.title %}
-<title>{{ page.title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
+<title>{{ page.title | normalize_whitespace | escape }}{% if title_suffix %} | {{ title_suffix | escape }}{% endif %}</title>
 {% else %}
 <title>{{ site.title | escape }}</title>
 {% endif %}

@@ -96,6 +96,10 @@ module Datalog
       record["affiliation"] ||= record["institution"]
       record["bio"] ||= record["biography"]
       record["image"] ||= record["avatar"] || record["photo"]
+      # What the JSON-LD Person says about them besides the name, each a list.
+      record["alternate_names"] = list(record, "alternate_names", "alternate_name")
+      record["job_titles"] = list(record, "job_title", "roles")
+      record["knows_about"] = list(record, "knows_about", "expertise", "research_areas")
       record["orcid"] = "https://orcid.org/#{record['orcid']}" if record["orcid"].to_s.match?(ORCID_ID)
       record["site_author"] = record["name"] == site_author_profile(site)&.fetch("name")
       PROFILE_URLS.each do |key, template|
@@ -134,11 +138,19 @@ module Datalog
       !name.nil? && record["name"] == name
     end
 
+    # The profiles the record names, then any other address it lists in `same_as`.
     def profiles(record)
       urls = [record["orcid"]]
       urls += PROFILE_URLS.map { |key, template| format(template, record[key]) if record[key] }
       urls += PROFILE_LINKS.map { |key| record[key] }
-      urls.compact.map(&:to_s).reject(&:empty?).uniq
+      urls += Array(record["same_as"])
+      urls.compact.map { |url| url.to_s.strip }.reject(&:empty?).uniq
+    end
+
+    # The first of `keys` the record sets, as a list of its non-blank values.
+    def list(record, *keys)
+      found = keys.map { |key| record[key] }.compact.first
+      Array(found).map { |item| item.to_s.strip }.reject(&:empty?)
     end
 
     # `author_affiliation` in front matter names the affiliation of a page's
@@ -175,6 +187,12 @@ module Datalog
 
     def author_profile_rel(person)
       Authors.profile_rel(person, @context["site"])
+    end
+
+    # The site's own author as one full record, whatever the input:
+    # `{% assign owner = site | site_author_record %}`.
+    def site_author_record(_input = nil)
+      Authors.site_author(@context["site"])
     end
   end
 end

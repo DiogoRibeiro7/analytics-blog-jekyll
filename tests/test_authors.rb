@@ -158,7 +158,10 @@ class AuthorMarkupTest < Minitest::Test
     diogo, guest = data["author"]
     assert_equal(["Diogo Ribeiro", "Guest <Writer>"], data["author"].map { |author| author["name"] })
     assert_includes diogo["sameAs"], "https://github.com/DiogoRibeiro7"
+    assert_equal "https://diogoribeiro7.github.io/#person", diogo["@id"], "the site author is one entity on every page"
+    # A guest has no @id: only the site's own author is claimed as the site's.
     assert_equal({ "@type" => "Person", "name" => "Guest <Writer>", "url" => "https://guest.example",
+                   "description" => "Studies missing data.",
                    "affiliation" => { "@type" => "Organization", "name" => "Lab & Co" } }, guest)
     assert_equal [{ "@type" => "Person", "name" => "Ada Curator" }], data["contributor"]
 
