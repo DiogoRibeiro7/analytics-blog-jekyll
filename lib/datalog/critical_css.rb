@@ -6,6 +6,7 @@ require "jekyll"
 require "open3"
 require "tmpdir"
 require "yaml"
+require_relative "site_config"
 
 module Datalog
   # Writes the critical CSS a production build inlines. head.html inlines
@@ -26,7 +27,7 @@ module Datalog
     # `datalog critical-css`. status reports a line as the command's shell
     # does; an error ends the command with exit status 1.
     def self.command(root, critical, status)
-      config = YAML.safe_load_file(File.join(root, "_config.yml"), permitted_classes: [Date, Time]) || {}
+      config = SiteConfig.load(File.join(root, "_config.yml"))
       log = ->(message) { status.call(:critical, message, :blue) }
       written = new(root, config["critical_css"], critical: critical, log: log).run
       written.each_value { |path| status.call(:write, path, :green) }
