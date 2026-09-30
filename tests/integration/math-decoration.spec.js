@@ -38,14 +38,15 @@ test.describe('Math decoration', () => {
 
   test('an equation is numbered once, by MathJax', async ({ page }) => {
     // MathJax draws its own number when `tex.tags` is on, and the theme ships
-    // `tags: 'all'`. A badge of the toolkit's own would be the same number a
-    // second time, in the corner of the card.
+    // `tags: 'ams'`. A badge of the toolkit's own would be the same number a
+    // second time, beside the equation. The display between the two labelled
+    // ones has no label, and no number.
     await expect(page.locator('.math-expression__number')).toHaveCount(0);
 
     const numbers = await page.locator('.math-expression').evaluateAll((nodes) =>
-      nodes.map((node) => node.dataset.equationNumber)
+      nodes.map((node) => node.dataset.equationNumber || '')
     );
-    expect(numbers).toEqual(['(1)', '(2)']);
+    expect(numbers).toEqual(['(1)', '', '(2)']);
   });
 
   test('the tools sit beside the expression, not inside it', async ({ page }) => {

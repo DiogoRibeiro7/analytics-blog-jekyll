@@ -239,6 +239,8 @@ theme_options:
     output: chtml
     accessibility: true
     render_on_load: auto
+    display_style: plain  # or card: each display equation in a framed panel
+    numbering: ams        # or all, none: which display equations MathJax numbers
     katex_cdn: https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/
     mathjax_cdn: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
   localization:

@@ -15,3 +15,9 @@ $notebooks: true !default;
 $packages: true !default;
 $academic-dashboard: true !default;
 $open-science-badges: true !default;
+
+// The framed panel around each display equation that
+// theme_options.math.display_style: card asks for. Its rules apply under the
+// `math-card` class the layout puts on <body> for such a site, so a stylesheet
+// that carries them still sets a plain site's equations plain.
+$math-card: true !default;

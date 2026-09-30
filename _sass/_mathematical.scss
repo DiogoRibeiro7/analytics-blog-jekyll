@@ -2,26 +2,27 @@
 
 @use 'variables' as *;
 @use 'mixins' as *;
+@use 'features';
 
+// A display equation stands on its own line with space around it, as in print
+// (theme_options.math.display_style: plain, the default): no frame, nothing
+// added to its height but its margins. Its copy and edit tools appear where
+// the pointer or the focus is.
 .math-expression {
   position: relative;
-  margin: map.get($spacing, 6) auto;
-  padding: map.get($spacing, 6) map.get($spacing, 6) map.get($spacing, 5) map.get($spacing, 6);
-  border-radius: 1.1rem;
-  border: 1px solid rgba($color-neutral-900, 0.12);
-  background: rgba($color-neutral-100, 0.9);
-  box-shadow: 0 12px 30px rgba($color-neutral-900, 0.08);
+  margin: 1.25rem auto;
   display: grid;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
   gap: map.get($spacing, 3);
-  transition: border-color $transition-snappy, box-shadow $transition-snappy, background $transition-snappy;
+  // Room at the sides for the equation's focus ring, which the scrolling box
+  // would otherwise clip; above and below, MathJax's own margins leave room.
+  padding-inline: map.get($spacing, 1);
 
-  &:focus-within {
-    border-color: $color-accent-primary;
-    box-shadow: 0 0 0 4px rgba($color-accent-primary, 0.18);
-    background: rgba($color-neutral-100, 0.96);
+  > mjx-container:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
   }
 
   mjx-container[display='true'] {
@@ -77,13 +78,23 @@
   font-family: $font-family-serif;
 }
 
+// At the end of the line, which the equation leaves empty unless it fills the
+// column, and out of sight until the pointer or the focus reaches the equation.
+// It stays in the tab order: tabbing onto a button shows it.
 .math-expression__toolbar {
   position: absolute;
-  top: map.get($spacing, 3);
-  left: map.get($spacing, 3);
+  top: 50%;
+  // Room for a button's focus ring, which the scrolling box would clip.
+  inset-inline-end: map.get($spacing, 2);
+  transform: translateY(-50%);
   display: inline-flex;
   gap: map.get($spacing, 2);
   z-index: 2;
+  opacity: 0;
+}
+
+.math-expression:is(:hover, :focus-within) .math-expression__toolbar {
+  opacity: 1;
 }
 
 .math-expression__button {
@@ -313,12 +324,6 @@
 }
 
 body.dark-mode {
-  .math-expression {
-    background: rgba($dark-surface-200, 0.92);
-    border-color: rgba($dark-ink-500, 0.3);
-    box-shadow: none;
-  }
-
   .math-expression__number {
     color: rgba($dark-ink-500, 0.85);
   }
@@ -401,5 +406,42 @@ body.dark-mode {
       border-color: rgba($dark-accent-secondary, 0.45);
       color: $dark-accent-secondary;
     }
+  }
+}
+
+// theme_options.math.display_style: card. Each display equation in a framed
+// panel with its tools always in view, as before the theme set equations
+// plain. assets/css/main.scss compiles these rules only for a site that asks
+// for the card, and the layout puts `math-card` on <body> for it.
+@if features.$math-card {
+  .math-card {
+    .math-expression {
+      margin-block: map.get($spacing, 6);
+      padding: map.get($spacing, 6) map.get($spacing, 6) map.get($spacing, 5) map.get($spacing, 6);
+      border-radius: 1.1rem;
+      border: 1px solid rgba($color-neutral-900, 0.12);
+      background: rgba($color-neutral-100, 0.9);
+      box-shadow: 0 12px 30px rgba($color-neutral-900, 0.08);
+      transition: border-color $transition-snappy, box-shadow $transition-snappy, background $transition-snappy;
+
+      &:focus-within {
+        border-color: $color-accent-primary;
+        box-shadow: 0 0 0 4px rgba($color-accent-primary, 0.18);
+        background: rgba($color-neutral-100, 0.96);
+      }
+    }
+
+    .math-expression__toolbar {
+      top: map.get($spacing, 3);
+      inset-inline: map.get($spacing, 3) auto;
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  body.dark-mode.math-card .math-expression {
+    background: rgba($dark-surface-200, 0.92);
+    border-color: rgba($dark-ink-500, 0.3);
+    box-shadow: none;
   }
 }

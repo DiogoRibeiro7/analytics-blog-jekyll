@@ -204,7 +204,11 @@ module Datalog
             type: :hash,
             schema: {
               engine: { type: :string, enum: %w[mathjax katex] },
-              enabled: { type: :boolean }
+              enabled: { type: :boolean },
+              # A display equation set plain on its line, or in a framed card.
+              display_style: { type: :string, enum: %w[plain card] },
+              # Which display equations MathJax numbers (its tex.tags).
+              numbering: { type: :string, enum: %w[ams all none] }
             }
           },
           # The "Reading mode" control on posts, and whether a reader's choice is kept.

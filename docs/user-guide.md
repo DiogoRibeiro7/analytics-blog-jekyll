@@ -61,7 +61,7 @@ $$
 ### Common packages and numbering
 
 - Use `\begin{align}` to typeset multi-line derivations.
-- Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog auto-numbers and links equations.
+- Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog numbers a labelled equation and links the reference to it. An equation with no label and outside a numbered environment such as `equation` or `align` has no number, and `\notag` leaves one line of an `align` out; `theme_options.math.numbering: all` numbers every display equation.
 - For chemical notation, rely on `mhchem` syntax: `\ce{H2O + CO2 ->[light] C6H12O6 + O2}`.
 
 ### Figures, tables and cross-references

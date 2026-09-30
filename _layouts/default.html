@@ -11,7 +11,7 @@
     {% include meta/schema.html page=page %}
   </head>
   {% capture body_classes %}
-    site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}
+    site-body{% if page.layout %} layout-{{ page.layout | replace: ' ', '-' }}{% endif %}{% if page.page_class %} page-{{ page.page_class | replace: ' ', '-' | downcase }}{% endif %}{% if page.classes %} {{ page.classes | join: ' ' }}{% endif %}{% if site.features.dark_mode_toggle %} has-dark-toggle{% endif %}{% if html_dir == 'rtl' %} rtl{% endif %}{% if math_display_style == 'card' %} math-card{% endif %}
   {% endcapture %}
   {% assign default_color_mode = page.theme | default: site.theme_options.color_scheme.default | default: 'dark' %}
   <body class="{{ body_classes | strip }}{% if default_color_mode == 'dark' %} dark-mode{% endif %}" data-default-theme="{{ default_color_mode }}" data-theme="{{ default_color_mode }}">

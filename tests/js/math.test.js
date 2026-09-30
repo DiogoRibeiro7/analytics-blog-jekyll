@@ -539,6 +539,16 @@ describe('MathJax initialization', () => {
     expect(toolkit.editor).toBeDefined();
   });
 
+  it('takes the numbering the theme passes', () => {
+    const mockMathJax = { startup: { promise: Promise.resolve(), document: { math: [] } } };
+
+    toolkit.init(mockMathJax, { numbering: 'ams' });
+    expect(toolkit.numbering).toBe('ams');
+
+    toolkit.init(mockMathJax);
+    expect(toolkit.numbering).toBeNull();
+  });
+
   it('handles MathJax startup promise resolution', async () => {
     const mockMathJax = {
       startup: {
@@ -715,6 +725,36 @@ describe('who numbers a display equation', () => {
     const badge = container.parentElement.querySelector('.math-expression__number');
     expect(badge).toBeTruthy();
     expect(badge.textContent).toBe('(1)');
+    toolkit.MathJax = null;
+  });
+
+  // theme_options.math.numbering: none is MathJax's tags: 'none' too, but the
+  // theme's head says so, and the author asked for no numbers.
+  it('adds no number of its own when the theme set the numbering to none', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'none' } } };
+    toolkit.numbering = 'none';
+    const container = numberedDisplay(null);
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: 'E = mc^2', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBeUndefined();
+    toolkit.numbering = null;
+    toolkit.MathJax = null;
+  });
+
+  it('keeps the number of an author\'s \\tag when the theme set the numbering to none', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'none' } } };
+    toolkit.numbering = 'none';
+    const container = numberedDisplay('(A)');
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: 'E = mc^2 \\tag{A}', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBe('(A)');
+    toolkit.numbering = null;
     toolkit.MathJax = null;
   });
 });
