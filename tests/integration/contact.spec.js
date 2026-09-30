@@ -135,4 +135,26 @@ test.describe('Contact form', () => {
     await expect(form.locator('[data-form-status]')).toContainText('does not offer');
     await expect(form.locator('button[type=submit]')).toBeDisabled();
   });
+
+  // The form's script loads after the page. A reader who is already in the form
+  // when it arrives never fires the first focus it listened for; on a slow
+  // runner this test's twin above failed that way.
+  test('a reader in the form before its script arrives is still told the service does not take messages', async ({ page }) => {
+    await serve(page, { '/capabilities': { body: { api_version: '1', features: { contact: false } } } });
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route('**/assets/js/dist/contact.js', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(new URL('/contact/', baseUrl).href, { waitUntil: 'domcontentloaded' });
+    await page.locator('#contact-name').focus();
+    release();
+
+    const form = page.locator('#contact-form');
+    await expect(form).toHaveAttribute('data-state', 'disabled');
+    await expect(form.locator('[data-form-status]')).toContainText('does not offer');
+  });
 });

@@ -8,7 +8,7 @@
  */
 
 import { getClient } from "../dynamic-services/client.js";
-import { createAvailabilityCheck, createSubmission, readForm, setFormState, showFailure } from "../dynamic-services/form-state.js";
+import { createAvailabilityCheck, createSubmission, readForm, setFormState, showFailure, whenReached } from "../dynamic-services/form-state.js";
 
 export const FEATURE = "contact";
 export const MIN_MESSAGE = 20;
@@ -116,7 +116,7 @@ export function initContactForm(root, deps = {}) {
   const ensureAvailable = createAvailabilityCheck(client, FEATURE, form, errorLabels);
 
   // The first time the reader reaches into the form, not on page load.
-  form.addEventListener("focusin", () => ensureAvailable().catch(() => {}), { once: true });
+  whenReached(form, () => ensureAvailable().catch(() => {}));
 
   const controller = {
     form,
