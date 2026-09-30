@@ -70,7 +70,7 @@ module Datalog
         report("Releases after #{current}: #{newer.join(', ')}") unless newer.empty?
         if target == current && !submodule_needs_stage?(theme)
           report("DataLog theme is already at #{current}.")
-          return 0
+          return check_current(theme)
         end
 
         report("Update #{theme} from #{current} to #{target}.")
@@ -88,15 +88,45 @@ module Datalog
         run!("npm run build:js", theme)
         run!("bundle install", @root)
         changelog(File.join(theme, "CHANGELOG.md"), current, target)
-        issues = preflight(theme)
-        unless issues.empty?
-          issues.each { |issue| report("Check: #{issue}") }
-          raise Error, "Resolve the #{issues.size} site check(s) above before building"
-        end
+        check_site!(theme)
         build_site if @options[:build]
         stage_submodule(theme, target)
         report("Theme updated to #{target}. Review the changes before committing; nothing was committed or pushed.")
         2
+      end
+
+      # Already at the release asked for, the checkout still has to be one a
+      # site can build from: its bundles are rebuilt when they were never built
+      # or were built from other sources, the site gets the same checks as after
+      # an update, and --build builds it. Nothing changes the release, so the
+      # answer stays 0, "already current".
+      def check_current(theme)
+        require_relative "installed_files"
+        stale = InstalledFiles.stale_bundle_reasons(theme)
+        if @options[:dry_run]
+          report("Dry run: rebuild the theme bundles (#{stale.first}).") unless stale.empty?
+          report("Dry run: check the site#{' and build it' if @options[:build]}.")
+          return 0
+        end
+
+        unless stale.empty?
+          raise Error, "npm is required to build a path-installed theme" unless @available.call("npm")
+
+          report("The theme's bundles need building: #{stale.first}.")
+          run!("npm ci", theme)
+          run!("npm run build:js", theme)
+        end
+        check_site!(theme)
+        build_site if @options[:build]
+        0
+      end
+
+      def check_site!(theme)
+        issues = preflight(theme)
+        return if issues.empty?
+
+        issues.each { |issue| report("Check: #{issue}") }
+        raise Error, "Resolve the #{issues.size} site check(s) above before building"
       end
 
       def update_gem
