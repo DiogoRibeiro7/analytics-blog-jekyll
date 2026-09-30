@@ -216,7 +216,9 @@ site in a temporary output directory. The command prints Removed, Changed and
 Deprecated changelog entries across the selected releases. It never commits
 or pushes: inspect the staged pointer and use the printed `git commit` command
 when ready. Exit status 0 means already current, 2 means updated, and 1 means
-the update failed. If preflight finds a stale copy or old `*_dir` setting,
+the update failed. Already current is not a reason to skip anything else: the
+command still builds the theme's bundles when they are missing or out of date,
+runs the site checks, and builds the site with `--build`. If preflight finds a stale copy or old `*_dir` setting,
 resolve every reported check and run the command again. A failed build also
 needs attention before committing.
 

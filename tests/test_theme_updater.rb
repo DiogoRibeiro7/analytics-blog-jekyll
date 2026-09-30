@@ -75,6 +75,59 @@ class ThemeUpdaterTest < Minitest::Test
     end
   end
 
+  # Already at the release: the answer used to come before any check, so a
+  # checkout whose bundles were never built said "already at" and --build
+  # built nothing.
+  def test_already_current_checkout_builds_missing_bundles_and_honours_build
+    with_site do |site, theme|
+      git(theme, "checkout", "-q", "--detach", "v0.9.0")
+      git(site, "add", "vendor/datalog")
+      output = []
+      commands = []
+
+      assert_equal 0, updater(site, { build: true }, output, commands).run
+      assert_includes output.join("\n"), "already at v0.9.0"
+      assert_includes output.join("\n"), "sources.json is missing"
+      assert_equal "npm ci", commands[0]
+      assert_equal "npm run build:js", commands[1]
+      assert_match(/\Abundle exec jekyll build --disable-disk-cache --destination /, commands[2])
+      assert_equal 3, commands.size
+
+      commands.clear
+      assert_equal 0, updater(site, {}, [], commands).run
+      assert_empty commands, "built bundles are not rebuilt"
+    end
+  end
+
+  def test_already_current_checkout_still_gets_the_site_checks
+    with_site do |site, theme|
+      git(theme, "checkout", "-q", "--detach", "v0.9.0")
+      git(site, "add", "vendor/datalog")
+      updater(site, {}, [], []).run
+      File.write(File.join(site, "_config.yml"), "includes_dir: vendor/datalog/_includes\n")
+      output = []
+
+      error = assert_raises(Datalog::Theme::Updater::Error) { updater(site, {}, output, []).run }
+      assert_match(/site check/, error.message)
+      assert_includes output.join("\n"), "includes_dir points into"
+    end
+  end
+
+  def test_already_current_dry_run_only_says_what_it_would_do
+    with_site do |site, theme|
+      git(theme, "checkout", "-q", "--detach", "v0.9.0")
+      git(site, "add", "vendor/datalog")
+      output = []
+      commands = []
+
+      assert_equal 0, updater(site, { dry_run: true, build: true }, output, commands).run
+      assert_empty commands
+      assert_includes output.join("\n"), "Dry run: rebuild the theme bundles"
+      assert_includes output.join("\n"), "Dry run: check the site and build it."
+      refute File.exist?(File.join(theme, "assets/js/dist/sources.json"))
+    end
+  end
+
   private
 
   def updater(site, options, output, commands)
