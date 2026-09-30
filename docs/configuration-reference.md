@@ -122,6 +122,8 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.reading_state.progress` | Boolean | `true` (default), `false` |
 | `theme_options.reading_state.highlights` | Boolean | `true` (default), `false` |
 | `theme_options.reading_state.list_url` | String | The path of the page that lists the saved articles |
+| `theme_options.provenance` | Map | Any |
+| `theme_options.provenance.position` | String | `end` (default), `start` |
 
 ## Global Settings
 
@@ -452,6 +454,17 @@ This guide documents the configuration keys validated by the automated configura
       progress: true
       highlights: true
       list_url: /saved/
+  ```
+
+#### theme_options.provenance
+- **Required:** No
+- **Type:** Map
+- **Description:** Where a post's author and editorial note goes (the note that `why_this_exists`, `evidence`, `methodology` and `reviewed_at` make). `position: end`, the default, puts it after the article body and the reproducibility panel, before the revision history and "How to cite", with a row in the metadata that links to it; `start` puts it between the topics and the body, where it used to be. A post overrides it with `provenance_position` in its front matter. See [components.md: Where the Author and Editorial Note Goes](components.md#where-the-author-and-editorial-note-goes).
+- **Example:**
+  ```yaml
+  theme_options:
+    provenance:
+      position: start
   ```
 
 ## Deprecations

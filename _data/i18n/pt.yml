@@ -409,6 +409,8 @@ post:
     evidence: Evidência utilizada
     method: Método
     reviewed: Revisto
+    reviewed_on: "Revisto a {{date}}"
+    link: Como este artigo foi feito
   revisions:
     heading: Histórico de revisões
     corrected_on: "Corrigido em {{date}}."

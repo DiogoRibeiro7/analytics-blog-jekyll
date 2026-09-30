@@ -48,6 +48,15 @@ schema_type: TechArticle
 {% assign has_categories = false %}
 {% if page.categories and page.categories.size > 0 %}{% assign has_categories = true %}{% endif %}
 
+{%- comment -%}
+  Where the author and editorial note goes: after the article by default
+  (theme_options.provenance.position: end), or before it with `start`. A page
+  chooses for itself with provenance_position in its front matter.
+{%- endcomment -%}
+{% assign provenance_position = page.provenance_position | default: site.theme_options.provenance.position | default: 'end' %}
+{% assign provenance_first = false %}
+{% if provenance_position == 'start' %}{% assign provenance_first = true %}{% endif %}
+
 {%- comment -%} ISO 8601 duration for reading time {%- endcomment -%}
 {% assign time_required = 'PT' | append: reading_minutes | append: 'M' %}
 
@@ -123,6 +132,8 @@ schema_type: TechArticle
           </dd>
         </div>
       {% endif %}
+      {%- comment -%} With the note after the article, the metadata says there is one, and when the article was reviewed {%- endcomment -%}
+      {% unless provenance_first %}{% include components/content-provenance.html page=page date_format=date_format pointer=true %}{% endunless %}
     </dl>
   </section>
 
@@ -157,8 +168,8 @@ schema_type: TechArticle
     </section>
   {% endif %}
 
-  {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at) {%- endcomment -%}
-  {% include components/content-provenance.html page=page date_format=date_format %}
+  {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at), here with provenance position `start` {%- endcomment -%}
+  {% if provenance_first %}{% include components/content-provenance.html page=page date_format=date_format %}{% endif %}
 
   {%- comment -%} The article's series: every part in order, and the previous and next ones {%- endcomment -%}
   {% include components/series-nav.html page=page %}
@@ -188,6 +199,9 @@ schema_type: TechArticle
 
   {%- comment -%} The code, data and environment behind the analysis {%- endcomment -%}
   {% include components/reproducibility.html page=page %}
+
+  {%- comment -%} How the article was made: after it, by default, as the apparatus that follows the text {%- endcomment -%}
+  {% unless provenance_first %}{% include components/content-provenance.html page=page date_format=date_format %}{% endunless %}
 
   {%- comment -%} Report an error: structured feedback to the author, on a site with a backend {%- endcomment -%}
   {% include components/correction-report.html %}
