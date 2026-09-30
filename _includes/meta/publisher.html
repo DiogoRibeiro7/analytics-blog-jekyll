@@ -7,6 +7,11 @@ Resolves who publishes the site, for structured data. Sets publisher_type
 Organization, publisher_logo and publisher_logo_default (true when the logo is
 the theme's 512px icon, whose size is known).
 
+It also sets publisher_id, the publisher's stable JSON-LD `@id` under the
+site's root: `#person` when the site's author publishes, which is the id the
+author's own Person carries, `#organization` for an Organization and
+`#publisher` for another Person; and publisher_is_site_author.
+
 `publisher` in _config.yml names the publisher. Without it, the site's author
 publishes as a Person, or the site title as an Organization when there is no
 author name. The author's affiliation is not the publisher: schema.html puts it
@@ -42,4 +47,14 @@ on the author.
     {%- assign publisher_logo = '/assets/img/favicons/android-chrome-512x512.png' | absolute_url -%}
     {%- assign publisher_logo_default = true -%}
   {%- endif -%}
+{%- endif -%}
+{%- assign identity_root = '/' | absolute_url -%}
+{%- assign publisher_is_site_author = false -%}
+{%- if publisher_type == 'Organization' -%}
+  {%- assign publisher_id = identity_root | append: '#organization' -%}
+{%- elsif publisher_name == site_author_name -%}
+  {%- assign publisher_id = identity_root | append: '#person' -%}
+  {%- assign publisher_is_site_author = true -%}
+{%- else -%}
+  {%- assign publisher_id = identity_root | append: '#publisher' -%}
 {%- endif -%}

@@ -18,6 +18,17 @@ This guide documents the configuration keys validated by the automated configura
 | `author.name` | String, required when `author` is a map | Any |
 | `author.email` | String | An email address |
 | `author.profile_rel` | String | Link types separated by spaces, such as `me noopener noreferrer` |
+| `author.alternate_name` | String or list | Another name, such as a handle |
+| `author.alternate_names` | List or string | Other names |
+| `author.job_title` | String or list | Any |
+| `author.roles` | List or string | Any; read when `job_title` is not set |
+| `author.knows_about` | String or list | Any |
+| `author.same_as` | String or list | URLs of other profiles |
+| `site_identity` | Boolean or map | `true`, or a map with the keys below |
+| `site_identity.enabled` | Boolean | `true` (default), `false` |
+| `site_identity.name` | String | Any; defaults to `title` |
+| `site_identity.alternate_names` | List or string | Other names of the site |
+| `site_identity.alternate_name` | String | One other name of the site |
 | `publisher` | Map | Any |
 | `publisher.type` | String | `Person`, `Organization` |
 | `publisher.name` | String | Any |
@@ -168,6 +179,46 @@ This guide documents the configuration keys validated by the automated configura
   ```yaml
   author:
     profile_rel: noopener noreferrer   # no rel="me"
+  ```
+
+#### Identity fields
+- **Required:** No
+- **Type:** Strings or lists
+- **Description:** What the JSON-LD `Person` says about the author besides the name, on every page that names them and in the homepage's identity graph ([site_identity](#site_identity)). Each is written only when set, and a `_data/authors.yml` record takes the same keys.
+
+  | Key | JSON-LD |
+  | --- | --- |
+  | `alternate_name` or `alternate_names` | `alternateName` |
+  | `job_title` or `roles` | `jobTitle` |
+  | `avatar`, `image` or `photo` | `image`, made absolute |
+  | `bio` or `biography` | `description`, as plain text |
+  | `knows_about`, `expertise` or `research_areas` | `knowsAbout` |
+  | `affiliation` or `institution` | `affiliation` |
+  | `orcid`, `github`, `twitter`, `linkedin`, `researchgate`, `google_scholar`, then `same_as` | `sameAs`, each address once |
+
+  The site's own author also carries `"@id": "<site>/#person"` on every page, which the publisher shares when the author publishes; another author has no `@id`.
+- **Example:**
+  ```yaml
+  author:
+    name: Jane Doe
+    alternate_name: janedoe
+    roles: [Lead Data Scientist, Professor]
+    same_as: [https://mastodon.example/@jane]
+  ```
+
+## Site Identity
+
+### site_identity
+- **Required:** No
+- **Type:** `true`, or a map with `name`, `alternate_names` (or `alternate_name`) and `enabled`
+- **Default:** off
+- **Description:** Describes the site itself on its homepage: a second JSON-LD block holding a `WebSite` node (`"@id": "<site>/#website"`, with its URL, `name`, `alternateName`, description, language and publisher) and the publisher's full node, the author's `Person` (`#person`) or the `Organization` (`#organization`). Search engines read the `WebSite` name as the site's name. `name` defaults to `title`; `og:site_name` uses the same name. A page with `schema_type: ProfilePage`, and the homepage, then say they are `isPartOf` the website. Off by default so a site that wrote its own `WebSite` block does not end up with two; delete yours when you turn this on. See [user-guide.md: Naming the site and its owner](user-guide.md#naming-the-site-and-its-owner).
+- **Example:**
+  ```yaml
+  site_identity:
+    name: Jane Doe
+    alternate_names:
+      - janedoe
   ```
 
 ## Publisher

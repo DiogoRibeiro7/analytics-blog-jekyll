@@ -201,6 +201,71 @@ a finite mean is enough.
 - Provide canonical URLs, `og:image`, and `twitter:image` paths for each post—especially visualizations and notebooks.
 - Use descriptive alt text for charts and code snippets to improve accessibility and search rankings.
 
+### Naming the site and its owner
+
+Search engines take a site's name above all from a `WebSite` node on its
+homepage, and a personal site also wants its owner described once, as the same
+person every article names. `site_identity` in `_config.yml` turns that on, and
+the richer fields on `author` fill in the person:
+
+```yaml
+site_identity:
+  name: Jane Doe                 # default: title
+  alternate_names: [janedoe]     # handles, brands, other spellings
+
+author:
+  name: Jane Doe
+  alternate_name: janedoe
+  roles: [Lead Data Scientist, Professor]   # or job_title: one string
+  avatar: /assets/img/jane.jpg
+  bio: Writes about missing data and causal inference.
+  research_areas: [Missing data, Causal inference]   # or knows_about, expertise
+  affiliation: Example University
+  github: janedoe
+  orcid: 0000-0002-1825-0097
+  same_as:                       # any other profile of the same person
+    - https://mastodon.example/@jane
+```
+
+The homepage then carries a second JSON-LD block, an `@graph` of the `WebSite`
+(`@id` `https://jane.example/#website`: its URL, name, `alternateName`,
+description, language and publisher) and the publisher in full: the author's
+`Person` (`#person`) with `alternateName`, `image`, `jobTitle`, `description`,
+`knowsAbout`, `affiliation` and `sameAs`, or the `Organization`
+(`#organization`) when `publisher.type` is `Organization`. `og:site_name` uses
+the same name. Without `site_identity` nothing of this is added, so a site that
+wrote its own `WebSite` block should delete it when it turns this on, rather
+than publish two that disagree.
+
+The `@id`s are there on every page with or without it: an article's `author`,
+when it is the site's author, and its `publisher` both say `#person` (or
+`#organization`), so a search engine sees one person rather than one per
+article. A guest author gets no `@id`, and is never described as the site's
+owner. The other fields are written for any author whose record has them.
+
+To make a page a profile, usually the homepage or `/about/`, give it
+`schema_type: ProfilePage`. Its JSON-LD is then a `ProfilePage` whose
+`mainEntity` is the page's first author (the site's author unless the page
+names another), or the publisher with `main_entity: publisher`, and which is
+`isPartOf` the `WebSite` when `site_identity` is on:
+
+```yaml
+---
+layout: home
+title: Jane Doe
+schema_type: ProfilePage
+seo_title: Jane Doe (janedoe), data scientist and statistician
+seo_title_suffix: false
+---
+```
+
+Every `<title>` ends with ` | ` and the site's title. `seo_title_suffix: false`
+leaves that out, for a title that already names the site; a string, such as
+`seo_title_suffix: Jane Doe`, replaces the site's title after the bar. The share
+cards use the title alone either way. The meta description and the JSON-LD
+`description` read the same fields in the same order: `seo_description`, then
+`description`, then the excerpt, then the site's `description`.
+
 ### Publishing a dataset so it can be found
 
 A page in `_datasets/` carries `schema.org/Dataset` structured data, which is

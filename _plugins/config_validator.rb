@@ -75,7 +75,19 @@ module Datalog
           name: { type: :string, required: true },
           email: { type: :string, format: :email },
           # The `rel` of the author's profile links, `me noopener noreferrer` unless set.
-          profile_rel: { type: :string }
+          profile_rel: { type: :string },
+          # What the JSON-LD Person says about them: one value or a list of them.
+          alternate_name: { type: %i[string array] }, alternate_names: { type: %i[array string] },
+          job_title: { type: %i[string array] }, roles: { type: %i[array string] },
+          knows_about: { type: %i[array string] }, same_as: { type: %i[array string] }
+        }
+      },
+      # The homepage's WebSite node (meta/schema.html): true, or a map naming the site.
+      site_identity: {
+        type: %i[boolean hash],
+        schema: {
+          enabled: { type: :boolean }, name: { type: :string },
+          alternate_names: { type: %i[array string] }, alternate_name: { type: :string }
         }
       },
       # Who publishes the site in structured data and citations. Without it, the author does.
