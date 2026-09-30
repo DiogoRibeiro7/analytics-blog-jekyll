@@ -13,6 +13,7 @@ that copies this file to add its own rules keeps these lines.
   $notebooks: {% if notebook_pages.size > 0 %}true{% else %}false{% endif %},
   $packages: {% if site.packages.size > 0 %}true{% else %}false{% endif %},
   $academic-dashboard: {% if site.features.academic_dashboard %}true{% else %}false{% endif %},
-  $open-science-badges: {% if site.data.academic.badges.size > 0 %}true{% else %}false{% endif %}
+  $open-science-badges: {% if site.data.academic.badges.size > 0 %}true{% else %}false{% endif %},
+  $math-card: {% if site.theme_options.math.display_style == 'card' %}true{% else %}false{% endif %}
 );
 @use "theme";

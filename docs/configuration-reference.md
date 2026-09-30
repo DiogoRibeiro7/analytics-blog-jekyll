@@ -113,6 +113,8 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.math` | Map | Any |
 | `theme_options.math.engine` | String | `mathjax`, `katex` |
 | `theme_options.math.enabled` | Boolean | `true`, `false`; deprecated, with no effect |
+| `theme_options.math.display_style` | String | `plain` (default), `card` |
+| `theme_options.math.numbering` | String | `ams` (default), `all`, `none` |
 | `theme_options.reading_mode` | Map | Any |
 | `theme_options.reading_mode.enabled` | Boolean | `true` (default), `false` |
 | `theme_options.reading_mode.remember` | Boolean | `true`, `false` (default) |
@@ -427,6 +429,28 @@ This guide documents the configuration keys validated by the automated configura
   theme_options:
     math:
       engine: mathjax
+  ```
+
+##### theme_options.math.display_style
+- **Required:** No
+- **Type:** String (enum: `plain`, `card`)
+- **Description:** How a display equation is set. `plain`, the default, puts it on its own line with a `1.25rem` margin above and below and nothing else, as in print; its copy and edit tools appear at the end of its line when the pointer or the keyboard focus reaches it, and a focus ring goes round it. `card` sets each one in a framed panel with its tools always in view, as the theme used to. The theme's `assets/css/main.scss` compiles the card's styles only for a site that chooses it. The setting applies to both engines; the copy and edit tools come with MathJax only.
+- **Example:**
+  ```yaml
+  theme_options:
+    math:
+      display_style: card
+  ```
+
+##### theme_options.math.numbering
+- **Required:** No
+- **Type:** String (enum: `ams`, `all`, `none`)
+- **Description:** Which display equations MathJax numbers. `ams`, the default, numbers what LaTeX's amsmath numbers, `equation`, `align`, `gather`, `multline` and the others but not their starred forms, and also a `$$…$$` display that carries a `\label{}`, so that `\eqref{}` can refer to it; `$$x = 1$$` stays unnumbered, and `\notag` leaves out one line. `all` numbers every display equation, as the theme used to. `none` numbers only an equation the author tags with `\tag{}`, so `\eqref{}` has nothing else to refer to. KaTeX numbers only a `\tag{}`, whatever the setting.
+- **Example:**
+  ```yaml
+  theme_options:
+    math:
+      numbering: all
   ```
 
 #### theme_options.reading_mode

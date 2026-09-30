@@ -23,7 +23,13 @@ We adapt the standard Wirtinger inequality. Consider the sine basis function $g(
 \langle f, g \rangle = \int_a^b f(x) g(x) \, \mathrm{d}x.
 \end{equation}
 
-Integration by parts shows that
+The sine basis satisfies
+
+$$
+g''(x) = -\frac{\pi^2}{(b-a)^2}\, g(x),
+$$
+
+so integration by parts shows that
 
 \begin{equation}\label{eq:ibp}
 \int_a^b f'(x) g'(x) \, \mathrm{d}x = -\int_a^b f(x) g''(x) \, \mathrm{d}x = \frac{\pi^2}{(b-a)^2} \langle f, g \rangle.
@@ -33,7 +39,7 @@ Combining Equations \eqref{eq:inner-product} and \eqref{eq:ibp} yields the desir
 
 ## Notes for authors
 
-- MathJax automatically numbers `equation` environments so you can reference them with `\eqref{}`.
+- MathJax numbers the equations the text can refer to: an `equation` or `align` environment, or a `$$…$$` display with a `\label{}`, which `\eqref{}` then links to. The display for $g''$ above has no label, so it has no number.
 - Inline math, such as $\int_a^b f(x)\,\mathrm{d}x$, remains crisp across light and dark modes.
 - Use definition, lemma, and corollary blocks as needed—Markdown blockquotes keep the typography consistent.
 

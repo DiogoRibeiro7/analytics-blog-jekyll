@@ -10,8 +10,15 @@
    * @namespace MathToolkit
    */
   const MathToolkit = {
-    init(MathJax) {
+    /**
+     * @param {Object} MathJax - The MathJax global, once it has started
+     * @param {Object} [options]
+     * @param {string} [options.numbering] - theme_options.math.numbering, which
+     *   the theme's head passes: `ams`, `all` or `none`
+     */
+    init(MathJax, options = {}) {
       this.MathJax = MathJax;
+      this.numbering = options.numbering || null;
       this.displayCounter = 0;
       this.anchorCounter = 0;
       this.equationMap = new Map();
@@ -236,9 +243,16 @@
      * environments are its to honour, and an `align` numbers each of its lines
      * where this toolkit sees one expression. Where it numbers, its numbers
      * are the ones the page shows and the ones references point at.
+     *
+     * A page whose head passed theme_options.math.numbering leaves every
+     * number to MathJax, `none` included: a `\tag{}` of the author's is then
+     * the only number, and the toolkit adds none of its own.
      * @returns {boolean}
      */
     mathJaxNumbersEquations() {
+      if (this.numbering) {
+        return true;
+      }
       const tex = this.MathJax && this.MathJax.config ? this.MathJax.config.tex : null;
       const tags = tex ? tex.tags : null;
       return Boolean(tags) && tags !== 'none';
@@ -924,8 +938,8 @@
   }
 
   window.DatalogMath = {
-    init(MathJax) {
-      MathToolkit.init(MathJax);
+    init(MathJax, options) {
+      MathToolkit.init(MathJax, options);
     },
     onPageReady() {
       if (MathToolkit.initialized) {

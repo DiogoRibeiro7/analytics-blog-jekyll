@@ -91,6 +91,18 @@ The math engine is loaded from a CDN and weighs several hundred kilobytes, so by
 - A page can force it with `math: true` or `math: false` in its front matter. `mathjax` is read as an alias when `math` is not set, so a page's `math: false` turns off what a `mathjax: true` default turned on. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 - Leave `math: true` and `mathjax: true` out of `defaults` while `render_on_load` is `auto`: every page in their scope would load the engine, math or not. The build prints a warning when it finds one.
 
+Two settings decide how display equations look:
+
+```yaml
+theme_options:
+  math:
+    display_style: plain   # or card
+    numbering: ams         # or all, none
+```
+
+- `display_style: plain`, the default, sets a display equation on its own line with space around it and nothing else. Its copy and edit tools appear at the end of the line when the pointer is over the equation or the keyboard focus is on it. `card` puts each equation in a framed panel with the tools always showing.
+- `numbering: ams`, the default, numbers the equations a text can refer to: those in a numbered amsmath environment (`equation`, `align`, `gather`, `multline`, not the starred forms) and any `$$…$$` display with a `\label{}`. `all` numbers every display equation; `none` only those with a `\tag{}`.
+
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
 #### Homepage

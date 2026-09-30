@@ -1,0 +1,8 @@
+---
+# The stylesheet of a site with theme_options.math.display_style: card, for
+# tests/integration/math-display.spec.js to put on the demo's math post. The
+# browser suite's build is a plain site, so its main.css leaves the card out.
+# No permalink: with one, Jekyll writes the source map over the stylesheet.
+---
+@use "features" with ($math-card: true);
+@use "theme";
