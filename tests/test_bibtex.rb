@@ -2,6 +2,8 @@
 
 require_relative "test_helper"
 require_relative "../lib/datalog/citations/entry"
+require_relative "../lib/datalog/plugin_system"
+require_relative "../lib/datalog/plugins/citations"
 
 # The BibTeX subset lib/datalog/citations reads, and the one shape its
 # entries, CSL-JSON items and front-matter entries take (#289).
@@ -131,5 +133,25 @@ class BibTeXTest < Minitest::Test
     assert_equal({ "@type" => "CreativeWork", "name" => "T; with semicolon",
                    "author" => [{ "@type" => "Person", "name" => "Ada Smith" }], "datePublished" => "2020",
                    "isPartOf" => "Conf", "sameAs" => "https://doi.org/10.1234/x" }, work.json_ld)
+  end
+
+  def test_the_tag_takes_keys_and_a_quoted_or_bare_locator
+    parse = Datalog::Plugins::Citations.method(:parse_markup)
+
+    assert_equal [%w[a b], "loc|fig. 2 and table 1"], parse.call(%(a b loc="fig. 2 and table 1"))
+    assert_equal [%w[a], "p|12"], parse.call("a p='12'")
+    assert_equal [%w[a], "pp|3-9"], parse.call("a a pp=3-9")
+    assert_raises(Liquid::ArgumentError) { parse.call("a page=3") }
+  end
+
+  # Long runs of one character took quadratic time in the regular expressions
+  # these replaced; a reader of the site's own files should not be that slow.
+  def test_long_inputs_are_read_in_linear_time
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    Datalog::Plugins::Citations.parse_markup("a" * 200_000)
+    Datalog::Citations::Entry.front_matter_names("#{' ' * 200_000}x")
+    Datalog::Citations::Entry.bibtex_names("Smith,#{' ' * 20_000}Ada and #{' ' * 20_000}Lee, Bo")
+
+    assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 2
   end
 end

@@ -74,21 +74,49 @@ module Datalog
       def self.parse_markup(markup, tag_name = "cite")
         keys = []
         locator = nil
-        markup.scan(/(\w+)=(?:"([^"]*)"|'([^']*)'|(\S+))|(\S+)/) do |name, double, single, bare, key|
-          if key
-            keys << check_key(key, tag_name)
+        tokens(markup).each do |token|
+          name, value = token.split("=", 2)
+          if value.nil?
+            keys << check_key(token, tag_name)
           else
             unless LOCATORS.include?(name)
               raise Liquid::ArgumentError, "{% #{tag_name} %} takes a locator as p=, pp=, chap=, sec= or loc=; " \
                                            "got #{name}="
             end
 
-            locator = "#{name}|#{double || single || bare}"
+            locator = "#{name}|#{unquote(value)}"
           end
         end
         raise Liquid::ArgumentError, "{% #{tag_name} %} needs at least one citation key" if keys.empty?
 
         [keys.uniq, locator]
+      end
+
+      # The markup split at spaces outside quotes, character by character: a
+      # regular expression over it could take quadratic time on a long word.
+      def self.tokens(markup)
+        tokens = []
+        current = +""
+        quote = nil
+        markup.to_s.each_char do |char|
+          if quote
+            quote = nil if char == quote
+          elsif ['"', "'"].include?(char)
+            quote = char
+          elsif char.strip.empty?
+            tokens << current unless current.empty?
+            current = +""
+            next
+          end
+          current << char
+        end
+        tokens << current unless current.empty?
+        tokens
+      end
+
+      def self.unquote(value)
+        quoted = value.length >= 2 && ['"', "'"].include?(value[0]) && value[-1] == value[0]
+        quoted ? value[1..-2] : value
       end
 
       def self.check_key(key, tag_name)

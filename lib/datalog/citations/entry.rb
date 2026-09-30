@@ -90,8 +90,8 @@ module Datalog
       def self.bibtex_names(value)
         return [[], false] if value.to_s.strip.empty?
 
-        parts = split_top_level(value, /\s+and\s+/i)
-        others = parts.last&.strip&.casecmp?("others") || false
+        parts = split_top_level(value, /\band\b/i).map(&:strip)
+        others = parts.last&.casecmp?("others") || false
         parts.pop if others
         [parts.map { |part| bibtex_name(part.strip) }, others]
       end
@@ -99,7 +99,7 @@ module Datalog
       def self.bibtex_name(raw)
         return Name.new(nil, nil, BibTeX.latex_to_text(raw)) if raw.match?(/\A\{.*\}\z/m) && balanced?(raw[1..-2])
 
-        pieces = split_top_level(raw, /\s*,\s*/)
+        pieces = split_top_level(raw, /,/).map(&:strip)
         if pieces.size >= 2
           # "von Last, First" or "von Last, Jr, First"
           family = pieces.first
@@ -191,11 +191,11 @@ module Datalog
 
       # ["Doe, Jo", "Ann Roe"] or "Doe, Jo and Ann Roe".
       def self.front_matter_names(authors)
-        authors = authors.split(/\s+and\s+/) if authors.is_a?(String)
+        authors = authors.split(/\band\b/).map(&:strip) if authors.is_a?(String)
         Array(authors).map do |name|
           next Name.new(nil, nil, name.to_s) unless name.is_a?(String)
 
-          family, given = name.split(/\s*,\s*/, 2)
+          family, given = name.split(",", 2).map(&:strip)
           given ? Name.new(family, given, nil) : bibtex_name(name)
         end
       end
@@ -292,7 +292,7 @@ module Datalog
         pairs << [type == "paper-conference" ? "citation_conference_title" : "citation_journal_title", container]
         pairs << ["citation_publisher", publisher] if STANDALONE.include?(type)
         pairs.push(["citation_volume", volume], ["citation_issue", issue])
-        first, last = pages.to_s.split(/\s*[-\u2013\u2014]+\s*/, 2)
+        first, last = pages.to_s.split(/[-\u2013\u2014]+/, 2).map(&:strip)
         pairs.push(["citation_firstpage", first], ["citation_lastpage", last])
         pairs << ["citation_doi", doi_link&.delete_prefix("https://doi.org/")]
         pairs.reject { |_, value| value.to_s.strip.empty? }
