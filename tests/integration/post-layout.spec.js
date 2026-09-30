@@ -70,4 +70,20 @@ test.describe('Post layout', () => {
     await expect(page.locator('.project-case__github-stats')).toBeVisible();
     await expect(page.locator('.rouge-gutter').first()).toBeHidden();
   });
+
+  // The author and editorial note follows the article (#317), on screen and on paper.
+  test('the editorial note comes after the article, and the metadata links to it', async ({ page }) => {
+    await page.goto(new URL('/test-regressions/rendering/', baseUrl).href);
+    for (const media of ['screen', 'print']) {
+      await page.emulateMedia({ media });
+      const article = await page.locator('.post-content').boundingBox();
+      const note = await page.locator('.content-provenance').boundingBox();
+      expect(note.y, `${media}: the note starts below the article`).toBeGreaterThanOrEqual(article.y + article.height);
+    }
+    await page.emulateMedia({ media: 'screen' });
+    const link = page.locator('.post-meta-list a[href="#content-provenance"]');
+    await expect(link).toHaveText('How this article was made');
+    await link.click();
+    await expect(page).toHaveURL(/#content-provenance$/);
+  });
 });

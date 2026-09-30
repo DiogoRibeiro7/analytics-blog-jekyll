@@ -508,11 +508,27 @@ The list may be in any order; it is shown newest first, and two revisions on one
 | --- | --- | --- |
 | `date` | When the article was published. It never changes, and neither does the URL. | "Published" in the metadata, `datePublished` |
 | `last_modified_at` (or `updated`) | When the article last changed. The newest revision sets it when later. | "Updated" in the metadata, `dateModified`, the feed and the sitemap |
-| `reviewed_at` | When the article was last read through by its author or an editor. | "Reviewed" in the provenance note |
+| `reviewed_at` | When the article was last read through by its author or an editor. | "Reviewed" in the provenance note, and in the metadata when the note follows the article |
 | `why_this_exists`, `evidence`, `methodology` | Provenance: why the article exists and what it rests on. | The provenance note |
 | `revisions` | The history: what changed since publication, when and why. | The notice, the history and the structured data |
 
 Provenance explains the evidence and the method; the revision history explains how the published claim changed over time. A `review` revision records a read-through in the history and leaves `reviewed_at` alone.
+
+### Where the Author and Editorial Note Goes
+
+The note that `why_this_exists`, `evidence`, `methodology` and `reviewed_at` make is editorial apparatus, like the reproducibility panel, the revision history and "How to cite", so by default it follows the article with them: after the article body and the reproducibility panel, before the correction report, the revision history and the citation tools. It is there in the document, not only on screen, so a screen reader and the printed page meet it after the article too.
+
+The metadata at the top of the post keeps it in reach. A row, "Author and editorial note", says when the article was reviewed and links to the note: "Reviewed 13 September 2026 · How this article was made". Without `reviewed_at` the row holds the link alone. The row is in the three languages the theme ships.
+
+To put the note back before the article, between the topics and the body, set:
+
+```yaml
+theme_options:
+  provenance:
+    position: start   # or end, the default
+```
+
+A post chooses for itself with `provenance_position: start` or `provenance_position: end` in its front matter, over the site's setting. With `start` there is no row in the metadata, since the note is right there. The research layout does not show the note, so the setting does not reach it.
 
 ### Styling
 
@@ -1338,10 +1354,11 @@ series:                # the article's series and its place in it; see Series Na
 reproducibility:       # the code, data and environment behind it; see Reproducibility Panel
   code: {url: https://github.com/example/missing-data, ref: 4f2c1ab}
 corrections: false     # no correction-report form on this post; see Correction Reports
+provenance_position: start   # the editorial note before the article, not after it; see Revision History
 ---
 ```
 
-There are no site-wide switches for the components. To leave one out, copy `_layouts/post.html` into your site and remove its include.
+A few components have settings in `_config.yml`, such as `theme_options.provenance.position` for where the editorial note goes; the others have none. To leave one out, copy `_layouts/post.html` into your site and remove its include.
 
 ---
 

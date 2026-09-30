@@ -4,14 +4,31 @@ required:
   - page
 optional:
   - date_format
+  - pointer
 ---
 Editorial provenance note built from the `why_this_exists`, `evidence`,
 `methodology` and `reviewed_at` front-matter fields. Renders nothing when
 none of them is set.
+
+With `pointer=true` it renders instead the row of the post's metadata list
+that points to the note when the note follows the article: when the article
+was reviewed, and a link to the note.
 {%- endcomment -%}
 {%- assign prov = include.page -%}
 {%- if prov.why_this_exists or prov.evidence or prov.methodology or prov.reviewed_at -%}
-<aside class="content-provenance" aria-labelledby="content-provenance-heading">
+{%- if include.pointer -%}
+<div>
+  <dt class="post-meta-term">{% t 'post.provenance.heading' %}</dt>
+  <dd class="post-meta-definition">
+    {%- if prov.reviewed_at -%}
+    {%- capture reviewed_date -%}{% include helpers/date-format.html date=prov.reviewed_at format=include.date_format %}{%- endcapture -%}
+    {% t 'post.provenance.reviewed_on' date: reviewed_date %} ·
+    {% endif -%}
+    <a href="#content-provenance">{% t 'post.provenance.link' %}</a>
+  </dd>
+</div>
+{%- else -%}
+<aside id="content-provenance" class="content-provenance" aria-labelledby="content-provenance-heading">
   <h2 id="content-provenance-heading" class="content-provenance__heading">{% t 'post.provenance.heading' %}</h2>
   <dl class="content-provenance__list">
     {%- if prov.why_this_exists -%}
@@ -40,4 +57,5 @@ none of them is set.
     {%- endif -%}
   </dl>
 </aside>
+{%- endif -%}
 {%- endif -%}

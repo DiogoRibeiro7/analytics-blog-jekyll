@@ -225,6 +225,13 @@ module Datalog
               highlights: { type: :boolean },
               list_url: { type: :string }
             }
+          },
+          # Where a post's author and editorial note goes: after the article, or before it.
+          provenance: {
+            type: :hash,
+            schema: {
+              position: { type: :string, enum: %w[end start] }
+            }
           }
         }
       }
