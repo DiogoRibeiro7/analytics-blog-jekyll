@@ -6,6 +6,7 @@ require "date"
 require "json"
 require "nokogiri"
 require "tmpdir"
+require "uri"
 require "yaml"
 require_relative "../lib/datalog/packages"
 require_relative "../lib/datalog/packages/refresh"
@@ -164,7 +165,7 @@ class PackageRefreshTest < Minitest::Test
       file = File.join(dir, "_data", "package_releases.yml")
       File.write(file, "pypi:\n  heavytails:\n    version: 0.1.0\n")
       fetch = lambda do |url|
-        raise SocketError, "getaddrinfo: Name or service not known" if url.include?("crates.io")
+        raise SocketError, "getaddrinfo: Name or service not known" if URI(url).host == "crates.io"
 
         ANSWERS.fetch(url)
       end
@@ -180,8 +181,8 @@ class PackageRefreshTest < Minitest::Test
   def test_refresh_names_a_package_the_registry_lacks_and_an_answer_that_is_no_release
     with_package_site do |dir|
       fetch = lambda do |url|
-        next [404, "Not Found"] if url.include?("rubygems")
-        next [200, "<!doctype html><title>Maintenance</title>"] if url.include?("pypi")
+        next [404, "Not Found"] if URI(url).host == "rubygems.org"
+        next [200, "<!doctype html><title>Maintenance</title>"] if URI(url).host == "pypi.org"
 
         ANSWERS.fetch(url)
       end
