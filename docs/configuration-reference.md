@@ -91,6 +91,10 @@ This guide documents the configuration keys validated by the automated configura
 | `timezone` | String | Any |
 | `collections` | Map | Any |
 | `plugins` | List | Any |
+| `audit` | Map | Any |
+| `audit.known_keys` | List | Front matter keys a site reads its own way |
+| `audit.ignore_links` | List | URL prefixes built outside Jekyll |
+| `audit.revision_after_days` | Integer | Days after publication an edit counts; default `30` |
 | `citations` | Map | Any |
 | `citations.style` | String | `numeric` (default), `author-year` |
 | `citations.bibliography` | String or list | Paths of BibTeX (`.bib`) or CSL-JSON (`.json`) files in the site |
@@ -398,6 +402,17 @@ This guide documents the configuration keys validated by the automated configura
   ```
   ```yaml
   scholarly: [posts, notebooks]
+  ```
+
+### audit
+- **Required:** No
+- **Type:** Map
+- **Description:** Settings of `bundle exec datalog audit`. `known_keys` lists the front matter keys a site's pages carry that nothing in the theme reads, such as keys a site's own plugin reads from its data, so the audit does not report them. `ignore_links` lists URL prefixes the site builds outside Jekyll's reader. `revision_after_days` is how long after publication an edit must come to suggest a revision entry. See [scripts-reference.md: datalog audit](scripts-reference.md#datalog-audit).
+- **Example:**
+  ```yaml
+  audit:
+    known_keys: [legacy_id]
+    revision_after_days: 60
   ```
 
 ### citations

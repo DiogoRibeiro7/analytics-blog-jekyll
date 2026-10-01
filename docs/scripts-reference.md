@@ -7,6 +7,7 @@ This document provides a comprehensive overview of all utility scripts in the `/
 - [Overview](#overview)
 - [Build & Optimization](#build--optimization)
 - [Import & Export](#import--export)
+- [Content Audit](#content-audit)
 - [Utilities](#utilities)
 - [Usage Examples](#usage-examples)
 - [Development](#development)
@@ -249,6 +250,59 @@ npm run validate-sri
 **Requirements**: `gepub` gem
 
 ---
+
+## Content Audit
+
+### datalog audit
+
+**Purpose**: Finds the pages and posts that would gain from the theme's newer authoring features, and the content problems no build reports. It gives the file and line of each finding. It reads the site and writes nothing.
+
+**Usage**:
+```bash
+bundle exec datalog audit                        # a summary in the terminal
+bundle exec datalog audit --strict               # exit 1 when there is a problem, for CI
+bundle exec datalog audit --format json          # for tooling
+bundle exec datalog audit --format markdown      # for an issue or a pull-request comment
+bundle exec datalog audit --only statements,series --path _posts/statistics
+```
+
+**Opportunities** are advice. They are never an error, even with `--strict`:
+
+| Check | Finds | Would use |
+| --- | --- | --- |
+| `statements` | A paragraph, list item or blockquote opening with a bold **Theorem**, **Lemma**, **Proposition**, **Corollary**, **Definition**, **Assumption**, **Example** or **Remark**, or a **Proof** (bold, or *Proof.* in italics) | `{% theorem %}` and its siblings, `{% proof %}` |
+| `figures` | "Figure 3", "Fig. 3" or "Table 2" typed in the text | `{% figure %}`, `{% table %}` and `{% ref %}` |
+| `series` | A post whose title or file name says "Part 2" (or "Part II"), or that links another part or the next or previous post by hand, with no `series:` | `series:` |
+| `reproducibility` | A post that links a GitHub, GitLab, Bitbucket or Codeberg repository, a notebook (`.ipynb`, Colab, Binder, nbviewer) or a DOI, with no `reproducibility:` | the reproducibility panel |
+| `revisions` | A post edited more than 30 days after its date, by `last_modified_at` or `updated`, or else by its last Git commit, with no `revisions:` | the revision history |
+| `references` | A heading or bold line "References", "Bibliography", "Works cited" or "Sources" on a page that does not cite with `{% cite %}` | `{% cite %}` and a bibliography file |
+
+The Git check ignores commits that touch more than ten files, since a reformat or a migration is not an edit of any one article.
+
+**Problems** are warnings. `--strict` turns them into exit status 1:
+
+| Check | Finds |
+| --- | --- |
+| `front-matter` | A front matter key that no layout, include or plugin reads, such as a typo (`descripton:`) or a field of another theme. The known keys are taken from the theme's layouts, includes, plugins and library, and from the site's own layouts, includes and plugins. They are never kept as a list. |
+| `images` | A Markdown image with empty alt text, an `<img>` with no `alt` attribute, or alt text that is the image's file name. `alt=""` on an `<img>` is left alone, since it marks a decorative image. |
+| `links` | A site-relative link (`/path/`, Markdown or HTML) to a page the site does not build |
+| `math` | A post with `math: true` whose content has no math, or `math: false` whose content has some, by the same detection as `_plugins/math_preprocessor.rb` |
+
+**What it reads**:
+- **Content:** Jekyll's reader gives the site's pages and documents, with the site's own `exclude`, `include` and collections. Each finding comes from the file as written. Code (fenced blocks, `{% highlight %}` and `{% raw %}` blocks, `<pre>` and `<code>`, inline code, HTML comments) is left out, so an example in a code block is not reported.
+- **Built pages:** besides the pages and documents, the audit runs the generators that only add pages in memory (feeds, the sitemap, pagination, redirects, the search page, notebook pages). It never runs the ones that fetch data, encode images or fill a cache, and it never renders or writes the site.
+
+**Settings** (`_config.yml`):
+```yaml
+audit:
+  known_keys: [legacy_id]        # front matter keys a site reads its own way
+  ignore_links: [/api/]          # URL prefixes built outside Jekyll, such as a plugin's generated pages
+  revision_after_days: 30        # an edit counts after this many days
+```
+
+**Exit codes**: 0, or 1 with `--strict` when there is a problem; 2 when the audit cannot run (no `_config.yml`, an unknown check in `--only`).
+
+**Limitations**: links are checked when they are site-relative; relative links (`../post/`) and full URLs are not. Pages created by a site's own generators are not known to the audit, so links to them are reported unless `audit.ignore_links` names them.
 
 ## Utilities
 

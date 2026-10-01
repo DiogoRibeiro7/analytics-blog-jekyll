@@ -5,7 +5,6 @@ date: 2024-04-03
 tags: [r, statistics, visualization]
 difficulty: advanced
 summary: Fit hierarchical models in R, visualize partial pooling with ggplot2, and highlight reproducible figure exports.
-hero: /assets/images/posts/r-hierarchical-modeling.jpg
 ---
 
 R remains a powerhouse for statistical modeling. This walkthrough fits a varying-intercept model with `lme4`, then layers diagnostic charts created with **ggplot2** to verify assumptions.

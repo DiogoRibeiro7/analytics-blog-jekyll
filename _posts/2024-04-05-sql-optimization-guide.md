@@ -5,7 +5,6 @@ date: 2024-04-05
 tags: [sql, performance, warehousing]
 difficulty: intermediate
 summary: Profile query plans, apply windowing strategies, and document optimization tips with the DataLog theme’s code annotations.
-hero: /assets/images/posts/sql-optimization.jpg
 ---
 
 Modern cloud warehouses give you sophisticated tuning knobs, but documentation often lags behind. This guide shows how to annotate SQL plans, highlight critical snippets, and attach performance artifacts so every reviewer can reproduce improvements.

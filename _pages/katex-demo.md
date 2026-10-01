@@ -4,7 +4,6 @@ title: KaTeX Rendering Demo
 permalink: /katex-demo/
 math: true
 math_engine: katex
-nav_exclude: true
 summary: Explore KaTeX rendering under the strict Content Security Policy.
 ---
 

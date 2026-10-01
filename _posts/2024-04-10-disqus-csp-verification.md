@@ -8,7 +8,6 @@ comments:
   shortname: datalog-demo
   mapping: pathname
   enabled_by_default: true
-nav_exclude: true
 tags: [testing]
 ---
 

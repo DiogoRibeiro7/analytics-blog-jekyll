@@ -391,6 +391,13 @@ analytics:
   ga4_credentials_path: ""
 
 # -----------------------------------------------------------------------------
+# Content audit (bundle exec datalog audit)
+# -----------------------------------------------------------------------------
+audit:
+  # The Minimal Mistakes demo post keeps author_profile to show it is accepted.
+  known_keys: [author_profile]
+
+# -----------------------------------------------------------------------------
 # Exclusions
 # -----------------------------------------------------------------------------
 exclude:

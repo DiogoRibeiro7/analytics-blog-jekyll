@@ -159,6 +159,14 @@ module Datalog
       timezone: { type: :string },
       collections: { type: :hash },
       plugins: { type: :array },
+      # `datalog audit`: front matter keys a site's own templates read, internal
+      # links it builds outside Jekyll, and when an edit calls for a revision.
+      audit: {
+        type: :hash,
+        schema: {
+          known_keys: { type: :array }, ignore_links: { type: :array }, revision_after_days: { type: :integer }
+        }
+      },
       # In-text citations (the datalog-citations plugin): the style, and the
       # bibliography a page uses when it names none of its own.
       citations: {

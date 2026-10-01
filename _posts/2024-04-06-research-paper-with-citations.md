@@ -5,7 +5,6 @@ date: 2024-04-06
 tags: [research, publication, citations]
 difficulty: advanced
 summary: Structure a scholarly article, cite prior work from a BibTeX file, and supply BibTeX so readers can cite your study.
-hero: /assets/images/posts/research-template.jpg
 bibliography: _bibliography/research-paper.bib   # the works {% cite %} draws on; see docs/components.md#citations
 ---
 

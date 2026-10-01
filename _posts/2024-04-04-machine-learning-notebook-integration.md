@@ -17,7 +17,6 @@ reproducibility:
   environment:
     file: requirements.txt
 summary: Connect a notebook-driven training pipeline to DataLog call-to-action buttons, experiment tracking, and reproducibility checklists.
-hero: /assets/images/posts/mlops-notebook-handoff.jpg
 ---
 
 Production-grade machine learning documentation pairs code, metrics, and narrative. This guide walks through a churn prediction notebook and highlights how the **DataLog** theme embeds notebooks with launch buttons for popular runtimes.

@@ -8,7 +8,6 @@ series:
   id: python-data-science
   order: 2
 summary: Build production-ready rolling metrics with pandas while documenting inline math expectations for analysts.
-hero: /assets/images/posts/pandas-window-functions.jpg
 ---
 
 Time-series feature engineering in **pandas** turns raw telemetry into actionable signals. We will compute rolling statistics, annotate seasonal trends, and document the math so collaborators can audit each transformation.
