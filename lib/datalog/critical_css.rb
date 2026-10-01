@@ -164,12 +164,16 @@ module Datalog
     # The page as critical should read it: linking the site's stylesheet and
     # nothing else, as critical 8's --css did. The Google Fonts stylesheet
     # would bring @font-face rules for the font files a headless browser is
-    # served, and fetching it made each page take over a minute. The Content
-    # Security Policy goes too: it would refuse the stylesheet the render
-    # engine adds to the page to measure it.
+    # served, and fetching it made each page take over a minute, so its
+    # preload goes with it, as do the hints that open connections to it. The
+    # Content Security Policy goes too: it would refuse the stylesheet the
+    # render engine adds to the page to measure it.
+    UNREAD = 'link[rel~="stylesheet"], link[rel~="preload"][as="style"], link[rel~="preload"][as="font"], ' \
+             'link[rel~="preconnect"], link[rel~="dns-prefetch"], style, noscript'
+
     def page_for_critical(html)
       document = Nokogiri::HTML5(html)
-      document.css('link[rel~="stylesheet"], style, noscript').each(&:remove)
+      document.css(UNREAD).each(&:remove)
       document.css("meta[http-equiv]").each do |meta|
         meta.remove if meta["http-equiv"].casecmp?("content-security-policy")
       end

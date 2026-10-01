@@ -31,7 +31,7 @@ The DataLog project follows an inclusive, respectful collaboration policy aligne
 ### Prerequisites
 
 - **Ruby**: 3.0+ (recommend 3.2)
-- **Node.js**: 18+ (recommend 20 LTS)
+- **Node.js**: 22.13+ (critical, which `datalog critical-css` runs, needs it; CI runs 22 and 24)
 - **Python**: 3.11+ (optional, for Jupyter support)
 - **Git**: Latest version
 

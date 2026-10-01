@@ -84,6 +84,9 @@ class CriticalCssTest < Minitest::Test
       <html><head>
       <meta http-equiv="Content-Security-Policy" content="default-src 'self';
         style-src 'self' 'nonce-abc'">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans" as="style">
+      <link rel="preload" href="/blog/assets/fonts/plex.woff2" as="font" crossorigin>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans">
       <link rel="stylesheet" href="/blog/assets/css/main.css?v=1" media="print">
       <noscript><link rel="stylesheet" href="/blog/assets/css/main.css"></noscript>
@@ -95,6 +98,9 @@ class CriticalCssTest < Minitest::Test
 
     assert_equal(["assets/css/main.css"], page.css('link[rel="stylesheet"]').map { |link| link["href"] })
     assert_empty page.css("style, noscript, meta[http-equiv]")
+    others = page.css("link[rel]").map { |link| link["href"] } - ["assets/css/main.css"]
+    assert_equal ["/blog/assets/img/hero.webp"], others,
+                 "nothing that fetches a stylesheet, a font or a connection to them is left"
     refute_nil page.at_css('link[rel="preload"]'), "other links stay"
     assert_equal "Title", page.at_css("h1").text
     refute_nil page.at_css("body script"), "the page's own scripts still run in the render engine"
