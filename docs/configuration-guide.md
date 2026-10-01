@@ -204,6 +204,37 @@ Power as a function of effect size.
 
 Any `<img data-dark-src="/assets/img/power-night.png">` is treated the same way, in a Markdown page or in a notebook's HTML. A companion the variant pipeline never reads, an SVG or an image on another host, is offered as the single file it is. A page's `hero_image` follows the convention too.
 
+#### Share cards
+
+A link to a post shows a preview image wherever it is shared. Without one of its own, every post shows `social.default_image`, so a link to an article looks the same as a link to the about page. With share cards on, the build draws a 1200×630 PNG for each post that names no image. The card shows the post's title, its series or subtitle, its authors and date, and the site's name and logo, on the theme's colours. A research article also shows its venue and DOI.
+
+```yaml
+theme_options:
+  social_cards:
+    enabled: true               # off by default
+    scheme: dark                # or light
+    background: "#0b1d3d"       # over the scheme's background
+    logo: /assets/img/logo.svg  # an SVG or an image; false for none; true or unset for the theme's mark
+    template: _social/card.svg  # a template of the site's own
+    collections: [posts]        # add "pages" for the site's pages
+```
+
+- **Tools:** the cards need ImageMagick, the same tool the image optimizer uses: `magick`, or `convert` outside Windows. Nothing else is needed. The card's text is set in IBM Plex, which ships with the gem, and drawn as outlines, so no font has to be installed. On a runner, install ImageMagick before the build step with `sudo apt-get install -y --no-install-recommends imagemagick`. Without ImageMagick, the build warns once and every page keeps `social.default_image`. No page points at a card that was not drawn.
+- **Which image a page gets:** `og_image` or `image` in front matter always wins, then the card, then `social.default_image`. A blank `image:` counts as none. `social_card: false` in front matter asks for no card. A page with a card also gets `og:image:width`, `og:image:height`, `og:image:alt` (its title) and `twitter:image:alt`, and its JSON-LD `image` is the card.
+- **Maths in titles:** TeX in a title becomes readable text: `$\alpha$-stable laws for $X_t^2$` reads "α-stable laws for X_t²". A long title wraps and shrinks to fit. A 140-character title fits whole; past four lines at the smallest size, it ends in an ellipsis.
+- **Caching:** cards are published as `/assets/social/<page>-<hash>.png` and kept in `.jekyll-cache/datalog-social-cards`. The cache is keyed by everything drawn on the card, including the content of its logo and of any image the template shows, so a later build draws only the cards whose pages changed. A changed card gets a new address, so sites that cached the old preview fetch the new one. A site that sets `disable_disk_cache` keeps the cards in a temporary directory, removed when Jekyll exits.
+- **Colours:** both schemes keep every text colour at 4.5:1 or more against their background (WCAG AA). A `background` of your own is checked too, and the build warns when a text colour falls below 4.5:1 on it.
+
+A template of your own is an SVG file inside the site. It may use `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `path`, `image` (a file in the site) and `g`, with fills, strokes, opacity and transforms. Fills, strokes and opacity set on the `<svg>` itself reach every element in it; a transform there is not applied, so put it on a `g`. Gradients, filters and masks are not drawn, and the build names any element it skipped. ImageMagick reads no SVG on a minimal install, so the build draws the template itself. Text goes in slots: an empty `<text>` with `data-field` set to `site`, `kicker` (the series or subtitle), `title`, `byline` or `detail`. The slot's `y` is the top of its box. `<rect data-field="logo">` is where the logo goes. `{{background}}`, `{{ink}}`, `{{muted}}` and `{{accent}}` are the scheme's colours. Copy [the default template](../lib/datalog/social_cards/template.svg) to start:
+
+```xml
+<text data-field="title" x="80" y="236" width="1040" height="262"
+      font-size="66" data-min-font-size="40" data-max-lines="4"
+      data-line-height="1.15" data-font="serif" fill="{{ink}}"/>
+```
+
+`data-font` is `serif` (IBM Plex Serif SemiBold) or `sans` (IBM Plex Sans). Both fonts are under the SIL Open Font License, which ships beside them.
+
 #### Search results
 
 A result is a page, and under it the sections of that page the query was found in — at most three, each a link to the heading itself rather than to the top of the article. A reader who searches for a term buried in a long methods post lands on the paragraph instead of starting again with Ctrl+F.

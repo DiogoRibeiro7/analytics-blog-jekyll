@@ -309,7 +309,8 @@ GitHub Actions and publish the result instead:
 This repository's `.github/workflows/deploy.yml` publishes the demo site the same
 way, with its test suites added. To publish AVIF, WebP and resized copies of your
 images, install ImageMagick and avifenc before the build step; the
-[configuration guide](configuration-guide.md#images) has the command. With
+[configuration guide](configuration-guide.md#images) has the command. ImageMagick
+also draws the [share cards](configuration-guide.md#share-cards). With
 `critical_css.enabled`, also set up Node.js and run
 `bundle exec datalog critical-css` before the build step
 ([critical CSS](configuration-guide.md#critical-css)).
