@@ -3,6 +3,13 @@ layout: default
 show_title: false # this layout renders the page's <h1>
 ---
 
+{%- comment -%}
+  The latest release: from _data/package_releases.yml, which
+  `datalog packages refresh` writes from the package's registries, else from
+  the front matter. The registries' pages and docs.rs come from `registry:`.
+{%- endcomment -%}
+{%- assign release = page | package_release -%}
+{%- assign registry_links = page | package_links -%}
 <div class="package-docs">
   {%- comment -%} Package Header {%- endcomment -%}
   <div class="package-docs__header">
@@ -20,33 +27,42 @@ show_title: false # this layout renders the page's <h1>
       </div>
 
       <div class="package-docs__meta">
-        {% if page.version %}
-          <div class="package-docs__version">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        {% if release.version %}
+          <div class="package-docs__version" data-package-version>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            <span>v{{ page.version }}</span>
+            <span>v{{ release.version }}{% if release.prerelease %} · {% t 'packages.prerelease' %}{% endif %}{% if release.yanked %} · {% t 'packages.yanked' %}{% endif %}</span>
+            {%- if release.released %}
+            <span>· <time datetime="{{ release.released }}">{{ release.released | localize_date: 'long' }}</time></span>
+            {%- endif %}
           </div>
         {% endif %}
 
-        {% if page.language %}
+        {% if release.requirement or page.language %}
           <div class="package-docs__language">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <polyline points="16 18 22 12 16 6"></polyline>
               <polyline points="8 6 2 12 8 18"></polyline>
             </svg>
-            <span>{{ page.language }}</span>
+            <span>{{ release.requirement | default: page.language }}</span>
           </div>
         {% endif %}
 
-        {% if page.license %}
+        {% if release.license %}
           <div class="package-docs__license">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <span>{{ page.license }}</span>
+            <span>{{ release.license }}</span>
+          </div>
+        {% endif %}
+
+        {% if release.status %}
+          <div class="package-docs__status">
+            <span>{{ release.status | capitalize }}</span>
           </div>
         {% endif %}
       </div>
@@ -61,22 +77,22 @@ show_title: false # this layout renders the page's <h1>
           </a>
         {% endif %}
 
-        {% if page.pypi_url %}
-          <a href="{{ page.pypi_url }}" class="package-docs__action-btn" target="_blank" rel="noopener">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        {%- comment -%} PyPI, crates.io and docs.rs, RubyGems, CRAN, conda-forge, npm, JuliaHub {%- endcomment -%}
+        {% for link in registry_links %}
+          <a href="{{ link.url | escape }}" class="package-docs__action-btn" target="_blank" rel="noopener" data-registry="{{ link.registry }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
             </svg>
-            <span>PyPI</span>
+            <span>{{ link.label }}</span>
           </a>
-        {% endif %}
+        {% endfor %}
 
-        {% if page.cran_url %}
-          <a href="{{ page.cran_url }}" class="package-docs__action-btn" target="_blank" rel="noopener">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <text x="12" y="16" font-size="12" text-anchor="middle" fill="currentColor">R</text>
+        {% if page.docs_url %}
+          <a href="{{ page.docs_url | escape }}" class="package-docs__action-btn" target="_blank" rel="noopener" data-registry="docs">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path>
             </svg>
-            <span>CRAN</span>
+            <span>{% t 'packages.documentation' %}</span>
           </a>
         {% endif %}
       </div>

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- A package page in a language other than Python or R had an "Installation" heading over an empty panel. It now shows the Git tab when the page has a `github_url`, and no panel otherwise. The Git tab's `cd` now names the directory the clone makes, which is the repository's name; it used the package's. The buttons of a package or project card wrap onto a second line rather than squeezing their labels into two (#290).
 - The citations plugin escapes every value it writes into the page. The in-text link took `url` straight into `href`, and the list took the formatted entry and the title unescaped. Only an `http(s)` address or a DOI becomes a link now (#289).
 - The academic dashboard (`components/academic-dashboard.html`) works, and the demo renders it at `/academic/` in place of a hand-written English copy. Nothing had rendered it, and it had decayed:
   - its profiles never appeared, because a `for` loop cannot filter its own collection;
@@ -23,6 +24,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- **Package pages know their registries.** A package names them in `registry:` (`pypi`, `conda_forge`, `cran`, `crates`, `rubygems`, `npm`, `julia`), and each gives its link and an install tab: `cargo add` with a docs.rs link, `gem install` with the Gemfile line, `npm install` and `Pkg.add`, beside pip, conda, CRAN and Git. `docs_url` adds a Documentation link, and `status` (alpha, beta, stable) shows beside the version. `pypi_url` and `cran_url` still work.
+  - **`bundle exec datalog packages refresh`** reads each package's latest release from PyPI, crates.io, RubyGems, CRAN (through crandb) and npm into `_data/package_releases.yml`: the version, release date and licence, the language version it needs, and whether it is a pre-release or yanked. The layout shows that release before the front matter's `version`, and the build stays offline. A registry that cannot be read stops the command with exit 1 before the file is touched.
+  - **`components/package-index.html`** lists every package as cards or a table, with its release, install command and purpose, optionally grouped by `language` or any other field. The demo's `/packages/` is that include.
+  - **JSON-LD:** a package page describes its package as `SoftwareSourceCode`, with its repository, language, version, licence, author and registry pages.
+  - `docs/components.md` documents the front matter, the command and the index (#290).
 - **`bundle exec datalog audit`** reports, with the file and line of each finding, what the theme's newer authoring features would improve. It reads the site through Jekyll's reader and never builds or writes it. `docs/scripts-reference.md` describes each check.
   - **Opportunities** (advice): statements typed as bold "**Theorem**" or "**Definition**"; "Figure 3" typed by hand; posts that look like parts of a series; posts linking a repository, notebook or DOI with no reproducibility block; posts edited long after publication with no revision entry; hand-written reference lists.
   - **Problems** (warnings, exit 1 with `--strict`): front matter keys that nothing in the theme or the site reads, with the known keys taken from the sources rather than kept as a list; images without alt text; links to pages the site does not build; `math` switched against a post's content.

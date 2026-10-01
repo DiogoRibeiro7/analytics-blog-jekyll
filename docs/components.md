@@ -23,9 +23,10 @@ The `post` layout adds five components to every post: social sharing buttons, br
 17. [Newsletter Subscriptions](#newsletter-subscriptions)
 18. [Academic Dashboard](#academic-dashboard)
 19. [Citations](#citations)
-20. [Front Matter](#front-matter)
-21. [Customization](#customization)
-22. [Troubleshooting](#troubleshooting)
+20. [Package Pages](#package-pages)
+21. [Front Matter](#front-matter)
+22. [Customization](#customization)
+23. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -1497,6 +1498,155 @@ The build stops, naming the page, when it:
 .datalog-cite { }                    // the marker in the text
 .datalog-bibliography { }            // the list; --numeric or --author-year
 .datalog-bibliography__back { }      // the links back to the text
+```
+
+---
+
+## Package Pages
+
+### What It Does
+
+The `package` layout documents a software package: its latest release, a link to each registry that lists it, and an installation panel with a tab for each registry. A package names its registries in front matter. `bundle exec datalog packages refresh` reads the latest releases from those registries into `_data/package_releases.yml`. The layout shows the release from that file before any `version` in front matter, so a page shows what the registry has. The build itself never asks a registry. `components/package-index.html` lists every package, and each package page describes its package as schema.org `SoftwareSourceCode`.
+
+### Front Matter
+
+```yaml
+---
+layout: package
+title: HeavyTails
+tagline: Heavy-tailed distributions for Python
+language: Python
+license: MIT
+status: beta                  # alpha, beta, stable: shown beside the version
+github_url: https://github.com/example/heavytails
+docs_url: https://example.github.io/heavytails
+registry:                     # one key per registry; the value is the package's name there
+  pypi: heavytails
+  conda_forge: heavytails
+version: 0.4.0                # shown until the data file has a release
+---
+```
+
+| `registry` key | Link | Install tab |
+| --- | --- | --- |
+| `pypi` | PyPI | pip: `pip install NAME` |
+| `conda_forge` | conda-forge | conda: `conda install -c conda-forge NAME` |
+| `cran` | CRAN | CRAN: `install.packages('NAME')` |
+| `crates` | crates.io and docs.rs | cargo: `cargo add NAME` |
+| `rubygems` | RubyGems | gem: `gem install NAME` and the Gemfile line `gem "NAME"` |
+| `npm` | npm | npm: `npm install NAME` |
+| `julia` | JuliaHub | Pkg: `using Pkg; Pkg.add("NAME")` |
+
+- **Git:** with `github_url`, a Git tab follows the registries' tabs: `git clone` and `cd`, then `pip install -e .` for Python. An R package gets `devtools::install_github` instead.
+- **No `registry`:** a Python page keeps its pip, conda and Git tabs, and an R page its CRAN and GitHub tabs. A page in any other language gets the Git tab alone. A page with neither a registry nor a repository gets no installation panel, not an empty one.
+- **Older pages:** `pypi_url` and `cran_url` still work. Each counts as its registry, and its address is the link.
+- **`docs_url`:** a "Documentation" button beside the registries.
+
+The page places the installation panel where it wants it, under a heading of its own:
+
+```liquid
+{% include components/package-install.html %}
+```
+
+`package_name`, `language` and `git_url` replace the page's title, language and `github_url`. `pip_command`, `conda_command` and `cran_command` replace the command of that tab.
+
+### Releases From the Registries
+
+```bash
+bundle exec datalog packages refresh             # writes _data/package_releases.yml
+bundle exec datalog packages refresh --dry-run   # prints it instead
+```
+
+The command reads the front matter of every document in `_packages` and asks each registry that has an API: PyPI's JSON API, the crates.io API (with a `User-Agent`, which crates.io requires), the RubyGems API, CRAN through crandb, and the npm registry. conda-forge and JuliaHub are linked but not read. It writes one release per package and registry:
+
+```yaml
+pypi:
+  heavytails:
+    version: 0.4.1
+    released: '2026-08-14'
+    license: MIT
+    prerelease: false
+    requires_python: ">=3.10"   # or rust_version, required_ruby_version, r_version, node_version
+crates:
+  copula-core:
+    version: 0.3.0
+    ...
+```
+
+- **Which release:** for PyPI, the version PyPI calls the latest, released when its first file was uploaded, and `yanked: true` when every file was yanked. For crates.io, the latest stable version, not a newer beta. For RubyGems, the newest version that is not a pre-release. For npm, the `latest` tag, with a deprecated version counted as yanked.
+- **Failures:** when a registry cannot be reached, answers with an error, has no package by that name, or sends something that is not a release, the command names each package and registry that failed. It then exits 1 without writing. The file holds either every release or what it held before.
+- **What the page shows:** the release for the first of the page's registries that the file has. That is the version, with "pre-release" for a PEP 440, RubyGems or semver pre-release and "yanked" when the release was withdrawn, plus the release date, the language it needs ("Python >=3.10", "Rust >= 1.74") and the licence. With no release in the file, the page shows `version` and `license` from front matter.
+
+The file holds nothing but the releases, so it changes only when a release does. A scheduled workflow can run the command and propose the change:
+
+```yaml
+# .github/workflows/package-releases.yml
+name: Package releases
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - run: bundle exec datalog packages refresh
+      - name: Open a pull request when a release changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add _data/package_releases.yml
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c package-releases-${{ github.run_id }}
+          git commit -m "Update package releases"
+          git push -u origin HEAD
+          gh pr create --fill
+```
+
+A pull request opened with the workflow's own `GITHUB_TOKEN` starts no other workflow. For the site's checks to run on it, give the checkout and `GH_TOKEN` a token of your own.
+
+### The Index
+
+```liquid
+{% include components/package-index.html %}
+{% include components/package-index.html style="table" group_by="language" %}
+```
+
+The index lists every package in `site.packages` with its name, its release (from the data file, as on the package page), the command that installs it from its first registry, and its `tagline` or `description`.
+
+| Parameter | Meaning |
+| --- | --- |
+| `style` | `cards` (the default), a card per package; or `table`, one row per package, in a region that scrolls on a narrow screen |
+| `group_by` | A front matter field, such as `language` or `group`. Each value gets a heading, in alphabetical order, and the packages without the field come last under "Other" |
+| `packages` | The packages to list, by default `site.packages` |
+| `heading_level` | The level of the first headings it writes, `2` by default. With `group_by`, the groups take this level and the packages the next |
+
+A site with no packages gets "No packages yet." The labels are translated in English, Portuguese and Spanish. The demo's `/packages/` page is the include alone.
+
+### Structured Data
+
+A package page carries two JSON-LD blocks. One describes the page as a `WebPage`. The other describes the package as a `SoftwareSourceCode`, with `name`, `description`, `url`, `codeRepository` (`github_url`), `programmingLanguage`, `runtimePlatform` (the language requirement), `version`, `license`, `author`, and `sameAs` (the registries' pages and `docs_url`). The licence is the address of the front matter's licence when the registry reports the same one, and otherwise the registry's own words, such as `MIT OR Apache-2.0`.
+
+### Styling
+
+The layout keeps the `package-docs` styles. The index adds no styles of its own: it uses the card grid, the table defaults and the badges.
+
+```scss
+.package-docs__meta > div { }            // version, requirement, licence, status
+.package-docs__action-btn { }            // GitHub, the registries, Documentation
+.package-install__tab-btn { }            // a registry's tab
+.package-index { }                       // the index; .package-index__group for a group's heading
 ```
 
 ---

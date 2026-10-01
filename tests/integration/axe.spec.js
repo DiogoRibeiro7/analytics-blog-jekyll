@@ -39,6 +39,8 @@ const PAGES = [
   // The package docs: a dark sidebar, tinted panels, API signatures and the
   // installation tabs, in a stylesheet that had no dark mode of its own.
   '/packages/statflow/',
+  // The package index: a card per package with its release and install command (#290).
+  '/packages/',
   // The academic dashboard: profiles, citation metrics, the filtered
   // submission and calendar lists, which nothing rendered before #355.
   '/academic/',

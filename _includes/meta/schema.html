@@ -13,7 +13,8 @@ Provides rich structured data for:
 - Publisher: a Person or an Organization, from `publisher` in _config.yml
 - Images, keywords, and content metadata
 
-Defaults to TechArticle for posts, WebPage for other pages. `schema_type:
+Defaults to TechArticle for posts, WebPage for other pages. A dataset page
+adds a Dataset node, and a package page a SoftwareSourceCode node. `schema_type:
 ProfilePage` describes a page about a person or an organization: its
 `mainEntity` is the page's first author (the site's author by default), or the
 publisher with `main_entity: publisher`.
@@ -230,6 +231,10 @@ full node, which search engines read as the site's name and owner.
 {%- endcomment -%}
 {%- if schema_page.collection == 'datasets' or schema_type == 'Dataset' -%}
 {%- include meta/dataset-json.html page=schema_page -%}
+{%- endif -%}
+{%- comment -%} A package page also describes the package: its repository, release and registries. {%- endcomment -%}
+{%- if schema_page.collection == 'packages' -%}
+{%- include meta/package-json.html page=schema_page -%}
 {%- endif -%}
 {%- comment -%} Add BreadcrumbList schema for posts {%- endcomment -%}
 {%- if is_post -%}
