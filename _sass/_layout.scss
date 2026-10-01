@@ -847,6 +847,7 @@ body.dark-mode .year-chart__label {
 
   .project-links {
     display: flex;
+    flex-wrap: wrap;
     gap: map.get($spacing, 2);
     padding-top: map.get($spacing, 2);
   }

@@ -823,3 +823,17 @@ package_install:
   copy: Copiar
   copied: ¡Copiado!
   copy_error: No se pudo copiar
+  gemfile: Gemfile
+  julia_repl: REPL de Julia
+packages:
+  documentation: Documentación
+  prerelease: prelanzamiento
+  yanked: retirada
+  index:
+    title: Paquetes
+    other: Otros
+    package: Paquete
+    release: Versión
+    install: Instalación
+    purpose: Para qué sirve
+    empty: Todavía no hay paquetes.

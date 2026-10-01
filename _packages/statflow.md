@@ -7,8 +7,15 @@ icon: 📊
 version: 1.2.3
 language: Python
 license: MIT
+status: stable
 github_url: https://github.com/example/statflow
-pypi_url: https://pypi.org/project/statflow/
+# One key per registry, the value being the package's name there. Each gives
+# the registry's link and its install tab. `datalog packages refresh` reads the
+# latest release from those with an API (here PyPI; conda-forge is linked and
+# installed from, not read) into _data/package_releases.yml.
+registry:
+  pypi: statflow
+  conda_forge: statflow
 
 nav_sections:
   - title: Getting Started

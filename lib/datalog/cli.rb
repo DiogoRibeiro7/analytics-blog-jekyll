@@ -12,6 +12,7 @@ require "thor"
 require_relative "site_config"
 require_relative "slug"
 require_relative "theme/version"
+require_relative "packages/command"
 
 module Datalog
   module ArchiveScaffold
@@ -566,6 +567,8 @@ module Datalog
     end
 
     register(New, "new", "new COMMAND", "Scaffold posts, archives, notebooks, and portfolio projects")
+    register(PackagesCommand, "packages", "packages COMMAND",
+             "Read package releases from their registries into _data/package_releases.yml")
 
     private
 

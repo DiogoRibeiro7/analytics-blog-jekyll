@@ -1,0 +1,69 @@
+{%- comment -%}
+---
+required:
+  - page
+---
+schema.org/SoftwareSourceCode for a page in the `packages` collection, beside
+the WebPage that describes the page itself.
+
+The release is the one the package layout shows: from
+_data/package_releases.yml when `datalog packages refresh` has written it,
+else from front matter. Front matter it reads, all optional beyond the title:
+
+  tagline, description:  the description
+  github_url:            codeRepository
+  language:              programmingLanguage
+  registry, pypi_url, cran_url, docs_url:  sameAs, one URL per page
+  license, version:      when the data file has no release; the licence is its
+                         URL when front matter resolves the same licence
+
+Every field is left out when it has no value.
+{%- endcomment -%}
+{%- assign pkg = include.page -%}
+{%- assign pkg_url = pkg.url | absolute_url -%}
+{%- assign pkg_release = pkg | package_release -%}
+{%- assign pkg_links = pkg | package_links | map: 'url' -%}
+{%- if pkg.docs_url -%}{%- assign pkg_links = pkg_links | push: pkg.docs_url -%}{%- endif -%}
+{%- assign pkg_excerpt = pkg.excerpt | strip_html | normalize_whitespace -%}
+{%- assign pkg_description = pkg.description | default: pkg.tagline | default: pkg_excerpt | normalize_whitespace -%}
+{%- assign pkg_authors = pkg | page_authors -%}
+{%- comment -%} The registry's own words (`MIT OR Apache-2.0`) when no URL is known for them. {%- endcomment -%}
+{%- assign pkg_license_value = pkg_release.license_url | default: pkg_release.license -%}
+<script type="application/ld+json" nonce="{{ schema_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "@id": {{ pkg_url | append: '#software' | jsonify_script }},
+  "name": {{ pkg.title | jsonify_script }},
+  "url": {{ pkg_url | jsonify_script }},
+  "mainEntityOfPage": {{ pkg_url | jsonify_script }}
+  {%- if pkg_description != '' -%},
+  "description": {{ pkg_description | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg.github_url -%},
+  "codeRepository": {{ pkg.github_url | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg.language -%},
+  "programmingLanguage": {{ pkg.language | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg_release.requirement -%},
+  "runtimePlatform": {{ pkg_release.requirement | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg_release.version -%},
+  "version": {{ pkg_release.version | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg_license_value -%},
+  "license": {{ pkg_license_value | jsonify_script }}
+  {%- endif -%}
+  {%- if pkg_authors.size > 0 -%},
+  "author": {% if pkg_authors.size > 1 %}[{% endif %}
+  {%- for author in pkg_authors -%}
+  {% include meta/person-json.html person=author %}{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  {% if pkg_authors.size > 1 %}]{% endif %}
+  {%- endif -%}
+  {%- if pkg_links.size > 0 -%},
+  "sameAs": {{ pkg_links | jsonify_script }}
+  {%- endif %}
+}
+</script>

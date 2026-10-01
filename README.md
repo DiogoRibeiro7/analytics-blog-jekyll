@@ -135,6 +135,7 @@ bin/datalog --help
 - `bin/datalog new project` — scaffold a portfolio entry with metadata and placeholder sections.
 - `bin/datalog check` — validate runtime dependencies, configuration, and optional tooling like Node.js.
 - `bin/datalog audit` — list the posts that would gain from newer authoring features (statements, figures, series, citations) and content problems (unread front matter, images without alt text, broken internal links), with file and line; `--strict` for CI. See [docs/scripts-reference.md](docs/scripts-reference.md#datalog-audit).
+- `bin/datalog packages refresh` — read each package's latest release from its registries (PyPI, crates.io, RubyGems, CRAN, npm) into `_data/package_releases.yml`, which package pages show before their front matter. See [docs/components.md](docs/components.md#package-pages).
 - `bin/datalog publish` — build the site and push the `_site` artifacts to your GitHub Pages branch via git worktrees.
 - `bin/datalog update` — upgrade the `datalog-theme` gem and refresh npm packages when applicable.
 
