@@ -121,11 +121,12 @@ class PackageRegistriesTest < Minitest::Test
   end
 
   # Linear on long input, which a pattern of nested optional parts can fail to be.
+  # CPU time, so a busy runner pausing the process does not count against it.
   def test_the_version_pattern_takes_no_time_on_a_long_version
     ["1#{'.1' * 50_000}!", "1#{'-1' * 50_000}x", "1+#{'a.' * 50_000}!", "1a#{'1' * 50_000}-"].each do |version|
-      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      started = Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
       Datalog::Packages.prerelease?(version)
-      assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 1
+      assert_operator Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID) - started, :<, 1
     end
   end
 
