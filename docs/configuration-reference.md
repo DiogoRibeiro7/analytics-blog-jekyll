@@ -133,6 +133,13 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.reading_state.list_url` | String | The path of the page that lists the saved articles |
 | `theme_options.provenance` | Map | Any |
 | `theme_options.provenance.position` | String | `end` (default), `start` |
+| `theme_options.social_cards` | Map | Any |
+| `theme_options.social_cards.enabled` | Boolean | `true`, `false` (default) |
+| `theme_options.social_cards.scheme` | String | `dark` (default), `light` |
+| `theme_options.social_cards.background` | String | A colour, over the scheme's background |
+| `theme_options.social_cards.logo` | String or `false` | A path in the site to an SVG or an image; `false` for none |
+| `theme_options.social_cards.template` | String | A path in the site to an SVG template |
+| `theme_options.social_cards.collections` | List | Collection labels, and `pages` for the site's pages; `[posts]` by default |
 
 ## Global Settings
 
@@ -518,6 +525,20 @@ This guide documents the configuration keys validated by the automated configura
   theme_options:
     provenance:
       position: start
+  ```
+
+#### theme_options.social_cards
+- **Required:** No
+- **Type:** Map
+- **Description:** A share card for each page that names no image of its own: a 1200×630 PNG with its title, series or subtitle, authors and date, and the site's name and logo, which `og:image`, `twitter:image` and the JSON-LD `image` point at. Off by default, since the build needs ImageMagick to draw them; without it, the build warns once and pages keep `social.default_image`. `og_image` or `image` in front matter wins over the card, and `social_card: false` asks for none. A path in `logo` or `template` that is not a file in the site stops the build. See [configuration-guide.md: Share cards](configuration-guide.md#share-cards).
+- **Example:**
+  ```yaml
+  theme_options:
+    social_cards:
+      enabled: true
+      scheme: light
+      logo: /assets/img/logo.svg
+      collections: [posts, pages]
   ```
 
 ## Deprecations

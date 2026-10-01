@@ -253,6 +253,18 @@ module Datalog
             schema: {
               position: { type: :string, enum: %w[end start] }
             }
+          },
+          # A share card drawn for each page without an image of its own (lib/datalog/social_cards.rb).
+          social_cards: {
+            type: :hash,
+            schema: {
+              enabled: { type: :boolean },
+              scheme: { type: :string, enum: %w[dark light] },
+              background: { type: :string },
+              logo: { type: %i[string boolean] },
+              template: { type: :string },
+              collections: { type: :array }
+            }
           }
         }
       }

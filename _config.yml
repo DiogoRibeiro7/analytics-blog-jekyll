@@ -223,6 +223,12 @@ theme_options:
   # their explicit choice takes precedence over this site-wide default.
   color_scheme:
     default: dark  # dark, light, or system
+  # A share card for each post without an og_image of its own: its title,
+  # series, author and date on the theme's colours, drawn by ImageMagick at
+  # build time. Without ImageMagick, posts keep social.default_image.
+  social_cards:
+    enabled: true
+    scheme: dark   # or light
   # The "Reading mode" control on posts: the article without the site around it.
   reading_mode:
     enabled: true

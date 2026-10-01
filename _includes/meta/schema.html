@@ -105,6 +105,13 @@ full node, which search engines read as the site's name and owner.
     "width": {{ schema_page.image_width | default: 1200 }},
     "height": {{ schema_page.image_height | default: 630 }}
   },
+  {%- elsif schema_page.datalog_social_card -%}
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ schema_page.datalog_social_card.url | absolute_url | jsonify_script }},
+    "width": {{ schema_page.datalog_social_card.width }},
+    "height": {{ schema_page.datalog_social_card.height }}
+  },
   {%- elsif site.social.default_image -%}
   "image": {
     "@type": "ImageObject",

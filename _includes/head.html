@@ -45,8 +45,18 @@
 <meta property="og:title" content="{{ page_title | normalize_whitespace | escape }}" />
 <meta property="og:description" content="{{ page_description | normalize_whitespace | escape }}" />
 <meta property="og:url" content="{{ canonical_url }}" />
+{%- comment -%}
+  The share image: the page's own, else the card the build drew for it
+  (theme_options.social_cards), else the site's default.
+{%- endcomment %}
 {% if page.og_image or page.image %}
 <meta property="og:image" content="{{ page.og_image | default: page.image | absolute_url }}" />
+{% elsif page.datalog_social_card %}
+<meta property="og:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="{{ page.datalog_social_card.width }}" />
+<meta property="og:image:height" content="{{ page.datalog_social_card.height }}" />
+<meta property="og:image:alt" content="{{ page.datalog_social_card.alt | escape }}" />
 {% elsif site.social.default_image %}
 <meta property="og:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
@@ -58,6 +68,9 @@
 <meta name="twitter:description" content="{{ page_description | normalize_whitespace | escape }}" />
 {% if page.twitter_image or page.og_image or page.image %}
 <meta name="twitter:image" content="{{ page.twitter_image | default: page.og_image | default: page.image | absolute_url }}" />
+{% elsif page.datalog_social_card %}
+<meta name="twitter:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
+<meta name="twitter:image:alt" content="{{ page.datalog_social_card.alt | escape }}" />
 {% elsif site.social.default_image %}
 <meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
