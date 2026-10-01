@@ -41,9 +41,23 @@ module Datalog
       "npm" => "https://registry.npmjs.org/%s"
     }.freeze
 
-    # A PEP 440 pre-release (1.0a1, 2.0rc1, 1.0.dev3), a RubyGems one (2.0.0.pre1)
-    # or a semver one (1.0.0-beta.2).
-    PRERELEASE = /\A\d+(?:\.\d+)*(?:[._]?(?:a|b|c|rc|alpha|beta|pre|preview|dev)\.?\d*(?![a-z])|-[0-9A-Za-z.-]+)/i
+    # A PEP 440 version, read leniently: an epoch, the release, then a
+    # pre-release, a post-release and a development release, each optional,
+    # then a local label. A pre-release or a development release makes it a
+    # pre-release (1.0a1, 2.0rc1, 1!1.0rc1, 1.0.post1.dev2); a post-release
+    # alone does not (1.0.post1).
+    PEP440 = /\A(?:\d+!)?\d+(?:\.\d+)*
+              (?<pre>[-_.]?(?:a|b|c|rc|alpha|beta|pre|preview)[-_.]?\d*)?
+              (?:[-_.]?(?:post|rev|r)[-_.]?\d*|-\d+)?
+              (?<dev>[-_.]?dev[-_.]?\d*)?
+              (?:\+[a-z0-9]+(?:[-_.][a-z0-9]+)*)?\z/ix
+
+    # Registries whose versions are semver, where a hyphen marks a pre-release
+    # (1.0.0-beta.2) and a plus only build metadata (1.0.0+build.5).
+    SEMVER = %w[crates npm julia].freeze
+
+    # The two addresses pages gave before `registry:`.
+    LEGACY = { "pypi" => "pypi_url", "cran" => "cran_url" }.freeze
 
     module_function
 
@@ -52,32 +66,44 @@ module Datalog
     def registries(data)
       named = data["registry"].is_a?(Hash) ? data["registry"].transform_keys(&:to_s) : {}
       named = named.select { |key, name| REGISTRIES.key?(key) && !name.to_s.strip.empty? }
-      { "pypi" => data["pypi_url"], "cran" => data["cran_url"] }.each do |key, url|
-        name = legacy_name(key, url)
+      LEGACY.each_key do |key|
+        name = legacy_name(key, legacy_url(data, key))
         named[key] ||= name if name
       end
       named.transform_values { |name| name.to_s.strip }
     end
 
+    def legacy_url(data, key)
+      url = data[LEGACY.fetch(key)].to_s.strip
+      url.empty? ? nil : url
+    end
+
     def legacy_name(key, url)
-      return nil if url.to_s.empty?
+      return nil unless url
 
       case key
-      when "pypi" then url[%r{pypi\.org/project/([^/?#]+)}, 1]
+      when "pypi" then url[%r{pypi\.(?:python\.)?org/(?:project|pypi)/([^/?#]+)}, 1]
       when "cran" then url[/package=([\w.]+)/, 1] || url[%r{/web/packages/([\w.]+)}, 1]
       end
     end
 
-    # The registry pages, and docs.rs for a crate: [{"label", "url"}].
+    # The registry pages, and docs.rs for a crate: [{"registry", "label", "url"}].
+    # A `pypi_url` or `cran_url` is the link when it names the same package as
+    # the registry's entry, and still a link when it names none this can read.
     def links(data)
-      registries(data).flat_map do |key, name|
+      named = registries(data)
+      found = named.flat_map do |key, name|
         spec = REGISTRIES.fetch(key)
-        page = key == "pypi" && data["pypi_url"] ? data["pypi_url"] : nil
-        page ||= key == "cran" && data["cran_url"] ? data["cran_url"] : nil
-        found = [{ "registry" => key, "label" => spec[:label], "url" => page || format(spec[:url], name) }]
-        found << { "registry" => "docs_rs", "label" => "docs.rs", "url" => format(spec[:docs], name) } if spec[:docs]
-        found
+        legacy = LEGACY.key?(key) ? legacy_url(data, key) : nil
+        legacy = nil unless legacy && legacy_name(key, legacy).to_s.casecmp?(name)
+        [{ "registry" => key, "label" => spec[:label], "url" => legacy || format(spec[:url], name) },
+         spec[:docs] && { "registry" => "docs_rs", "label" => "docs.rs", "url" => format(spec[:docs], name) }].compact
       end
+      LEGACY.each_key do |key|
+        url = legacy_url(data, key)
+        found << { "registry" => key, "label" => REGISTRIES.dig(key, :label), "url" => url } if url && !named.key?(key)
+      end
+      found
     end
 
     # The install panel's tabs: one per registry, then Git. Each is
@@ -131,8 +157,21 @@ module Datalog
       terminal_tab("git", lines.join("\n"), label: "Git")
     end
 
-    def prerelease?(version)
-      version.to_s.match?(PRERELEASE)
+    # Whether a version is a pre-release by the rules of its registry: any
+    # letter for RubyGems, a hyphen for semver, PEP 440 otherwise (and semver
+    # for a version PEP 440 cannot read). CRAN has no pre-releases.
+    def prerelease?(version, registry = nil)
+      text = version.to_s.strip
+      return false if text.empty? || registry == "cran"
+      return text.match?(/[a-z]/i) if registry == "rubygems"
+      return semver_prerelease?(text) if SEMVER.include?(registry)
+
+      match = PEP440.match(text)
+      match ? !(match[:pre] || match[:dev]).nil? : semver_prerelease?(text)
+    end
+
+    def semver_prerelease?(text)
+      text.split("+", 2).first.include?("-")
     end
   end
 end

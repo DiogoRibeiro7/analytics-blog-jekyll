@@ -59,6 +59,25 @@ class PackageRegistriesTest < Minitest::Test
                  Datalog::Packages.links(data).map { |link| link["url"] })
   end
 
+  # A `pypi_url` naming another package than `registry:` does would send the
+  # link one way and the install command another; the registry wins. A blank
+  # one is no link, and one this cannot read is still the link it always was.
+  def test_a_legacy_url_is_the_link_only_for_the_package_the_registry_names
+    links = lambda do |data|
+      Datalog::Packages.links(data).map { |link| link.values_at("registry", "url") }
+    end
+
+    assert_equal [%w[pypi https://pypi.org/project/heavytails/]],
+                 links.call("registry" => { "pypi" => "heavytails" }, "pypi_url" => "https://pypi.org/project/other/")
+    assert_equal [%w[pypi https://pypi.org/project/HeavyTails/]],
+                 links.call("registry" => { "pypi" => "heavytails" }, "pypi_url" => "https://pypi.org/project/HeavyTails/")
+    assert_equal [%w[pypi https://pypi.org/project/heavytails/]],
+                 links.call("registry" => { "pypi" => "heavytails" }, "pypi_url" => "  ")
+    assert_equal [%w[pypi https://pypi.python.org/pypi/statflow]],
+                 links.call("pypi_url" => "https://pypi.python.org/pypi/statflow")
+    assert_equal [%w[cran https://example.org/mirror/tidyx]], links.call("cran_url" => "https://example.org/mirror/tidyx")
+  end
+
   # A Python or R page that names no registry keeps the tabs it always had.
   def test_a_page_without_registries_keeps_its_languages_tabs
     python = Datalog::Packages.install_tabs({}, language: "python", name: "statflow",
@@ -83,11 +102,30 @@ class PackageRegistriesTest < Minitest::Test
   end
 
   def test_pre_releases_are_told_from_releases
-    %w[1.0a1 2.0b3 2.0rc1 1.0.dev3 1.0.0-beta.2 3.0.0-rc.1 2.0.0.pre1].each do |version|
+    %w[1.0a1 2.0b3 2.0rc1 1.0.dev3 1!1.0rc1 1.0.post1.dev2 1.0.0-beta.2 3.0.0-rc.1 2.0.0.pre1].each do |version|
       assert Datalog::Packages.prerelease?(version), "#{version} is a pre-release"
     end
-    %w[1.0 1.2.3 1.0.post1 1.0.0+build.5 2024.10].each do |version|
+    %w[1.0 1.2.3 1.0.post1 1.0-1 1.0.0+build.5 2024.10 1.0.android].each do |version|
       refute Datalog::Packages.prerelease?(version), "#{version} is a release"
+    end
+  end
+
+  # Each registry's own rules: a hyphen is a pre-release in semver and a
+  # post-release in PEP 440, and RubyGems calls any letter a pre-release.
+  def test_pre_releases_follow_the_registrys_rules
+    assert Datalog::Packages.prerelease?("1.0.0-1", "crates")
+    refute Datalog::Packages.prerelease?("1.0.0-1", "pypi")
+    assert Datalog::Packages.prerelease?("1.0.0.beta", "rubygems")
+    refute Datalog::Packages.prerelease?("1.0.0+build.5", "npm")
+    refute Datalog::Packages.prerelease?("1.0-1", "cran")
+  end
+
+  # Linear on long input, which a pattern of nested optional parts can fail to be.
+  def test_the_version_pattern_takes_no_time_on_a_long_version
+    ["1#{'.1' * 50_000}!", "1#{'-1' * 50_000}x", "1+#{'a.' * 50_000}!", "1a#{'1' * 50_000}-"].each do |version|
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      Datalog::Packages.prerelease?(version)
+      assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 1
     end
   end
 
@@ -198,11 +236,13 @@ class PackageRefreshTest < Minitest::Test
     yanked = PYPI.merge("releases" => { "0.4.1" => [{ "upload_time_iso_8601" => "2026-08-14T09:12:03Z",
                                                       "yanked" => true }] })
     npm = { "dist-tags" => { "latest" => "3.0.0-rc.1" }, "time" => { "3.0.0-rc.1" => "2026-09-09T00:00:00.000Z" },
-            "versions" => { "3.0.0-rc.1" => { "license" => "ISC", "engines" => { "node" => ">=20" } } } }
+            "versions" => { "3.0.0-rc.1" => { "license" => "ISC", "engines" => { "node" => ">=20" },
+                                              "deprecated" => "Use 3.0.0" } } }
 
     assert_equal true, Datalog::Packages::Releases.pypi(yanked)["yanked"]
     assert_equal({ "version" => "3.0.0-rc.1", "released" => "2026-09-09", "license" => "ISC", "prerelease" => true,
-                   "node_version" => ">=20" }, Datalog::Packages::Releases.npm(npm))
+                   "node_version" => ">=20" }, Datalog::Packages::Releases.npm(npm),
+                 "a deprecated npm version still installs, so it is not yanked")
   end
 
   def test_refresh_asks_with_a_user_agent
@@ -272,6 +312,17 @@ class PackagePagesTest < Minitest::Test
     runtimePlatform version license author
   ].freeze
 
+  # _data/package_releases.yml as `datalog packages refresh` would write it,
+  # with a licence no registry should send.
+  RELEASES = {
+    "pypi" => { "heavytails" => { "version" => "0.4.1", "released" => "2026-08-14", "license" => "MIT",
+                                  "prerelease" => false, "requires_python" => ">=3.10" } },
+    "crates" => { "copula-core" => { "version" => "0.3.0", "released" => "2026-07-01",
+                                     "license" => "MIT OR Apache-2.0", "rust_version" => "1.74" } },
+    "rubygems" => { "datalog-inspect" => { "version" => "2.0.0.rc1", "license" => "MIT<img src=x onerror=alert(1)>",
+                                           "prerelease" => true } }
+  }.freeze
+
   def test_a_crate_page_renders_crates_io_docs_rs_and_a_cargo_add_tab
     page = built.document("packages/copula-core/index.html")
 
@@ -311,6 +362,34 @@ class PackagePagesTest < Minitest::Test
   def test_a_pre_release_says_so
     assert_includes built.document("packages/datalog-inspect/index.html").at_css("[data-package-version]").text,
                     "v2.0.0.rc1 · pre-release"
+  end
+
+  # The data file holds what registries sent; none of it is markup.
+  def test_what_a_registry_sent_is_text_not_markup
+    page = built.document("packages/datalog-inspect/index.html")
+
+    assert_nil page.at_css(".package-docs__meta img")
+    assert_includes page.at_css(".package-docs__license").text, "MIT<img src=x onerror=alert(1)>"
+    assert_nil built.html("index.html").at_css("[data-package-index] img")
+  end
+
+  # A licence map shows its name, its URL goes to the JSON-LD, and
+  # `license: false` shows none, as for any page.
+  def test_a_licence_map_or_false_in_front_matter
+    notes = built.document("packages/notes/index.html")
+    assert_includes notes.at_css(".package-docs__license").text, "Notes Licence"
+    assert_equal "https://example.org/notes-licence", software_source_code(built.read("packages/notes/index.html"))["license"]
+
+    assert_nil built.document("packages/bare/index.html").at_css(".package-docs__license")
+    assert_nil software_source_code(built.read("packages/bare/index.html"))["license"]
+  end
+
+  def test_the_index_keeps_its_headings_within_h6
+    index = built.html("deep/index.html")
+
+    assert_equal 5, index.css("h6.package-index__group").size
+    assert_equal 6, index.css("article h6").size
+    assert_empty index.css("h7")
   end
 
   def test_without_a_release_in_the_data_file_the_front_matter_is_shown
@@ -385,6 +464,9 @@ class PackagePagesTest < Minitest::Test
     assert_equal ["https://pypi.org/project/heavytails/", "https://anaconda.org/conda-forge/heavytails",
                   "https://heavytails.example.org/"], code["sameAs"]
 
+    legacy = software_source_code(built.read("packages/legacy-stats/index.html"))
+    assert_equal "Statistics, the old way.", legacy["description"], "lines are joined by a space, not run together"
+
     crate = software_source_code(built.read("packages/copula-core/index.html"))
     assert_equal "MIT OR Apache-2.0", crate["license"], "the registry's licence, when front matter has none"
     assert_equal ["https://crates.io/crates/copula-core", "https://docs.rs/copula-core"], crate["sameAs"]
@@ -426,14 +508,7 @@ class PackagePagesTest < Minitest::Test
       defaults: [{ "scope" => { "path" => "", "type" => "packages" }, "values" => { "layout" => "package" } }]
     ) do |source|
       source.theme("_layouts", "_includes", "_data")
-      source.data("package_releases.yml", {
-                    "pypi" => { "heavytails" => { "version" => "0.4.1", "released" => "2026-08-14", "license" => "MIT",
-                                                  "prerelease" => false, "requires_python" => ">=3.10" } },
-                    "crates" => { "copula-core" => { "version" => "0.3.0", "released" => "2026-07-01",
-                                                     "license" => "MIT OR Apache-2.0", "rust_version" => "1.74" } },
-                    "rubygems" => { "datalog-inspect" => { "version" => "2.0.0.rc1", "license" => "MIT",
-                                                           "prerelease" => true } }
-                  })
+      source.data("package_releases.yml", RELEASES)
       install = "{% include components/package-install.html %}"
       source.document("packages", "heavytails", install,
                       "title" => "HeavyTails", "language" => "Python", "version" => "0.2.0", "license" => "MIT",
@@ -449,12 +524,15 @@ class PackagePagesTest < Minitest::Test
       source.document("packages", "legacy-stats",
                       '{% include components/package-install.html pip_command="pip install legacy-stats[all]" %}',
                       "title" => "Legacy Stats", "language" => "Python", "version" => "1.0.0", "status" => "beta",
-                      "tagline" => "An older package", "pypi_url" => "https://pypi.org/project/legacy-stats/")
+                      "tagline" => "An older package", "description" => "Statistics,\nthe old way.",
+                      "pypi_url" => "https://pypi.org/project/legacy-stats/")
       source.document("packages", "notes", install,
-                      "title" => "Notes", "language" => "Haskell", "github_url" => "https://github.com/example/notes")
-      source.document("packages", "bare", install, "title" => "Bare")
+                      "title" => "Notes", "language" => "Haskell", "github_url" => "https://github.com/example/notes",
+                      "license" => { "name" => "Notes Licence", "url" => "https://example.org/notes-licence" })
+      source.document("packages", "bare", install, "title" => "Bare", "license" => false)
       source.page("index.html", "{% include components/package-index.html %}")
       source.page("table/index.html", '{% include components/package-index.html style="table" group_by="language" %}')
+      source.page("deep/index.html", '{% include components/package-index.html group_by="language" heading_level=6 %}')
     end
   end
 end

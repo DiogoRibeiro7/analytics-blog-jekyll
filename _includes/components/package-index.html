@@ -14,13 +14,15 @@ Parameters (all optional):
   - group_by: a front matter field, such as language or group; one heading
     per value, in alphabetical order, and the packages without it last
   - packages: the packages to list (default: site.packages)
-  - heading_level: the level of the first headings it writes (default: 2)
+  - heading_level: the level of the first headings it writes (default: 2);
+    with group_by, a card's heading is one level below its group's, and
+    neither goes below h6
 {%- endcomment -%}
 
 {%- assign index_packages = include.packages | default: site.packages -%}
-{%- assign index_level = include.heading_level | default: 2 | plus: 0 -%}
+{%- assign index_level = include.heading_level | default: 2 | plus: 0 | at_least: 1 | at_most: 6 -%}
 {%- if include.group_by -%}
-  {%- assign index_item_level = index_level | plus: 1 -%}
+  {%- assign index_item_level = index_level | plus: 1 | at_most: 6 -%}
   {%- assign index_groups = index_packages | group_by: include.group_by | sort: 'name' -%}
   {%- assign index_named = index_groups | where_exp: 'group', 'group.name != ""' -%}
   {%- assign index_unnamed = index_groups | where: 'name', '' -%}
@@ -65,7 +67,7 @@ Parameters (all optional):
               <span data-package-version>v{{ release.version | escape }}</span>
               {%- if release.prerelease %} · {% t 'packages.prerelease' %}{% endif -%}
               {%- if release.yanked %} · {% t 'packages.yanked' %}{% endif -%}
-              {%- if release.released %}<br><time datetime="{{ release.released }}">{{ release.released | localize_date: 'short' }}</time>{% endif -%}
+              {%- if release.released %}<br><time datetime="{{ release.released | escape }}">{{ release.released | localize_date: 'short' }}</time>{% endif -%}
             {%- endif -%}
           </td>
           <td>{% if install and install.id != 'git' %}<code translate="no">{{ install.commands.first.command | escape }}</code>{% endif %}</td>

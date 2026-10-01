@@ -1573,7 +1573,8 @@ crates:
     ...
 ```
 
-- **Which release:** for PyPI, the version PyPI calls the latest, released when its first file was uploaded, and `yanked: true` when every file was yanked. For crates.io, the latest stable version, not a newer beta. For RubyGems, the newest version that is not a pre-release. For npm, the `latest` tag, with a deprecated version counted as yanked.
+- **Which release:** for PyPI, the version PyPI calls the latest, released when its first file was uploaded, and `yanked: true` when every file was yanked. For crates.io, the latest stable version, not a newer beta, and `yanked: true` when it was yanked. For RubyGems, the newest version that is not a pre-release. For npm, the `latest` tag; npm has no yank, and a deprecated version still installs.
+- **Pre-releases:** by each registry's rules: PEP 440 for PyPI (`1.0rc1`, `1!2.0a1`, `1.0.post1.dev2`, but not `1.0.post1`), a hyphen for crates.io, npm and Julia (`1.0.0-beta.2`), any letter for RubyGems (`2.0.0.pre1`). A `version` in front matter is judged by the page's first registry.
 - **Failures:** when a registry cannot be reached, answers with an error, has no package by that name, or sends something that is not a release, the command names each package and registry that failed. It then exits 1 without writing. The file holds either every release or what it held before.
 - **What the page shows:** the release for the first of the page's registries that the file has. That is the version, with "pre-release" for a PEP 440, RubyGems or semver pre-release and "yanked" when the release was withdrawn, plus the release date, the language it needs ("Python >=3.10", "Rust >= 1.74") and the licence. With no release in the file, the page shows `version` and `license` from front matter.
 
@@ -1595,8 +1596,8 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: ruby/setup-ruby@a0102e0972be65f351c307e2d64b9314a57c8073 # v1.324.0
         with:
           bundler-cache: true
       - run: bundle exec datalog packages refresh
@@ -1614,7 +1615,7 @@ jobs:
           gh pr create --fill
 ```
 
-A pull request opened with the workflow's own `GITHUB_TOKEN` starts no other workflow. For the site's checks to run on it, give the checkout and `GH_TOKEN` a token of your own.
+The actions are pinned to commits, as [the theme's own are](action-pinning-policy.md). A pull request opened with the workflow's own `GITHUB_TOKEN` starts no other workflow. For the site's checks to run on it, give the checkout and `GH_TOKEN` a token of your own.
 
 ### The Index
 
@@ -1630,7 +1631,7 @@ The index lists every package in `site.packages` with its name, its release (fro
 | `style` | `cards` (the default), a card per package; or `table`, one row per package, in a region that scrolls on a narrow screen |
 | `group_by` | A front matter field, such as `language` or `group`. Each value gets a heading, in alphabetical order, and the packages without the field come last under "Other" |
 | `packages` | The packages to list, by default `site.packages` |
-| `heading_level` | The level of the first headings it writes, `2` by default. With `group_by`, the groups take this level and the packages the next |
+| `heading_level` | The level of the first headings it writes, `2` by default, and never below `6`. With `group_by`, the groups take this level and each card's package name the next; in a table, the package names are row headers, not headings |
 
 A site with no packages gets "No packages yet." The labels are translated in English, Portuguese and Spanish. The demo's `/packages/` page is the include alone.
 

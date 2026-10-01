@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../lib/datalog/packages"
+require_relative "licenses"
 
 module Datalog
   # Liquid's view of a package page: the registries its front matter names
@@ -31,24 +32,25 @@ module Datalog
                                   overrides: options.slice("pip", "conda", "cran"))
     end
 
-    # {"version", "released", "license", "requirement", "prerelease", "yanked",
-    # "registry", "status"}: from the data file, for the first of the page's
-    # registries it has, else from the front matter.
+    # {"version", "released", "license", "license_url", "requirement",
+    # "prerelease", "yanked", "registry", "status"}: from the data file, for
+    # the first of the page's registries it has, else from the front matter.
     def package_release(page)
       data = PackageFilters.data(page)
+      named = Packages.registries(data)
       releases = @context["site"]["data"]["package_releases"]
       releases = {} unless releases.is_a?(Hash)
-      registry, name = Packages.registries(data).find do |key, value|
-        releases[key].is_a?(Hash) && releases[key][value].is_a?(Hash)
+      registry, name = named.find { |key, value| releases[key].is_a?(Hash) && releases[key][value].is_a?(Hash) }
+      release = registry ? releases[registry][name].transform_keys(&:to_s) : {}
+      release["registry"] = registry
+      release["version"] = (release["version"] || data["version"])&.to_s
+      unless release.key?("prerelease")
+        release["prerelease"] = Packages.prerelease?(release["version"], registry || named.keys.first)
       end
-      release = registry ? releases[registry][name].dup : {}
-      release["registry"] = registry if registry
-      release["version"] ||= data["version"]&.to_s
-      release["license"] ||= data["license"]&.to_s
-      release["prerelease"] = true if Packages.prerelease?(release["version"])
+      license(release, data)
       release["requirement"] = requirement(release)
       release["status"] = data["status"]&.to_s
-      release.compact
+      release.compact.reject { |_key, value| value == "" }
     end
 
     def self.data(page)
@@ -56,6 +58,17 @@ module Datalog
     end
 
     private
+
+    # The registry's licence, else the front matter's; and the licence's
+    # address when the front matter resolves the same one, for the JSON-LD.
+    # A `license:` map shows its name, and `license: false` shows none.
+    def license(release, data)
+      given = Licenses.content(data, @context["site"])
+      own = data["license"].is_a?(String) ? data["license"].strip : given&.dig("name")
+      release["license"] = (release["license"] || own)&.to_s
+      same = given && [given["id"], given["name"], own].compact.include?(release["license"])
+      release["license_url"] = given["url"] if same
+    end
 
     def requirement(release)
       key = REQUIREMENTS.keys.find { |name| release[name] }

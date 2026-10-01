@@ -98,7 +98,8 @@ module Datalog
           raise Error, "#{REGISTRIES.dig(registry, :label)} answered #{status} for #{name} (#{url})"
         end
 
-        Releases.public_send(registry, JSON.parse(body))
+        found = Releases.public_send(registry, JSON.parse(body))
+        found.merge("prerelease" => Packages.prerelease?(found["version"], registry))
       rescue JSON::ParserError, KeyError, NoMethodError, TypeError => e
         raise Error,
               "#{REGISTRIES.dig(registry, :label)} sent an answer for #{name} that is not a release (#{e.message})"
@@ -159,8 +160,8 @@ module Datalog
         version = json.dig("dist-tags", "latest") || raise(KeyError, "no latest version")
         found = json.dig("versions", version) || {}
         license = found["license"].is_a?(Hash) ? found.dig("license", "type") : found["license"]
-        release(version, json.dig("time", version), license, "node_version" => found.dig("engines", "node"),
-                                                             "yanked" => !found["deprecated"].to_s.empty?)
+        # A deprecated version still installs, with a warning: npm has no yank.
+        release(version, json.dig("time", version), license, "node_version" => found.dig("engines", "node"))
       end
 
       def release(version, released, license, extra = {})

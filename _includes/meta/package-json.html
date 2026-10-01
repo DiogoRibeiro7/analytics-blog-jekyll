@@ -14,7 +14,8 @@ else from front matter. Front matter it reads, all optional beyond the title:
   github_url:            codeRepository
   language:              programmingLanguage
   registry, pypi_url, cran_url, docs_url:  sameAs, one URL per page
-  license, version:      when the data file has no release
+  license, version:      when the data file has no release; the licence is its
+                         URL when front matter resolves the same licence
 
 Every field is left out when it has no value.
 {%- endcomment -%}
@@ -23,18 +24,11 @@ Every field is left out when it has no value.
 {%- assign pkg_release = pkg | package_release -%}
 {%- assign pkg_links = pkg | package_links | map: 'url' -%}
 {%- if pkg.docs_url -%}{%- assign pkg_links = pkg_links | push: pkg.docs_url -%}{%- endif -%}
-{%- assign pkg_excerpt = pkg.excerpt | strip_html | strip_newlines -%}
-{%- assign pkg_description = pkg.description | default: pkg.tagline | default: pkg_excerpt | strip_newlines -%}
+{%- assign pkg_excerpt = pkg.excerpt | strip_html | normalize_whitespace -%}
+{%- assign pkg_description = pkg.description | default: pkg.tagline | default: pkg_excerpt | normalize_whitespace -%}
 {%- assign pkg_authors = pkg | page_authors -%}
-{%- comment -%}
-  The licence's URL when the release's licence is the one front matter
-  resolves; the registry's own words (`MIT OR Apache-2.0`) otherwise.
-{%- endcomment -%}
-{%- assign pkg_license = pkg | page_license -%}
-{%- assign pkg_license_value = pkg_release.license -%}
-{%- if pkg_license and pkg_release.license == pkg.license -%}
-  {%- assign pkg_license_value = pkg_license.url | default: pkg_license.name -%}
-{%- endif -%}
+{%- comment -%} The registry's own words (`MIT OR Apache-2.0`) when no URL is known for them. {%- endcomment -%}
+{%- assign pkg_license_value = pkg_release.license_url | default: pkg_release.license -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">
 {
   "@context": "https://schema.org",
