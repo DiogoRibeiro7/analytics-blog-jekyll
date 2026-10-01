@@ -43,6 +43,11 @@ class SocialCardTextTest < Minitest::Test
     assert_equal "Ratios a/b and x² compared", PlainText.from_tex('Ratios $ \frac{a}{b} $ and $ x^2 $ compared')
   end
 
+  # One of a pair of dollar signs closes nothing, as on the page.
+  def test_a_dollar_beside_another_closes_no_inline_maths
+    assert_equal '$ \alpha $$', PlainText.from_tex('$ \alpha $$')
+  end
+
   # Linear on long input: a run of spaces, of commands, of unclosed dollars.
   def test_the_reducer_takes_no_time_on_a_long_title
     ["$#{' ' * 20_000}x", "$#{'\\alpha' * 5_000}$", "$a #{'$a ' * 2_000}", "=" * 10_000].each do |title|
@@ -355,6 +360,22 @@ class SocialCardSiteTest < Minitest::Test
     assert_includes error.message, "is not a file in the site"
   ensure
     FileUtils.rm_rf(sibling) if sibling
+  end
+
+  def test_a_link_inside_the_site_to_a_file_outside_it_is_not_a_logo
+    outside = Dir.mktmpdir("datalog-outside")
+    File.write(File.join(outside, "logo.svg"), Datalog::SocialCards::MARK)
+    first = build
+    begin
+      File.symlink(File.join(outside, "logo.svg"), File.join(first.dir, "logo.svg"))
+    rescue NotImplementedError, SystemCallError => e
+      skip "this file system makes no symbolic links (#{e.class})"
+    end
+
+    error = assert_raises(Jekyll::Errors::FatalException) { build(again: first, cards: { "logo" => "/logo.svg" }) }
+    assert_includes error.message, "is not a file in the site"
+  ensure
+    FileUtils.rm_rf(outside)
   end
 
   def test_logo_true_is_the_theme_mark

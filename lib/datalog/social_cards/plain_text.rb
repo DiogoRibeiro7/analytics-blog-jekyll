@@ -59,9 +59,10 @@ module Datalog
       def from_tex(text)
         out = +""
         source = text.to_s
+        scanner = Scanner.new(source)
         index = 0
         while index < source.length
-          math, length = math_at(source, index)
+          math, length = scanner.math_at(index)
           if math
             out << math_to_text(math)
             index += length
@@ -76,33 +77,56 @@ module Datalog
       SPACED_MATH = /\\[a-zA-Z]+|[\^_]/
       DELIMITERS = { "$$" => "$$", "\\[" => "\\]", "\\(" => "\\)" }.freeze
 
-      # [inner TeX, length taken] when maths opens at the index, else nil.
-      def math_at(source, index)
-        opener = source[index, 2]
-        if DELIMITERS.key?(opener)
-          close = source.index(DELIMITERS[opener], index + 2)
-          return close && [source[(index + 2)...close], close + 2 - index]
+      # Finds where maths opens and closes in one title. The dollar signs that
+      # can close maths are found once, and a delimiter that never closes is
+      # remembered, so a title of many unclosed openers costs no more than
+      # one read of it.
+      class Scanner
+        def initialize(source)
+          @source = source
+          @unclosed = {}
+          @closers = closers
+          @tight_closers = @closers.select { |at| @source[at - 1].match?(/\S/) }
         end
-        return unless source[index] == "$" && (index.zero? || source[index - 1] != "\\")
 
-        spaced = source[index + 1].to_s.match?(/\s/)
-        close = closing_dollar(source, index, spaced)
-        body = close && source[(index + 1)...close]
-        return unless body && (!spaced || body.match?(SPACED_MATH))
+        # [inner TeX, length taken] when maths opens at the index, else nil.
+        def math_at(index)
+          opener = @source[index, 2]
+          return delimited(index, opener) if DELIMITERS.key?(opener)
+          return unless @source[index] == "$" && (index.zero? || @source[index - 1] != "\\")
 
-        [body, close + 1 - index]
-      end
+          spaced = @source[index + 1].to_s.match?(/\s/)
+          close = (spaced ? @closers : @tight_closers).bsearch { |at| at >= index + 2 }
+          body = close && @source[(index + 1)...close]
+          return unless body && (!spaced || body.match?(SPACED_MATH))
 
-      # The dollar sign that closes one opened at `open`: unescaped, not
-      # followed by a digit, and after a non-space unless the maths is spaced.
-      def closing_dollar(source, open, spaced)
-        at = open + 1
-        while (at = source.index("$", at + 1))
-          before = source[at - 1]
-          next if before == "\\" || source[at + 1].to_s.match?(/\d/)
-          return at if spaced || before.match?(/\S/)
+          [body, close + 1 - index]
         end
-        nil
+
+        private
+
+        def delimited(index, opener)
+          return if @unclosed[opener]
+
+          close = @source.index(DELIMITERS[opener], index + 2)
+          return [@source[(index + 2)...close], close + 2 - index] if close
+
+          @unclosed[opener] = true
+          nil
+        end
+
+        # Each dollar sign that can close inline maths: unescaped, not one of
+        # a pair, and not followed by a digit (`$5 and $10` is money).
+        def closers
+          found = []
+          at = -1
+          while (at = @source.index("$", at + 1))
+            before = @source[at - 1] if at.positive?
+            after = @source[at + 1].to_s
+            found << at unless at.zero? || ["\\", "$"].include?(before) || after == "$" || after.match?(/\d/)
+          end
+          found
+        end
       end
 
       def plain_char(source, index)

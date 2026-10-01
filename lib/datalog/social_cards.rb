@@ -296,11 +296,15 @@ module Datalog
     end
 
     # The file a site path names, when it is one and inside the site: a
-    # sibling directory whose name starts with the site's does not count.
+    # sibling directory whose name starts with the site's does not count,
+    # nor does a link inside the site to a file outside it.
     def inside_site(site, value)
-      root = File.expand_path(site.source)
+      root = File.realpath(site.source)
       path = File.expand_path(value.to_s.delete_prefix("/"), root)
-      path if File.file?(path) && path.start_with?("#{root}/")
+      return unless File.file?(path)
+
+      real = File.realpath(path)
+      real if real.start_with?("#{root}/")
     end
 
     def cache_root(site)
