@@ -60,6 +60,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Changed
 
+- **`datalog critical-css` runs critical 9.** critical 9 rewrote its command line, and the command's `--base`, `--css` and `--penthouse-*` options stopped it with "Unknown option '--base'". The theme's `devDependency` and the `npx` fallback move together, so the theme and the sites using it run the same version.
+  - **How pages reach it:** each page goes to critical on its standard input, from the built site's root, with `assets/css/main.css` as its only stylesheet. The inlined CSS still carries no Google Fonts rules, now whatever the site's `baseurl`. The viewports are one `--dimensions` list.
+  - **Engines:** `critical_css.engine: render`, the default, measures the first screen in Playwright's Chromium at each viewport, as critical 8 did in Puppeteer's Chrome. critical 9 does not download that browser: install it with `npx playwright install chromium`, or let the command install it when it runs critical through `npx`. `engine: static` needs no browser and writes more CSS. On the demo, render's CSS is a quarter to a half larger than critical 8's (4.3 to 6.3 KB gzipped against 3.5 to 4.0 KB), because critical 9 keeps the media queries of every viewport it measures.
+  - **Checks:** the command names a Node.js older than 22.13, which critical 8 needed as well, and a site whose own `node_modules` holds critical 8, with the command that updates it.
+  - **Removed:** `critical_css.penthouse_options`: critical 9 has no penthouse, and the build now warns while the setting is there. The Tests, Deploy and Lighthouse workflows install Playwright's Chromium before they run critical. The unit tests now run the installed critical with the theme's arguments, so a refused option fails there as well as in the consumer test (#360).
+
 - **A page lists only the works it cites.** The citations plugin listed every entry of a page that cited none of them; `nocite: all` restores that.
   - **Research layout:** its `references:` list of strings is no longer read as citation entries (a list of maps still is), and it shows the cited works in its References section.
   - **JSON-LD:** `citation` lists the cited works, not the page's own `citation_key`.

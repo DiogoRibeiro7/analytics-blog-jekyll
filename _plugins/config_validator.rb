@@ -208,6 +208,16 @@ module Datalog
           style: { type: :string, enum: %w[compressed expanded] }
         }
       },
+      # `datalog critical-css` (lib/datalog/critical_css.rb).
+      critical_css: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean },
+          engine: { type: :string, enum: %w[render static] },
+          dimensions: { type: :array },
+          pages: { type: :hash }
+        }
+      },
       theme_options: {
         type: :hash,
         schema: {
@@ -284,6 +294,11 @@ module Datalog
       "theme_options.math.enabled" => {
         message: "Nothing reads it: theme_options.math.render_on_load decides which pages load the math engine, " \
                  "and a page's `math` front matter overrides that. Remove it."
+      },
+      # critical 9 dropped penthouse, and with it every option passed to it.
+      "critical_css.penthouse_options" => {
+        message: "`datalog critical-css` runs critical 9, which has no penthouse options, so these have no effect. " \
+                 "Remove them."
       }
     }.freeze
 

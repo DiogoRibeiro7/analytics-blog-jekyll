@@ -104,16 +104,18 @@ if check_command node; then
 
     NODE_VER=$(node -e 'console.log(process.versions.node)')
     NODE_MAJOR=$(echo "$NODE_VER" | cut -d. -f1)
-    if [[ "$NODE_MAJOR" -ge 18 ]]; then
-        print_success "Node.js version is 18 or higher"
+    NODE_MINOR=$(echo "$NODE_VER" | cut -d. -f2)
+    # critical, which `datalog critical-css` runs, needs Node.js 22.13.
+    if [[ "$NODE_MAJOR" -gt 22 || ( "$NODE_MAJOR" -eq 22 && "$NODE_MINOR" -ge 13 ) ]]; then
+        print_success "Node.js version is 22.13 or higher"
     else
-        print_error "Node.js version 18+ required, found v$NODE_VER"
-        print_info "Install Node.js 18+ from https://nodejs.org/"
+        print_error "Node.js 22.13+ required, found v$NODE_VER"
+        print_info "Install Node.js 22.13+ from https://nodejs.org/"
         exit 1
     fi
 else
     print_error "Node.js not found"
-    print_info "Install Node.js 18+ from https://nodejs.org/"
+    print_info "Install Node.js 22.13+ from https://nodejs.org/"
     exit 1
 fi
 

@@ -82,7 +82,7 @@ bundle exec datalog critical-css
 
 **What it does**: builds the site for production into a temporary directory, extracts the critical CSS of a home page, a post and one other page with the `critical` npm package, and writes `_includes/critical-css/home.html`, `post.html` and `default.html`. The command is part of the gem, so a site using the theme runs the same one; `lib/datalog/critical_css.rb` implements it, and the [configuration guide](configuration-guide.md#critical-css) describes its settings.
 
-**Requirements**: `critical_css.enabled: true` in `_config.yml`, and Node.js 22.13 or later with `critical` installed (`npm ci`), which downloads headless Chrome.
+**Requirements**: `critical_css.enabled: true` in `_config.yml`, and Node.js 22.13 or later with critical 9 installed (`npm ci`). The default render engine also needs Playwright's Chromium (`npx playwright install chromium`), which installing critical does not download; `critical_css.engine: static` needs no browser.
 - `NODE_ENV=production` (recommended)
 
 ---

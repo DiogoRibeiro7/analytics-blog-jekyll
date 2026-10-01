@@ -262,19 +262,21 @@ The command builds the site for production into a temporary directory, extracts 
 ```yaml
 critical_css:
   enabled: true
-  dimensions:                # the viewports a page's first screen is measured in
+  engine: render             # or static
+  dimensions:                # the viewports the render engine measures a page's first screen in
     - { width: 1920, height: 1080 }
     - { width: 375, height: 667 }
-  penthouse_options:
-    timeout: 30000
   pages:                     # optional: which pages to extract from, as site paths
     default: /blog/
 ```
 
-- The command runs the [critical](https://github.com/addyosmani/critical) npm package, which needs Node.js 22.13 or later and renders pages in headless Chrome that its install downloads. It uses `node_modules/.bin/critical` when your site has installed it (`npm install --save-dev critical@8`), and `npx --yes critical@8` otherwise. `--critical` names another command.
-- Without `pages`, each file comes from the first page with that layout, nearest the site root; `default` skips pages kept out of search engines, such as the search page.
-- Only `assets/css/main.css` is read, so the inlined CSS carries no Google Fonts rules.
-- A production build warns when `critical_css.enabled` is true and one of the three files is empty.
+- **What it runs:** the [critical](https://github.com/addyosmani/critical) npm package, version 9, which needs Node.js 22.13 or later; the command checks that first. It uses `node_modules/.bin/critical` when your site has installed it (`npm install --save-dev critical@9 playwright`), and `npx` otherwise. `--critical` names another command. A site that installed critical 8 is asked to update it, since critical 9 takes other arguments.
+- **`engine: render`** (the default) opens each page in [Playwright](https://playwright.dev)'s Chromium at each viewport in `dimensions` and keeps the CSS for what is painted there, as critical 8 did in Puppeteer's Chrome. critical 9 does not install the browser. Install it with `npx playwright install chromium` (`--with-deps` on a CI runner) before the command. When the command runs critical through npx, it asks npx for Playwright as well and installs Chromium itself the first time.
+- **`engine: static`** needs no browser and no download: it keeps every rule the page's markup uses, in a second or two per page. That is more CSS than the first screen needs. On the demo, gzipped, it is 4.5 KB for the home page and 7.8 KB for a long post, where the render engine writes 4.4 KB and 5.2 KB.
+- **Pages:** without `pages`, each file comes from the first page with that layout, nearest the site root; `default` skips pages kept out of search engines, such as the search page.
+- **What critical reads:** each page with `assets/css/main.css` as its only stylesheet, so the inlined CSS carries no Google Fonts rules, whatever the site's `baseurl`.
+- **`penthouse_options`** no longer does anything: critical 9 replaced penthouse. The build warns while it is set.
+- **Empty files:** a production build warns when `critical_css.enabled` is true and one of the three files is empty.
 
 ### 4. Integrations
 

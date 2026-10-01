@@ -36,11 +36,13 @@ jobs:
 
       # The deploy inlines critical CSS and loads the stylesheet asynchronously;
       # measure that configuration rather than the plain build.
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Generate critical CSS
         env:
           JEKYLL_ENV: production
           NODE_ENV: production
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
         run: npm run build:critical
 
       - name: Build site
