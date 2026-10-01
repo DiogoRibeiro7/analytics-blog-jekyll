@@ -3,6 +3,8 @@
 require "date"
 require "fileutils"
 require "jekyll"
+require "json"
+require "nokogiri"
 require "open3"
 require "tmpdir"
 require "yaml"
@@ -15,10 +17,24 @@ module Datalog
   # rendering. Critical CSS depends on a site's own pages and styles, so the
   # theme ships those files empty and each site writes its own with
   # `datalog critical-css`.
+  #
+  # It runs critical 9, which has two engines. `render`, the default, opens
+  # the page in Playwright's Chromium at each viewport in `dimensions` and
+  # keeps the rules for what is painted there: the first screen, as critical 8
+  # measured it. `static` needs no browser: it keeps every rule the page's
+  # markup uses, which is more CSS but takes a second rather than a browser.
   class CriticalCss
     TARGETS = %w[home post default].freeze
+    ENGINES = %w[render static].freeze
     DEFAULT_DIMENSIONS = [{ "width" => 1920, "height" => 1080 }, { "width" => 375, "height" => 667 }].freeze
-    PACKAGE = "critical@8"
+    PACKAGE = "critical@9"
+    # The render engine's browser. critical 9 leaves Playwright to the site, as
+    # an optional peer, so npx is asked for both.
+    PLAYWRIGHT = "playwright@1"
+    MAJOR = 9
+    # critical 9 needs it, as critical 8 did.
+    NODE = Gem::Version.new("22.13.0")
+    STYLESHEET = "assets/css/main.css"
 
     class Error < StandardError; end
 
@@ -37,7 +53,8 @@ module Datalog
     end
 
     # critical: the command that runs critical, as a list of words. By default
-    # the site's own node_modules/.bin/critical, or `npx --yes critical@8`.
+    # the site's own node_modules/.bin/critical, or `npx --yes critical@9`
+    # (with Playwright for the render engine).
     def initialize(root, settings, critical: nil, log: ->(_message) {})
       @root = File.expand_path(root)
       @settings = settings || {}
@@ -51,6 +68,15 @@ module Datalog
       unless settings["enabled"] == true
         raise Error, "critical_css.enabled is not true in _config.yml, so no page would inline critical CSS"
       end
+      unless ENGINES.include?(engine)
+        raise Error, "critical_css.engine is #{engine.inspect}; it is render (the default) or static"
+      end
+
+      if settings["penthouse_options"]
+        @log.call("critical 9 has no penthouse options, so critical_css.penthouse_options is ignored")
+      end
+      command = critical_command
+      install_browser if command == npx_command && engine == "render"
 
       Dir.mktmpdir("datalog-critical") do |site_dir|
         @log.call("Building the site for production into a temporary directory")
@@ -61,8 +87,8 @@ module Datalog
             next
           end
 
-          @log.call("Extracting critical CSS for #{target} from #{page}")
-          written[target] = write(target, extract(site_dir, page))
+          @log.call("Extracting critical CSS for #{target} from #{page} (#{engine} engine)")
+          written[target] = write(target, extract(site_dir, page, command))
         end
       end
     end
@@ -111,13 +137,12 @@ module Datalog
       "default" unless html.match?(/<meta name="robots" content="noindex/)
     end
 
-    # Only the site's stylesheet: the Google Fonts stylesheet would inline
-    # @font-face rules for the font files headless Chrome is served (TrueType),
-    # and fetching it made each page take over a minute.
-    def extract(site_dir, page)
-      arguments = [page, "--base", site_dir, "--css", File.join(site_dir, "assets", "css", "main.css"),
-                   *dimension_arguments, *penthouse_arguments]
-      output, errors, status = Open3.capture3(*critical_command, *arguments, chdir: site_dir)
+    # The page goes to critical on its standard input, from the built site's
+    # root, so the stylesheet resolves there whatever the page's folder or
+    # the site's baseurl.
+    def extract(site_dir, page, command = critical_command)
+      html = page_for_critical(File.read(File.join(site_dir, page), encoding: "utf-8"))
+      output, errors, status = Open3.capture3(*command, *arguments, stdin_data: html, chdir: site_dir)
       unless status.success?
         raise Error, "critical could not extract CSS from #{page}: #{errors.strip.lines.last(5).join.strip}"
       end
@@ -136,24 +161,99 @@ module Datalog
       path
     end
 
+    # The page as critical should read it: linking the site's stylesheet and
+    # nothing else, as critical 8's --css did. The Google Fonts stylesheet
+    # would bring @font-face rules for the font files a headless browser is
+    # served, and fetching it made each page take over a minute. The Content
+    # Security Policy goes too: it would refuse the stylesheet the render
+    # engine adds to the page to measure it.
+    def page_for_critical(html)
+      document = Nokogiri::HTML5(html)
+      document.css('link[rel~="stylesheet"], style, noscript').each(&:remove)
+      document.css("meta[http-equiv]").each do |meta|
+        meta.remove if meta["http-equiv"].casecmp?("content-security-policy")
+      end
+      head = document.at_css("head") || document.root.prepend_child(document.create_element("head"))
+      head.add_child(document.create_element("link", rel: "stylesheet", href: STYLESHEET))
+      document.to_html
+    end
+
+    # The arguments critical 9's command line takes: the engine, and for the
+    # render engine the viewports, as one list ("1920x1080,375x667").
+    def arguments
+      return ["--engine", "static"] if engine == "static"
+
+      dimensions = Array(settings["dimensions"]).grep(Hash)
+      dimensions = DEFAULT_DIMENSIONS if dimensions.empty?
+      viewports = dimensions.map { |entry| "#{entry['width']}x#{entry['height']}" }
+      ["--engine", "render", "--dimensions", viewports.join(",")]
+    end
+
+    def engine
+      settings.fetch("engine", "render").to_s
+    end
+
+    # The command that runs critical: the one given, else the site's own,
+    # else npx's. The site's own must be critical 9: critical 8 takes other
+    # arguments, and every option this passes would be refused.
     def critical_command
       return @critical if @critical
 
+      check_node
       local = File.join(root, "node_modules", ".bin", Gem.win_platform? ? "critical.cmd" : "critical")
-      File.file?(local) ? [local] : ["npx", "--yes", PACKAGE]
+      return npx_command unless File.file?(local)
+
+      version = installed_version
+      if version && version.segments.first < MAJOR
+        raise Error, "This site's node_modules has critical #{version}, and `datalog critical-css` runs critical " \
+                     "#{MAJOR}, whose command line differs. Update it: npm install --save-dev critical@#{MAJOR}" \
+                     "#{' playwright' if engine == 'render'}"
+      end
+      [local]
     end
 
-    def dimension_arguments
-      dimensions = Array(settings["dimensions"]).grep(Hash)
-      dimensions = DEFAULT_DIMENSIONS if dimensions.empty?
-      dimensions.flat_map { |entry| ["--dimensions", "#{entry['width']}x#{entry['height']}"] }
+    # npx brings Playwright but not the browser it drives, which critical 8's
+    # Puppeteer downloaded as it installed. Playwright fetches it once; a later
+    # run finds it in place.
+    def install_browser
+      @log.call("Making sure Playwright's Chromium is installed for the render engine")
+      output, status = Open3.capture2e("npx", "--yes", PLAYWRIGHT, "install", "chromium")
+      return if status.success?
+
+      raise Error, "Playwright could not install Chromium: #{output.strip.lines.last(5).join.strip}"
     end
 
-    def penthouse_arguments
-      options = settings["penthouse_options"]
-      return [] unless options.is_a?(Hash)
+    def npx_command
+      return ["npx", "--yes", PACKAGE] if engine == "static"
 
-      options.flat_map { |key, value| ["--penthouse-#{key}", value.to_s] }
+      ["npx", "--yes", "--package", PACKAGE, "--package", PLAYWRIGHT, "critical"]
+    end
+
+    def installed_version
+      manifest = File.join(root, "node_modules", "critical", "package.json")
+      return unless File.file?(manifest)
+
+      Gem::Version.new(JSON.parse(File.read(manifest))["version"].to_s)
+    rescue JSON::ParserError, ArgumentError
+      nil
+    end
+
+    # critical 9 needs Node.js 22.13; an older one fails on an import, with a
+    # message that does not say so.
+    def check_node
+      version = node_version
+      raise Error, "Node.js was not found; critical needs Node.js #{NODE} or later" unless version
+      return if Gem::Version.new(version) >= NODE
+
+      raise Error, "critical needs Node.js #{NODE} or later, and this is Node.js #{version}"
+    end
+
+    # "22.13.0", or nil when there is no node to ask.
+    def node_version
+      output, status = Open3.capture2e("node", "--version")
+      status.success? ? output[/\d+\.\d+\.\d+/] : nil
+    rescue SystemCallError
+      nil
     end
 
     def page_file(site_dir, url)

@@ -112,6 +112,11 @@ This guide documents the configuration keys validated by the automated configura
 | `seo` | Map | Any |
 | `seo.type` | String | Any |
 | `seo.name` | String | Any |
+| `critical_css` | Map | Any |
+| `critical_css.enabled` | Boolean | `true`, `false` (default) |
+| `critical_css.engine` | String | `render` (default), `static` |
+| `critical_css.dimensions` | List | Maps with `width` and `height`: the viewports the render engine measures |
+| `critical_css.pages` | Map | `home`, `post` and `default`, each a site path |
 | `sass` | Map | Any |
 | `sass.style` | String | `compressed`, `expanded` |
 | `theme_options` | Map | Any |
@@ -554,6 +559,11 @@ The validator also inspects configuration keys that have moved, been renamed or 
 ### theme_options.math.enabled (deprecated)
 - **Status:** Deprecated. Nothing reads it, so it has no effect.
 - **Replacement:** `theme_options.math.render_on_load` (`auto`, `true` or `false`) decides which pages load the math engine, and a page's `math` front matter overrides it.
+- **Action:** Remove the key.
+
+### critical_css.penthouse_options (deprecated)
+- **Status:** Deprecated. `datalog critical-css` runs critical 9, which replaced penthouse and takes none of its options, so they have no effect.
+- **Replacement:** `critical_css.dimensions` still sets the viewports, and `critical_css.engine` chooses how the CSS is found.
 - **Action:** Remove the key.
 
 ## Troubleshooting

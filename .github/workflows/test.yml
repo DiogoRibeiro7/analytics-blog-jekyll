@@ -108,6 +108,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends imagemagick libavif-bin
 
+      # critical 9 measures pages in Playwright's Chromium, which installing it
+      # does not download (critical 8's Puppeteer downloaded Chrome).
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Build site
         env:
           JEKYLL_ENV: test
@@ -116,8 +121,9 @@ jobs:
       # Also `bundle exec rake test`. The suite replaced `rake ci:verify`, whose
       # scripts checked source files for strings; Python was only set up here
       # for one of them.
-      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and the
-      # Chrome it runs, so its consumer test must not skip here.
+      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and
+      # Playwright, and the step above its Chromium, so the consumer test that
+      # runs `datalog critical-css` must not skip here.
       - name: Run Minitest suite
         env:
           DATALOG_IMAGE_TOOLS: required
@@ -171,6 +177,11 @@ jobs:
 
       - name: Build JS bundles
         run: npm run build:js
+
+      # critical 9 measures pages in Playwright's Chromium, which installing it
+      # does not download (critical 8's Puppeteer downloaded Chrome).
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Run Minitest suite
         if: matrix.ruby != '3.4'

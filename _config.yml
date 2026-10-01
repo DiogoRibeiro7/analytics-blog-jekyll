@@ -207,13 +207,12 @@ features:
 
 critical_css:
   enabled: true
+  engine: render   # or static: no browser, more CSS
   dimensions:
     - width: 1920
       height: 1080
     - width: 375
       height: 667
-  penthouse_options:
-    timeout: 30000
 
 # -----------------------------------------------------------------------------
 # Theme Options

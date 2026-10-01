@@ -2,6 +2,8 @@
 
 require_relative "test_helper"
 require "rbconfig"
+require "json"
+require "nokogiri"
 require "tmpdir"
 require_relative "../lib/datalog/critical_css"
 
@@ -63,18 +65,49 @@ class CriticalCssTest < Minitest::Test
     assert_nil pages["post"], "a site without posts has no page for the post layout"
   end
 
+  # critical 9 takes one --dimensions with the viewports separated by commas;
+  # given twice, it kept the last.
   def test_arguments_come_from_the_configuration
-    settings = { "dimensions" => [{ "width" => 1280, "height" => 720 }],
-                 "penthouse_options" => { "timeout" => 60_000 } }
-    configured = critical_css(settings)
+    configured = critical_css({ "dimensions" => [{ "width" => 1280, "height" => 720 },
+                                                 { "width" => 390, "height" => 844 }] })
 
-    assert_equal ["--dimensions", "1280x720"], configured.dimension_arguments
-    assert_equal ["--penthouse-timeout", "60000"], configured.penthouse_arguments
-    assert_equal ["--dimensions", "1920x1080", "--dimensions", "375x667"], critical_css.dimension_arguments
+    assert_equal ["--engine", "render", "--dimensions", "1280x720,390x844"], configured.arguments
+    assert_equal ["--engine", "render", "--dimensions", "1920x1080,375x667"], critical_css.arguments
+    assert_equal ["--engine", "static"], critical_css({ "engine" => "static" }).arguments
+  end
+
+  # The page reaches critical on its standard input, linking the site's
+  # stylesheet and nothing else: no Google Fonts, no inline styles, and no
+  # Content Security Policy to refuse the stylesheet the render engine adds.
+  def test_critical_reads_the_page_with_only_the_sites_stylesheet
+    html = <<~HTML
+      <html><head>
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+        style-src 'self' 'nonce-abc'">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans">
+      <link rel="stylesheet" href="/blog/assets/css/main.css?v=1" media="print">
+      <noscript><link rel="stylesheet" href="/blog/assets/css/main.css"></noscript>
+      <style>.inline{color:red}</style>
+      <link rel="preload" href="/blog/assets/img/hero.webp" as="image">
+      </head><body class="site-body"><h1>Title</h1><script>document.body.classList.add("dark-mode")</script></body></html>
+    HTML
+    page = Nokogiri::HTML5(critical_css.page_for_critical(html))
+
+    assert_equal(["assets/css/main.css"], page.css('link[rel="stylesheet"]').map { |link| link["href"] })
+    assert_empty page.css("style, noscript, meta[http-equiv]")
+    refute_nil page.at_css('link[rel="preload"]'), "other links stay"
+    assert_equal "Title", page.at_css("h1").text
+    refute_nil page.at_css("body script"), "the page's own scripts still run in the render engine"
   end
 
   def test_run_writes_the_css_critical_prints_for_each_layout
-    runner = critical_css(critical: script("puts \"a{content:'{{'}\" if ARGV.include?('--css')"))
+    reads_the_page = <<~RUBY
+      html = $stdin.read
+      ok = html.include?('href="assets/css/main.css"') && !html.include?("fonts.googleapis") &&
+           ARGV == ["--engine", "render", "--dimensions", "1920x1080,375x667"]
+      puts "a{content:'{{'}" if ok
+    RUBY
+    runner = critical_css(critical: script(reads_the_page))
     stub_build(runner) do
       page("index.html", "site-body layout-home")
       page("about/index.html", "site-body layout-page")
@@ -102,6 +135,22 @@ class CriticalCssTest < Minitest::Test
   def test_run_needs_critical_css_enabled
     error = assert_raises(Datalog::CriticalCss::Error) { critical_css({ "enabled" => false }).run }
     assert_includes error.message, "critical_css.enabled is not true"
+
+    error = assert_raises(Datalog::CriticalCss::Error) { critical_css({ "engine" => "browser" }).run }
+    assert_includes error.message, "critical_css.engine is \"browser\""
+  end
+
+  # critical 9 dropped penthouse: the options are said to be ignored, not passed.
+  def test_penthouse_options_are_ignored_out_loud
+    logged = []
+    runner = Datalog::CriticalCss.new(File.join(@dir, "site"),
+                                      { "enabled" => true, "penthouse_options" => { "timeout" => 60_000 } },
+                                      critical: script("puts 'a{b:c}'"), log: ->(message) { logged << message })
+    stub_build(runner) { page("index.html", "site-body layout-home") }
+
+    runner.run
+
+    assert(logged.any? { |message| message.include?("penthouse_options is ignored") })
   end
 
   # --- The build warning ------------------------------------------------------
@@ -157,5 +206,102 @@ class CriticalCssTest < Minitest::Test
     yield
   ensure
     ENV["JEKYLL_ENV"] = previous
+  end
+end
+
+# Which critical runs, and whether its command line takes what the theme
+# passes. critical 9 refused critical 8's --base, and the unit tests above,
+# which check the arguments the theme builds, passed regardless (#360).
+class CriticalCssCommandTest < Minitest::Test
+  ROOT = File.expand_path("..", __dir__)
+  INSTALLED = File.join(ROOT, "node_modules", "critical", "cli.js")
+
+  def setup
+    @dir = Dir.mktmpdir
+  end
+
+  def teardown
+    FileUtils.rm_rf(@dir)
+  end
+
+  # The CLI parses every option before it does anything, and --help then
+  # prints and exits: a zero status means each option the theme passes is one
+  # this critical knows. critical 8's --base exits 1 here.
+  def test_the_installed_critical_takes_the_arguments_the_theme_passes
+    skip_without_critical
+    [{}, { "engine" => "static" }, { "dimensions" => [{ "width" => 800, "height" => 600 }] }].each do |settings|
+      arguments = runner(settings).arguments
+      output, status = Open3.capture2e("node", INSTALLED, *arguments, "--help")
+      assert status.success?, "critical refused #{arguments.inspect}:\n#{output}"
+    end
+    _output, status = Open3.capture2e("node", INSTALLED, "index.html", "--base", ".", "--help")
+    refute status.success?, "an option critical does not know fails, so the check above means something"
+  end
+
+  # The static engine needs no browser, so the whole way in can run here:
+  # the page on standard input, the stylesheet from the site's root.
+  def test_the_installed_critical_extracts_from_a_page_on_its_standard_input
+    skip_without_critical
+    FileUtils.mkdir_p(File.join(@dir, "assets", "css"))
+    File.write(File.join(@dir, "assets", "css", "main.css"), ".used{color:red}.unused{color:blue}")
+    html = runner({ "engine" => "static" }).page_for_critical(
+      '<html><head><link rel="stylesheet" href="/blog/assets/css/main.css"></head>' \
+      '<body><p class="used">Hi</p></body></html>'
+    )
+
+    output, errors, status = Open3.capture3("node", INSTALLED, "--engine", "static", stdin_data: html, chdir: @dir)
+    assert status.success?, errors
+    assert_includes output, ".used"
+    refute_includes output, ".unused"
+  end
+
+  def test_npx_brings_playwright_only_for_the_render_engine
+    assert_equal ["npx", "--yes", "--package", "critical@9", "--package", "playwright@1", "critical"],
+                 runner({}).npx_command
+    assert_equal ["npx", "--yes", "critical@9"], runner({ "engine" => "static" }).npx_command
+  end
+
+  # A site that installed critical 8 for an earlier version of the theme is
+  # told to update it, rather than shown "Unknown option '--engine'".
+  def test_a_sites_own_critical_8_is_refused_with_the_command_that_updates_it
+    site = File.join(@dir, "site")
+    bin = File.join(site, "node_modules", ".bin", Gem.win_platform? ? "critical.cmd" : "critical")
+    FileUtils.mkdir_p(File.dirname(bin))
+    File.write(bin, "")
+    FileUtils.mkdir_p(File.join(site, "node_modules", "critical"))
+    File.write(File.join(site, "node_modules", "critical", "package.json"), JSON.generate("version" => "8.0.0"))
+    runner = Datalog::CriticalCss.new(site, { "enabled" => true })
+    runner.define_singleton_method(:node_version) { "22.13.0" }
+
+    error = assert_raises(Datalog::CriticalCss::Error) { runner.critical_command }
+    assert_includes error.message, "critical 8.0.0"
+    assert_includes error.message, "npm install --save-dev critical@9 playwright"
+
+    File.write(File.join(site, "node_modules", "critical", "package.json"), JSON.generate("version" => "9.0.0"))
+    assert_equal [bin], runner.critical_command
+  end
+
+  def test_an_older_node_is_named_before_critical_runs
+    runner = runner({})
+    runner.define_singleton_method(:node_version) { "20.18.0" }
+    error = assert_raises(Datalog::CriticalCss::Error) { runner.critical_command }
+    assert_equal "critical needs Node.js 22.13.0 or later, and this is Node.js 20.18.0", error.message
+
+    runner.define_singleton_method(:node_version) { nil }
+    error = assert_raises(Datalog::CriticalCss::Error) { runner.critical_command }
+    assert_includes error.message, "Node.js was not found"
+  end
+
+  private
+
+  def runner(settings)
+    Datalog::CriticalCss.new(File.join(@dir, "site"), { "enabled" => true }.merge(settings))
+  end
+
+  def skip_without_critical
+    return if File.file?(INSTALLED)
+
+    flunk "critical is not installed" if ENV["DATALOG_CRITICAL_CSS"] == "required"
+    skip "critical is not installed; run `npm ci` first"
   end
 end
