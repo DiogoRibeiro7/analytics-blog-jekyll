@@ -34,6 +34,22 @@ class SocialCardTextTest < Minitest::Test
     assert_equal "Saving $5 and $10 a day", PlainText.from_tex("Saving $5 and $10 a day")
     assert_equal "Pay $5 now", PlainText.from_tex('Pay \$5 now')
     assert_equal "An unclosed $x", PlainText.from_tex("An unclosed $x")
+    assert_equal "From $ 5 to $ 10", PlainText.from_tex("From $ 5 to $ 10")
+  end
+
+  # Spaces inside the dollars, as MathJax and the math preprocessor allow when
+  # the body holds a command, ^ or _.
+  def test_spaced_inline_maths_reads_as_text
+    assert_equal "Ratios a/b and x² compared", PlainText.from_tex('Ratios $ \frac{a}{b} $ and $ x^2 $ compared')
+  end
+
+  # Linear on long input: a run of spaces, of commands, of unclosed dollars.
+  def test_the_reducer_takes_no_time_on_a_long_title
+    ["$#{' ' * 20_000}x", "$#{'\\alpha' * 5_000}$", "$a #{'$a ' * 2_000}", "=" * 10_000].each do |title|
+      started = Process.times.utime
+      PlainText.from_tex(title)
+      assert_operator Process.times.utime - started, :<, 2
+    end
   end
 
   def test_a_140_character_title_fits_whole
@@ -64,6 +80,17 @@ class SocialCardTextTest < Minitest::Test
     assert_equal "R", setter.runs("ℝ").map(&:first).join
     assert_equal " in ", setter.runs("∈").map(&:first).join
     assert(setter.runs("α β ≤ é ç").all? { |char, font| font.glyph?(char) })
+  end
+
+  # A spelling that held its own symbol looked itself up for ever (∪ ∩ ⊂ ⊆).
+  def test_every_spelled_out_symbol_is_drawn_in_characters_the_fonts_have
+    setter = Typesetter.new("serif")
+    Typesetter::SPELLED.each_key do |symbol|
+      runs = setter.runs(symbol)
+      refute_empty runs, symbol
+      assert(runs.all? { |char, font| font.glyph?(char) }, symbol)
+    end
+    assert_equal "A union B", setter.runs("A ∪ B").map(&:first).join.squeeze(" ")
   end
 
   def test_the_font_reader_draws_simple_and_composite_glyphs
@@ -145,6 +172,15 @@ class SocialCardTemplateTest < Minitest::Test
     assert_includes mvg, "stroke '#{SCHEMES['light']['ink']}'"
     assert_includes mvg, "image over 0,0 10,10 '/site/assets/img/mark.png'"
     assert_equal ["linearGradient"], template.ignored
+  end
+
+  def test_the_svg_elements_own_style_reaches_its_children
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="{{accent}}" opacity="0.5">' \
+          '<rect width="10" height="10"/></svg>'
+    mvg = Template.new(svg, colors: SCHEMES["dark"]).to_mvg({})
+
+    assert_includes mvg, "fill '#{SCHEMES['dark']['accent']}'"
+    assert_includes mvg, "fill-opacity 0.5"
   end
 
   def test_a_template_that_is_not_svg_or_holds_no_colour_stops_the_build
@@ -278,6 +314,55 @@ class SocialCardSiteTest < Minitest::Test
                  @site.document("2026/01/02/part-one/index.html").at_css('meta[property="og:image"]')["content"]
   end
 
+  # A blank `image:` is no image, in the head as in the generator, so the
+  # card that was drawn is the one the page points at.
+  def test_a_blank_image_counts_as_none
+    site = build(extra: ->(source) { source.post("2026-01-05-blank", "Text.", "title: Blank\nimage: \"  \"\n") })
+    url = site.document("2026/01/05/blank/index.html").at_css('meta[property="og:image"]')["content"]
+
+    assert_match %r{/blog/assets/social/2026-01-05-blank-\h{12}\.png\z}, url
+  end
+
+  # The drawing names an image by its path, so its content is in the key too.
+  def test_a_replaced_template_image_draws_the_card_again
+    template = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">' \
+               '<image href="/assets/img/badge.png" x="0" y="0" width="10" height="10"/>' \
+               '<text data-field="title" x="80" y="200" width="1000" font-size="60"/></svg>'
+    setup_files = lambda do |source|
+      source.write("_social/card.svg", template)
+      source.copy("assets/img/social-card.png", "assets/img/badge.png")
+    end
+    first = build(cards: { "template" => "_social/card.svg" }, extra: setup_files)
+    before = Dir[first.path("assets/social/*.png")].map { |file| File.basename(file) }
+    File.binwrite(File.join(first.dir, "assets/img/badge.png"), File.binread(PNG).reverse)
+    second = build(again: first, cards: { "template" => "_social/card.svg" })
+
+    assert_equal 2, File.readlines(@log).size
+    refute_equal(before, Dir[second.path("assets/social/*.png")].map { |file| File.basename(file) })
+  end
+
+  # A path that leaves the site, even into a sibling whose name starts with
+  # the site's, is not a logo.
+  def test_a_logo_outside_the_site_stops_the_build
+    first = build
+    sibling = "#{first.dir}-other"
+    FileUtils.mkdir_p(sibling)
+    File.write(File.join(sibling, "logo.svg"), Datalog::SocialCards::MARK)
+
+    error = assert_raises(Jekyll::Errors::FatalException) do
+      build(again: first, cards: { "logo" => "../#{File.basename(sibling)}/logo.svg" })
+    end
+    assert_includes error.message, "is not a file in the site"
+  ensure
+    FileUtils.rm_rf(sibling) if sibling
+  end
+
+  def test_logo_true_is_the_theme_mark
+    site = build(cards: { "logo" => true })
+
+    assert_equal 1, Dir[site.path("assets/social/*.png")].size
+  end
+
   def test_pages_get_cards_when_the_site_asks
     site = build(cards: { "collections" => %w[posts pages] })
 
@@ -310,7 +395,7 @@ class SocialCardSiteTest < Minitest::Test
 
   private
 
-  def build(tools: nil, cards: {}, again: nil)
+  def build(tools: nil, cards: {}, again: nil, extra: nil)
     tools ||= { "imagemagick" => [RbConfig.ruby, File.join(@scripts, "encoder.rb")], "writable" => %w[MVG PNG] }
     config = {
       baseurl: "/blog", title: "Cards", url: "https://example.org", dir: again&.dir,
@@ -321,7 +406,10 @@ class SocialCardSiteTest < Minitest::Test
       theme_options: { "social_cards" => { "enabled" => true }.merge(cards), "images" => { "variants" => false } }
     }
     replacing_tools(tools) do
-      TestSite.build(config) { |source| again ? source : write_site(source) }
+      TestSite.build(config) do |source|
+        write_site(source) unless again
+        extra&.call(source)
+      end
     end
   end
 
@@ -350,11 +438,13 @@ class SocialCardSiteTest < Minitest::Test
     warnings = []
     logger = Jekyll.logger
     original = logger.method(:warn)
-    logger.define_singleton_method(:warn) { |topic, message = nil| warnings << "#{topic} #{message}" }
-    yield
+    begin
+      logger.define_singleton_method(:warn) { |topic, message = nil| warnings << "#{topic} #{message}" }
+      yield
+    ensure
+      logger.define_singleton_method(:warn, original)
+    end
     warnings
-  ensure
-    logger.define_singleton_method(:warn, original)
   end
 end
 

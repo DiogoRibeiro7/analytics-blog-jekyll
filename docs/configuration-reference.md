@@ -137,7 +137,7 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.social_cards.enabled` | Boolean | `true`, `false` (default) |
 | `theme_options.social_cards.scheme` | String | `dark` (default), `light` |
 | `theme_options.social_cards.background` | String | A colour, over the scheme's background |
-| `theme_options.social_cards.logo` | String or `false` | A path in the site to an SVG or an image; `false` for none |
+| `theme_options.social_cards.logo` | String or Boolean | A path in the site to an SVG or an image; `true` (default) for the theme's mark; `false` for none |
 | `theme_options.social_cards.template` | String | A path in the site to an SVG template |
 | `theme_options.social_cards.collections` | List | Collection labels, and `pages` for the site's pages; `[posts]` by default |
 

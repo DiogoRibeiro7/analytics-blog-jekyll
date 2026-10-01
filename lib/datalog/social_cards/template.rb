@@ -46,6 +46,10 @@ module Datalog
       COLOR = /\A(?:#\h{3,8}|[a-z]+|rgba?\(\s*[\d.]+%?(?:\s*,\s*[\d.]+%?){2,3}\s*\))\z/i
       PATH_DATA = /\A[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\-\s]*\z/
 
+      # SVG's initial values: what an element with no style of its own, or of
+      # the <svg> around it, is drawn with.
+      BASE_STYLE = { "fill" => "black", "opacity" => 1.0 }.freeze
+
       attr_reader :ignored
 
       # `source` is the SVG text; `resolve` turns an image's href into a file.
@@ -68,7 +72,7 @@ module Datalog
         @fields = fields
         @logo = logo
         @out = ["viewbox 0 0 #{WIDTH} #{HEIGHT}"]
-        walk(root, root_matrix(root), { "fill" => "black", "opacity" => 1.0 })
+        walk(root, root_matrix(root), inherit(BASE_STYLE, root))
         @out.join("\n") << "\n"
       end
 
@@ -77,7 +81,7 @@ module Datalog
         @fields = {}
         @logo = nil
         @out = []
-        walk(@document.root, multiply(matrix, fitted_matrix(width, height)), { "fill" => "black", "opacity" => 1.0 })
+        walk(@document.root, multiply(matrix, fitted_matrix(width, height)), inherit(BASE_STYLE, @document.root))
         @out
       end
 

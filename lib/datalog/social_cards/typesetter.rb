@@ -12,10 +12,13 @@ module Datalog
       FONT_DIR = File.expand_path("fonts", __dir__)
       # The serif is the theme's heading face; the sans its text face.
       FONTS = { "serif" => "IBMPlexSerif-SemiBold.ttf", "sans" => "IBMPlexSans-Regular.ttf" }.freeze
+      # Each in characters both fonts have, so spelling one out never comes
+      # back here for the same character.
       SPELLED = {
         "∈" => " in ", "∉" => " not in ", "∀" => "for all ", "∃" => "there is ", "∇" => "grad ",
-        "∝" => " ~ ", "⋯" => "…", "‖" => "||", "∪" => " ∪ ", "∩" => " ∩ ", "⊂" => " ⊂ ", "⊆" => " ⊆ ",
-        "∅" => "{}", "⟨" => "<", "⟩" => ">", "∘" => "o", "⇒" => "=>", "⇔" => "<=>", "∓" => "-+", "↦" => "->"
+        "∝" => " ~ ", "⋯" => "…", "‖" => "||", "∪" => " union ", "∩" => " intersect ", "⊂" => " subset of ",
+        "⊆" => " subset of ", "∅" => "{}", "⟨" => "<", "⟩" => ">", "∘" => "o", "⇒" => "=>", "⇔" => "<=>",
+        "∓" => "-+", "↦" => "->"
       }.freeze
       ELLIPSIS = "…"
 

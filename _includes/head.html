@@ -47,10 +47,13 @@
 <meta property="og:url" content="{{ canonical_url }}" />
 {%- comment -%}
   The share image: the page's own, else the card the build drew for it
-  (theme_options.social_cards), else the site's default.
+  (theme_options.social_cards), else the site's default. A blank `image:`
+  is no image, as the card generator reads it.
 {%- endcomment %}
-{% if page.og_image or page.image %}
-<meta property="og:image" content="{{ page.og_image | default: page.image | absolute_url }}" />
+{%- assign share_image = page.og_image | strip | default: page.image | strip -%}
+{%- assign twitter_share_image = page.twitter_image | strip | default: share_image -%}
+{% if share_image != "" %}
+<meta property="og:image" content="{{ share_image | absolute_url }}" />
 {% elsif page.datalog_social_card %}
 <meta property="og:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
 <meta property="og:image:type" content="image/png" />
@@ -66,8 +69,8 @@
 <meta name="twitter:site" content="{{ site.social.twitter | default: site.twitter_username }}" />
 <meta name="twitter:title" content="{{ page_title | normalize_whitespace | escape }}" />
 <meta name="twitter:description" content="{{ page_description | normalize_whitespace | escape }}" />
-{% if page.twitter_image or page.og_image or page.image %}
-<meta name="twitter:image" content="{{ page.twitter_image | default: page.og_image | default: page.image | absolute_url }}" />
+{% if twitter_share_image != "" %}
+<meta name="twitter:image" content="{{ twitter_share_image | absolute_url }}" />
 {% elsif page.datalog_social_card %}
 <meta name="twitter:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
 <meta name="twitter:image:alt" content="{{ page.datalog_social_card.alt | escape }}" />

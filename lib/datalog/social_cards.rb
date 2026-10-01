@@ -92,8 +92,7 @@ module Datalog
       colors = SCHEMES[scheme].dup
       colors["background"] = options["background"].to_s.strip if options["background"].is_a?(String)
       check_contrast(colors)
-      logo, logo_digest = logo(site, options)
-      { colors: colors, template: template(site, options), logo: logo, logo_digest: logo_digest,
+      { colors: colors, template: template(site, options), logo: logo(site, options),
         collections: Array(options.fetch("collections", ["posts"])).map(&:to_s) }
     end
 
@@ -179,8 +178,17 @@ module Datalog
     def job(site, page, template, config)
       fields = fields(site, page)
       mvg = template.to_mvg(fields, logo: config[:logo])
-      key = Digest::SHA256.hexdigest([REVISION, mvg, config[:logo_digest]].join("\0"))
+      key = Digest::SHA256.hexdigest([REVISION, mvg, *image_digests(mvg)].join("\0"))
       Job.new(page, fields, mvg, key, File.join(cache_root(site), "#{key}.png"))
+    end
+
+    # The drawing names an image by its path; its content goes into the key
+    # too, so a logo or a template's image replaced under the same name draws
+    # the card again.
+    def image_digests(mvg)
+      mvg.scan(/^image over \S+ \S+ '([^']+)'$/).flatten.uniq.map do |file|
+        File.file?(file) ? Digest::SHA256.file(file).hexdigest : file
+      end
     end
 
     # Draws each card into the cache, a few at a time. Returns the failures.
@@ -262,21 +270,20 @@ module Datalog
       File.read(path)
     end
 
-    # The mark by default, an SVG's text, or an image's path; and a digest
-    # of an image's content, which its path in the drawing does not carry.
+    # The theme's mark unless `logo` names a file (or `true`, the mark too);
+    # an SVG's text, or an image's path; nil for `false`.
     def logo(site, options)
-      return [MARK, nil] unless options.key?("logo")
-      return [nil, nil] if options["logo"] == false || options["logo"].to_s.strip.empty?
+      value = options.fetch("logo", true)
+      return MARK if value == true
+      return if value == false || value.to_s.strip.empty?
 
-      path = site_file(site, options["logo"], "theme_options.social_cards.logo")
-      return [File.read(path), nil] if File.extname(path).casecmp?(".svg")
-
-      [path, Digest::SHA256.file(path).hexdigest]
+      path = site_file(site, value, "theme_options.social_cards.logo")
+      File.extname(path).casecmp?(".svg") ? File.read(path) : path
     end
 
     def site_file(site, value, setting)
-      path = File.expand_path(value.to_s.delete_prefix("/"), site.source)
-      return path if File.file?(path) && path.start_with?(File.expand_path(site.source))
+      path = inside_site(site, value)
+      return path if path
 
       raise Jekyll::Errors::FatalException, "#{setting} names #{value}, which is not a file in the site"
     end
@@ -284,11 +291,16 @@ module Datalog
     # An image a template names, from the site's source.
     def resolver(site)
       lambda do |href|
-        next if href.to_s.strip.empty? || href.to_s.match?(/\A[a-z]+:/i)
-
-        path = File.expand_path(href.to_s.delete_prefix("/"), site.source)
-        path if File.file?(path) && path.start_with?(File.expand_path(site.source))
+        inside_site(site, href) unless href.to_s.strip.empty? || href.to_s.match?(/\A[a-z]+:/i)
       end
+    end
+
+    # The file a site path names, when it is one and inside the site: a
+    # sibling directory whose name starts with the site's does not count.
+    def inside_site(site, value)
+      root = File.expand_path(site.source)
+      path = File.expand_path(value.to_s.delete_prefix("/"), root)
+      path if File.file?(path) && path.start_with?("#{root}/")
     end
 
     def cache_root(site)

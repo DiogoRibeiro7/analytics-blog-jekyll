@@ -6,9 +6,11 @@ module Datalog
     # becomes "α-stable laws for X_t²". A share card is an image, so nothing
     # typesets the maths on it; what is left has to read on its own.
     #
-    # Inline maths is $...$ or \(...\), display maths $$...$$ or \[...\]. A
-    # dollar sign with a space after it (or a digit after the closing one)
-    # is money, not maths. Outside maths only the escaped characters change.
+    # Inline maths is $...$ or \(...\), display maths $$...$$ or \[...\], by
+    # the rules the math preprocessor follows: a dollar sign with a space
+    # after it opens maths only when what follows holds a command, ^ or _
+    # (`$ \frac{a}{b} $`), and a digit after the closing one makes it money
+    # (`$5 and $10`). Outside maths only the escaped characters change.
     module PlainText
       module_function
 
@@ -71,27 +73,34 @@ module Datalog
         out.unicode_normalize(:nfc).gsub(/\s+/, " ").strip
       end
 
+      SPACED_MATH = /\\[a-zA-Z]+|[\^_]/
+      DELIMITERS = { "$$" => "$$", "\\[" => "\\]", "\\(" => "\\)" }.freeze
+
       # [inner TeX, length taken] when maths opens at the index, else nil.
       def math_at(source, index)
-        rest = source[index..]
-        if rest.start_with?("$$")
-          close = rest.index("$$", 2)
-          return [rest[2...close], close + 2] if close
-        elsif rest.start_with?("\\[", "\\(")
-          closer = rest.start_with?("\\[") ? "\\]" : "\\)"
-          close = rest.index(closer, 2)
-          return [rest[2...close], close + 2] if close
-        elsif rest.start_with?("$") && (index.zero? || source[index - 1] != "\\") && rest[1].to_s.match?(/\S/)
-          close = closing_dollar(rest)
-          return [rest[1...close], close + 1] if close
+        opener = source[index, 2]
+        if DELIMITERS.key?(opener)
+          close = source.index(DELIMITERS[opener], index + 2)
+          return close && [source[(index + 2)...close], close + 2 - index]
         end
-        nil
+        return unless source[index] == "$" && (index.zero? || source[index - 1] != "\\")
+
+        spaced = source[index + 1].to_s.match?(/\s/)
+        close = closing_dollar(source, index, spaced)
+        body = close && source[(index + 1)...close]
+        return unless body && (!spaced || body.match?(SPACED_MATH))
+
+        [body, close + 1 - index]
       end
 
-      def closing_dollar(rest)
-        at = 1
-        while (at = rest.index("$", at + 1))
-          return at if rest[at - 1] != "\\" && rest[at - 1].match?(/\S/) && !rest[at + 1].to_s.match?(/\d/)
+      # The dollar sign that closes one opened at `open`: unescaped, not
+      # followed by a digit, and after a non-space unless the maths is spaced.
+      def closing_dollar(source, open, spaced)
+        at = open + 1
+        while (at = source.index("$", at + 1))
+          before = source[at - 1]
+          next if before == "\\" || source[at + 1].to_s.match?(/\d/)
+          return at if spaced || before.match?(/\S/)
         end
         nil
       end
@@ -105,10 +114,12 @@ module Datalog
       end
 
       # Relations stand between spaces, as TeX sets them: "x ≤ y", not "x≤y".
-      RELATIONS = /\s*([=<>≤≥≠≈≃≡∝∈∉⊂⊆→←↔⇒⇔↦])\s*/
+      # The spaces around them are collapsed afterwards, so the pattern needs
+      # no `\s*` of its own, which would take quadratic time on a run of them.
+      RELATIONS = /[=<>≤≥≠≈≃≡∝∈∉⊂⊆→←↔⇒⇔↦]/
 
       def math_to_text(tex)
-        Reader.new(tex).read.gsub(RELATIONS) { " #{Regexp.last_match(1)} " }.gsub(/\s+/, " ").strip
+        Reader.new(tex).read.gsub(RELATIONS) { " #{Regexp.last_match(0)} " }.gsub(/\s+/, " ").strip
       end
 
       # A recursive reading of a maths expression: commands, their arguments,
@@ -168,7 +179,8 @@ module Datalog
 
         def command
           @at += 1
-          name = @tex[@at..][/\A[A-Za-z]+/]
+          stop = @tex.index(/[^A-Za-z]/, @at) || @tex.length
+          name = stop > @at ? @tex[@at...stop] : nil
           if name.nil?
             symbol = @tex[@at].to_s
             @at += 1

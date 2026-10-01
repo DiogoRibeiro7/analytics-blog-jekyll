@@ -7,7 +7,9 @@ module Datalog
     module Geometry
       IDENTITY_MATRIX = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0].freeze
       NUMBER = /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/i
-      TRANSFORM = /(matrix|translate|scale|rotate)\s*\(([^)]*)\)/
+      # The arguments hold no parenthesis, so a run of unclosed ones fails
+      # at once rather than scanning to the end from each.
+      TRANSFORM = /(matrix|translate|scale|rotate)\s*\(([^()]*)\)/
 
       module_function
 
