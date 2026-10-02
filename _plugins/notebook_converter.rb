@@ -782,8 +782,10 @@ module Jekyll
       language = kernelspec["language"] || language_info["name"]
 
       execution_meta = meta["execution_info"] || meta["execution"] || meta.dig("datalog", "execution") || {}
+      # The time the notebook records, or none. The file's own time is the
+      # checkout's: a fresh clone executed and published every notebook at
+      # the moment it was cloned (#411).
       executed_at = parse_time(execution_meta["finished_at"] || execution_meta["timestamp"] || meta["modified"])
-      executed_at ||= File.mtime(absolute_path)
       duration = format_duration(execution_meta["duration"] || meta.dig("datalog", "duration"))
 
       counts = count_cells(cells)

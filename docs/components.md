@@ -1659,6 +1659,7 @@ The components read these keys from a post's front matter:
 ```yaml
 ---
 title: My Post
+summary: One sentence  # under the title; the post's first paragraph is not repeated there
 difficulty: advanced   # the badge level
 toc: true              # show the table of contents
 toc_label: On this page

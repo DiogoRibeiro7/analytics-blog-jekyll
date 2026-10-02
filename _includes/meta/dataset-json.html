@@ -38,14 +38,7 @@ structured data, and an empty one is worse than none.
   stamp tells a real publication date from that fallback, and keeps the output
   the same from one build to the next.
 {%- endcomment -%}
-{%- assign ds_build_stamp = site.time | date_to_xmlschema -%}
-{%- assign ds_published = nil -%}
-{%- if ds.date -%}
-  {%- assign ds_date_stamp = ds.date | date_to_xmlschema -%}
-  {%- unless ds_date_stamp == ds_build_stamp -%}
-    {%- assign ds_published = ds.date -%}
-  {%- endunless -%}
-{%- endif -%}
+{%- assign ds_published = ds | published_date -%}
 {%- assign ds_modified = ds.updated | default: ds.last_modified_at | default: ds_published -%}
 {%- comment -%} One download, or a list of them under `distributions`. {%- endcomment -%}
 {%- assign ds_downloads = ds.distributions -%}

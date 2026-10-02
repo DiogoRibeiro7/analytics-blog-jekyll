@@ -1,6 +1,7 @@
 ---
 layout: default
 schema_type: TechArticle
+article_meta: false # this layout renders its own date, authors and summary
 ---
 
 {% assign localization_config = site.theme_options.localization %}
@@ -64,6 +65,7 @@ schema_type: TechArticle
 {% include components/breadcrumbs.html %}
 
 <div class="post-wrapper" itemscope itemtype="https://schema.org/TechArticle">
+  <meta itemprop="headline" content="{{ page.title | escape }}" />
   <meta itemprop="url" content="{{ canonical_url }}" />
   <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
   {% if page.last_modified_at or page.updated %}

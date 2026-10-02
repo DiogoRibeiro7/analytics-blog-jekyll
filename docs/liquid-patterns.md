@@ -65,10 +65,20 @@ Renders an accessible link with optional icon markup.
 ## Layout Components
 
 ### `layouts/default/article.html`
-Encapsulates the default layout article structure and metadata.
+The heading and content of every layout built on `default`.
 ```liquid
 {% include layouts/default/article.html page=page content=content date_format=date_format %}
 ```
+
+What the heading holds:
+- **Title:** the page's `<h1>`, unless the layout or the page sets `show_title: false` because it renders its own.
+- **Summary:** under the title, the page's `summary`, or a collection document's `description`. It is never the excerpt, which is the content's own first paragraph.
+- **Date and authors:** labelled, as the post's metadata row is.
+  - The date is the one front matter or a post's file name gives. Jekyll gives an undated document the time of the build, and that is never shown as a publication date; the `published_date` filter tells them apart.
+  - The authors are left out with `show_author: false`.
+  - Neither appears when the layout or the page sets `article_meta: false`. The post, package, dataset, notebook, project, portfolio, research, home and archive layouts set it, because they show their own (#411).
+
+The element is no microdata item. The page's JSON-LD (`meta/schema.html`) describes it, and a layout that wants microdata, as the post, notebook, project and research layouts do, opens its own item.
 
 ### `components/math-fallback.html`
 Provides `<noscript>` fallbacks for preprocessed math expressions.

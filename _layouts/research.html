@@ -1,6 +1,8 @@
 ---
 layout: default
 schema_type: ScholarlyArticle
+show_title: false # this layout renders the page's <h1>
+article_meta: false # this layout renders its own date, authors and summary
 ---
 {% assign date_format = site.date_format | default: '%B %-d, %Y' %}
 {% assign authors = page | page_authors %}

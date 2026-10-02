@@ -1,6 +1,7 @@
 ---
 layout: default
 show_title: false # this layout renders the page's <h1>
+article_meta: false # this layout renders its own date, authors and summary
 ---
 {% assign localization_config = site.theme_options.localization %}
 {% assign date_format = localization_config.date_format | default: 'long' %}
@@ -210,7 +211,7 @@ show_title: false # this layout renders the page's <h1>
 
   {% assign citation_key = page.citation_key | default: page.slug | default: page.title | slugify %}
   {% assign citation_authors = page | page_authors %}
-  {% assign citation_date = page.date | default: page.last_updated %}
+  {% assign citation_date = page | published_date | default: page.last_updated %}
   {% assign citation_url = page.url | absolute_url %}
   {% include components/citation-tools.html title=page.title authors=citation_authors date=citation_date url=citation_url citation_key=citation_key citation_type='software' doi=page.doi %}
 

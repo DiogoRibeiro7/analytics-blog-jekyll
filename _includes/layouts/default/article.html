@@ -6,64 +6,94 @@ required:
 optional:
   - date_format
 ---
-Renders the standard article scaffold used by the default layout.
+The page's heading and the content of every layout built on the default one.
+
+A layout that renders its own heading sets `show_title: false`, and one that
+renders its own date and authors sets `article_meta: false`; a page may set
+either for itself. The heading carries the page's `summary`, or a document's
+`description`, never the excerpt, which is the content's own first paragraph.
+The date is the one front matter gives, never the time of the build, which
+Jekyll gives an undated document, and the date and authors are labelled.
+
+Structured data comes from the JSON-LD meta/schema.html writes and from the
+microdata of a layout's own item (a post, a notebook, a project, a research
+article). This element is no item of its own: as a ScholarlyArticle around
+every page it contradicted the JSON-LD of most of them (#411).
 {%- endcomment -%}
 {%- assign article_page = include.page -%}
 {%- assign hero_overlay_title = false -%}
 {%- if article_page.post_hero.image and article_page.post_hero.overlay -%}
   {%- assign hero_overlay_title = true -%}
 {%- endif -%}
-<article class="content-block" itemscope itemtype="https://schema.org/ScholarlyArticle">
+{%- assign article_meta = true -%}
+{%- if article_page.article_meta == false or layout.article_meta == false -%}
+  {%- assign article_meta = false -%}
+{%- endif -%}
+{%- assign article_heading = false -%}
+{%- if article_page.title and article_page.show_title != false and layout.show_title != false -%}
+  {%- assign article_heading = true -%}
+{%- endif -%}
+{%- capture article_header -%}
+  {%- unless hero_overlay_title -%}
+    {%- if article_heading -%}
+      <h1 class="article-title">{{ article_page.title | escape }}</h1>
+    {%- endif -%}
+    {%- if article_page.subtitle -%}
+      <p class="article-subtitle">{{ article_page.subtitle | escape }}</p>
+    {%- endif -%}
+  {%- endunless -%}
+  {%- comment -%} A layout with a heading of its own writes its own summary under it {%- endcomment -%}
+  {%- assign article_summary = article_page.summary -%}
+  {%- if article_page.collection -%}{%- assign article_summary = article_summary | default: article_page.description -%}{%- endif -%}
+  {%- if article_heading and article_summary -%}
+    <p class="article-summary">{{ article_summary | strip_html | escape }}</p>
+  {%- endif -%}
+  {%- if article_meta -%}
+    {%- assign published = article_page | published_date -%}
+    {%- assign modified = article_page.last_modified_at | default: article_page.updated -%}
+    {%- if modified and published -%}
+      {%- assign modified_day = modified | date: '%F' -%}
+      {%- assign published_day = published | date: '%F' -%}
+      {%- if modified_day == published_day -%}{%- assign modified = nil -%}{%- endif -%}
+    {%- endif -%}
+    {%- assign article_authors = article_page | page_authors -%}
+    {%- if article_page.show_author == false -%}{%- assign article_authors = '' | split: '' -%}{%- endif -%}
+    {%- if published or modified or article_authors.size > 0 -%}
+      <dl class="post-meta-list article-meta">
+        {%- if published -%}
+          <div>
+            <dt class="post-meta-term">{% t 'article.meta.published' %}</dt>
+            <dd class="post-meta-definition"><time datetime="{{ published | date_to_xmlschema }}">{% include helpers/date-format.html date=published format=include.date_format %}</time></dd>
+          </div>
+        {%- endif -%}
+        {%- if modified -%}
+          <div>
+            <dt class="post-meta-term">{% t 'article.meta.updated' %}</dt>
+            <dd class="post-meta-definition"><time datetime="{{ modified | date_to_xmlschema }}">{% include helpers/date-format.html date=modified format=include.date_format %}</time></dd>
+          </div>
+        {%- endif -%}
+        {%- if article_authors.size > 0 -%}
+          <div>
+            <dt class="post-meta-term">{% if article_authors.size > 1 %}{% t 'article.meta.authors' %}{% else %}{% t 'article.meta.author' %}{% endif %}</dt>
+            <dd class="post-meta-definition">{% include components/author-list.html people=article_authors show_affiliation=false property=false %}</dd>
+          </div>
+        {%- endif -%}
+      </dl>
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign article_header = article_header | strip -%}
+<article class="content-block">
   {%- if article_page.post_hero.image -%}
     {% include components/post-hero.html page=article_page %}
   {%- endif -%}
+  {%- if article_header != "" %}
   <header class="article-header">
-    {%- unless hero_overlay_title -%}
-      {%- comment -%}
-      `show_title: false`, in a page's front matter or a layout's, leaves the <h1> to a
-      page or layout that renders its own heading, so the page has one.
-      {%- endcomment -%}
-      {%- if article_page.title and article_page.show_title != false and layout.show_title != false -%}
-        <h1 class="article-title" itemprop="headline">{{ article_page.title | escape }}</h1>
-      {%- endif -%}
-      {%- if article_page.subtitle -%}
-        <p class="article-subtitle">{{ article_page.subtitle | escape }}</p>
-      {%- endif -%}
-    {%- endunless -%}
-    {%- if article_page.excerpt -%}
-      <p class="article-summary" itemprop="abstract">{{ article_page.excerpt | strip_html }}</p>
-    {%- endif -%}
-
-    <dl class="article-meta">
-      {%- if article_page.date -%}
-        <div>
-          <dt class="visually-hidden">{% t 'article.meta.published' %}</dt>
-          <dd itemprop="datePublished" content="{{ article_page.date | date_to_xmlschema }}">
-            {% include helpers/date-format.html date=article_page.date format=include.date_format %}
-          </dd>
-        </div>
-      {%- endif -%}
-      {%- assign modified = article_page.last_modified_at | default: article_page.updated -%}
-      {%- if modified -%}
-        <div>
-          <dt class="visually-hidden">{% t 'article.meta.updated' %}</dt>
-          <dd itemprop="dateModified" content="{{ modified | date_to_xmlschema }}">
-            {% include helpers/date-format.html date=modified format=include.date_format %}
-          </dd>
-        </div>
-      {%- endif -%}
-      {%- assign article_authors = article_page | page_authors -%}
-      {%- comment -%} `show_author: false` hides the byline, for pages that are site chrome rather than articles. {%- endcomment -%}
-      {%- if article_authors.size > 0 and article_page.show_author != false -%}
-        <div>
-          <dt class="visually-hidden">{% if article_authors.size > 1 %}{% t 'article.meta.authors' %}{% else %}{% t 'article.meta.author' %}{% endif %}</dt>
-          <dd>{% include components/author-list.html people=article_authors show_affiliation=false %}</dd>
-        </div>
-      {%- endif -%}
-    </dl>
+    {{ article_header }}
   </header>
+  {%- endif %}
 
-  <div class="article-body" itemprop="articleBody">
+  <div class="article-body">
     {{ include.content }}
   </div>
 </article>
