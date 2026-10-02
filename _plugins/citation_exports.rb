@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "page_dates"
+
 module Datalog
   module CitationExports
     module_function
@@ -79,13 +81,22 @@ module Datalog
       key = slugify(get.call("citation_key") || Authors.value(page, "slug") || title)
       kind = get.call("citation_type") || Authors.value(options, "type") || "article"
       record = {
-        "title" => title, "year" => (date(get.call("date"), "%Y") if get.call("date")),
+        "title" => title, "year" => citation_year(page, options),
         "publisher" => publisher, "journal" => get.call("journal") || get.call("publication"),
         "doi" => get.call("doi"), "url" => absolute_url(get.call("url") || "/"),
         "volume" => get.call("volume"), "number" => get.call("issue") || get.call("number"),
         "pages" => get.call("pages")
       }
       CitationExports.render(record, authors, kind, key)
+    end
+
+    private
+
+    # The year of the date given, else of the page's own. An undated page's
+    # date is the build's, and gives no year (#411).
+    def citation_year(page, options)
+      published = Authors.value(options, "date") || PageDates.published(page, @context.registers[:site]&.time)
+      date(published, "%Y") if published
     end
   end
 end

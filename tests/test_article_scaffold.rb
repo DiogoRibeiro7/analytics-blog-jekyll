@@ -51,7 +51,11 @@ class ArticleScaffoldTest < Minitest::Test
     summary = header.at_css(".article-summary").text.strip
 
     assert_nil header.at_css(".article-meta")
-    assert_equal 1, page.css(".post-meta-list").size
+    terms = page.css("dt").map { |term| term.text.strip }
+    assert_equal 1, terms.count("Published")
+    assert_equal 1, terms.count("Author")
+    assert_equal(1, page.css("dd").count { |value| value.text.strip == "April 3, 2024" })
+    assert_equal 1, page.css("dd .author-list").size
     assert_equal "Fit hierarchical models in R, visualize partial pooling with ggplot2, and highlight reproducible " \
                  "figure exports.", summary
     refute_equal page.at_css(".article-body p").text.strip, summary
@@ -107,12 +111,26 @@ class ArticleScaffoldTest < Minitest::Test
   def test_a_research_article_has_one_heading
     site = TestSite.build do |source|
       source.theme("_layouts", "_includes", "_data")
-      source.page("paper.md", "Body.", "layout: research\ntitle: A study\ndate: 2025-01-02\n")
+      source.page("paper.md", "Body.", "layout: research\ntitle: A study\ndate: 2025-01-02\nsummary: What we found.\n")
     end
     page = site.document("paper.html")
 
     assert_equal(["A study"], page.css("h1").map { |heading| heading.text.strip })
     assert_nil page.at_css(".article-meta")
+    assert_equal "What we found.", page.at_css(".research-header .article-summary").text.strip
+  end
+
+  # A citation of an undated project took the build's year, in its text and
+  # in the files it offers to download.
+  def test_an_undated_document_is_cited_without_a_year
+    site = TestSite.build(collections: { "tools" => { "output" => true, "permalink" => "/tools/:name/" } }) do |source|
+      source.theme("_layouts", "_includes", "_data")
+      source.document("tools", "kit", "Body.", "layout: project\ntitle: A kit\n")
+    end
+    page = site.document("tools/kit/index.html")
+
+    refute_match(/\(\d{4}\)/, page.at_css(".citation-tools__citation").text)
+    refute_match(/year\s*=/, page.css(".citation-tools textarea").map(&:text).join("\n"))
   end
 
   def test_footer_explore_column_reads_navigation_footer

@@ -2,7 +2,7 @@
 layout: default
 schema_type: ScholarlyArticle
 show_title: false # this layout renders the page's <h1>
-article_meta: false # this layout renders its own date, authors and summary
+article_meta: false # the default heading adds no date or byline above this layout's own header
 ---
 {% assign date_format = site.date_format | default: '%B %-d, %Y' %}
 {% assign authors = page | page_authors %}
@@ -60,6 +60,9 @@ article_meta: false # this layout renders its own date, authors and summary
 
   <header class="research-header" aria-labelledby="research-title">
     <h1 id="research-title" class="research-title">{{ page.title | escape }}</h1>
+    {%- if page.summary %}
+    <p class="article-summary">{{ page.summary | strip_html | escape }}</p>
+    {%- endif %}
 
     <div class="research-authors" aria-label="Authors">
       <h2 class="visually-hidden">Authors</h2>
