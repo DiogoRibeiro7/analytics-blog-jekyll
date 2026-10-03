@@ -59,8 +59,10 @@ module Datalog
       cells = Array(notebook["cells"])
       return if cells.empty?
 
+      opening = cells.index { |cell| cell["cell_type"] == "markdown" && !Array(cell["source"]).join.strip.empty? }
       fragments = cells.each_with_index.filter_map do |cell, index|
         source = Array(cell["source"]).join
+        source = without_title_heading(source, metadata) if index == opening
         next if source.strip.empty?
 
         case cell["cell_type"]
@@ -98,10 +100,45 @@ module Datalog
       %(<section class="notebook-cell notebook-cell--markdown">\n#{demote_headings(sanitized.to_s)}\n</section>)
     end
 
-    # The notebook layout gives the page its <h1>, and a notebook's first
-    # markdown cell usually repeats the title as `# Title`. Each heading moves
-    # down a level (h1 to h2, and so on to h6), which keeps one <h1> on the
-    # page and the cells' own outline under it.
+    # The notebook layout writes the page's title as its <h1>, and a notebook
+    # usually opens with the same title as a heading, which showed straight
+    # under it a second time (#416). The first markdown cell loses a heading it
+    # opens with when the heading's text is the title. A heading that says
+    # something else stays, and so does the rest of the cell.
+    def without_title_heading(source, metadata)
+      title = metadata.is_a?(Hash) ? metadata[:title] || metadata["title"] : nil
+      wanted = title.to_s.split.join(" ")
+      return source if wanted.empty?
+
+      lines = source.lines
+      first = lines.index { |line| !line.strip.empty? }
+      return source unless first
+
+      texts, taken = heading_at(lines[first].chomp, lines[first + 1].to_s.chomp)
+      return source unless texts&.any? { |text| text.casecmp?(wanted) }
+
+      lines.drop(first + taken).join
+    end
+
+    # The texts a line can be read as a heading with, as the site's Markdown
+    # (kramdown, GFM) reads it, and how many lines the heading takes. An ATX
+    # heading starts the line and may end with #s, which kramdown leaves out
+    # and a title taken from the heading keeps. A setext heading's text may be
+    # indented up to three spaces, its underline starts the line, and its #s
+    # are text. Anything indented further is code, and is never a heading.
+    def heading_at(line, underline)
+      if line.match?(/\A\#{1,6}(?:[ \t]|\z)/)
+        words = line.sub(/\A#+/, "").split
+        texts = [words.join(" ")]
+        texts << words[0...-1].join(" ") if words.last&.match?(/\A#+\z/)
+        [texts, 1]
+      elsif line.match?(/\A {0,3}\S/) && underline.match?(/\A(?:=+|-+)[ \t]*\z/)
+        [[line.split.join(" ")], 2]
+      end
+    end
+
+    # Each heading left in a cell moves down a level (h1 to h2, and so on to
+    # h6), which keeps one <h1> on the page and the cells' own outline under it.
     def demote_headings(html)
       html.gsub(%r{<(/?)h([1-5])(?=[\s>])}i) { "<#{Regexp.last_match(1)}h#{Regexp.last_match(2).to_i + 1}" }
     end

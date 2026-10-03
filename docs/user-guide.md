@@ -40,6 +40,8 @@ The site will be available at `http://localhost:4000`. The command watches Markd
 
 1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin publishes each one as a page under `/notebooks/` during `jekyll build` or `jekyll serve`.
 2. The page takes its title, authors and tags from the notebook's own metadata: `title` (or `datalog.title`, falling back to the notebook's first heading), `authors`, and `tags` or `keywords`.
+   - **The title appears once,** as the page's heading. When the notebook's first Markdown cell opens with a heading that is the title, the page leaves that heading out. Spacing, case and the closing `#`s of a `# Title` heading don't count, and a cell that held only the heading isn't shown.
+   - **Other headings stay:** a different heading, and the rest of that first cell, appear as written. Headings in the cells move down one level under the page's own, to the sixth at most.
 3. Interactive outputs such as Plotly, ipywidgets, and Bokeh cells are preserved using the theme's visualization runtime. For custom JavaScript outputs, ensure they ship with self-contained HTML snippets.
 4. Readers can download the original notebook automatically—links are generated in the notebook layout.
 5. The “Run in Binder” and “Open in Colab” buttons link to the repository and branch set under `notebooks:` in `_config.yml` (`repository`, `branch`); `notebooks.binder.base_url` and `notebooks.colab.base_url` change the link formats.
