@@ -48,6 +48,71 @@
 
       document.addEventListener('click', (event) => this.handleClick(event));
       document.addEventListener('keydown', (event) => this.handleKeydown(event));
+      document.addEventListener('focusin', (event) => this.trackFocus(event));
+    },
+
+    /**
+     * MathJax draws an expression again, into a new container, when a reader
+     * changes a setting in its menu or toggles a collapsible part. The new
+     * container had nothing decorateMathItem gave the first: no tab stop, no
+     * role, no label, and the focus fell to the page (#412). The theme's
+     * MathJax configuration calls this after it inserts an expression, on
+     * every render, so it does nothing for a container it has already seen.
+     *
+     * The record decorateMathItem keeps is shared rather than the expression:
+     * a document the menu builds anew copies each expression, and the copy
+     * holds the same record.
+     * @param {Object} item - A MathItem
+     */
+    restoreContainer(item) {
+      const saved = item ? item.datalogContainer : null;
+      const container = item ? item.typesetRoot : null;
+      if (!saved || !container || container === saved.root) {
+        return;
+      }
+      saved.root = container;
+      this.rememberContainer(container, saved);
+
+      container.dataset.mathLatex = saved.latex;
+      if (saved.interactive && !container.querySelector('a[href]')) {
+        container.setAttribute('tabindex', '0');
+        container.setAttribute('role', 'math');
+        if (saved.altText) {
+          container.setAttribute('aria-label', saved.altText);
+          container.dataset.mathAlt = saved.altText;
+        }
+      }
+      if (!item.display) {
+        this.decorateInline(container, saved.latex);
+      }
+      this.exposeReferenceLinks(container);
+
+      // A focused element that leaves the page hands the focus to <body>
+      // without a focus event, so the expression the reader was on is still
+      // the one trackFocus last saw.
+      const active = document.activeElement;
+      if (this.focusedRecord === saved && (!active || active === document.body || !active.isConnected)) {
+        container.focus();
+      }
+    },
+
+    /** Every expression of a document, after MathJax renders it. */
+    restoreAll(mathDocument) {
+      Array.from((mathDocument && mathDocument.math) || []).forEach((item) => this.restoreContainer(item));
+    },
+
+    rememberContainer(container, record) {
+      if (!this.recordByContainer) {
+        this.recordByContainer = new WeakMap();
+      }
+      this.recordByContainer.set(container, record);
+    },
+
+    /** The record of the expression that has the focus, or null. */
+    trackFocus(event) {
+      const target = event && event.target;
+      const container = target && typeof target.closest === 'function' ? target.closest('mjx-container') : null;
+      this.focusedRecord = container && this.recordByContainer ? this.recordByContainer.get(container) || null : null;
     },
 
     onPageReady() {
@@ -99,11 +164,15 @@
       // interactive control with a link inside it, which axe reads as a nested
       // interactive control; a reference is also already named by what MathJax
       // wrote and by the link exposeReferenceLinks puts after it.
-      if (!container.querySelector('a[href]')) {
+      const interactive = !container.querySelector('a[href]');
+      if (interactive) {
         container.setAttribute('tabindex', '0');
         container.setAttribute('role', 'math');
         this.syncAltAttributes(wrapper, container, altText);
       }
+      // What a container MathJax draws again in this one's place needs (#412).
+      item.datalogContainer = { root: container, latex, altText, interactive };
+      this.rememberContainer(container, item.datalogContainer);
 
       if (item.display) {
         this.decorateDisplay(container, latex);
@@ -143,6 +212,13 @@
           return;
         }
         drawn.dataset.mathReferenceExposed = 'true';
+
+        // An expression MathJax drew again keeps the link put after the first.
+        const next = after.nextElementSibling;
+        if (next && next.classList.contains('math-reference-link') && next.getAttribute('href') === href) {
+          after = next;
+          return;
+        }
 
         const source = assistive.find((node) => node.getAttribute('href') === href);
         const text = ((source && source.textContent) || drawn.textContent || '').replace(/\s+/g, ' ').trim();
@@ -948,6 +1024,13 @@
     },
     renderLatex(target, latex, options) {
       return MathToolkit.renderLatex(target, latex, options);
+    },
+    // The render action in the theme's MathJax configuration (#412).
+    restore(item) {
+      MathToolkit.restoreContainer(item);
+    },
+    restoreAll(mathDocument) {
+      MathToolkit.restoreAll(mathDocument);
     }
   };
 })();

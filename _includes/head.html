@@ -327,11 +327,23 @@
       enableAssistiveMml: true,
       enableMenu: true,
       skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'code', 'pre'],
-      renderActions: { addMenu: [0, '', ''] },
+      renderActions: {
+        addMenu: [0, '', ''],
+        // After MathJax inserts an expression (STATE.INSERTED is 200), on every
+        // render: MathJax draws one again into a new container when a reader
+        // changes a menu setting, and that container needs what the toolkit
+        // gave the first (#412). It is configuration rather than added at
+        // start, because the menu builds a new document for some settings.
+        datalogRestore: [210,
+          (doc) => { if (window.DatalogMath) { window.DatalogMath.restoreAll(doc); } return false; },
+          (math) => { if (window.DatalogMath) { window.DatalogMath.restore(math); } return false; }]
+      },
       menuOptions: {
         settings: {
           assistiveMml: true,
-          collapsible: true,
+          // Collapsible math wraps parts of an expression in toggles: a click
+          // meant to select a formula collapsed part of it to ◂…▸ (#412).
+          collapsible: false,
           // MathJax's explorer gives each equation tabindex="1" when it
           // attaches, which takes the equations out of the page's tab order.
           // The assistive MathML above is what screen readers read.
