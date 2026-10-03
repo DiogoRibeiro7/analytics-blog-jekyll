@@ -44,12 +44,17 @@ const PAGES = [
   // The academic dashboard: profiles, citation metrics, the filtered
   // submission and calendar lists, which nothing rendered before #355.
   '/academic/',
+  // A notebook: its header, cells and sidebar. axe can't judge the header's
+  // colours past its gradient; notebook-contrast.spec.js measures them.
+  '/notebooks/sample-analysis/',
 ];
 
 // What a page shows once its scripts have finished what the scan is about.
 const READY = {
   '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
   '/academic/': '[data-citation-timeline] li[style]',
+  // Its one inline equation, typeset and named.
+  '/notebooks/sample-analysis/': 'mjx-container[role="math"]',
 };
 
 // A page whose interesting markup only exists after someone has used it. The

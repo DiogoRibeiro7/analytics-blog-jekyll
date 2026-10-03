@@ -968,11 +968,15 @@ body.dark-mode {
     box-shadow: 0 20px 48px rgba($dark-ink-900, 0.32);
   }
 
+  .notebook-article__label {
+    color: $dark-accent-primary;
+  }
+
   .notebook-article__summary,
   .notebook-article__meta,
   .notebook-sidebar__metadata dd,
   .notebook-sidebar__stats li {
-    color: rgba($dark-ink-200, 0.9);
+    color: $dark-ink-500;
   }
 
   .notebook-article__meta span,
@@ -986,34 +990,28 @@ body.dark-mode {
   }
 
   .notebook-cell {
-    background: rgba($dark-accent-primary, 0.14);
+    background: rgba($dark-accent-primary, 0.22);
     box-shadow: inset 0 0 0 1px rgba($dark-ink-900, 0.35);
   }
 
+  // Code and outputs sit a shade darker than their cell, as in the light
+  // theme. $dark-ink-900 is the lightest ink, so it lightened them instead.
   .notebook-cell__code {
-    background: rgba($dark-ink-900, 0.45);
+    background: rgba($dark-surface-100, 0.45);
   }
 
   .notebook-output {
-    background: rgba($dark-ink-900, 0.35);
+    background: rgba($dark-surface-100, 0.35);
     color: $dark-ink-050;
   }
 
   .notebook-output__warning {
-    color: rgba($dark-ink-100, 0.8);
-  }
-
-  .notebook-output--widget {
-    color: $dark-accent-secondary;
+    color: $dark-ink-300;
   }
 
   .notebook-output-plotly,
   .notebook-output-vega {
-    background: rgba($dark-ink-900, 0.32);
-  }
-
-  .notebook-cell {
-    background: rgba($dark-accent-primary, 0.22);
+    background: rgba($dark-surface-100, 0.32);
   }
 
   .reference-list li::before,

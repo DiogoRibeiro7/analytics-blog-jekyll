@@ -32,6 +32,13 @@ Which one you want:
   you want Playwright instead: jsdom has no layout.
 - **Anything about colour, contrast or an accessible name** — the axe sweep, in
   both themes. Pa11y runs too, but it only ever sees light mode.
+- **Contrast that axe can't judge** — a test of its own. axe leaves text over a
+  gradient or a pseudo-element undecided rather than failing it, and passes
+  over single characters such as code punctuation. The notebook header and
+  dark-mode code tokens were unreadable for that reason.
+  `tests/integration/notebook-contrast.spec.js` measures each text against
+  the layers of background under it. `tests/test_toc_and_contrast.rb` checks
+  the dark palette and that every coloured code token has a dark colour.
 
 If the markup you care about only exists after someone has used the page, add
 an entry to `INTERACT` in `tests/integration/axe.spec.js` so the sweep uses it
