@@ -80,11 +80,27 @@ class NotebookConversionTest < Minitest::Test
       "\n\n#   notebook   TITLE ##\n",
       "### Notebook title",
       "Notebook title\n==============",
-      "Notebook title\n---"
+      "   Notebook title\n---"
     ].each do |opening|
       html = render_cells([["markdown", opening], ["markdown", "Text."]])
 
       assert_empty headings(html), "#{opening.inspect} should be left out"
+    end
+  end
+
+  # What the site's Markdown doesn't read as the title heading stays: an
+  # indented line is a paragraph or code, and a setext heading's #s are text.
+  def test_what_markdown_does_not_read_as_the_title_stays
+    {
+      "  # Notebook title" => "# Notebook title",
+      "    # Notebook title" => "# Notebook title",
+      "\t# Notebook title" => "# Notebook title",
+      "Notebook title #\n---" => "Notebook title #"
+    }.each do |opening, shown|
+      html = render_cells([["markdown", opening]])
+
+      # Code also shows its line number.
+      assert_includes markdown_cells(html).first.to_s, shown, "#{opening.inspect} should stay"
     end
   end
 

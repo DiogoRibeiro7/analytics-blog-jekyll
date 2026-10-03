@@ -107,31 +107,34 @@ module Datalog
     # something else stays, and so does the rest of the cell.
     def without_title_heading(source, metadata)
       title = metadata.is_a?(Hash) ? metadata[:title] || metadata["title"] : nil
-      return source if title.to_s.strip.empty?
+      wanted = title.to_s.split.join(" ")
+      return source if wanted.empty?
 
       lines = source.lines
       first = lines.index { |line| !line.strip.empty? }
       return source unless first
 
-      line = lines[first].strip
-      underline = lines[first + 1].to_s.strip
-      if line.match?(/\A\#{1,6}(?:[ \t]|\z)/)
-        text = line.sub(/\A#+/, "")
-        taken = 1
-      elsif underline.match?(/\A(?:=+|-+)\z/)
-        text = line
-        taken = 2
-      end
-      return source unless text && heading_text(text).casecmp?(heading_text(title))
+      texts, taken = heading_at(lines[first].chomp, lines[first + 1].to_s.chomp)
+      return source unless texts&.any? { |text| text.casecmp?(wanted) }
 
       lines.drop(first + taken).join
     end
 
-    # A heading's words, without the closing #s an ATX heading may end with.
-    def heading_text(text)
-      words = text.to_s.split
-      words.pop if words.last&.match?(/\A#+\z/)
-      words.join(" ")
+    # The texts a line can be read as a heading with, as the site's Markdown
+    # (kramdown, GFM) reads it, and how many lines the heading takes. An ATX
+    # heading starts the line and may end with #s, which kramdown leaves out
+    # and a title taken from the heading keeps. A setext heading's text may be
+    # indented up to three spaces, its underline starts the line, and its #s
+    # are text. Anything indented further is code, and is never a heading.
+    def heading_at(line, underline)
+      if line.match?(/\A\#{1,6}(?:[ \t]|\z)/)
+        words = line.sub(/\A#+/, "").split
+        texts = [words.join(" ")]
+        texts << words[0...-1].join(" ") if words.last&.match?(/\A#+\z/)
+        [texts, 1]
+      elsif line.match?(/\A {0,3}\S/) && underline.match?(/\A(?:=+|-+)[ \t]*\z/)
+        [[line.split.join(" ")], 2]
+      end
     end
 
     # Each heading left in a cell moves down a level (h1 to h2, and so on to
