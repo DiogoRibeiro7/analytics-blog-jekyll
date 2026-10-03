@@ -1,6 +1,7 @@
 {% assign citation_title = include.title | default: page.title | default: site.title %}
 {% assign citation_url = include.url | default: page.url | default: '/' | absolute_url %}
-{% assign citation_date = include.date | default: page.date %}
+{%- comment -%} The date given, else the page's own; an undated page's is the build's, and no year (#411). {%- endcomment -%}
+{% if include.date %}{% assign citation_date = include.date %}{% else %}{% assign citation_date = page | published_date %}{% endif %}
 {% assign citation_year = citation_date | date: '%Y' %}
 {%- comment -%} `authors`: records from `page | page_authors`, or names. Without it, the page's authors. {%- endcomment -%}
 {% if include.authors %}

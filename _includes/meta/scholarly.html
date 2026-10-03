@@ -55,8 +55,9 @@ a citation_reference (lib/datalog/plugins/citations.rb).
 {%- endif %}
 {%- endfor %}
 {%- endif %}
-{%- if page.date %}
-<meta name="citation_publication_date" content="{{ page.date | date: '%Y/%m/%d' }}" />
+{%- assign scholarly_published = page | published_date %}
+{%- if scholarly_published %}
+<meta name="citation_publication_date" content="{{ scholarly_published | date: '%Y/%m/%d' }}" />
 {%- endif %}
 <meta name="citation_public_url" content="{{ scholarly_url }}" />
 <meta name="citation_fulltext_html_url" content="{{ scholarly_url }}" />
@@ -104,8 +105,8 @@ a citation_reference (lib/datalog/plugins/citations.rb).
 {%- for name in scholarly_names %}
 <meta name="DC.creator" content="{{ name | strip | escape }}" />
 {%- endfor %}
-{%- if page.date %}
-<meta name="DC.date" content="{{ page.date | date: '%Y-%m-%d' }}" />
+{%- if scholarly_published %}
+<meta name="DC.date" content="{{ scholarly_published | date: '%Y-%m-%d' }}" />
 {%- endif %}
 {%- if page.doi %}
 {%- assign scholarly_identifier = page.doi -%}

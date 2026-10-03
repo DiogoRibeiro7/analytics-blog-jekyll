@@ -54,7 +54,9 @@ full node, which search engines read as the site's name and owner.
 {%- assign schema_authors = schema_page | page_authors -%}
 {%- assign schema_contributors = schema_page | page_contributors -%}
 {%- assign word_count = schema_page.content | strip_html | number_of_words -%}
-{%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_page.date -%}
+{%- comment -%} An undated document's date is the build's: it is no publication date (#411). {%- endcomment -%}
+{%- assign schema_published = schema_page | published_date -%}
+{%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_published -%}
 {%- capture publisher_json -%}
 {
     "@type": {{ publisher_type | jsonify_script }},
@@ -121,8 +123,8 @@ full node, which search engines read as the site's name and owner.
     "height": 630
   },
   {%- endif -%}
-  {%- if schema_page.date -%}
-  "datePublished": "{{ schema_page.date | date_to_xmlschema }}",
+  {%- if schema_published -%}
+  "datePublished": "{{ schema_published | date_to_xmlschema }}",
   {%- endif -%}
   {%- if modified -%}
   "dateModified": "{{ modified | date_to_xmlschema }}",

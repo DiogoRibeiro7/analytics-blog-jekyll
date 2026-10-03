@@ -1052,6 +1052,11 @@ body.dark-mode .post-meta-list {
   border-bottom-color: rgba($dark-ink-500, 0.12);
 }
 
+// The same list under a page's own heading, kept off the content below (#411).
+.article-meta {
+  margin-bottom: map.get($spacing, 5);
+}
+
 .post-meta-term {
   font-size: map.get($font-size-scale, xs);
   font-weight: 600;
