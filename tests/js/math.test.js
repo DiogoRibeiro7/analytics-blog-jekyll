@@ -1364,3 +1364,107 @@ describe('generateAltFromLatex', () => {
     expect(alt).toContain('over');
   });
 });
+
+/**
+ * MathJax draws an expression again, into a new container, when a reader
+ * changes a menu setting or toggles a collapsible part. The new container had
+ * no tab stop, role or label, and the focus fell to the page (#412).
+ */
+describe('a container MathJax draws again', () => {
+  const typeset = (html) => {
+    const container = document.createElement('mjx-container');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    return container;
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    toolkit.focusedRecord = null;
+    toolkit.recordByContainer = new WeakMap();
+  });
+
+  const decorated = (latex = 'x^2', display = false) => {
+    const container = typeset('<mjx-math aria-hidden="true">x</mjx-math>');
+    const item = { typesetRoot: container, math: latex, display };
+    toolkit.decorateMathItem(item);
+    return item;
+  };
+
+  const redraw = (item) => {
+    const fresh = typeset('<mjx-math aria-hidden="true">x</mjx-math>');
+    item.typesetRoot.replaceWith(fresh);
+    item.typesetRoot = fresh;
+    return fresh;
+  };
+
+  it('gets the tab stop, role, label and inline class back', () => {
+    const item = decorated();
+    const label = item.typesetRoot.getAttribute('aria-label');
+    const fresh = redraw(item);
+
+    window.DatalogMath.restore(item);
+
+    expect(fresh.getAttribute('tabindex')).toBe('0');
+    expect(fresh.getAttribute('role')).toBe('math');
+    expect(fresh.getAttribute('aria-label')).toBe(label);
+    expect(fresh.dataset.mathLatex).toBe('x^2');
+    expect(fresh.classList.contains('math-expression__inline')).toBe(true);
+  });
+
+  it('gets the focus back when it had it, and only then', () => {
+    const item = decorated();
+    item.typesetRoot.focus();
+    toolkit.trackFocus({ target: item.typesetRoot });
+    const fresh = redraw(item);
+    expect(document.activeElement).toBe(document.body);
+
+    window.DatalogMath.restoreAll({ math: [item] });
+    expect(document.activeElement).toBe(fresh);
+
+    const other = document.createElement('button');
+    document.body.appendChild(other);
+    other.focus();
+    toolkit.trackFocus({ target: other });
+    redraw(item);
+    window.DatalogMath.restore(item);
+    expect(document.activeElement).toBe(other);
+  });
+
+  // A document the menu builds anew copies each expression into a new item.
+  it('is restored through a copied item, which shares the record', () => {
+    const item = decorated();
+    item.typesetRoot.focus();
+    toolkit.trackFocus({ target: item.typesetRoot });
+    const copy = Object.assign({}, item);
+    const fresh = redraw(copy);
+
+    window.DatalogMath.restore(copy);
+
+    expect(fresh.getAttribute('role')).toBe('math');
+    expect(document.activeElement).toBe(fresh);
+  });
+
+  it('leaves alone a container it has already seen, and an undecorated one', () => {
+    const item = decorated();
+    item.typesetRoot.setAttribute('aria-label', 'changed by the page');
+    window.DatalogMath.restore(item);
+    expect(item.typesetRoot.getAttribute('aria-label')).toBe('changed by the page');
+
+    expect(() => window.DatalogMath.restore({ typesetRoot: typeset('') })).not.toThrow();
+    expect(() => window.DatalogMath.restoreAll(null)).not.toThrow();
+  });
+
+  it('keeps the one link exposed for a reference drawn again', () => {
+    const drawn = '<mjx-math aria-hidden="true"><a href="#eq:one">(1)</a></mjx-math>' +
+      '<mjx-assistive-mml><a href="#eq:one">1</a></mjx-assistive-mml>';
+    const container = typeset(drawn);
+    toolkit.exposeReferenceLinks(container);
+    const fresh = typeset(drawn);
+    container.replaceWith(fresh);
+
+    toolkit.exposeReferenceLinks(fresh);
+
+    expect(document.querySelectorAll('.math-reference-link')).toHaveLength(1);
+  });
+});

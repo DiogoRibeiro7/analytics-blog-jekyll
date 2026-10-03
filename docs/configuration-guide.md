@@ -103,6 +103,8 @@ theme_options:
 - `display_style: plain`, the default, sets a display equation on its own line with space around it and nothing else. Its copy and edit tools appear at the end of the line when the pointer is over the equation or the keyboard focus is on it. `card` puts each equation in a framed panel with the tools always showing.
 - `numbering: ams`, the default, numbers the equations a text can refer to: those in a numbered amsmath environment (`equation`, `align`, `gather`, `multline`, not the starred forms) and any `$$…$$` display with a `\label{}`. `all` numbers every display equation; `none` only those with a `\tag{}`.
 
+With MathJax, each expression is a stop in the tab order, named for a screen reader by its alt text, with its MathML beside it for assistive technology. An `\eqref` or `\ref` is the exception: MathJax draws it as a link, so it is left out of the tab order and named by that link, which the theme repeats right after it as a real one. A click selects an expression and changes nothing in it. MathJax's option to collapse parts of a formula is off; a reader can turn it on, or change any other setting, from MathJax's menu (right-click an expression). MathJax then draws the expressions again, and each keeps its name and its place in the tab order, and the one that had the focus keeps it.
+
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
 #### Homepage
