@@ -4,7 +4,8 @@ require_relative "test_helper"
 
 # Four things the axe scans of a post with a table of contents, code blocks
 # and equation references turned up: the contents' landmark, its colours, the
-# layout of a post that has no contents, and the colours of code.
+# layout of a post that has no contents, and the colours of code. Also the dark
+# palette's inks, which the notebook page showed axe can miss.
 class TocAndContrastTest < Minitest::Test
   POST_WITH_TOC = "2024/04/05/sql-optimization-guide/index.html"
   LIGHT_CODE = "#f3f6f8"   # rgba($color-surface-900, 0.02) over the page
@@ -50,6 +51,45 @@ class TocAndContrastTest < Minitest::Test
       ratio = contrast(color, dark ? DARK_CODE : LIGHT_CODE)
 
       assert_operator ratio, :>=, 4.5, "#{selectors.first} is #{color}: #{ratio.round(2)}:1 on the code background"
+    end
+  end
+
+  # A token the light theme colours and the dark theme doesn't keeps its light
+  # colour in dark mode, about 2:1 on the dark code background. Fourteen did,
+  # punctuation among them, and axe passes over text that short.
+  def test_every_coloured_code_token_has_a_dark_colour
+    coloured = { light: [], dark: [] }
+    stylesheet.scan(/([^{}]+)\{([^{}]*)\}/).each do |selectors, body|
+      next unless body.match?(/(?:^|;)color:/)
+
+      selectors.split(",").each do |selector|
+        match = selector.match(/\A(body\.dark-mode )?\.highlight \.([a-z0-9]+)\z/)
+        coloured[match[1] ? :dark : :light] << match[2] if match
+      end
+    end
+
+    refute_empty coloured[:light], "expected the syntax rules in the stylesheet"
+    assert_empty coloured[:light] - coloured[:dark], "code tokens with a light colour and no dark one"
+  end
+
+  # Every ink in the dark palette is a text colour, so each one has to read on
+  # the page and on the panels text sits on. The two dimmest were left from an
+  # older palette of warm greys, at 2.3:1 and 1.7:1, and the notebook page set
+  # its dates and cell counts in one of them.
+  def test_every_dark_ink_reads_on_the_dark_surfaces
+    variables = File.read(File.join(SiteBuilder.root, "_sass/_variables.scss"))
+    palette = variables.scan(/^\$(dark-(?:ink|surface)-\d+):\s*(#\h{3,6})\b/).to_h
+    inks = palette.select { |name, _| name.start_with?("dark-ink-") }
+    surfaces = palette.values_at("dark-surface-100", "dark-surface-200", "dark-surface-300")
+
+    assert_operator inks.size, :>=, 8, "expected the dark inks in _variables.scss"
+    refute_includes surfaces, nil, "expected the three dark surfaces in _variables.scss"
+    inks.each do |name, ink|
+      surfaces.each do |surface|
+        ratio = contrast(ink, surface)
+
+        assert_operator ratio, :>=, 4.5, "$#{name} is #{ink}: #{ratio.round(2)}:1 on #{surface}"
+      end
     end
   end
 

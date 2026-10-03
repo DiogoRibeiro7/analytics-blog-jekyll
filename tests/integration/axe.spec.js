@@ -44,6 +44,9 @@ const PAGES = [
   // The academic dashboard: profiles, citation metrics, the filtered
   // submission and calendar lists, which nothing rendered before #355.
   '/academic/',
+  // A notebook: its header, cells and sidebar. axe can't judge the header's
+  // colours past its gradient; notebook-contrast.spec.js measures them.
+  '/notebooks/sample-analysis/',
 ];
 
 // What a page shows once its scripts have finished what the scan is about.
