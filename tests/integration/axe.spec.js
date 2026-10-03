@@ -53,6 +53,8 @@ const PAGES = [
 const READY = {
   '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
   '/academic/': '[data-citation-timeline] li[style]',
+  // Its one inline equation, typeset and named.
+  '/notebooks/sample-analysis/': 'mjx-container[role="math"]',
 };
 
 // A page whose interesting markup only exists after someone has used it. The

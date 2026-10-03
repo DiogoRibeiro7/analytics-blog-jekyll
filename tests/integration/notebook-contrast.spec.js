@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 
 /**
  * The notebook page's text against what it sits on, in both themes. axe leaves
@@ -8,7 +8,7 @@ import { expect, test } from "@playwright/test";
  */
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
-const notebook = "/notebooks/sample-analysis/";
+const notebook = '/notebooks/sample-analysis/';
 
 // The demo notebook keeps no outputs, so the test adds the ones the converter
 // writes (a text and an HTML output), and the warning assets/js/notebook.js
@@ -52,50 +52,38 @@ const measure = () => {
         }
       }
     }
-    return layers
-      .reverse()
-      .reduce((under, layer) => over(layer, under), {
-        red: 255,
-        green: 255,
-        blue: 255,
-        alpha: 1,
-      });
+    return layers.reverse().reduce((under, layer) => over(layer, under), {
+      red: 255,
+      green: 255,
+      blue: 255,
+      alpha: 1,
+    });
   };
   const luminance = ({ red, green, blue }) => {
     const [r, g, b] = [red, green, blue].map((channel) => {
       const value = channel / 255;
-      return value <= 0.03928
-        ? value / 12.92
-        : ((value + 0.055) / 1.055) ** 2.4;
+      return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
     });
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
   const hex = ({ red, green, blue }) =>
-    `#${[red, green, blue].map((channel) => Math.round(channel).toString(16).padStart(2, "0")).join("")}`;
+    `#${[red, green, blue].map((channel) => Math.round(channel).toString(16).padStart(2, '0')).join('')}`;
 
-  const scope =
-    ".notebook-article__header, .notebook-article__sidebar, .notebook-article__content";
+  const scope = '.notebook-article__header, .notebook-article__sidebar, .notebook-article__content';
   return [...document.querySelectorAll(scope)]
-    .flatMap((root) => [root, ...root.querySelectorAll("*")])
-    .filter((element) => !element.closest("mjx-container, svg"))
-    .filter((element) =>
-      [...element.childNodes].some(
-        (node) => node.nodeType === 3 && node.textContent.trim(),
-      ),
-    )
+    .flatMap((root) => [root, ...root.querySelectorAll('*')])
+    .filter((element) => !element.closest('mjx-container, svg'))
+    .filter((element) => [...element.childNodes].some((node) => node.nodeType === 3 && node.textContent.trim()))
     .filter((element) => element.getClientRects().length > 0)
     .map((element) => {
       const style = getComputedStyle(element);
       const background = backdrop(element);
       const ink = over(parse(style.color), background);
-      const [lighter, darker] = [luminance(ink), luminance(background)].sort(
-        (a, b) => b - a,
-      );
+      const [lighter, darker] = [luminance(ink), luminance(background)].sort((a, b) => b - a);
       const size = parseFloat(style.fontSize);
-      const large =
-        size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
+      const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
       return {
-        text: element.textContent.trim().replace(/\s+/g, " ").slice(0, 40),
+        text: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 40),
         ratio: Math.round(((lighter + 0.05) / (darker + 0.05)) * 100) / 100,
         needs: large ? 3 : 4.5,
         colours: `${hex(ink)} on ${hex(background)}`,
@@ -103,37 +91,30 @@ const measure = () => {
     });
 };
 
-test.describe("Notebook colours", () => {
-  test.skip(
-    !baseUrl,
-    "PLAYWRIGHT_BASE_URL must be provided to run integration tests.",
-  );
+test.describe('Notebook colours', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
 
-  for (const theme of ["light", "dark"]) {
-    test(`every text on the notebook page reads in ${theme} mode`, async ({
-      page,
-    }) => {
+  for (const theme of ['light', 'dark']) {
+    test(`every text on the notebook page reads in ${theme} mode`, async ({ page }) => {
       await page.addInitScript((mode) => {
-        window.localStorage.setItem("datalog-color-mode", mode);
+        window.localStorage.setItem('datalog-color-mode', mode);
       }, theme);
-      await page.goto(new URL(notebook, baseUrl).href, { waitUntil: "load" });
-      await expect(page.locator("body")).toHaveAttribute("data-theme", theme);
+      await page.goto(new URL(notebook, baseUrl).href, { waitUntil: 'load' });
+      await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
+      // MathJax replaces the inline equation's text as it typesets, so the
+      // measuring waits until it has.
+      await page.locator('mjx-container[role="math"]').first().waitFor({ state: 'attached' });
       await page
-        .locator(".notebook-cell--input")
+        .locator('.notebook-cell--input')
         .first()
         .evaluate((cell, markup) => {
-          cell.insertAdjacentHTML("beforeend", markup);
+          cell.insertAdjacentHTML('beforeend', markup);
         }, OUTPUTS);
 
       const texts = await page.evaluate(measure);
       // The header's label and values, the sidebar's counts and an output's
       // warning are all among what was measured.
-      for (const expected of [
-        "Interactive Notebook",
-        "Kernel: Python 3",
-        "code cells",
-        "Plotly figure",
-      ]) {
+      for (const expected of ['Interactive Notebook', 'Kernel: Python 3', 'code cells', 'Plotly figure']) {
         expect(
           texts.some((entry) => entry.text.includes(expected)),
           expected,
@@ -142,10 +123,7 @@ test.describe("Notebook colours", () => {
 
       const failures = texts
         .filter((entry) => entry.ratio < entry.needs)
-        .map(
-          (entry) =>
-            `"${entry.text}": ${entry.colours} = ${entry.ratio}:1 (needs ${entry.needs}:1)`,
-        );
+        .map((entry) => `"${entry.text}": ${entry.colours} = ${entry.ratio}:1 (needs ${entry.needs}:1)`);
       expect(failures, `low-contrast text in ${theme} mode`).toEqual([]);
     });
   }

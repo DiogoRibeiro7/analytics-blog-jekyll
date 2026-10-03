@@ -91,9 +91,9 @@ $dark-ink-700: #cbd5e1;
 $dark-ink-500: #a8b8d0;
 $dark-ink-300: #98a9c4 !default; // tertiary text on dark surfaces
 // The two dimmest inks were left from the old warm greys, at 2.3:1 and 1.7:1
-// on the page. Every ink reads at 4.5:1 or more on the page and its panels.
-$dark-ink-200: #8fa1be !default;
-$dark-ink-100: #8a9cb9 !default;
+// on the page. Every ink reads at 4.5:1 or more on every dark surface.
+$dark-ink-200: #94a5c1 !default;
+$dark-ink-100: #8fa1be !default;
 $dark-ink-050: #fafaf9 !default;
 $dark-ink-000: #fafaf9 !default;
 $dark-accent-primary: #a5b4fc;     // lighter indigo for dark backgrounds

@@ -37,11 +37,13 @@ class TocAndContrastTest < Minitest::Test
     assert_operator contrast("#3730a3", "#eeeefa"), :>=, 4.5
   end
 
+  # A class name may hold a hyphen: the dark rule for comments and punctuation
+  # also colours `.rouge-gutter`, and was skipped whole without one.
   def test_every_code_token_is_readable_on_the_code_background
     tokens = stylesheet.scan(/([^{}]+)\{([^{}]*)\}/).filter_map do |selectors, body|
       color = body[/(?:^|;)color:(#[0-9a-f]{3,6})\b/i, 1]
       list = selectors.split(",")
-      next unless color && list.all? { |selector| selector.match?(/\.highlight \.[a-z0-9]+\z/) }
+      next unless color && list.all? { |selector| selector.match?(/\.highlight \.[a-z0-9-]+\z/) }
 
       [list, color, list.all? { |selector| selector.start_with?("body.dark-mode ") }]
     end
@@ -63,7 +65,7 @@ class TocAndContrastTest < Minitest::Test
       next unless body.match?(/(?:^|;)color:/)
 
       selectors.split(",").each do |selector|
-        match = selector.match(/\A(body\.dark-mode )?\.highlight \.([a-z0-9]+)\z/)
+        match = selector.match(/\A(body\.dark-mode )?\.highlight \.([a-z0-9-]+)\z/)
         coloured[match[1] ? :dark : :light] << match[2] if match
       end
     end
@@ -73,17 +75,17 @@ class TocAndContrastTest < Minitest::Test
   end
 
   # Every ink in the dark palette is a text colour, so each one has to read on
-  # the page and on the panels text sits on. The two dimmest were left from an
-  # older palette of warm greys, at 2.3:1 and 1.7:1, and the notebook page set
-  # its dates and cell counts in one of them.
+  # every dark surface. The two dimmest were left from an older palette of warm
+  # greys, at 2.3:1 and 1.7:1, and the notebook page set its dates and cell
+  # counts in one of them.
   def test_every_dark_ink_reads_on_the_dark_surfaces
     variables = File.read(File.join(SiteBuilder.root, "_sass/_variables.scss"))
     palette = variables.scan(/^\$(dark-(?:ink|surface)-\d+):\s*(#\h{3,6})\b/).to_h
     inks = palette.select { |name, _| name.start_with?("dark-ink-") }
-    surfaces = palette.values_at("dark-surface-100", "dark-surface-200", "dark-surface-300")
+    surfaces = palette.select { |name, _| name.start_with?("dark-surface-") }.values
 
     assert_operator inks.size, :>=, 8, "expected the dark inks in _variables.scss"
-    refute_includes surfaces, nil, "expected the three dark surfaces in _variables.scss"
+    assert_operator surfaces.size, :>=, 4, "expected the dark surfaces in _variables.scss"
     inks.each do |name, ink|
       surfaces.each do |surface|
         ratio = contrast(ink, surface)
