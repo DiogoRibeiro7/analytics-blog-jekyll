@@ -108,7 +108,7 @@ With MathJax, each expression is a stop in the tab order, named for a screen rea
 The alt text is read from the LaTeX, in words: `f : [a, b] \to \mathbb{R}` is named "f: [a, b] to double-struck R", `\lim_{x \to 0}` "limit as x approaches 0", and `x^2` "x squared".
 - **Words, not symbols:** Greek letters, relations, arrows and operators are read as words, since a screen reader may skip "∈" or "ℝ" at its usual settings.
 - **Names kept:** function names (`\sin`, `\log`) are read as written, and so is a command with no word of its own, rather than left out.
-- **Left out of the name:** what isn't part of what the formula says: sizing such as `\left` and `\right`, spacing, `\label`, the equation number from `\tag`, and environment names.
+- **Left out of the name:** what isn't part of what the formula says: sizing such as `\left` and `\right`, spacing, `\label`, the equation number from `\tag`, and the names of environments such as `equation` or `align`. A matrix or `cases` is announced: `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` reads "matrix a, b; c, d end matrix".
 - **Who reads it:** the build names each expression it finds in a page. The browser names one the build didn't wrap, such as maths in raw HTML, in the same words: both read `lib/datalog/latex_speech/words.json`.
 
 To name an expression yourself, give it a `% alt:` comment, which is not drawn:
