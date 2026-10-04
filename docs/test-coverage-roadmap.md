@@ -21,8 +21,11 @@ Three suites run on every pull request:
 
 The figures are from the Tests workflow on `develop` at v0.11.0 (c6571ff). Ruby
 coverage is measured by SimpleCov on the Ruby 3.4 leg (`bundle exec rake coverage`),
-over everything in `lib/` and `_plugins/`, including the sites the consumer tests
-build in a subprocess; `.simplecov` holds the gates.
+over the Ruby files in `lib/` and `_plugins/`, including the sites the consumer
+tests build in a subprocess. Two files are left out, `lib/datalog/theme/package.rb`
+and `lib/datalog/theme/version.rb`: Bundler loads them with the gemspec before
+coverage starts, and `tests/test_gem_package.rb` covers what they do. `.simplecov`
+holds the gates.
 
 ## Progress Summary
 
@@ -208,9 +211,10 @@ Where each item stood at 0.11.0:
    with `--offline`, so external links and the embed addresses in `data-viz-src`
    are never requested.
 5. **Move to Vitest 5.** ✅ Done. The suite runs on Vitest 5.
-6. **Measure Ruby coverage.** ✅ Done. SimpleCov measures `lib/` and `_plugins/` on
-   the Ruby 3.4 leg, including the consumer sites built in a subprocess, and fails
-   the job below 81% of lines or 59% of branches.
+6. **Measure Ruby coverage.** ✅ Done. SimpleCov measures the Ruby files in `lib/`
+   and `_plugins/`, all but the two the gemspec loads first, on the Ruby 3.4 leg,
+   including the consumer sites built in a subprocess. It fails the job below 81%
+   of lines or 59% of branches.
 
 ## Phase 7: What a passing suite still missed
 
