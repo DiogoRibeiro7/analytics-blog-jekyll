@@ -73,7 +73,21 @@ module Datalog
         required: true,
         schema: {
           name: { type: :string, required: true },
-          email: { type: :string, format: :email }
+          email: { type: :string, format: :email },
+          # The `rel` of the author's profile links, `me noopener noreferrer` unless set.
+          profile_rel: { type: :string },
+          # What the JSON-LD Person says about them: one value or a list of them.
+          alternate_name: { type: %i[string array] }, alternate_names: { type: %i[array string] },
+          job_title: { type: %i[string array] }, roles: { type: %i[array string] },
+          knows_about: { type: %i[array string] }, same_as: { type: %i[array string] }
+        }
+      },
+      # The homepage's WebSite node (meta/schema.html): true, or a map naming the site.
+      site_identity: {
+        type: %i[boolean hash],
+        schema: {
+          enabled: { type: :boolean }, name: { type: :string },
+          alternate_names: { type: %i[array string] }, alternate_name: { type: :string }
         }
       },
       # Who publishes the site in structured data and citations. Without it, the author does.
@@ -145,6 +159,23 @@ module Datalog
       timezone: { type: :string },
       collections: { type: :hash },
       plugins: { type: :array },
+      # `datalog audit`: front matter keys a site's own templates read, internal
+      # links it builds outside Jekyll, and when an edit calls for a revision.
+      audit: {
+        type: :hash,
+        schema: {
+          known_keys: { type: :array }, ignore_links: { type: :array }, revision_after_days: { type: :integer }
+        }
+      },
+      # In-text citations (the datalog-citations plugin): the style, and the
+      # bibliography a page uses when it names none of its own.
+      citations: {
+        type: :hash,
+        schema: {
+          style: { type: :string, enum: %w[numeric author-year] },
+          bibliography: { type: %i[string array] }
+        }
+      },
       features: {
         type: :hash,
         schema: {
@@ -177,14 +208,34 @@ module Datalog
           style: { type: :string, enum: %w[compressed expanded] }
         }
       },
+      # `datalog critical-css` (lib/datalog/critical_css.rb).
+      critical_css: {
+        type: :hash,
+        schema: {
+          enabled: { type: :boolean },
+          engine: { type: :string, enum: %w[render static] },
+          dimensions: { type: :array },
+          pages: { type: :hash }
+        }
+      },
       theme_options: {
         type: :hash,
         schema: {
+          color_scheme: {
+            type: :hash,
+            schema: {
+              default: { type: :string, enum: %w[dark light system] }
+            }
+          },
           math: {
             type: :hash,
             schema: {
               engine: { type: :string, enum: %w[mathjax katex] },
-              enabled: { type: :boolean }
+              enabled: { type: :boolean },
+              # A display equation set plain on its line, or in a framed card.
+              display_style: { type: :string, enum: %w[plain card] },
+              # Which display equations MathJax numbers (its tex.tags).
+              numbering: { type: :string, enum: %w[ams all none] }
             }
           },
           # The "Reading mode" control on posts, and whether a reader's choice is kept.
@@ -205,6 +256,25 @@ module Datalog
               highlights: { type: :boolean },
               list_url: { type: :string }
             }
+          },
+          # Where a post's author and editorial note goes: after the article, or before it.
+          provenance: {
+            type: :hash,
+            schema: {
+              position: { type: :string, enum: %w[end start] }
+            }
+          },
+          # A share card drawn for each page without an image of its own (lib/datalog/social_cards.rb).
+          social_cards: {
+            type: :hash,
+            schema: {
+              enabled: { type: :boolean },
+              scheme: { type: :string, enum: %w[dark light] },
+              background: { type: :string },
+              logo: { type: %i[string boolean] },
+              template: { type: :string },
+              collections: { type: :array }
+            }
           }
         }
       }
@@ -224,6 +294,11 @@ module Datalog
       "theme_options.math.enabled" => {
         message: "Nothing reads it: theme_options.math.render_on_load decides which pages load the math engine, " \
                  "and a page's `math` front matter overrides that. Remove it."
+      },
+      # critical 9 dropped penthouse, and with it every option passed to it.
+      "critical_css.penthouse_options" => {
+        message: "`datalog critical-css` runs critical 9, which has no penthouse options, so these have no effect. " \
+                 "Remove them."
       }
     }.freeze
 

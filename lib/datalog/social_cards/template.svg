@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    The theme's share card. lib/datalog/social_cards/template.rb says which
+    part of SVG a template may use. Each <text data-field> is a slot the build
+    fills, sets in the theme's fonts and draws as outlines; y is the top of
+    its box. {{background}}, {{ink}}, {{muted}} and {{accent}} are the
+    scheme's colours.
+  -->
+  <rect width="1200" height="630" fill="{{background}}"/>
+  <rect x="0" y="618" width="1200" height="12" fill="{{accent}}"/>
+  <rect data-field="logo" x="80" y="70" width="52" height="52"/>
+  <text data-field="site" x="148" y="86" width="972" font-size="28" data-min-font-size="22" data-font="sans" fill="{{muted}}"/>
+  <text data-field="kicker" x="80" y="182" width="1040" font-size="28" data-min-font-size="22" data-font="sans" fill="{{accent}}"/>
+  <text data-field="title" x="80" y="236" width="1040" height="262" font-size="66" data-min-font-size="40" data-max-lines="4" data-line-height="1.15" data-font="serif" fill="{{ink}}"/>
+  <text data-field="byline" x="80" y="528" width="1040" font-size="28" data-min-font-size="22" data-font="sans" fill="{{muted}}"/>
+  <text data-field="detail" x="80" y="570" width="1040" font-size="24" data-min-font-size="20" data-font="sans" fill="{{muted}}"/>
+</svg>

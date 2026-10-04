@@ -13,10 +13,24 @@ Provides rich structured data for:
 - Publisher: a Person or an Organization, from `publisher` in _config.yml
 - Images, keywords, and content metadata
 
-Defaults to TechArticle for posts, WebPage for other pages.
+Defaults to TechArticle for posts, WebPage for other pages. A dataset page
+adds a Dataset node, and a package page a SoftwareSourceCode node. `schema_type:
+ProfilePage` describes a page about a person or an organization: its
+`mainEntity` is the page's first author (the site's author by default), or the
+publisher with `main_entity: publisher`.
+
+The site's author and the publisher carry stable `@id`s under the site's root
+(`#person`, `#organization`), so every page names the same entities. With
+`site_identity` in _config.yml, the homepage also describes the site itself: a
+`WebSite` node (`#website`) with its name and other names, and the publisher's
+full node, which search engines read as the site's name and owner.
 {%- endcomment -%}
 {%- assign schema_page = include.page -%}
 {%- include meta/publisher.html -%}
+{%- assign schema_identity = site | site_identity -%}
+{%- assign website_id = identity_root | append: '#website' -%}
+{%- assign is_home = false -%}
+{%- if schema_page.url == '/' or schema_page.url == '/index.html' -%}{%- assign is_home = true -%}{%- endif -%}
 {%- assign is_post = false -%}
 {%- if schema_page.layout == 'post' or schema_page.collection == 'posts' -%}
   {%- assign is_post = true -%}
@@ -27,6 +41,10 @@ Defaults to TechArticle for posts, WebPage for other pages.
 {%- endif -%}
 {%- assign schema_type = include.type | default: schema_page.schema_type | default: layout.schema_type | default: default_type -%}
 {%- if schema_type == 'TechnicalArticle' -%}{%- assign schema_type = 'TechArticle' -%}{%- endif -%}
+{%- assign is_profile_page = false -%}
+{%- if schema_type == 'ProfilePage' -%}{%- assign is_profile_page = true -%}{%- endif -%}
+{%- assign part_of_website = false -%}
+{%- if schema_identity -%}{%- if is_home or is_profile_page -%}{%- assign part_of_website = true -%}{%- endif -%}{%- endif -%}
 {%- assign csp_registry = site.data.csp | default: {} -%}
 {%- assign nonce_lookup = csp_registry.nonces | default: {} -%}
 {%- assign schema_nonce = schema_page.csp_nonce | default: page.csp_nonce | default: nonce_lookup[schema_page.path] | default: nonce_lookup[page.path] | default: nonce_lookup[page.url] -%}
@@ -36,27 +54,66 @@ Defaults to TechArticle for posts, WebPage for other pages.
 {%- assign schema_authors = schema_page | page_authors -%}
 {%- assign schema_contributors = schema_page | page_contributors -%}
 {%- assign word_count = schema_page.content | strip_html | number_of_words -%}
-{%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_page.date -%}
+{%- comment -%} An undated document's date is the build's: it is no publication date (#411). {%- endcomment -%}
+{%- assign schema_published = schema_page | published_date -%}
+{%- assign modified = schema_page.last_modified_at | default: schema_page.updated | default: schema_published -%}
+{%- capture publisher_json -%}
+{
+    "@type": {{ publisher_type | jsonify_script }},
+    "@id": {{ publisher_id | jsonify_script }},
+    "name": {{ publisher_name | jsonify_script }},
+    "url": {{ publisher_url | jsonify_script }}
+    {%- if publisher_logo -%},
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ publisher_logo | jsonify_script }}
+      {%- if publisher_logo_default -%},
+      "width": 512,
+      "height": 512
+      {%- endif -%}
+    }
+    {%- endif -%}
+  }
+{%- endcapture -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">
 {
   "@context": "https://schema.org",
   "@type": {{ schema_type | jsonify_script }},
+  {%- comment -%} A ProfilePage is the page itself, about its mainEntity; any other type is the page's main entity. {%- endcomment -%}
+  {%- if is_profile_page %}
+  "@id": {{ page_url | jsonify_script }},
+  "name": {{ schema_page.title | default: site.title | jsonify_script }},
+  {%- assign profile_entity = schema_authors | first -%}
+  "mainEntity": {% if schema_page.main_entity == 'publisher' or profile_entity == nil %}{{ publisher_json }}{% else %}{% include meta/person-json.html person=profile_entity %}{% endif %},
+  {%- else %}
   "mainEntityOfPage": {
     "@type": "WebPage",
     "@id": {{ page_url | jsonify_script }}
   },
+  {%- endif %}
+  {%- if part_of_website %}
+  "isPartOf": { "@id": {{ website_id | jsonify_script }} },
+  {%- endif %}
   "headline": {{ schema_page.title | default: site.title | truncate: 110 | jsonify_script }},
   {%- comment -%} Values the page doesn't have are left out: "description": "" and "dateModified": "" are invalid structured data. {%- endcomment -%}
   {%- if description and description != "" -%}
   "description": {{ description | jsonify_script }},
   {%- endif -%}
   "url": {{ page_url | jsonify_script }},
-  {%- if schema_page.image or schema_page.og_image -%}
+  {%- assign schema_image = schema_page.image | strip | default: schema_page.og_image | strip -%}
+  {%- if schema_image != "" -%}
   "image": {
     "@type": "ImageObject",
-    "url": {{ schema_page.image | default: schema_page.og_image | absolute_url | jsonify_script }},
+    "url": {{ schema_image | absolute_url | jsonify_script }},
     "width": {{ schema_page.image_width | default: 1200 }},
     "height": {{ schema_page.image_height | default: 630 }}
+  },
+  {%- elsif schema_page.datalog_social_card -%}
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ schema_page.datalog_social_card.url | absolute_url | jsonify_script }},
+    "width": {{ schema_page.datalog_social_card.width }},
+    "height": {{ schema_page.datalog_social_card.height }}
   },
   {%- elsif site.social.default_image -%}
   "image": {
@@ -66,8 +123,8 @@ Defaults to TechArticle for posts, WebPage for other pages.
     "height": 630
   },
   {%- endif -%}
-  {%- if schema_page.date -%}
-  "datePublished": "{{ schema_page.date | date_to_xmlschema }}",
+  {%- if schema_published -%}
+  "datePublished": "{{ schema_published | date_to_xmlschema }}",
   {%- endif -%}
   {%- if modified -%}
   "dateModified": "{{ modified | date_to_xmlschema }}",
@@ -99,21 +156,7 @@ Defaults to TechArticle for posts, WebPage for other pages.
   {%- endfor -%}
   ],
   {%- endif -%}
-  "publisher": {
-    "@type": {{ publisher_type | jsonify_script }},
-    "name": {{ publisher_name | jsonify_script }},
-    "url": {{ publisher_url | jsonify_script }}
-    {%- if publisher_logo -%},
-    "logo": {
-      "@type": "ImageObject",
-      "url": {{ publisher_logo | jsonify_script }}
-      {%- if publisher_logo_default -%},
-      "width": 512,
-      "height": 512
-      {%- endif -%}
-    }
-    {%- endif -%}
-  }
+  "publisher": {{ publisher_json }}
   {%- if schema_page.doi -%},
   "identifier": {
     "@type": "PropertyValue",
@@ -121,8 +164,9 @@ Defaults to TechArticle for posts, WebPage for other pages.
     "value": {{ schema_page.doi | jsonify_script }}
   }
   {%- endif -%}
-  {%- if schema_page.citation_key -%},
-  "citation": {{ schema_page.citation_key | jsonify_script }}
+  {%- comment -%} The works the page cites with {% raw %}{% cite %}{% endraw %}; its own citation key is not one of them {%- endcomment -%}
+  {%- if schema_page.datalog_cited_works and schema_page.datalog_cited_works.size > 0 -%},
+  "citation": {{ schema_page.datalog_cited_works | map: 'json_ld' | jsonify_script }}
   {%- endif -%}
   {%- comment -%} The licence of the text and figures, and who holds the copyright. {%- endcomment -%}
   {%- assign content_license = schema_page | page_license -%}
@@ -161,6 +205,47 @@ Defaults to TechArticle for posts, WebPage for other pages.
   {%- endif -%}
 }
 </script>
+{%- comment -%}
+  The homepage describes the site itself, once, for every other page's `@id`
+  to point at: the WebSite, its names and its publisher (#322).
+{%- endcomment -%}
+{%- if schema_identity and is_home -%}
+{%- assign identity_person = site | site_author_record -%}
+{%- assign site_language = site.lang | default: site.locale | default: 'en' | split: '_' | first -%}
+<script type="application/ld+json" nonce="{{ schema_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": {{ website_id | jsonify_script }},
+      "url": {{ identity_root | jsonify_script }},
+      "name": {{ schema_identity.name | jsonify_script }}
+      {%- if schema_identity.alternate_names.size > 0 -%},
+      "alternateName": {% if schema_identity.alternate_names.size == 1 %}{{ schema_identity.alternate_names.first | jsonify_script }}{% else %}{{ schema_identity.alternate_names | jsonify_script }}{% endif %}
+      {%- endif -%}
+      {%- if site.description -%},
+      "description": {{ site.description | strip_html | normalize_whitespace | jsonify_script }}
+      {%- endif -%},
+      "inLanguage": {{ site_language | jsonify_script }},
+      "publisher": { "@id": {{ publisher_id | jsonify_script }} }
+    },
+    {% if publisher_is_site_author and identity_person %}{% include meta/person-json.html person=identity_person %}{% else %}{{ publisher_json }}{% endif %}
+  ]
+}
+</script>
+{%- endif -%}
+{%- comment -%}
+  A dataset page also describes the dataset itself. Google Dataset Search
+  indexes `Dataset` and nothing else, so the WebPage above does not reach it.
+{%- endcomment -%}
+{%- if schema_page.collection == 'datasets' or schema_type == 'Dataset' -%}
+{%- include meta/dataset-json.html page=schema_page -%}
+{%- endif -%}
+{%- comment -%} A package page also describes the package: its repository, release and registries. {%- endcomment -%}
+{%- if schema_page.collection == 'packages' -%}
+{%- include meta/package-json.html page=schema_page -%}
+{%- endif -%}
 {%- comment -%} Add BreadcrumbList schema for posts {%- endcomment -%}
 {%- if is_post -%}
 <script type="application/ld+json" nonce="{{ schema_nonce }}">

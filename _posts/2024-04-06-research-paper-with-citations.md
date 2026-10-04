@@ -4,29 +4,8 @@ title: Research Article Template with Citations and BibTeX
 date: 2024-04-06
 tags: [research, publication, citations]
 difficulty: advanced
-summary: Structure a scholarly article, reference prior work with footnotes, and supply BibTeX so readers can cite your study.
-hero: /assets/images/posts/research-template.jpg
-citations:
-  - id: li2010
-    title: A Contextual-Bandit Approach to Personalized News Article Recommendation
-    authors:
-      - Li, Lihong
-      - Chu, Wei
-      - Langford, John
-      - Schapire, Robert
-    journal: WWW
-    year: 2010
-    url: https://dl.acm.org/doi/10.1145/1772690.1772758
-  - id: zafar2017
-    title: Fairness Beyond Disparate Treatment & Disparate Impact
-    authors:
-      - Zafar, Muhammad Bilal
-      - Valera, Isabel
-      - Rodriguez, Manuel Gomez
-      - Gummadi, Krishna P.
-    journal: WWW
-    year: 2017
-    url: https://dl.acm.org/doi/10.1145/3038912.3052660
+summary: Structure a scholarly article, cite prior work from a BibTeX file, and supply BibTeX so readers can cite your study.
+bibliography: _bibliography/research-paper.bib   # the works {% cite %} draws on; see docs/components.md#citations
 ---
 
 Publishing reproducible scholarship requires more than compelling charts. This template demonstrates how to structure a research article, cite related work, and provide BibTeX metadata so colleagues can reference your study quickly.
@@ -37,10 +16,7 @@ We evaluate adaptive experimentation for recommendation systems, focusing on pol
 
 ## Introduction
 
-Personalized experiences need to balance accuracy and fairness. Prior work on contextual bandits[^1] and constrained optimization[^2] lays the foundation for our framework.
-
-[^1]: Li, Lihong, et al. "A Contextual-Bandit Approach to Personalized News Article Recommendation." *WWW* (2010).
-[^2]: Zafar, Muhammad Bilal, et al. "Fairness Beyond Disparate Treatment & Disparate Impact." *WWW* (2017).
+Personalized experiences need to balance accuracy and fairness. Prior work on contextual bandits {% cite li2010 %} and on fairness constraints in classification {% cite zafar2017 %} lays the foundation for our framework.
 
 ## Methodology
 
@@ -50,7 +26,7 @@ We define policy regret as
 \mathcal{R}_T = \sum_{t=1}^T \bigl( r_t(x_t, a_t^\star) - r_t(x_t, a_t) \bigr)
 \end{equation}
 
-where $r_t$ is the reward and $a_t^\star$ is the action chosen by an oracle. Algorithm 1 summarizes the constrained Thompson sampling procedure.
+where $r_t$ is the reward and $a_t^\star$ is the action chosen by an oracle. Algorithm 1 summarizes the constrained Thompson sampling procedure, whose regret guarantees follow the classical analysis {% cite agrawal2012 russo2018 %}.
 
 ```pseudo
 Initialize posterior priors for all arms
@@ -71,7 +47,7 @@ for each round t = 1..T:
 
 ## Discussion
 
-Equation \eqref{eq:regret} highlights how regret decomposes into reward differences. Future work will incorporate causal constraints to prevent drift.
+Equation \eqref{eq:regret} highlights how regret decomposes into reward differences, as in the contextual setting of {% cite li2010 %}. Posterior sampling adapts to the cold-start cohorts without a tuned exploration rate {% cite russo2018 sec="7" %}. Future work will incorporate causal constraints to prevent drift.
 
 ## Cite this work
 
@@ -88,4 +64,4 @@ Equation \eqref{eq:regret} highlights how regret decomposes into reward differen
 }
 ```
 
-Add this BibTeX block to your citation manager or to the `CITATION.cff` file when you release accompanying code. The DataLog theme handles footnotes, equations, and code blocks seamlessly in a single article.
+Add this BibTeX block to your citation manager or to the `CITATION.cff` file when you release accompanying code. The DataLog theme numbers the citations, equations and code blocks of a single article, and lists the cited works under References.

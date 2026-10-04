@@ -16,9 +16,9 @@ gem itself, so you can treat every component as an executable example.
 
 ## Deployment workflow
 
-1. Fork or clone the [`datalog-theme.github.io`](https://github.com/datalog-theme/datalog-theme.github.io) repository.
-2. Edit `_config.yml` and `_data/navigation.yml` with your organisation's metadata.
-3. Push to `main` to trigger the GitHub Actions workflow that publishes the site to `gh-pages`.
+1. Fork or clone the [`analytics-blog-jekyll`](https://github.com/DiogoRibeiro7/analytics-blog-jekyll) repository; this site's source is its `docs/site` directory.
+2. Edit `_config.yml` and `_data/navigation.yml` with your organisation's metadata, including the `url` it will be published at.
+3. Build it with `bundle exec jekyll build --source docs/site --config docs/site/_config.yml` and publish the output with a GitHub Pages workflow; `docs/site/README.md` lists the steps.
 
 > #### ℹ Tip
 > Keep your documentation repository in sync with the theme releases. Add the stability tests introduced in the main theme
@@ -26,5 +26,5 @@ gem itself, so you can treat every component as an executable example.
 
 ## What's next
 
-Head over to the [feature catalog](/features/) for hands-on tutorials or jump straight into the
-[visualization gallery](/visualizations/) to copy embed-ready snippets.
+Head over to the [feature catalog]({{ '/features/' | relative_url }}) for hands-on tutorials or jump straight into the
+[visualization gallery]({{ '/visualizations/' | relative_url }}) to copy embed-ready snippets.

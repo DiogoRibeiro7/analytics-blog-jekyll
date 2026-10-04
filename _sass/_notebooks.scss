@@ -99,7 +99,7 @@
 
 .notebook-article__tags li {
   background: rgba($color-accent-tertiary, 0.18);
-  color: $color-accent-tertiary;
+  color: $color-accent-tertiary-text;
   border-radius: 999px;
   padding: map.get($spacing, 1) map.get($spacing, 3);
   font-size: map.get($font-size-scale, xs);
@@ -256,32 +256,6 @@
   margin: 0;
 }
 
-.notebook-output--stream {
-  color: $color-ink-700;
-}
-
-.notebook-output--error {
-  color: $color-critical-600;
-  background: rgba($color-critical-200, 0.35);
-  border: 1px solid rgba($color-critical-400, 0.6);
-}
-
-.notebook-output__trace {
-  margin-top: map.get($spacing, 2);
-  white-space: pre-wrap;
-}
-
-.notebook-output__figure {
-  margin: 0;
-}
-
-.notebook-output__figure img {
-  width: 100%;
-  height: auto;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 30px rgba($color-ink-900, 0.15);
-}
-
 .notebook-output-plotly,
 .notebook-output-vega {
   min-height: 320px;
@@ -297,11 +271,6 @@
   color: $color-ink-600;
   text-align: center;
   margin: 0;
-}
-
-.notebook-output--widget {
-  font-style: italic;
-  color: $color-accent-secondary-text;
 }
 
 .notebook-segment {

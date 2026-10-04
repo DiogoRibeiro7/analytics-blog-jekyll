@@ -40,6 +40,8 @@ The site will be available at `http://localhost:4000`. The command watches Markd
 
 1. Place `.ipynb` files inside `_notebooks/`. The `notebook_converter` plugin publishes each one as a page under `/notebooks/` during `jekyll build` or `jekyll serve`.
 2. The page takes its title, authors and tags from the notebook's own metadata: `title` (or `datalog.title`, falling back to the notebook's first heading), `authors`, and `tags` or `keywords`.
+   - **The title appears once,** as the page's heading. When the notebook's first Markdown cell opens with a heading that is the title, the page leaves that heading out. Spacing, case and the closing `#`s of a `# Title` heading don't count, and a cell that held only the heading isn't shown.
+   - **Other headings stay:** a different heading, and the rest of that first cell, appear as written. Headings in the cells move down one level under the page's own, to the sixth at most.
 3. Interactive outputs such as Plotly, ipywidgets, and Bokeh cells are preserved using the theme's visualization runtime. For custom JavaScript outputs, ensure they ship with self-contained HTML snippets.
 4. Readers can download the original notebook automatically—links are generated in the notebook layout.
 5. The “Run in Binder” and “Open in Colab” buttons link to the repository and branch set under `notebooks:` in `_config.yml` (`repository`, `branch`); `notebooks.binder.base_url` and `notebooks.colab.base_url` change the link formats.
@@ -61,7 +63,7 @@ $$
 ### Common packages and numbering
 
 - Use `\begin{align}` to typeset multi-line derivations.
-- Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog auto-numbers and links equations.
+- Reference equations with `\label{eq:bayes}` and `\eqref{eq:bayes}`—DataLog numbers a labelled equation and links the reference to it. An equation with no label and outside a numbered environment such as `equation` or `align` has no number, and `\notag` leaves one line of an `align` out; `theme_options.math.numbering: all` numbers every display equation.
 - For chemical notation, rely on `mhchem` syntax: `\ce{H2O + CO2 ->[light] C6H12O6 + O2}`.
 
 ### Figures, tables and cross-references
@@ -94,6 +96,28 @@ Beyond $n = 50$, {% ref fig-power %} flattens.
 ```
 
 - `{% figure %}` needs `id`, `src` and `alt`, and takes an optional `class`. Its body is the caption, so the caption can hold Markdown and math. Attributes accept either quote style, with `\"`, `\'` and `\\` for literal quotes and backslashes: `alt="The \"null\" model"`. Malformed attributes stop the build and identify the page and tag. Tables, statements and proofs use the same syntax.
+- `{% figure %}` takes `dark_src`, the same figure exported for a dark page, and serves it to readers in dark mode. A `power-dark.png` beside `power.png` is found without being named; see [Dark figures](configuration-guide.md#dark-figures). To export both from matplotlib, draw under two rc contexts:
+
+  ```python
+  import matplotlib.pyplot as plt
+
+  DARK = {"figure.facecolor": "#171717", "axes.facecolor": "#171717",
+          "savefig.facecolor": "#171717", "text.color": "#f5f5f4",
+          "axes.labelcolor": "#f5f5f4", "axes.edgecolor": "#a8a29e",
+          "xtick.color": "#f5f5f4", "ytick.color": "#f5f5f4", "grid.color": "#2a2a2a"}
+
+  def save_both(draw, stem):
+      """draw(ax) twice: power.png for the light page, power-dark.png for the dark one."""
+      for suffix, overrides in (("", {}), ("-dark", DARK)):
+          with plt.rc_context(overrides):
+              fig, ax = plt.subplots()
+              draw(ax)
+              fig.savefig(f"assets/img/{stem}{suffix}.png", dpi=150, bbox_inches="tight")
+              plt.close(fig)
+  ```
+
+  Export both opaque. A transparent figure is worse than either: its black axes and labels land unreadable on the dark page.
+
 - `{% table %}` needs `id`. Its body is the caption, then one Markdown table; the caption goes into the table's `<caption>`.
 - `{% ref id %}` becomes a link reading "Figure 2" or "Table 1". It may come before its target. In a post's excerpt, on listings and in feeds, it links to the figure on the post's page.
 - A reference to an id no figure or table on the page has, or two figures or tables with the same id, stops the build and names the page.
@@ -144,6 +168,61 @@ a finite mean is enough.
 - Theorems, lemmas, propositions and corollaries share one accent colour, definitions and assumptions another, and examples and remarks a neutral one. Screen readers announce each statement and proof as a group named by its heading, and skip the ∎. In print, a statement is kept on one page where it fits.
 - The words come from `references.theorem` to `references.remark`, `references.proof` and `references.proof_of` in `_data/i18n`, so a page with `lang: pt` reads "Teorema 1" and "Demonstração de Teorema 1".
 
+### Citations
+
+With the `datalog-citations` plugin on (`datalog_plugins.enabled` in `_config.yml`), a page cites the works in a BibTeX or CSL-JSON file, and the theme numbers the citations and lists what the page cites, as it numbers figures and tables:
+
+```markdown
+---
+title: Handling missing data
+bibliography: _bibliography/missing-data.bib
+---
+
+Multiple imputation {% cite rubin1987 %} replaced listwise deletion, though its
+variance estimate {% cite rubin1987 p="76" %} has its critics
+{% cite allison2001 vanbuuren2018 %}.
+```
+
+with the entries in `_bibliography/missing-data.bib`:
+
+```bibtex
+@book{rubin1987,
+  author    = {Rubin, Donald B.},
+  title     = {Multiple Imputation for Nonresponse in Surveys},
+  publisher = {Wiley},
+  year      = {1987},
+  doi       = {10.1002/9780470316696}
+}
+
+@book{allison2001,
+  author    = {Allison, Paul D.},
+  title     = {Missing Data},
+  publisher = {Sage},
+  year      = {2001}
+}
+
+@book{vanbuuren2018,
+  author    = {van Buuren, Stef},
+  title     = {Flexible Imputation of Missing Data},
+  edition   = {2},
+  publisher = {Chapman and Hall/CRC},
+  year      = {2018},
+  doi       = {10.1201/9780429492259}
+}
+```
+
+The text reads "[1]", "[1, p. 76]" and "[2, 3]", each number a link to its entry, and the article ends with a numbered list of the three works under "References", each with its DOI as a link and a ↩ back to each place it is cited.
+
+- `bibliography` names a file or a list of them, from the site's folder or the page's own: `.bib` is BibTeX, `.json` is CSL-JSON, which Zotero, Mendeley and most reference managers export. `citations.bibliography` in `_config.yml` names the file for the pages that name none. Entries can also sit in the page's front matter, under `citations:`.
+- `{% cite a b %}` cites several works at once. `p=`, `pp=`, `chap=` and `sec=` add a locator ("p. 76"), and `loc=` any other text.
+- Only the cited works are listed, in the order they are first cited. `nocite: [key]` lists a work the text does not cite, and `nocite: all` every entry.
+- `citations.style: author-year` in `_config.yml`, or `citation_style: author-year` on a page, writes "(Rubin 1987)" and "(Allison 2001; van Buuren 2018)" instead and sorts the list by author and year. Two works by the same authors in the same year become 2018a and 2018b.
+- A key that none of the page's sources has, or one that two entries share, stops the build and names the page and the key, as a `{% ref %}` to nothing does.
+- On a research article, each cited work is also a `citation_reference` meta tag for Google Scholar and a `CreativeWork` in the JSON-LD `citation`.
+- The words ("and", "et al.", "n.d.", "p.") come from `citations.*` in `_data/i18n`, so a page with `lang: pt` reads "e" and "s.d.".
+
+[components.md: Citations](components.md#citations) has the fields read from each format and the markup.
+
 ## 4. Interactive Visualization Embedding
 
 - **Plotly/D3/Bokeh**: Wrap serialized chart specs in `<div class="viz" data-viz-type="plotly" data-viz-src="/assets/plots/sample.json"></div>` and the visualization runtime handles lazy loading.
@@ -160,7 +239,7 @@ a finite mean is enough.
 
 ## 6. Academic Writing & Citation Guidelines
 
-- Cite literature with the built-in citation blocks: include a `citations` array in front matter referencing BibTeX keys.
+- Cite literature with `{% cite key %}` from a BibTeX or CSL-JSON file, which numbers the citations and lists the cited works; see [Citations](#citations) above.
 - Export references via the citation toolbar (BibTeX, RIS, EndNote). Users can download ready-made bibliography files located in `assets/publications/`.
 - Provide data availability statements in research layouts to align with open science expectations.
 - Include ORCID IDs and institutional affiliations (e.g., *ESMAD – Instituto Politécnico do Porto*) for transparent authorship.
@@ -178,6 +257,123 @@ a finite mean is enough.
 - Enable `jekyll-seo-tag` and structured data (already configured in `default.html`).
 - Provide canonical URLs, `og:image`, and `twitter:image` paths for each post—especially visualizations and notebooks.
 - Use descriptive alt text for charts and code snippets to improve accessibility and search rankings.
+
+### Naming the site and its owner
+
+Search engines take a site's name above all from a `WebSite` node on its
+homepage, and a personal site also wants its owner described once, as the same
+person every article names. `site_identity` in `_config.yml` turns that on, and
+the richer fields on `author` fill in the person:
+
+```yaml
+site_identity:
+  name: Jane Doe                 # default: title
+  alternate_names: [janedoe]     # handles, brands, other spellings
+
+author:
+  name: Jane Doe
+  alternate_name: janedoe
+  roles: [Lead Data Scientist, Professor]   # or job_title: one string
+  avatar: /assets/img/jane.jpg
+  bio: Writes about missing data and causal inference.
+  research_areas: [Missing data, Causal inference]   # or knows_about, expertise
+  affiliation: Example University
+  github: janedoe
+  orcid: 0000-0002-1825-0097
+  same_as:                       # any other profile of the same person
+    - https://mastodon.example/@jane
+```
+
+The homepage then carries a second JSON-LD block, an `@graph` of the `WebSite`
+(`@id` `https://jane.example/#website`: its URL, name, `alternateName`,
+description, language and publisher) and the publisher in full: the author's
+`Person` (`#person`) with `alternateName`, `image`, `jobTitle`, `description`,
+`knowsAbout`, `affiliation` and `sameAs`, or the `Organization`
+(`#organization`) when `publisher.type` is `Organization`. `og:site_name` uses
+the same name. Without `site_identity` nothing of this is added, so a site that
+wrote its own `WebSite` block should delete it when it turns this on, rather
+than publish two that disagree.
+
+The `@id`s are there on every page with or without it: an article's `author`,
+when it is the site's author, and its `publisher` both say `#person` (or
+`#organization`), so a search engine sees one person rather than one per
+article. A guest author gets no `@id`, and is never described as the site's
+owner. The other fields are written for any author whose record has them.
+
+To make a page a profile, usually the homepage or `/about/`, give it
+`schema_type: ProfilePage`. Its JSON-LD is then a `ProfilePage` whose
+`mainEntity` is the page's first author (the site's author unless the page
+names another), or the publisher with `main_entity: publisher`, and which is
+`isPartOf` the `WebSite` when `site_identity` is on:
+
+```yaml
+---
+layout: home
+title: Jane Doe
+schema_type: ProfilePage
+seo_title: Jane Doe (janedoe), data scientist and statistician
+seo_title_suffix: false
+---
+```
+
+Every `<title>` ends with ` | ` and the site's title. `seo_title_suffix: false`
+leaves that out, for a title that already names the site; a string, such as
+`seo_title_suffix: Jane Doe`, replaces the site's title after the bar. The share
+cards use the title alone either way. The meta description and the JSON-LD
+`description` read the same fields in the same order: `seo_description`, then
+`description`, then the excerpt, then the site's `description`.
+
+### Publishing a dataset so it can be found
+
+A page in `_datasets/` carries `schema.org/Dataset` structured data, which is
+what [Google Dataset Search](https://datasetsearch.research.google.com/)
+indexes — an ordinary `WebPage` description does not reach it. The front matter
+the dataset layout already renders is what fills it in, so most of this costs
+nothing extra:
+
+```yaml
+---
+title: Urban Mobility Sensor Dataset
+summary: Multimodal transit sensor readings across Porto.
+updated: 2024-05-01
+license: CC-BY-4.0            # resolved to the licence's own URL
+download_url: https://example.com/data/urban-mobility.zip
+schema:                       # each field becomes a variableMeasured
+  - name: timestamp
+    description: UTC timestamp of the observation
+---
+```
+
+Optional front matter, each left out of the output when absent:
+
+| Key | Becomes |
+| --- | --- |
+| `doi` | `identifier`, as a PropertyValue and a `https://doi.org/…` URL |
+| `keywords` | `keywords`; falls back to `tags` |
+| `temporal_coverage` | `temporalCoverage`, e.g. `2019-01-01/2021-12-31` |
+| `spatial_coverage` | `spatialCoverage` |
+| `measurement_technique` | `measurementTechnique` |
+| `citation` | `citation` |
+| `is_accessible_for_free: false` | marks a dataset behind a wall |
+| `distributions` | several downloads instead of one `download_url` |
+
+`distributions` takes a list, and each entry may be a bare URL or a hash:
+
+```yaml
+distributions:
+  - url: https://example.com/data/readings.csv
+    name: Tabular export
+  - url: /data/readings.parquet     # a site-relative path is made absolute
+```
+
+The media type is inferred from the extension — csv, tsv, json, jsonl, zip, gz,
+parquet, xlsx, nc, h5 — and `format:` on the entry overrides it.
+
+Two things worth knowing. A dataset with no `date:` in its front matter claims
+no `datePublished`: Jekyll gives a collection document the build time, and
+writing that out would both invent a date and change the page on every build.
+And every dataset names the site's `/datasets/` index as the `DataCatalog` it
+belongs to.
 
 ## 9. Accessibility Guidelines
 
@@ -244,6 +440,7 @@ When you're ready to publish a new version of DataLog or announce major updates:
 
 - **Playwright integration specs**: `tests/integration/` verifies the rendered site in a real browser: landmarks and keyboard access, the dark-mode toggle, responsive layout without horizontal overflow, blog navigation and reading progress, search, and visualization loading with accessible data tables. Run them with `npm run test:integration` (builds and serves the site for you) or `npm run test:integration:direct` against an existing `PLAYWRIGHT_BASE_URL`.
 - **Where they run**: the deploy workflow runs the same specs against the freshly built site before publishing, so a regression there blocks the deploy rather than the site.
+- **Coverage**: `bundle exec rake coverage` runs the Minitest suite under SimpleCov and holds it to the thresholds in `.simplecov`; `npm run test:coverage` does the same for the browser modules against `vitest.config.js`. Both write a readable report into `coverage/`. A plain `rake test` measures nothing and stays about three times quicker.
 
 For support or collaboration inquiries, reach out to **Diogo Ribeiro** (<dfr@esmad.ipp.pt>) or open a GitHub issue at [`DiogoRibeiro7/analytics-blog-jekyll`](https://github.com/DiogoRibeiro7/analytics-blog-jekyll).
 

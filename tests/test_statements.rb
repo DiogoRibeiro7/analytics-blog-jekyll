@@ -1,21 +1,11 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Theorems, definitions and the other statements, and proofs
 # (_plugins/statements.rb). Articles wrote them as a blockquote with a bold
 # "Theorem 1." typed by hand, which nothing numbered, linked or checked (#249).
 class StatementsTest < Minitest::Test
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
-
   def statement(kind, id, body = "A statement.", attributes = "")
     "{% #{kind} id=\"#{id}\"#{attributes} %}\n#{body}\n{% end#{kind} %}\n"
   end
@@ -113,26 +103,23 @@ class StatementsTest < Minitest::Test
   end
 
   def test_an_excerpt_reads_statement_numbers_from_the_post_source
-    FileUtils.mkdir_p(File.join(@dir, "_posts"))
-    File.write(File.join(@dir, "_posts", "2024-05-01-limits.md"),
-               "---\nlayout: null\n---\nBy {% ref thm-b %} and {% ref thm-main %}.\n\n" \
-               "#{statement('theorem', 'thm-main', 'Main.', ' label="A"')}#{statement('theorem', 'thm-b')}")
-    listing = build("{% for post in site.posts %}{{ post.excerpt }}{% endfor %}")
+    limits = "---\nlayout: null\n---\nBy {% ref thm-b %} and {% ref thm-main %}.\n\n" \
+             "#{statement('theorem', 'thm-main', 'Main.', ' label="A"')}#{statement('theorem', 'thm-b')}"
+    listing = build("{% for post in site.posts %}{{ post.excerpt }}{% endfor %}",
+                    posts: { "2024-05-01-limits" => limits })
 
     assert_equal ["Theorem 1", "Theorem A"], listing.css("a.datalog-ref").map(&:text)
   end
 
   private
 
-  def build(body, front_matter: "")
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "index.md"), "---\nlayout: null\n#{front_matter}---\n\n#{body}")
-    config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Statements",
-      "url" => "https://example.org", "author" => { "name" => "Test" }, "kramdown" => { "input" => "GFM" }
-    )
-    Jekyll::Site.new(config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+  # `posts` are whole files, front matter and all, for the tests about what a
+  # post's excerpt carries into a listing.
+  def build(body, front_matter: "", posts: {})
+    TestSite.build(title: "Statements", kramdown: { "input" => "GFM" }) do |source|
+      source.theme("_data/i18n")
+      source.page("index.md", body, "layout: null\n#{front_matter}")
+      posts.each { |name, contents| source.write("_posts/#{name}.md", contents) }
+    end.html("index.html")
   end
 end

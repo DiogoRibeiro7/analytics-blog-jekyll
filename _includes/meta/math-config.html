@@ -6,7 +6,13 @@ optional:
   - status_id
 ---
 Computes math rendering settings shared by layouts.
-Exposes math_enabled, math_engine, math_status_id, and math_has_expressions variables.
+Exposes math_enabled, math_engine, math_status_id, math_has_expressions,
+math_numbering and math_display_style variables.
+
+math_numbering is theme_options.math.numbering, `ams` unless it is `all` or
+`none`, and becomes MathJax's `tex.tags` in head.html. math_display_style is
+`card` when theme_options.math.display_style says so and `plain` otherwise; the
+layout marks a card site's <body> with `math-card`.
 
 math_enabled resolves, in order: the page's `math` front matter, then its
 `mathjax` front matter, then `theme_options.math.render_on_load` (falling back
@@ -26,6 +32,14 @@ only on pages that opt in.
 {%- assign math_settings = site.theme_options.math | default: {} -%}
 {%- assign math_engine = include.page.math_engine | default: math_settings.engine | default: 'mathjax' -%}
 {%- assign math_status_id = include.status_id | default: 'math-status' -%}
+{%- assign math_numbering = math_settings.numbering | default: 'ams' -%}
+{%- unless math_numbering == 'all' or math_numbering == 'none' -%}
+  {%- assign math_numbering = 'ams' -%}
+{%- endunless -%}
+{%- assign math_display_style = 'plain' -%}
+{%- if math_settings.display_style == 'card' -%}
+  {%- assign math_display_style = 'card' -%}
+{%- endif -%}
 {%- assign math_expressions = include.page.math_expressions | default: '' -%}
 {%- assign math_has_expressions = false -%}
 {%- if math_expressions != blank and math_expressions != empty -%}

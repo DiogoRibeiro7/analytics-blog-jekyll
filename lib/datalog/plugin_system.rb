@@ -97,6 +97,9 @@ module Datalog
           next unless plugin.respond_to?(hook)
 
           plugin.public_send(hook, *args)
+        rescue Jekyll::Errors::FatalException
+          # A plugin's build error is the site's, as {% ref %}'s are: it stops the build.
+          raise
         rescue StandardError => e
           Jekyll.logger.warn("datalog plugin", "#{plugin.id} failed during #{hook}: #{e.message}")
         end
@@ -112,6 +115,8 @@ module Datalog
           next unless result.is_a?(Hash)
 
           acc.replace(deep_merge(acc, result))
+        rescue Jekyll::Errors::FatalException
+          raise
         rescue StandardError => e
           Jekyll.logger.warn("datalog plugin", "#{plugin.id} failed during #{hook}: #{e.message}")
         end

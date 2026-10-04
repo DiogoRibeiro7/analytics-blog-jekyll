@@ -5,7 +5,6 @@ date: 2024-04-11
 tags: [dataset, announcement, documentation]
 difficulty: beginner
 summary: Introduce a curated retail demand dataset, document its schema, and outline governance steps for contributors.
-hero: /assets/images/posts/dataset-announcement.jpg
 ---
 
 Today we are releasing the **Retail Demand Benchmark** dataset to help analytics teams evaluate forecasting models under realistic constraints. The DataLog theme lets you pair documentation, schema tables, and governance checklists in one place.

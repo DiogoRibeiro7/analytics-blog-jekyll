@@ -40,6 +40,7 @@ export function renderResults(results, query, elements) {
     const mathCodeEl = clone.querySelector("[data-result-math-code]");
     const mathCopyButton = clone.querySelector("[data-result-math-copy]");
     const excerptEl = clone.querySelector("[data-result-excerpt]");
+    const sectionsEl = clone.querySelector("[data-result-sections]");
     const tagsEl = clone.querySelector("[data-result-tags]");
     const dateEl = clone.querySelector("[data-result-date]");
 
@@ -85,11 +86,14 @@ export function renderResults(results, query, elements) {
               display: false,
               enhance: false
             });
+            withdrawFromTabOrder(mathPreviewEl);
           } else if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
             mathPreviewEl.textContent = `\\(${result.mathSnippet}\\)`;
-            window.MathJax.typesetPromise([mathPreviewEl]).catch(() => {
-              mathPreviewEl.textContent = result.mathSnippet;
-            });
+            window.MathJax.typesetPromise([mathPreviewEl])
+              .then(() => withdrawFromTabOrder(mathPreviewEl))
+              .catch(() => {
+                mathPreviewEl.textContent = result.mathSnippet;
+              });
           } else {
             mathPreviewEl.textContent = result.mathSnippet;
           }
@@ -111,6 +115,8 @@ export function renderResults(results, query, elements) {
         excerptEl.hidden = true;
       }
     }
+
+    renderSections(sectionsEl, result, query);
 
     if (codeEl && codeCodeEl) {
       if (result.codeSnippet && result.codeSnippet.code) {
@@ -156,6 +162,67 @@ export function renderResults(results, query, elements) {
   });
 
   resultsList.appendChild(fragment);
+}
+
+/**
+ * Lists the sections of a page that matched, under its result. A reader who
+ * searches for a term buried in a 6,000-word article would otherwise land at
+ * the top of it and start again with Ctrl+F.
+ * @param {Element|null} container - The [data-result-sections] element
+ * @param {object} result - One search result, with its `sections`
+ * @param {string} query - What was searched for, for the highlighting
+ * @returns {void}
+ */
+function renderSections(container, result, query) {
+  if (!container) {
+    return;
+  }
+  const sections = Array.isArray(result.sections) ? result.sections : [];
+  const list = container.querySelector("ul");
+  const label = container.querySelector("[data-result-sections-label]");
+  if (!list || sections.length === 0) {
+    container.hidden = true;
+    return;
+  }
+
+  container.hidden = false;
+  if (label) {
+    label.textContent = sections.length === 1 ? "Matching section" : "Matching sections";
+  }
+  list.replaceChildren();
+  sections.forEach((section) => {
+    const item = document.createElement("li");
+    item.className = `search-result__section search-result__section--h${section.level || 2}`;
+
+    const link = document.createElement("a");
+    link.className = "search-result__section-link";
+    link.setAttribute("href", section.url);
+    link.insertAdjacentHTML("beforeend", highlightText(section.title || result.title || "", query));
+    item.appendChild(link);
+
+    if (section.snippet) {
+      const snippet = document.createElement("span");
+      snippet.className = "search-result__section-snippet";
+      snippet.insertAdjacentHTML("beforeend", highlightText(section.snippet, query));
+      item.appendChild(snippet);
+    }
+
+    list.appendChild(item);
+  });
+}
+
+/**
+ * Takes whatever a renderer left behind out of the tab order. The preview is
+ * `aria-hidden`, because the LaTeX beside it is the accessible copy, and
+ * MathJax gives its container `tabindex="0"` — a focus stop a screen reader
+ * cannot describe, which is what aria-hidden-focus flags (#365).
+ * @param {Element} container - The aria-hidden preview
+ * @returns {void}
+ */
+function withdrawFromTabOrder(container) {
+  container.querySelectorAll("[tabindex]").forEach((node) => {
+    node.setAttribute("tabindex", "-1");
+  });
 }
 
 function copyToClipboard(value, container) {

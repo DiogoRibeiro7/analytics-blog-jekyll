@@ -1,6 +1,7 @@
 ---
 layout: default
 schema_type: TechArticle
+article_meta: false # the default heading adds no date or byline above this layout's own header
 ---
 
 {% assign localization_config = site.theme_options.localization %}
@@ -48,6 +49,15 @@ schema_type: TechArticle
 {% assign has_categories = false %}
 {% if page.categories and page.categories.size > 0 %}{% assign has_categories = true %}{% endif %}
 
+{%- comment -%}
+  Where the author and editorial note goes: after the article by default
+  (theme_options.provenance.position: end), or before it with `start`. A page
+  chooses for itself with provenance_position in its front matter.
+{%- endcomment -%}
+{% assign provenance_position = page.provenance_position | default: site.theme_options.provenance.position | default: 'end' %}
+{% assign provenance_first = false %}
+{% if provenance_position == 'start' %}{% assign provenance_first = true %}{% endif %}
+
 {%- comment -%} ISO 8601 duration for reading time {%- endcomment -%}
 {% assign time_required = 'PT' | append: reading_minutes | append: 'M' %}
 
@@ -55,6 +65,7 @@ schema_type: TechArticle
 {% include components/breadcrumbs.html %}
 
 <div class="post-wrapper" itemscope itemtype="https://schema.org/TechArticle">
+  <meta itemprop="headline" content="{{ page.title | escape }}" />
   <meta itemprop="url" content="{{ canonical_url }}" />
   <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}" />
   {% if page.last_modified_at or page.updated %}
@@ -123,6 +134,8 @@ schema_type: TechArticle
           </dd>
         </div>
       {% endif %}
+      {%- comment -%} With the note after the article, the metadata says there is one, and when the article was reviewed {%- endcomment -%}
+      {% unless provenance_first %}{% include components/content-provenance.html page=page date_format=date_format pointer=true %}{% endunless %}
     </dl>
   </section>
 
@@ -157,8 +170,8 @@ schema_type: TechArticle
     </section>
   {% endif %}
 
-  {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at) {%- endcomment -%}
-  {% include components/content-provenance.html page=page date_format=date_format %}
+  {%- comment -%} Editorial provenance (why_this_exists, evidence, methodology, reviewed_at), here with provenance position `start` {%- endcomment -%}
+  {% if provenance_first %}{% include components/content-provenance.html page=page date_format=date_format %}{% endif %}
 
   {%- comment -%} The article's series: every part in order, and the previous and next ones {%- endcomment -%}
   {% include components/series-nav.html page=page %}
@@ -188,6 +201,9 @@ schema_type: TechArticle
 
   {%- comment -%} The code, data and environment behind the analysis {%- endcomment -%}
   {% include components/reproducibility.html page=page %}
+
+  {%- comment -%} How the article was made: after it, by default, as the apparatus that follows the text {%- endcomment -%}
+  {% unless provenance_first %}{% include components/content-provenance.html page=page date_format=date_format %}{% endunless %}
 
   {%- comment -%} Report an error: structured feedback to the author, on a site with a backend {%- endcomment -%}
   {% include components/correction-report.html %}
@@ -281,8 +297,9 @@ schema_type: TechArticle
   {% assign subscribe_placement = site.subscriptions.placement | default: 'footer' %}
   {% if subscribe_placement contains 'post' %}{% include components/subscribe-form.html where='post' %}{% endif %}
 
-  {%- comment -%} ===== Robust related posts (no where_exp, no nil sort) ===== {%- endcomment -%}
-  {% include post/related-posts.html page=page date_format=date_format %}
+  {%- unless page.related_posts == false -%}
+    {% include post/related-posts.html page=page date_format=date_format %}
+  {%- endunless -%}
 
   <nav class="post-pagination" aria-label="Post navigation">
     {% if page.previous %}
@@ -326,65 +343,7 @@ schema_type: TechArticle
 </div>
 
 <script nonce="{{ page.csp_nonce }}">
-  // Enhance code blocks with a copy button and language badge.
   document.addEventListener('DOMContentLoaded', function () {
-    const codeBlocks = document.querySelectorAll('.post-content pre > code');
-    codeBlocks.forEach(function (codeBlock) {
-      const pre = codeBlock.parentElement;
-      if (!pre || pre.querySelector('.code-copy')) return;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'code-block-wrapper';
-      pre.parentNode.insertBefore(wrapper, pre);
-      wrapper.appendChild(pre);
-
-      const metaBar = document.createElement('div');
-      metaBar.className = 'code-block-meta';
-
-      // Rouge puts the language on the block's wrapper rather than on the code.
-      // With line numbers on, the code is a table whose first column holds the
-      // numbers, and the copy leaves them out.
-      const langHolder = codeBlock.matches('[class*="language-"]') ? codeBlock : codeBlock.closest('.highlighter-rouge');
-      const lang = langHolder && langHolder.getAttribute('class');
-      const source = codeBlock.querySelector('.rouge-code') || codeBlock;
-      if (lang) {
-        const m = lang.match(/language-([a-z0-9+#]+)/i);
-        if (m) {
-          const langBadge = document.createElement('span');
-          langBadge.className = 'code-language';
-          langBadge.textContent = m[1].toUpperCase();
-          metaBar.appendChild(langBadge);
-        }
-      }
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'code-copy';
-      button.setAttribute('aria-label', 'Copy code to clipboard');
-      button.textContent = 'Copy';
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        button.addEventListener('click', function () {
-          navigator.clipboard.writeText(source.textContent).then(function () {
-            button.textContent = 'Copied!';
-            button.classList.add('is-copied');
-            setTimeout(function () {
-              button.textContent = 'Copy';
-              button.classList.remove('is-copied');
-            }, 2000);
-          }).catch(function () {
-            button.textContent = 'Error';
-          });
-        });
-      } else {
-        button.disabled = true;
-        button.title = 'Clipboard copying is not supported in this browser';
-      }
-
-      metaBar.appendChild(button);
-      wrapper.insertBefore(metaBar, pre);
-    });
-
     // Make equation references focus their targets for accessibility. This runs
     // on DOMContentLoaded, before MathJax has loaded, when window.MathJax is
     // still the configuration object and has no startup.promise; reading it

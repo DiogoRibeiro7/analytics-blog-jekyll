@@ -30,6 +30,40 @@ test.describe('Math decoration', () => {
     await expect(named).toHaveCount(total);
   });
 
+  // A name used to lose every command without a rule: Theorem 1's
+  // "f : [a, b] \to \mathbb{R}" was named "f : [a, b] R" (#417).
+  test('each name says what its expression says', async ({ page }) => {
+    const labels = await page
+      .locator('mjx-container[role="math"]')
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label')));
+    expect(labels).toEqual(expect.arrayContaining(['f: [a, b] to double-struck R', 'c in (a, b)', 'square']));
+    for (const label of labels) {
+      expect(label).not.toMatch(/\\|eq:|Mathematical expression/);
+    }
+  });
+
+  // The editor's preview is a live region, so a screen reader announces what
+  // is drawn in it. Unnamed, that was its MathML flattened to text: "σ 2 + E
+  // [X]" for \sigma^2 + \mathbb{E}[X], and "\[a" for a<b, which drew nothing
+  // (#422).
+  test("the editor's preview names what it draws", async ({ page }) => {
+    await page.locator('[data-math-edit]').first().click();
+    const input = page.locator('[data-math-editor-input]');
+    const preview = page.locator('[data-math-editor-preview]');
+    const expression = preview.locator('mjx-container');
+    await expect(preview).toHaveAttribute('aria-live', 'polite');
+
+    await input.fill('\\sigma^2 + \\mathbb{E}[X]');
+    await expect(expression).toHaveAttribute('aria-label', 'sigma squared + double-struck E [X]');
+    await expect(expression).toHaveAttribute('role', 'math');
+    await expect(preview).toMatchAriaSnapshot('- math "sigma squared + double-struck E [X]"');
+
+    // The name follows the LaTeX, and a "<" in it is drawn, not read as a tag.
+    await input.fill('a<b');
+    await expect(expression).toHaveAttribute('aria-label', 'a<b');
+    await expect(preview).not.toContainText('\\[');
+  });
+
   test('a display equation carries the copy and edit tools', async ({ page }) => {
     const equation = page.locator('.math-expression').first();
     await expect(equation.locator('[data-math-copy]')).toHaveCount(1);
@@ -38,14 +72,15 @@ test.describe('Math decoration', () => {
 
   test('an equation is numbered once, by MathJax', async ({ page }) => {
     // MathJax draws its own number when `tex.tags` is on, and the theme ships
-    // `tags: 'all'`. A badge of the toolkit's own would be the same number a
-    // second time, in the corner of the card.
+    // `tags: 'ams'`. A badge of the toolkit's own would be the same number a
+    // second time, beside the equation. The display between the two labelled
+    // ones has no label, and no number.
     await expect(page.locator('.math-expression__number')).toHaveCount(0);
 
     const numbers = await page.locator('.math-expression').evaluateAll((nodes) =>
-      nodes.map((node) => node.dataset.equationNumber)
+      nodes.map((node) => node.dataset.equationNumber || '')
     );
-    expect(numbers).toEqual(['(1)', '(2)']);
+    expect(numbers).toEqual(['(1)', '', '(2)']);
   });
 
   test('the tools sit beside the expression, not inside it', async ({ page }) => {
@@ -67,5 +102,64 @@ test.describe('Math decoration', () => {
       Boolean(document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))))
     );
     expect(resolved).toBe(true);
+  });
+});
+
+// The build names the expressions it wraps. The browser names, in the same
+// words, one the build left alone, such as maths written in raw HTML (#417).
+// The expression goes into the page as it is served, so it is there before
+// MathJax, whose script is async, can look at the page.
+test.describe('Math the build did not wrap', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
+
+  test('is named in the same words', async ({ page }) => {
+    const url = new URL(article, baseUrl).href;
+    await page.route(url, async (route) => {
+      const response = await route.fetch();
+      const html = (await response.text()).replace(
+        '<div class="post-content" itemprop="articleBody">',
+        '$&<p id="unwrapped-math">\\(\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1\\)</p>'
+      );
+      await route.fulfill({ response, body: html });
+    });
+    await page.goto(url, { waitUntil: 'load' });
+    await expect(page.locator('#unwrapped-math')).toHaveCount(1);
+
+    await expect(page.locator('#unwrapped-math mjx-container')).toHaveAttribute(
+      'aria-label',
+      'limit as x approaches 0 sin x over x = 1'
+    );
+    await expect(page.locator('#unwrapped-math [data-math-alt]:not(mjx-container)')).toHaveCount(0);
+  });
+});
+
+// The toolkit starts whichever of MathJax and math.js is ready second. With
+// MathJax cached it was often ready first, and then nothing started the
+// toolkit: no expression got its tab stop, its name or its tools (#421).
+test.describe('Math toolkit start-up', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
+
+  test('starts when math.js loads after MathJax has typeset the page', async ({ page }) => {
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route('**/assets/js/dist/math.js', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(new URL(article, baseUrl).href, { waitUntil: 'load' });
+
+    // MathJax has typeset the page, and nothing has decorated it yet.
+    await page.waitForFunction(
+      () => window.MathJax?.startup?.document && document.querySelectorAll('mjx-container').length > 10
+    );
+    await expect(page.locator('mjx-container[tabindex="0"]')).toHaveCount(0);
+    release();
+
+    const total = await page.locator('mjx-container:not(:has(a[href]))').count();
+    await expect(page.locator('mjx-container[tabindex="0"][role="math"][aria-label]')).toHaveCount(total);
+    await expect(page.locator('[data-math-edit]').first()).toBeAttached();
+    expect(await page.evaluate(() => window.__DATALOG_MATH_INTERNALS__.numbering)).toBe('ams');
   });
 });

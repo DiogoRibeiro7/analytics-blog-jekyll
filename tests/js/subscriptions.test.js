@@ -273,6 +273,15 @@ describe('the subscribe form', () => {
     expect(form.dataset.result).toBe('pending');
   });
 
+  it('asks at once when the reader was already in the form before the script arrived', async () => {
+    const client = fakeClient();
+    form.elements.namedItem('email').focus();
+    initSubscribeForm(root, { client });
+    await flush();
+
+    expect(client.feature).toHaveBeenCalledTimes(1);
+  });
+
   it('is disabled without a backend or when the service does not take subscriptions, and asks once on first focus', async () => {
     const off = initSubscribeForm(root, { client: fakeClient({ enabled: false }) });
     expect(off.available).toBe(false);

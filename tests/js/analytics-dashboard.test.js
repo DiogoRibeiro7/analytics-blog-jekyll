@@ -1100,4 +1100,53 @@ describe('Analytics Dashboard Module', () => {
       expect(tbody.textContent).toContain('0');
     });
   });
+
+  describe('chart data and theme colours', () => {
+    beforeEach(() => {
+      document.body.innerHTML = `
+        <div class="analytics-dashboard" data-chart-unavailable="Chart unavailable" data-no-chart-data="No chart data">
+          <div class="analytics-card">
+            <div class="analytics-chart"><canvas id="analytics-visitors-chart"></canvas><p class="analytics-chart-status"></p></div>
+            <details class="analytics-chart-data" hidden><summary>View data table</summary>
+              <table><thead></thead><tbody></tbody></table></details>
+          </div>
+        </div>`;
+      window.__DATALOG_ANALYTICS__ = {
+        visitor_trends: { rows: [{ dimensionValues: [{ value: '20260927' }],
+          metricValues: [{ value: '12' }, { value: '4' }, { value: '9' }, { value: '17' }] }] }
+      };
+    });
+
+    afterEach(() => {
+      delete window.Chart;
+      vi.restoreAllMocks();
+    });
+
+    it('keeps real chart values in a table when Chart.js is unavailable', () => {
+      renderVisitorChart();
+
+      expect(document.querySelector('.analytics-chart-data').hidden).toBe(false);
+      expect(document.querySelector('.analytics-chart-status').textContent).toBe('Chart unavailable');
+      expect(document.querySelector('#analytics-visitors-chart').hidden).toBe(true);
+      expect(document.querySelector('.analytics-chart-data thead').textContent).toBe('DateTotal usersNew usersSessionsPage views');
+      expect(document.querySelector('.analytics-chart-data tbody').textContent).toBe('2026-09-27124917');
+    });
+
+    it('rebuilds charts with current theme tokens', () => {
+      const chart = vi.fn();
+      chart.getChart = vi.fn(() => ({ destroy: vi.fn() }));
+      window.Chart = chart;
+      let colour = '#2155a6';
+      vi.spyOn(window, 'getComputedStyle').mockImplementation(() => ({
+        getPropertyValue: (name) => name === '--analytics-series-1' ? colour : ''
+      }));
+
+      renderVisitorChart();
+      expect(chart.mock.calls[0][1].data.datasets[0].borderColor).toBe('#2155a6');
+      colour = '#88adff';
+      renderVisitorChart();
+      expect(chart.mock.calls[1][1].data.datasets[0].borderColor).toBe('#88adff');
+      expect(chart.getChart).toHaveBeenCalledTimes(2);
+    });
+  });
 });

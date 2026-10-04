@@ -6,12 +6,13 @@ permalink: /guides/
 
 <section class="section">
   <div class="container">
-    <p>Guides combine narrative walkthroughs with configuration snippets. Start with the migration guide or explore the
-    visualization recipes to bring your analytics story to life.</p>
+    <p>Begin with installation and configuration, then explore migration or the live feature examples.</p>
     <ul>
-      <li><a href="/guides/migration/">Migration guides</a></li>
-      <li><a href="/visualizations/">Visualization gallery</a></li>
-      <li><a href="/features/">Feature catalog</a></li>
+      <li><a href="{{ '/guides/installation/' | relative_url }}">Install the theme</a></li>
+      <li><a href="{{ '/guides/configuration/' | relative_url }}">Configure a site</a></li>
+      <li><a href="{{ '/guides/technical-content/' | relative_url }}">Write technical pages</a></li>
+      <li><a href="{{ '/guides/migration/' | relative_url }}">Migrate an existing site</a></li>
+      <li><a href="{{ '/features/' | relative_url }}">Browse theme features</a></li>
     </ul>
   </div>
 </section>

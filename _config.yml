@@ -21,7 +21,7 @@ description: >-
   reproducible analyses, research papers, tutorials, datasets, and project portfolios.
 url: "https://diogoribeiro7.github.io"
 baseurl: ""
-theme_version: 0.10.1
+theme_version: 0.11.0
 
 # The licence of the articles' text and figures (the repository's LICENSE covers
 # the theme's software). A page sets its own with `license:`, or none with `license: false`.
@@ -207,18 +207,27 @@ features:
 
 critical_css:
   enabled: true
+  engine: render   # or static: no browser, more CSS
   dimensions:
     - width: 1920
       height: 1080
     - width: 375
       height: 667
-  penthouse_options:
-    timeout: 30000
 
 # -----------------------------------------------------------------------------
 # Theme Options
 # -----------------------------------------------------------------------------
 theme_options:
+  # First visit uses the dark palette. Visitors can switch modes in the header;
+  # their explicit choice takes precedence over this site-wide default.
+  color_scheme:
+    default: dark  # dark, light, or system
+  # A share card for each post without an og_image of its own: its title,
+  # series, author and date on the theme's colours, drawn by ImageMagick at
+  # build time. Without ImageMagick, posts keep social.default_image.
+  social_cards:
+    enabled: true
+    scheme: dark   # or light
   # The "Reading mode" control on posts: the article without the site around it.
   reading_mode:
     enabled: true
@@ -235,6 +244,8 @@ theme_options:
     output: chtml
     accessibility: true
     render_on_load: auto
+    display_style: plain  # or card: each display equation in a framed panel
+    numbering: ams        # or all, none: which display equations MathJax numbers
     katex_cdn: https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/
     mathjax_cdn: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
   localization:
@@ -271,11 +282,12 @@ dynamic_services:
     corrections: true
     contact: true
 
-# The correction-report form on posts: structured feedback to the author,
-# through the dynamic services above. Labels for the categories live in
-# _data/i18n under corrections.categories.
+# The correction-report form uses dynamic services when available. Otherwise,
+# a static issue link (with `repository` set) or email link is offered.
+# Labels for categories and fallback text live in _data/i18n.
 corrections:
   enabled: true
+  issue_labels: [correction]
   categories:
     - mathematical-error
     - factual-error
@@ -382,6 +394,13 @@ datalog_plugins:
 analytics:
   ga4_property_id: ""
   ga4_credentials_path: ""
+
+# -----------------------------------------------------------------------------
+# Content audit (bundle exec datalog audit)
+# -----------------------------------------------------------------------------
+audit:
+  # The Minimal Mistakes demo post keeps author_profile to show it is accepted.
+  known_keys: [author_profile]
 
 # -----------------------------------------------------------------------------
 # Exclusions

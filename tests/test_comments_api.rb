@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # The `api` comments provider (#253): the thread shell the plugin renders on
@@ -11,15 +9,6 @@ require_relative "test_helper"
 class CommentsApiTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "features" => { "comments" => true } }.freeze
   POST = "2024/01/01/thread/index.html"
-
-  def setup
-    SiteBuilder.build # loads the theme's plugins into the process
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_api_provider_renders_the_thread_shell
     doc = build(comments: { "provider" => "api" })
@@ -96,43 +85,28 @@ class CommentsApiTest < Minitest::Test
 
   # A site with the comments plugin on and one post that shows comments.
   def build(comments:, services: SERVICES, front_matter: "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_layouts"))
-    FileUtils.mkdir_p(File.join(@dir, "_posts"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "comments-thread.html"),
-                 File.join(@dir, "_includes", "components", "comments-thread.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "_layouts", "post.html"),
-               "{{ content }}\n{% if page.datalog_comments %}{% datalog_comments %}{% endif %}\n")
-    File.write(File.join(@dir, "_posts", "2024-01-01-thread.md"),
-               "---\nlayout: post\ntitle: Thread\ncomments: true\n#{front_matter}---\n\nHello.\n")
     config = {
       "datalog_plugins" => { "enabled" => %w[datalog-search datalog-comments],
                              "options" => { "datalog-comments" => comments } }
     }
     config["dynamic_services"] = services if services
-    process(config)
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", POST)))
+    site_for(config) do |source|
+      source.theme("_includes/components/comments-thread.html", "_data/i18n")
+      source.layout("post.html", "{{ content }}\n{% if page.datalog_comments %}{% datalog_comments %}{% endif %}\n")
+      source.post("2024-01-01-thread", "Hello.", "layout: post\ntitle: Thread\ncomments: true\n#{front_matter}")
+    end.html(POST)
   end
 
   # The policy csp-meta.html writes for a page under the given configuration.
   def csp(config)
-    FileUtils.mkdir_p(File.join(@dir, "_includes"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "csp-meta.html"),
-                 File.join(@dir, "_includes", "csp-meta.html"))
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Policy\n---\n{% include csp-meta.html %}\n")
-    process(config)
-    html = File.read(File.join(@dir, "_site", "index.html"))
+    html = site_for(config) do |source|
+      source.theme("_includes/csp-meta.html")
+      source.page("index.html", "{% include csp-meta.html %}", "layout: null\ntitle: Policy\n")
+    end.read("index.html")
     html[/content="([^"]*)"/, 1].to_s
   end
 
-  def process(config)
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Comments",
-        "url" => "https://example.org", "author" => { "name" => "Test" },
-        "permalink" => "/:year/:month/:day/:title/" }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
+  def site_for(config, &)
+    TestSite.build({ title: "Comments", permalink: "/:year/:month/:day/:title/" }.merge(config), &)
   end
 end

@@ -35,6 +35,12 @@ module Jekyll
     CODERS = { "jpeg" => "JPEG", "png" => "PNG", "webp" => "WEBP" }.freeze
     CACHE_DIR = "datalog-images"
 
+    # The file-name suffix that marks a dark twin, and the query the markup
+    # asks the browser. The site's script narrows this when a reader has used
+    # the theme toggle, whose choice the operating system does not know about.
+    DEFAULT_DARK_SUFFIX = "-dark"
+    DARK_MEDIA = "(prefers-color-scheme: dark)"
+
     # The one image a page fetches early: the first in its post or page content,
     # unless the author made it lazy or the page already preloads an image, as
     # the hero does. The first <img> anywhere used to be marked both lazy and
@@ -80,23 +86,18 @@ module Jekyll
         normalized_src = normalize_src(img["src"], site)
         picture_entry = manifest[normalized_src]
 
+        dark = dark_twin(img, picture_entry, manifest, site)
+        offer_variants(img, picture_entry, dark, image_config, baseurl) if picture_entry || dark
+
         if picture_entry
-          offer_variants(img, picture_entry, image_config, baseurl)
           if !img["width"] && !img["height"] && picture_entry["width"] && picture_entry["height"]
             img["width"] = picture_entry["width"].to_s
             img["height"] = picture_entry["height"].to_s
           end
-        else
-          next if img["width"] || img["height"]
-
-          source = image_source_path(site, normalized_src)
-          next unless source && File.exist?(source)
-
-          width, height = FastImage.size(source)
-          next unless width && height
-
-          img["width"] ||= width.to_s
-          img["height"] ||= height.to_s
+        elsif (size = unlisted_size(img, site, normalized_src))
+          img["width"], img["height"] = size.map(&:to_s)
+        elsif dark.nil?
+          next
         end
         optimized = true
       rescue StandardError => e
@@ -110,21 +111,31 @@ module Jekyll
 
     # Offers an image's generated variants: the resized copies as the <img>'s
     # srcset, and each modern format as a <source> in a <picture> around it.
-    # Markup the author chose, a srcset of their own or a <picture>, is left
-    # alone, and so is an image with nothing generated besides the original.
-    def offer_variants(img, entry, image_config, baseurl)
+    # An image with a dark companion is wrapped for that alone, even when the
+    # pipeline generated nothing else for it. Markup the author chose, a srcset
+    # of their own or a <picture>, is left alone, and so is an image with
+    # nothing generated besides the original.
+    def offer_variants(img, entry, dark, image_config, baseurl)
       return if img["srcset"] || img.parent&.name == "picture"
 
-      fallback = entry.dig("fallback", "variants") || []
-      sources = entry.fetch("sources", []).select { |source| source["type"] && source["variants"]&.any? }
-      return if fallback.size < 2 && sources.empty?
+      fallback = entry&.dig("fallback", "variants") || []
+      sources = (entry || {}).fetch("sources", []).select { |source| source["type"] && source["variants"]&.any? }
+      return if fallback.size < 2 && sources.empty? && dark.nil?
 
       sizes = img["sizes"] || image_config.fetch("default_sizes", "100vw")
-      img["srcset"] = build_srcset(fallback, baseurl) if fallback.size > 1
-      img["sizes"] = sizes
-      return if sources.empty?
+      # `sizes` without a `srcset` on the <img> says nothing; the <source>
+      # elements carry their own.
+      if fallback.size > 1
+        img["srcset"] = build_srcset(fallback, baseurl)
+        img["sizes"] = sizes
+      end
+      dark_first = dark_elements(img, dark, sizes, baseurl)
+      return if sources.empty? && dark_first.empty?
 
       picture = Nokogiri::XML::Node.new("picture", img.document)
+      # A <picture> takes the first source whose media and type both match, so
+      # the dark ones come first or they would never be reached.
+      dark_first.each { |element| picture.add_child(element) }
       sources.each do |source|
         element = Nokogiri::XML::Node.new("source", img.document)
         element["type"] = source["type"]
@@ -134,6 +145,59 @@ module Jekyll
       end
       img.add_previous_sibling(picture)
       picture.add_child(img)
+    end
+
+    # The dark companion of an image: the one the author named with `dark_src`,
+    # or the twin the build found beside it. A named companion is looked up in
+    # the manifest, so it is served with the same responsive variants as any
+    # other image; one the pipeline never saw, an SVG or an image on another
+    # host, is carried as the single file it is.
+    def dark_twin(img, entry, manifest, site)
+      named = img["data-dark-src"]
+      return entry && entry["dark"] unless named
+
+      img.remove_attribute("data-dark-src")
+      manifest[normalize_src(named, site)] || { "url" => named }
+    end
+
+    # The companion's <source> elements: its modern formats, then its own, so a
+    # browser that supports neither AVIF nor WebP still gets the dark image
+    # rather than the light one.
+    def dark_elements(img, dark, sizes, baseurl)
+      return [] unless dark
+      return [dark_element(img, nil, dark["url"], sizes)] if dark["url"]
+
+      sources = dark.fetch("sources", []).select { |source| source["type"] && source["variants"]&.any? }
+      fallback = dark["fallback"]
+      sources += [fallback] if fallback && fallback["variants"]&.any?
+      sources.map do |source|
+        dark_element(img, source["type"], build_srcset(source["variants"], baseurl), sizes)
+      end
+    end
+
+    # `data-dark-source` marks it for the toggle: a reader whose system is
+    # light and who has switched the site to dark needs the media query
+    # overruled, and the script has to know which sources to overrule.
+    def dark_element(img, type, srcset, sizes)
+      element = Nokogiri::XML::Node.new("source", img.document)
+      element["media"] = DARK_MEDIA
+      element["type"] = type if type
+      element["srcset"] = srcset
+      element["sizes"] = sizes
+      element["data-dark-source"] = ""
+      element
+    end
+
+    # The real size of an image the variant pipeline did not touch, read from
+    # the file, so the page does not shift while it loads. An image the author
+    # gave a width or a height has a deliberate aspect ratio and keeps it.
+    def unlisted_size(img, site, src)
+      return if img["width"] || img["height"]
+
+      source = image_source_path(site, src)
+      return unless source && File.exist?(source)
+
+      FastImage.size(source)
     end
 
     def prepare_site(site)
@@ -149,9 +213,35 @@ module Jekyll
         manifest[entry.delete("source")] = entry
       end
 
+      link_dark_variants(manifest, config)
       site.data["datalog_responsive_images"] = manifest
       site.config["datalog_image_config"] = config
       report(encoders, counts)
+    end
+
+    # A plot exported for a white page is unreadable on a dark one. An author
+    # exports a second file beside the first — power.png and power-dark.png —
+    # and every image that has such a twin carries it in the manifest, so the
+    # markup can offer both and the browser can choose.
+    #
+    # The twin is an image in its own right, so it already has its own entry
+    # with its own variants; this only records which entry belongs to which.
+    def link_dark_variants(manifest, config)
+      suffix = config.fetch("dark_suffix", DEFAULT_DARK_SUFFIX).to_s
+      return if suffix.empty?
+
+      manifest.each do |src, entry|
+        extension = File.extname(src)
+        next if extension.empty?
+        # The twin of a twin is not a thing.
+        next if File.basename(src, extension).end_with?(suffix)
+
+        twin = "#{src.delete_suffix(extension)}#{suffix}#{extension}"
+        dark = manifest[twin]
+        next unless dark
+
+        entry["dark"] = { "source" => twin, "sources" => dark["sources"], "fallback" => dark["fallback"] }
+      end
     end
 
     def report(encoders, counts)
@@ -469,7 +559,10 @@ module Jekyll
         "sizes" => options["sizes"] || options["breakpoints"] || DEFAULT_SIZES,
         "quality" => qualities,
         "lazy_loading" => options["lazy_loading"] || "lazy",
-        "default_sizes" => options["default_sizes"] || "100vw"
+        "default_sizes" => options["default_sizes"] || "100vw",
+        # An empty suffix turns the convention off, for a site whose file names
+        # end in "-dark" for some other reason.
+        "dark_suffix" => options.fetch("dark_suffix", DEFAULT_DARK_SUFFIX).to_s
       }
     end
   end
@@ -490,6 +583,20 @@ class Jekyll::ResponsiveImageStaticFile < Jekyll::StaticFile
     @cached_path
   end
 end
+
+# The srcset of a list of manifest variants, for markup built in Liquid.
+# `responsive-image.html` wrote its own, three times over, and it had to keep
+# in step with the one the optimizer writes for every other image.
+module Jekyll
+  module ImageSrcsetFilter
+    def image_srcset(variants)
+      site = @context.registers[:site]
+      Jekyll::ImageOptimizer.build_srcset(Array(variants), site&.config&.fetch("baseurl", "").to_s)
+    end
+  end
+end
+
+Liquid::Template.register_filter(Jekyll::ImageSrcsetFilter)
 
 class Jekyll::ImageOptimizerGenerator < Jekyll::Generator
   safe true

@@ -4,14 +4,23 @@
  * @module math
  */
 
+import { speakLatex } from './math/latex-speech.js';
+
 (function () {
   /**
    * MathToolkit object containing all math enhancement functionality.
    * @namespace MathToolkit
    */
   const MathToolkit = {
-    init(MathJax) {
+    /**
+     * @param {Object} MathJax - The MathJax global, once it has started
+     * @param {Object} [options]
+     * @param {string} [options.numbering] - theme_options.math.numbering, which
+     *   the theme's head passes: `ams`, `all` or `none`
+     */
+    init(MathJax, options = {}) {
       this.MathJax = MathJax;
+      this.numbering = options.numbering || null;
       this.displayCounter = 0;
       this.anchorCounter = 0;
       this.equationMap = new Map();
@@ -41,6 +50,89 @@
 
       document.addEventListener('click', (event) => this.handleClick(event));
       document.addEventListener('keydown', (event) => this.handleKeydown(event));
+      document.addEventListener('focusin', (event) => this.trackFocus(event));
+    },
+
+    /**
+     * Starts the toolkit when this script loads after MathJax's ready() has
+     * run. The head's ready() starts it only when this script is already
+     * there, and the loader imports it after DOMContentLoaded while MathJax
+     * loads async, so with MathJax cached nothing started it: no expression
+     * got its tab stop, its name or its tools (#421).
+     * @param {Object} MathJax - window.MathJax, the configuration until
+     *   MathJax loads; its `startup.document` exists once ready() has run
+     * @returns {boolean} Whether this call started the toolkit
+     */
+    start(MathJax) {
+      if (this.initialized || !MathJax || !MathJax.startup || !MathJax.startup.document) {
+        return false;
+      }
+      this.init(MathJax, (MathJax.config && MathJax.config.datalog) || {});
+      return true;
+    },
+
+    /**
+     * MathJax draws an expression again, into a new container, when a reader
+     * changes a setting in its menu or toggles a collapsible part. The new
+     * container had nothing decorateMathItem gave the first: no tab stop, no
+     * role, no label, and the focus fell to the page (#412). The theme's
+     * MathJax configuration calls this after it inserts an expression, on
+     * every render, so it does nothing for a container it has already seen.
+     *
+     * The record decorateMathItem keeps is shared rather than the expression:
+     * a document the menu builds anew copies each expression, and the copy
+     * holds the same record.
+     * @param {Object} item - A MathItem
+     */
+    restoreContainer(item) {
+      const saved = item ? item.datalogContainer : null;
+      const container = item ? item.typesetRoot : null;
+      if (!saved || !container || container === saved.root) {
+        return;
+      }
+      saved.root = container;
+      this.rememberContainer(container, saved);
+
+      container.dataset.mathLatex = saved.latex;
+      if (saved.interactive && !container.querySelector('a[href]')) {
+        container.setAttribute('tabindex', '0');
+        container.setAttribute('role', 'math');
+        if (saved.altText) {
+          container.setAttribute('aria-label', saved.altText);
+          container.dataset.mathAlt = saved.altText;
+        }
+      }
+      if (!item.display) {
+        this.decorateInline(container, saved.latex);
+      }
+      this.exposeReferenceLinks(container);
+
+      // A focused element that leaves the page hands the focus to <body>
+      // without a focus event, so the expression the reader was on is still
+      // the one trackFocus last saw.
+      const active = document.activeElement;
+      if (this.focusedRecord === saved && (!active || active === document.body || !active.isConnected)) {
+        container.focus();
+      }
+    },
+
+    /** Every expression of a document, after MathJax renders it. */
+    restoreAll(mathDocument) {
+      Array.from((mathDocument && mathDocument.math) || []).forEach((item) => this.restoreContainer(item));
+    },
+
+    rememberContainer(container, record) {
+      if (!this.recordByContainer) {
+        this.recordByContainer = new WeakMap();
+      }
+      this.recordByContainer.set(container, record);
+    },
+
+    /** The record of the expression that has the focus, or null. */
+    trackFocus(event) {
+      const target = event && event.target;
+      const container = target && typeof target.closest === 'function' ? target.closest('mjx-container') : null;
+      this.focusedRecord = container && this.recordByContainer ? this.recordByContainer.get(container) || null : null;
     },
 
     onPageReady() {
@@ -92,11 +184,15 @@
       // interactive control with a link inside it, which axe reads as a nested
       // interactive control; a reference is also already named by what MathJax
       // wrote and by the link exposeReferenceLinks puts after it.
-      if (!container.querySelector('a[href]')) {
+      const interactive = !container.querySelector('a[href]');
+      if (interactive) {
         container.setAttribute('tabindex', '0');
         container.setAttribute('role', 'math');
         this.syncAltAttributes(wrapper, container, altText);
       }
+      // What a container MathJax draws again in this one's place needs (#412).
+      item.datalogContainer = { root: container, latex, altText, interactive };
+      this.rememberContainer(container, item.datalogContainer);
 
       if (item.display) {
         this.decorateDisplay(container, latex);
@@ -136,6 +232,13 @@
           return;
         }
         drawn.dataset.mathReferenceExposed = 'true';
+
+        // An expression MathJax drew again keeps the link put after the first.
+        const next = after.nextElementSibling;
+        if (next && next.classList.contains('math-reference-link') && next.getAttribute('href') === href) {
+          after = next;
+          return;
+        }
 
         const source = assistive.find((node) => node.getAttribute('href') === href);
         const text = ((source && source.textContent) || drawn.textContent || '').replace(/\s+/g, ' ').trim();
@@ -236,9 +339,16 @@
      * environments are its to honour, and an `align` numbers each of its lines
      * where this toolkit sees one expression. Where it numbers, its numbers
      * are the ones the page shows and the ones references point at.
+     *
+     * A page whose head passed theme_options.math.numbering leaves every
+     * number to MathJax, `none` included: a `\tag{}` of the author's is then
+     * the only number, and the toolkit adds none of its own.
      * @returns {boolean}
      */
     mathJaxNumbersEquations() {
+      if (this.numbering) {
+        return true;
+      }
       const tex = this.MathJax && this.MathJax.config ? this.MathJax.config.tex : null;
       const tags = tex ? tex.tags : null;
       return Boolean(tags) && tags !== 'none';
@@ -677,7 +787,7 @@
         this.editor.preview.appendChild(placeholder);
         return;
       }
-      this.renderLatex(this.editor.preview, latex, { display: true, enhance: false });
+      this.renderLatex(this.editor.preview, latex, { display: true, name: true });
     },
 
     insertSymbol(value) {
@@ -766,11 +876,34 @@
         return Promise.resolve();
       }
       const wrapperLatex = display ? `\\[${latex}\\]` : `\\(${latex}\\)`;
-      // innerHTML required for MathJax rendering
-      target.innerHTML = wrapperLatex;
-      return this.MathJax.typesetPromise([target]).catch((error) => {
+      // As text, which is what MathJax reads. As HTML, a "<" in the LaTeX
+      // (a<b) began a tag, and nothing was typeset (#422).
+      target.textContent = wrapperLatex;
+      if (!this.renderedLatex) {
+        this.renderedLatex = new WeakMap();
+      }
+      this.renderedLatex.set(target, latex);
+      const typeset = this.MathJax.typesetPromise([target]).catch((error) => {
         console.warn('MathJax failed to typeset preview', error);
       });
+      return options.name ? typeset.then(() => this.nameRendered(target, latex)) : typeset;
+    },
+
+    /**
+     * Names an expression renderLatex typeset after the page's own, as those
+     * are named. The editor's preview is a live region, so a screen reader
+     * announces what is drawn in it: unnamed, that was its MathML flattened
+     * to text, "σ 2 + E [X]" for \sigma^2 + \mathbb{E}[X] (#422).
+     * @param {Element} target - Where renderLatex drew the expression
+     * @param {string} latex - What it drew, which a later call may replace
+     */
+    nameRendered(target, latex) {
+      const container = target.querySelector('mjx-container');
+      if (!container || this.renderedLatex.get(target) !== latex) {
+        return;
+      }
+      container.setAttribute('role', 'math');
+      container.setAttribute('aria-label', this.resolveAltText(null, latex));
     },
 
     cleanLatex(latex) {
@@ -830,66 +963,14 @@
       return '';
     },
 
+    // The words an expression reads as (math/latex-speech.js). Every command is
+    // read, or left out when it isn't part of what the expression says; it used to be dropped whenever
+    // this had no rule for it, so "c \in (a, b)" read "c (a, b)" (#417).
     generateAltFromLatex(latex) {
       if (!latex) {
         return '';
       }
-      let text = String(latex).replace(/%.*$/gm, '');
-
-      text = text.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, (_match, numerator, denominator) => {
-        const top = this.sanitizeSegment(numerator);
-        const bottom = this.sanitizeSegment(denominator);
-        return `${top} over ${bottom}`.trim();
-      });
-
-      text = text.replace(/\\int(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/g, (_match, lowerBraced, lowerSimple, upperBraced, upperSimple) => {
-        const lower = this.sanitizeSegment(lowerBraced || lowerSimple);
-        const upper = this.sanitizeSegment(upperBraced || upperSimple);
-        let phrase = 'integral';
-        if (lower) {
-          phrase += ` from ${lower}`;
-        }
-        if (upper) {
-          phrase += ` to ${upper}`;
-        }
-        return phrase;
-      });
-
-      text = text.replace(/\\sum(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/g, (_match, lowerBraced, lowerSimple, upperBraced, upperSimple) => {
-        const lower = this.sanitizeSegment(lowerBraced || lowerSimple);
-        const upper = this.sanitizeSegment(upperBraced || upperSimple);
-        let phrase = 'summation';
-        if (lower) {
-          phrase += ` from ${lower}`;
-        }
-        if (upper) {
-          phrase += ` to ${upper}`;
-        }
-        return phrase;
-      });
-
-      text = text.replace(/\\sqrt\s*\{([^{}]+)\}/g, (_match, radicand) => `square root of ${this.sanitizeSegment(radicand)}`);
-      text = text.replace(/\\mathrm\s*\{([^{}]+)\}/g, (_match, content) => this.sanitizeSegment(content));
-      text = text.replace(/\\operatorname\*?\s*\{([^{}]+)\}/g, (_match, content) => this.sanitizeSegment(content));
-      text = text.replace(/\\[a-zA-Z]+/g, ' ');
-      text = text.replace(/[{}]/g, ' ');
-      text = text.replace(/\s+/g, ' ').trim();
-
-      if (!text) {
-        return 'Mathematical expression';
-      }
-      return text;
-    },
-
-    sanitizeSegment(segment) {
-      if (!segment) {
-        return '';
-      }
-      return String(segment)
-        .replace(/\\[a-zA-Z]+/g, ' ')
-        .replace(/[{}]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      return speakLatex(latex) || 'Mathematical expression';
     },
 
     syncAltAttributes(wrapper, container, altText) {
@@ -924,8 +1005,12 @@
   }
 
   window.DatalogMath = {
-    init(MathJax) {
-      MathToolkit.init(MathJax);
+    // The head's ready() calls this when this script is already there; the
+    // toolkit starts once, whichever way it is started.
+    init(MathJax, options) {
+      if (!MathToolkit.initialized) {
+        MathToolkit.init(MathJax, options);
+      }
     },
     onPageReady() {
       if (MathToolkit.initialized) {
@@ -934,6 +1019,16 @@
     },
     renderLatex(target, latex, options) {
       return MathToolkit.renderLatex(target, latex, options);
+    },
+    // The render action in the theme's MathJax configuration (#412).
+    restore(item) {
+      MathToolkit.restoreContainer(item);
+    },
+    restoreAll(mathDocument) {
+      MathToolkit.restoreAll(mathDocument);
     }
   };
+
+  // MathJax may have been ready before this script loaded (#421).
+  MathToolkit.start(window.MathJax);
 })();

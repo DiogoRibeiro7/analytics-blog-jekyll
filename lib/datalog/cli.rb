@@ -9,13 +9,117 @@ require "tmpdir"
 require "yaml"
 require "thor"
 
+require_relative "site_config"
 require_relative "slug"
 require_relative "theme/version"
+require_relative "packages/command"
 
 module Datalog
+  module ArchiveScaffold
+    private
+
+    def scaffold_archive
+      type = options[:type].to_s.downcase
+      unless %w[year tag category topic].include?(type)
+        say_status :error, "Archive type must be year, tag, category, or topic", :red
+        exit 1
+      end
+
+      path = options[:path] || { "year" => "/archives/years/", "tag" => "/tags/",
+                                 "category" => "/categories/", "topic" => "/archives/topic/" }.fetch(type)
+      unless path.match?(%r{\A/[a-zA-Z0-9/_-]+/\z}) && !path.include?("//")
+        say_status :error, "Archive path must be a site URL such as /tags/", :red
+        exit 1
+      end
+
+      title = options[:title] || { "year" => "Years", "tag" => "Tags", "category" => "Categories",
+                                   "topic" => "Topic" }.fetch(type)
+      file = File.join(ensure_directory!("_pages"), "archive-#{type}.md")
+      if File.exist?(file)
+        say_status :error, "Archive already exists: #{file}", :red
+        exit 1
+      end
+
+      topic = type == "topic" ? "topic:\n  tags: [example-topic]\n  categories: []\n  featured: []\n" : ""
+      front = "---\nlayout: archive\ntitle: #{title.to_json}\narchive: #{type}\n"
+      create_file(file, "#{front}permalink: #{path.to_json}\n#{topic}---\n\n")
+      say_status :create, relative_to_root(file), :green
+    end
+  end
+
+  # Publishing to a branch through a temporary git worktree: `datalog publish`.
+  module PublishWorktree
+    private
+
+    def remote_branch?(root, branch)
+      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL,
+                                                                                  chdir: root)
+    end
+
+    def prepare_worktree(root, branch, worktree_path)
+      unless system("git", "show-ref", "--verify", "--quiet", "refs/heads/#{branch}", chdir: root)
+        say_status :info, "Creating #{branch} branch", :blue
+        if remote_branch?(root, branch)
+          system("git", "branch", branch, "origin/#{branch}", chdir: root)
+        else
+          system("git", "branch", branch, chdir: root)
+        end
+      end
+
+      say_status :git, "git worktree add --force #{worktree_path} #{branch}", :blue
+      return if system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
+
+      say_error "Unable to create git worktree for #{branch}."
+      exit 1
+    end
+
+    def copy_site_output(root, worktree_path)
+      say_status :sync, "Copying _site to #{worktree_path}", :blue
+      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"),
+                               File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."),
+                                                      File.join(worktree_path, ".git")])
+      Dir.glob(File.join(root, "_site", "*"), File::FNM_DOTMATCH).each do |entry|
+        next if [".", ".."].include?(File.basename(entry))
+
+        FileUtils.cp_r(entry, worktree_path, preserve: true)
+      end
+    end
+
+    # Returns whether the branch now holds the site. The exit status of commit
+    # and push used to be ignored, so a rejected push still ended as a publish.
+    def commit_and_push(worktree_path, branch, message)
+      Dir.chdir(worktree_path) do
+        system("git", "add", "--all")
+        if system("git", "diff", "--cached", "--quiet")
+          say_status :skip, "No changes to publish", :yellow
+          return true
+        end
+
+        unless system("git", "commit", "-m", message)
+          say_error "git commit failed, so nothing was published."
+          return false
+        end
+
+        say_status :git, "git push origin #{branch}", :blue
+        return true if system("git", "push", "origin", branch)
+
+        say_error "git push to #{branch} failed, so the site was not published."
+        false
+      end
+    end
+
+    def cleanup_worktree(root, worktree_path)
+      say_status :git, "git worktree remove --force #{worktree_path}", :blue
+      system("git", "worktree", "remove", "--force", worktree_path, chdir: root)
+    ensure
+      FileUtils.rm_rf(File.dirname(worktree_path)) if worktree_path && File.directory?(File.dirname(worktree_path))
+    end
+  end
+
   # Command line interface for automating common theme workflows.
   class CLI < Thor
     include Thor::Actions
+    include Datalog::PublishWorktree
 
     class_option :root,
                  type: :string,
@@ -60,6 +164,36 @@ module Datalog
       summarize_checks(critical_failures, warnings)
 
       exit 1 unless critical_failures.empty?
+    end
+
+    desc "audit", "Report pages that would gain from newer authoring features, and content problems"
+    method_option :strict, type: :boolean, default: false, desc: "Exit 1 when the audit finds a problem"
+    method_option :format, type: :string, default: "text", enum: %w[text json markdown], desc: "Output format"
+    method_option :only, type: :string, desc: "Comma-separated checks to run, such as statements,series"
+    method_option :path, type: :string, desc: "Audit only the files under this path, such as _posts/statistics"
+    long_desc <<~DESC
+      Reads the site's pages and posts, without building or writing anything, and
+      lists two kinds of finding with the file and line of each. Opportunities are
+      content the theme's newer features would number, link or describe (statements
+      and figure numbers typed by hand, parts of a series, links to code with no
+      reproducibility block, edits with no revision entry, hand-written references).
+      Problems are front matter keys nothing reads, images without alt text, links
+      to pages the site does not build, and math switched on or off against the
+      page's content. Exit codes: 0, or 1 with --strict when there is a problem;
+      2 when the audit cannot run.
+    DESC
+    def audit
+      require_relative "audit"
+      report = Audit.new(root: site_root, only: options[:only], path: options[:path]).run
+      case options[:format]
+      when "json" then say report.to_json
+      when "markdown" then say report.to_markdown
+      else say report.to_text
+      end
+      exit 1 if options[:strict] && report.problems.any?
+    rescue Audit::Error => e
+      say_error e.message
+      exit 2
     end
 
     desc "publish", "Build the site and deploy the _site artifacts to GitHub Pages"
@@ -108,35 +242,30 @@ module Datalog
     end
 
     desc "update", "Update the DataLog theme and related assets to the latest version"
+    method_option :to, type: :string, default: "latest", desc: "Release tag to check out (default: latest stable)"
+    method_option :dry_run, type: :boolean, default: false, desc: "Show the update without changing files"
+    method_option :build, type: :boolean, default: false, desc: "Build the site in a temporary directory after updating"
     long_desc <<~DESC
-      Runs Bundler to update the datalog-theme dependency to the latest compatible
-      release and refreshes npm packages if a package.json file is present.
+      For a path-installed Git checkout, checks out a release, builds its script
+      bundles, installs site gems, checks for stale files and stages the submodule.
+      For a published gem, updates Bundler and the site's npm packages.
+      Exit codes: 0 already current, 2 updated, 1 failed.
     DESC
     def update
-      root = site_root
-      gemfile = gemfile_path(root)
-
-      if File.exist?(gemfile)
-        run_or_exit(:bundle, "bundle update datalog-theme", root, "Bundler could not update datalog-theme.",
-                    { "BUNDLE_GEMFILE" => gemfile })
-      else
-        say_status :skip, "No Gemfile detected—skipping Bundler update", :yellow
-      end
-
-      package_json = File.join(root, "package.json")
-      if File.exist?(package_json) && command_available?("npm")
-        # npm's exit status used to be dropped, so a failed install still ended
-        # with "Theme dependencies are up to date!".
-        run_or_exit(:npm, "npm install", root, "npm could not install the site's packages.")
-      elsif File.exist?(package_json)
-        say_status :warn, "Node.js tooling not available—skipping npm install", :yellow
-      end
-
-      say "Theme dependencies are up to date!"
+      require_relative "theme/updater"
+      status = Theme::Updater.new(root: site_root, options: options,
+                                  report: ->(message) { say(message) },
+                                  execute: ->(env, command, dir) { system(env, command, chdir: dir) },
+                                  available: ->(command) { command_available?(command) }).run
+      exit status if status == 2
+    rescue Theme::Updater::Error => e
+      say_error e.message
+      exit 1
     end
 
     class New < Thor
       include Thor::Actions
+      include Datalog::ArchiveScaffold
 
       class_option :root,
                    type: :string,
@@ -237,6 +366,14 @@ module Datalog
 
         create_file(filename, body)
         say_status :create, relative_to_root(filename), :green
+      end
+
+      desc "archive", "Scaffold a year, tag, category, or topic archive page"
+      method_option :type, type: :string, default: "year", desc: "Archive type: year, tag, category, or topic"
+      method_option :title, type: :string, desc: "Page title"
+      method_option :path, type: :string, desc: "URL path, such as /archives/years/"
+      def archive
+        scaffold_archive
       end
 
       desc "notebook", "Generate a notebook landing page and starter .ipynb file"
@@ -423,13 +560,15 @@ module Datalog
 
     desc "critical-css", "Write the critical CSS a production build inlines, into _includes/critical-css"
     method_option :critical, type: :array,
-                             desc: "Command that runs critical (default: node_modules/.bin/critical or npx critical@8)"
+                             desc: "Command that runs critical (default: node_modules/.bin/critical or npx critical@9)"
     def critical_css
       require_relative "critical_css"
       CriticalCss.command(site_root, options[:critical], ->(*line) { say_status(*line) })
     end
 
-    register(New, "new", "new COMMAND", "Scaffold posts, notebooks, and portfolio projects")
+    register(New, "new", "new COMMAND", "Scaffold posts, archives, notebooks, and portfolio projects")
+    register(PackagesCommand, "packages", "packages COMMAND",
+             "Read package releases from their registries into _data/package_releases.yml")
 
     private
 
@@ -522,7 +661,7 @@ module Datalog
     end
 
     def load_config(path)
-      YAML.safe_load_file(path, permitted_classes: [Date, Time]) || {}
+      SiteConfig.load(path)
     end
 
     def summarize_checks(critical, warnings)
@@ -545,70 +684,6 @@ module Datalog
                   end
         say_status :warn, message, :yellow
       end
-    end
-
-    def remote_branch?(root, branch)
-      system("git", "ls-remote", "--exit-code", "origin", "refs/heads/#{branch}", out: File::NULL, err: File::NULL,
-                                                                                  chdir: root)
-    end
-
-    def prepare_worktree(root, branch, worktree_path)
-      unless system("git", "show-ref", "--verify", "--quiet", "refs/heads/#{branch}", chdir: root)
-        say_status :info, "Creating #{branch} branch", :blue
-        if remote_branch?(root, branch)
-          system("git", "branch", branch, "origin/#{branch}", chdir: root)
-        else
-          system("git", "branch", branch, chdir: root)
-        end
-      end
-
-      say_status :git, "git worktree add --force #{worktree_path} #{branch}", :blue
-      return if system("git", "worktree", "add", "--force", worktree_path, branch, chdir: root)
-
-      say_error "Unable to create git worktree for #{branch}."
-      exit 1
-    end
-
-    def copy_site_output(root, worktree_path)
-      say_status :sync, "Copying _site to #{worktree_path}", :blue
-      FileUtils.rm_rf(Dir.glob(File.join(worktree_path, "*"),
-                               File::FNM_DOTMATCH) - [File.join(worktree_path, "."), File.join(worktree_path, ".."),
-                                                      File.join(worktree_path, ".git")])
-      Dir.glob(File.join(root, "_site", "*"), File::FNM_DOTMATCH).each do |entry|
-        next if [".", ".."].include?(File.basename(entry))
-
-        FileUtils.cp_r(entry, worktree_path, preserve: true)
-      end
-    end
-
-    # Returns whether the branch now holds the site. The exit status of commit
-    # and push used to be ignored, so a rejected push still ended as a publish.
-    def commit_and_push(worktree_path, branch, message)
-      Dir.chdir(worktree_path) do
-        system("git", "add", "--all")
-        if system("git", "diff", "--cached", "--quiet")
-          say_status :skip, "No changes to publish", :yellow
-          return true
-        end
-
-        unless system("git", "commit", "-m", message)
-          say_error "git commit failed, so nothing was published."
-          return false
-        end
-
-        say_status :git, "git push origin #{branch}", :blue
-        return true if system("git", "push", "origin", branch)
-
-        say_error "git push to #{branch} failed, so the site was not published."
-        false
-      end
-    end
-
-    def cleanup_worktree(root, worktree_path)
-      say_status :git, "git worktree remove --force #{worktree_path}", :blue
-      system("git", "worktree", "remove", "--force", worktree_path, chdir: root)
-    ensure
-      FileUtils.rm_rf(File.dirname(worktree_path)) if worktree_path && File.directory?(File.dirname(worktree_path))
     end
 
     def say_error(message)

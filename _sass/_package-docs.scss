@@ -7,18 +7,15 @@
 @use 'mixins' as *;
 @use 'variables' as *;
 
-// Color scheme - ReadTheDocs inspired
-$pkg-primary: #2980b9;
-// $pkg-primary is a brand colour for borders, gradients and rules. As text it
-// reads at 4.08:1 on the panel, short of WCAG AA, and a single darker value
-// would fail again on a dark surface — so text uses the theme's own accent and
-// secondary inks, which _theme.scss defines for each mode.
+// The docs share the theme's indigo and navy palette; their text uses the
+// effective mode's accent ink on both light and dark surfaces.
+$pkg-primary: $color-accent-primary;
 $pkg-primary-text: var(--color-accent-text);
 $pkg-muted-text: var(--color-text-secondary);
 $pkg-success: #27ae60;
 $pkg-warning: #f39c12;
 $pkg-danger: #e74c3c;
-$pkg-sidebar-bg: #343131;
+$pkg-sidebar-bg: $dark-surface-200;
 $pkg-sidebar-text: #b3b3b3;
 $pkg-sidebar-link: #9b9b9b;
 $pkg-sidebar-link-hover: #fff;
@@ -200,7 +197,7 @@ body.dark-mode {
       padding: 0.125rem 0.375rem;
       border-radius: 3px;
       font-size: 0.9em;
-      color: #c7254e;
+      color: var(--color-accent-text);
     }
 
     pre {
@@ -650,7 +647,7 @@ body.dark-mode {
     }
 
     a {
-      color: $pkg-primary;
+      color: $pkg-primary-text;
       text-decoration: none;
 
       &:hover {

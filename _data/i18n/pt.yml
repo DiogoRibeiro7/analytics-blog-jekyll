@@ -1,6 +1,7 @@
 ---
 date:
   formats:
+    month: "%B"
     long: "%d de %B de %Y"
     datetime: "%d de %B de %Y %H:%M"
   months:
@@ -45,6 +46,14 @@ date:
     4: Qui
     5: Sex
     6: Sáb
+archive:
+  jump: Ir para a secção do arquivo
+  count: "({{count}} artigos)"
+  show_all: "Mostrar todos (mais {{count}})"
+  series: Séries
+  parts: "({{count}} partes)"
+  articles: Artigos
+  empty: Ainda não há artigos publicados.
 global:
   skip_to_main: Ir para o conteúdo principal
   math_ready: Conteúdo matemático disponível
@@ -147,6 +156,8 @@ navigation:
       julia: Julia
       javascript: JavaScript
 home:
+  features: O que pode publicar
+  explore_more: Explorar mais
   latest_research: Notas de investigação recentes
   reading_time_one: Leitura de 1 min
   reading_time_many: "Leitura de {{minutes}} min"
@@ -162,6 +173,14 @@ article:
     authors: Autores
 corrections:
   summary: Comunicar um erro ou sugerir uma correção
+  fallback:
+    subject: "Correção: {{title}}"
+    article: Artigo
+    url: Endereço
+    prompt: "Descreva o erro e a correção sugerida."
+    section: Secção
+    quote: Passagem selecionada
+    public_note: "As comunicações por issue são públicas. Não inclua dados privados."
   intro: "Encontrou um erro na matemática, nos factos, numa citação, no código ou na reprodutibilidade? Diga o quê e onde. O relato vai para o autor, não para a página."
   category: Que tipo de problema
   section: Onde
@@ -370,6 +389,16 @@ dynamic_services:
     aborted: O pedido foi cancelado.
     retry_after: "Tente novamente em {{seconds}} segundos."
     reference: "Referência: {{id}}"
+citations:
+  and: e
+  et_al: et al.
+  no_date: s.d.
+  back: "Voltar à citação {{n}}"
+  locators:
+    p: p.
+    pp: pp.
+    chap: cap.
+    sec: sec.
 references:
   figure: Figura
   table: Tabela
@@ -390,6 +419,8 @@ post:
     evidence: Evidência utilizada
     method: Método
     reviewed: Revisto
+    reviewed_on: "Revisto a {{date}}"
+    link: Como este artigo foi feito
   revisions:
     heading: Histórico de revisões
     corrected_on: "Corrigido em {{date}}."
@@ -550,9 +581,6 @@ notebook:
     launch_binder: Abrir no Binder
     open_colab: Abrir no Colab
 academic_dashboard:
-  header:
-    title: Hub de integração académica
-    description: Monitorize métricas de publicação, sincronize perfis académicos e coordene submissões, financiamento e programas de mentoria.
   profiles:
     title: Perfis académicos e sincronização
     view_profile: Ver perfil
@@ -565,6 +593,7 @@ academic_dashboard:
     featured_projects: Projetos em destaque
     collections: Coleções
     auto_update: Atualização automática
+    auto_update_on: "Ativa"
   citations:
     title: Métricas de citação
     total: Total de citações
@@ -748,6 +777,15 @@ analytics:
     last_updated: Última atualização
     last_updated_unknown: "Última atualização: pendente"
     cache_window: Dados em cache por 24 horas
+    current: Resultados atuais
+    stale: Resultados em cache
+    stale_note: O GA4 está indisponível. Exibindo os últimos resultados armazenados.
+    setup_needed: Configuração necessária
+    unavailable: Indisponível
+    empty: Ainda não há resultados
+    view_data: Ver tabela de dados
+    chart_unavailable: Gráfico indisponível; consulte a tabela de dados abaixo.
+    no_chart_data: Não há dados para o gráfico.
     top_posts: Principais publicações
     search_terms: Consultas de pesquisa
     visitor_trends: Tendências de visitantes
@@ -785,3 +823,17 @@ package_install:
   copy: Copiar
   copied: Copiado!
   copy_error: Não foi possível copiar
+  gemfile: Gemfile
+  julia_repl: REPL do Julia
+packages:
+  documentation: Documentação
+  prerelease: pré-lançamento
+  yanked: retirada
+  index:
+    title: Pacotes
+    other: Outros
+    package: Pacote
+    release: Versão
+    install: Instalação
+    purpose: Para que serve
+    empty: Ainda não há pacotes.

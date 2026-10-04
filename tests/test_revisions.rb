@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/revisions"
 
@@ -11,14 +10,6 @@ class RevisionsTest < Minitest::Test
   Doc = Struct.new(:data, :relative_path)
   DEMO_TITLE = "Statistical Analysis Blueprint for Experimental Design"
   INCLUDES = %w[components/revision-notice.html components/revision-history.html helpers/date-format.html].freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def normalize(data)
     doc = Doc.new(data, "_posts/2019-03-12-limits.md")
@@ -270,19 +261,10 @@ class RevisionsTest < Minitest::Test
 
   # A page holding the two includes, with the theme's translations.
   def render(front_matter, config = {})
-    INCLUDES.each do |name|
-      FileUtils.mkdir_p(File.join(@dir, "_includes", File.dirname(name)))
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", name), File.join(@dir, "_includes", name))
-    end
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
     includes = %w[revision-notice revision-history].map { |name| "{% include components/#{name}.html page=page %}" }
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\n#{front_matter}---\n\n#{includes.join}\n")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Revisions",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Revisions")) do |source|
+      source.theme(*INCLUDES.map { |name| "_includes/#{name}" }, "_data/i18n")
+      source.page("index.html", includes.join, "layout: null\n#{front_matter}")
+    end.html("index.html")
   end
 end

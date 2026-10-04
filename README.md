@@ -75,7 +75,7 @@ site; the rest is reference content you can copy from.
 ## Documentation
 
 - [Documentation Index](docs/README.md) — every guide, grouped by what you want to do.
-- [Documentation Site](docs/site/README.md) — source for the live `datalog-theme.github.io` documentation hub with feature walk-throughs, interactive demos, and migration guides.
+- [Documentation Site](docs/site/README.md) — source for a documentation site built with the theme, with feature walk-throughs, interactive demos, and migration guides. It is not published yet; CI builds it and checks it in a browser on every pull request. The live example of the theme is the [demo site](https://diogoribeiro7.github.io/analytics-blog-jekyll/).
 - [User Guide](docs/user-guide.md) — comprehensive documentation covering installation, notebooks, math, visualizations, research workflows, accessibility, performance, and collaboration best practices for DataLog users.
 - [Environment Setup Guide](docs/environment-setup.md) — configure environment variables, secrets, and integrations for analytics, testing, and deployment.
 - [Scripts Reference](docs/scripts-reference.md) — complete reference for all build, test, import/export, and utility scripts.
@@ -134,6 +134,8 @@ bin/datalog --help
 - `bin/datalog new notebook` — create a notebook landing page and starter `.ipynb` in one step.
 - `bin/datalog new project` — scaffold a portfolio entry with metadata and placeholder sections.
 - `bin/datalog check` — validate runtime dependencies, configuration, and optional tooling like Node.js.
+- `bin/datalog audit` — list the posts that would gain from newer authoring features (statements, figures, series, citations) and content problems (unread front matter, images without alt text, broken internal links), with file and line; `--strict` for CI. See [docs/scripts-reference.md](docs/scripts-reference.md#datalog-audit).
+- `bin/datalog packages refresh` — read each package's latest release from its registries (PyPI, crates.io, RubyGems, CRAN, npm) into `_data/package_releases.yml`, which package pages show before their front matter. See [docs/components.md](docs/components.md#package-pages).
 - `bin/datalog publish` — build the site and push the `_site` artifacts to your GitHub Pages branch via git worktrees.
 - `bin/datalog update` — upgrade the `datalog-theme` gem and refresh npm packages when applicable.
 
@@ -208,7 +210,7 @@ Data-driven configuration allows you to publish or reorder projects, datasets, s
 Add the theme gem to your Jekyll site:
 
 ```ruby
-gem "datalog-theme", "~> 0.10.0"
+gem "datalog-theme", "~> 0.11.0"
 ```
 
 The constraint takes the patch releases of the current minor series. Until 1.0 a minor release may include breaking changes, listed in the [changelog](CHANGELOG.md).

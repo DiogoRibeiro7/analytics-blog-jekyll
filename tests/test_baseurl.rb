@@ -2,7 +2,6 @@
 
 require_relative "test_helper"
 require "nokogiri"
-require "tmpdir"
 
 # A site served from a subdirectory — a GitHub Pages project site, or anything
 # behind a path prefix. Every address its pages emit has to carry the baseurl,
@@ -64,24 +63,16 @@ class BaseurlTest < Minitest::Test
   # handful of pages that between them pull in the header, the footer, the
   # scripts include and a post.
   def built_site
-    @built_site ||= Dir.mktmpdir do |dir|
-      %w[_layouts _includes _data _sass].each { |path| FileUtils.cp_r(File.join(SiteBuilder.root, path), dir) }
-      FileUtils.cp(File.join(SiteBuilder.root, "404.html"), dir)
-      FileUtils.mkdir_p(File.join(dir, "_posts"))
-      post = { "layout" => "post", "title" => "A post", "tags" => ["statistics"] }
-      File.write(File.join(dir, "_posts/2026-01-01-post.md"), "#{post.to_yaml}---\n\n## 1. Introduction\n\nBody.\n")
-      File.write(File.join(dir, "index.md"), "#{{ 'layout' => 'page', 'title' => 'Home' }.to_yaml}---\n\nBody.\n")
+    @built_site ||= begin
+      site = TestSite.build(url: "https://example.test", baseurl: BASEURL, title: "Site",
+                            plugins: %w[jekyll-feed jekyll-sitemap]) do |source|
+        source.theme("_layouts", "_includes", "_data", "_sass", "404.html")
+        source.post("2026-01-01-post", "## 1. Introduction\n\nBody.",
+                    { "layout" => "post", "title" => "A post", "tags" => ["statistics"] })
+        source.page("index.md", "Body.", { "layout" => "page", "title" => "Home" })
+      end.jekyll
 
-      config = Jekyll.configuration(
-        "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
-        "url" => "https://example.test", "baseurl" => BASEURL, "title" => "Site",
-        "author" => { "name" => "Test" }, "plugins" => %w[jekyll-feed jekyll-sitemap]
-      )
-      site = Jekyll::Site.new(config)
-      site.process
-
-      pages = site.pages + site.posts.docs
-      pages.filter_map do |page|
+      (site.pages + site.posts.docs).filter_map do |page|
         next unless page.output_ext == ".html"
 
         [page.url, Nokogiri::HTML5(page.output)]

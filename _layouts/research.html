@@ -1,6 +1,8 @@
 ---
 layout: default
 schema_type: ScholarlyArticle
+show_title: false # this layout renders the page's <h1>
+article_meta: false # the default heading adds no date or byline above this layout's own header
 ---
 {% assign date_format = site.date_format | default: '%B %-d, %Y' %}
 {% assign authors = page | page_authors %}
@@ -32,6 +34,7 @@ schema_type: ScholarlyArticle
 {% assign supplementary = page.supplementary | default: page.supplementary_materials %}
 {% assign references = page.references %}
 {% assign references_array = references | arrayify %}
+{% capture bibliography_label %}{% t 'post.bibliography.label' %}{% endcapture %}
 {% assign funding = page.funding %}
 {% assign rights = page.rights %}
 {% assign research_license = page | page_license %}
@@ -57,6 +60,9 @@ schema_type: ScholarlyArticle
 
   <header class="research-header" aria-labelledby="research-title">
     <h1 id="research-title" class="research-title">{{ page.title | escape }}</h1>
+    {%- if page.summary %}
+    <p class="article-summary">{{ page.summary | strip_html | escape }}</p>
+    {%- endif %}
 
     <div class="research-authors" aria-label="Authors">
       <h2 class="visually-hidden">Authors</h2>
@@ -73,7 +79,7 @@ schema_type: ScholarlyArticle
             {% endif %}
             {% if author_orcid %}
               <span class="research-author-orcid">
-                <a href="{{ author_orcid }}" target="_blank" rel="noopener noreferrer" itemprop="identifier" aria-label="ORCID profile for {{ author_name }}">
+                <a href="{{ author_orcid }}" target="_blank" rel="{{ author | author_profile_rel | escape }}" itemprop="identifier" aria-label="ORCID profile for {{ author_name }}">
                   ORCID
                 </a>
               </span>
@@ -302,7 +308,13 @@ schema_type: ScholarlyArticle
     </section>
   {% endif %}
 
-  {% if references_array and references_array.size > 0 %}
+  {%- comment -%} The works the article cites with {% raw %}{% cite %}{% endraw %}; a hand-written `references:` list otherwise {%- endcomment -%}
+  {% if page.datalog_bibliography and page.datalog_bibliography.size > 0 %}
+    <section class="research-references" aria-labelledby="references-heading">
+      <h2 id="references-heading">{{ page.datalog_bibliography_title | default: bibliography_label }}</h2>
+      {% datalog_bibliography %}
+    </section>
+  {% elsif references_array and references_array.size > 0 %}
     <section class="research-references" aria-labelledby="references-heading">
       <h2 id="references-heading">References</h2>
       {% assign references_markup = references_array | join: '' %}

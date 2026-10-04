@@ -59,6 +59,37 @@ test.describe('Homepage', () => {
     expect(postCount).toBeGreaterThan(0);
   });
 
+  test('hero actions and feature cards link to published pages', async ({ page }) => {
+    const actions = page.locator('.hero-actions a');
+    const features = page.locator('.home-feature-card');
+    await expect(actions).toHaveCount(2);
+    await expect(features).toHaveCount(3);
+
+    for (const link of await page.locator('.hero-actions a, .home-feature-card h3 a').all()) {
+      const href = await link.getAttribute('href');
+      const response = await page.request.get(new URL(href, baseUrl).href);
+      expect(response.ok(), `${href} should lead to a published page`).toBe(true);
+    }
+
+    await actions.first().focus();
+    await page.keyboard.press('Tab');
+    await expect(actions.nth(1)).toBeFocused();
+  });
+
+  test('contained hero and cards fit a phone screen in either mode', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toHaveAttribute('data-feature-core-state', 'ready');
+
+    for (const mode of ['dark', 'light']) {
+      await expect(page.locator('body')).toHaveAttribute('data-theme', mode);
+      await expect(page.locator('.hero--contained')).toBeVisible();
+      await expect(page.locator('.home-feature-card')).toHaveCount(3);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+      if (mode === 'dark') await page.locator('[data-toggle-dark-mode]').click();
+    }
+  });
+
   test('loads without console errors', async ({ page }) => {
     const consoleErrors = [];
 

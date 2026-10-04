@@ -13,6 +13,8 @@ group :development do
   # Pinned: the repository has no Gemfile.lock, and a newer release can enable
   # cops that fail the Lint job on code nobody changed.
   gem "rubocop", "1.91.0", require: false
+  # Loaded by tests/test_helper.rb only when COVERAGE is set; see .simplecov.
+  gem "simplecov", "~> 0.22", require: false
 end
 
 

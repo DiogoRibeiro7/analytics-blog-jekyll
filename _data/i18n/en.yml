@@ -2,6 +2,7 @@
 date:
   formats:
     long: "%B %-d, %Y"
+    month: "%B"
     datetime: "%B %-d, %Y %H:%M"
   months:
     1: January
@@ -45,6 +46,14 @@ date:
     4: Thu
     5: Fri
     6: Sat
+archive:
+  jump: Jump to archive section
+  count: "({{count}} posts)"
+  show_all: "Show all ({{count}} more)"
+  series: Series
+  parts: "({{count}} parts)"
+  articles: Articles
+  empty: No articles published yet.
 global:
   skip_to_main: Skip to main content
   math_ready: Mathematical content is ready
@@ -147,6 +156,8 @@ navigation:
       julia: Julia
       javascript: JavaScript
 home:
+  features: What you can publish
+  explore_more: Explore more
   latest_research: Latest Research Notes
   reading_time_one: 1 min read
   reading_time_many: "{{minutes}} mins read"
@@ -162,6 +173,14 @@ article:
     authors: Authors
 corrections:
   summary: Report an error or suggest a correction
+  fallback:
+    subject: "Correction: {{title}}"
+    article: Article
+    url: Address
+    prompt: "Describe the error and the suggested correction."
+    section: Section
+    quote: Selected passage
+    public_note: "Issue reports are public. Do not include private information."
   intro: "Spotted a mistake in the mathematics, the facts, a citation, the code or the reproducibility? Say what and where. The report goes to the author, not onto the page."
   category: What kind of problem
   section: Where
@@ -370,6 +389,16 @@ dynamic_services:
     aborted: The request was cancelled.
     retry_after: "Try again in {{seconds}} seconds."
     reference: "Reference: {{id}}"
+citations:
+  and: and
+  et_al: et al.
+  no_date: n.d.
+  back: "Back to citation {{n}}"
+  locators:
+    p: p.
+    pp: pp.
+    chap: ch.
+    sec: sec.
 references:
   figure: Figure
   table: Table
@@ -390,6 +419,8 @@ post:
     evidence: Evidence used
     method: Method
     reviewed: Reviewed
+    reviewed_on: "Reviewed {{date}}"
+    link: How this article was made
   revisions:
     heading: Revision history
     corrected_on: "Corrected on {{date}}."
@@ -550,9 +581,6 @@ notebook:
     launch_binder: Launch in Binder
     open_colab: Open in Colab
 academic_dashboard:
-  header:
-    title: Academic integration hub
-    description: Monitor publication metrics, synchronize academic profiles, and coordinate submissions, funding, and mentorship opportunities.
   profiles:
     title: Academic profiles & synchronization
     view_profile: View profile
@@ -565,6 +593,7 @@ academic_dashboard:
     featured_projects: Featured projects
     collections: Collections
     auto_update: Auto update
+    auto_update_on: "On"
   citations:
     title: Citation metrics
     total: Total citations
@@ -748,6 +777,15 @@ analytics:
     last_updated: Last updated
     last_updated_unknown: "Last updated: pending"
     cache_window: Data cached for 24 hours
+    current: Current results
+    stale: Cached results
+    stale_note: GA4 is unavailable. Showing the last successful cached results.
+    setup_needed: Setup needed
+    unavailable: Unavailable
+    empty: No results yet
+    view_data: View data table
+    chart_unavailable: Chart unavailable; use the data table below.
+    no_chart_data: No chart data available.
     top_posts: Top posts
     search_terms: Search queries
     visitor_trends: Visitor trends
@@ -785,3 +823,17 @@ package_install:
   copy: Copy
   copied: Copied!
   copy_error: Could not copy
+  gemfile: Gemfile
+  julia_repl: Julia REPL
+packages:
+  documentation: Documentation
+  prerelease: pre-release
+  yanked: yanked
+  index:
+    title: Packages
+    other: Other
+    package: Package
+    release: Release
+    install: Install
+    purpose: Purpose
+    empty: No packages yet.

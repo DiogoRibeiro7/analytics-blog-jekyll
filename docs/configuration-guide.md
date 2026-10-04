@@ -12,6 +12,22 @@ Where the DataLog theme's settings live and how to change the common ones.
 
 `_config.yml` is organised in labelled sections (Jekyll core, site identity, features, theme customization, integrations, notebooks, plugins). Search for the banner comment of the section you need.
 
+### Documentation guides
+
+Use `layout: docs` for a guide that needs a section sidebar, an on-page contents list, and previous/next guide links. The sidebar reads optional `docs` groups from `_data/navigation.yml`:
+
+```yaml
+docs:
+  - title: Start here
+    links:
+      - title: Installation
+        url: /guides/installation/
+      - title: Configuration
+        url: /guides/configuration/
+```
+
+Links use Jekyll's `relative_url` for project sites. Guide pagination follows the order of links under `/guides/`; omit the `docs` groups when you do not use this layout. Set `features.search: true` to generate the search page and index, and `features.dark_mode_toggle: true` to expose the palette control.
+
 ## Quick Start
 
 ### 1. Update your profile
@@ -75,9 +91,93 @@ The math engine is loaded from a CDN and weighs several hundred kilobytes, so by
 - A page can force it with `math: true` or `math: false` in its front matter. `mathjax` is read as an alias when `math` is not set, so a page's `math: false` turns off what a `mathjax: true` default turned on. Pages that render math from data fetched at runtime, such as the search page, should opt in. `math: false` also stops the math preprocessor from treating dollar signs on that page as LaTeX.
 - Leave `math: true` and `mathjax: true` out of `defaults` while `render_on_load` is `auto`: every page in their scope would load the engine, math or not. The build prints a warning when it finds one.
 
+Two settings decide how display equations look:
+
+```yaml
+theme_options:
+  math:
+    display_style: plain   # or card
+    numbering: ams         # or all, none
+```
+
+- `display_style: plain`, the default, sets a display equation on its own line with space around it and nothing else. Its copy and edit tools appear at the end of the line when the pointer is over the equation or the keyboard focus is on it. `card` puts each equation in a framed panel with the tools always showing.
+- `numbering: ams`, the default, numbers the equations a text can refer to: those in a numbered amsmath environment (`equation`, `align`, `gather`, `multline`, not the starred forms) and any `$$…$$` display with a `\label{}`. `all` numbers every display equation; `none` only those with a `\tag{}`.
+
+With MathJax, each expression is a stop in the tab order, named for a screen reader by its alt text, with its MathML beside it for assistive technology. An `\eqref` or `\ref` is the exception: MathJax draws it as a link, so it is left out of the tab order and named by that link, which the theme repeats right after it as a real one. A click selects an expression and changes nothing in it. MathJax's option to collapse parts of a formula is off; a reader can turn it on, or change any other setting, from MathJax's menu (right-click an expression). MathJax then draws the expressions again, and each keeps its name and its place in the tab order, and the one that had the focus keeps it.
+
+The alt text is read from the LaTeX, in words: `f : [a, b] \to \mathbb{R}` is named "f: [a, b] to double-struck R", `\lim_{x \to 0}` "limit as x approaches 0", and `x^2` "x squared".
+- **Words, not symbols:** Greek letters, relations, arrows and operators are read as words, since a screen reader may skip "∈" or "ℝ" at its usual settings.
+- **Names kept:** function names (`\sin`, `\log`) are read as written, and so is a command with no word of its own, rather than left out.
+- **Left out of the name:** what isn't part of what the formula says: sizing such as `\left` and `\right`, spacing, `\label`, the equation number from `\tag`, and the names of environments such as `equation` or `align`. A matrix or `cases` is announced: `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` reads "matrix a, b; c, d end matrix".
+- **Who reads it:** the build names each expression it finds in a page. The browser names one the build didn't wrap, such as maths in raw HTML, in the same words: both read `lib/datalog/latex_speech/words.json`.
+
+To name an expression yourself, give it a `% alt:` comment, which is not drawn:
+
+```latex
+$$
+% alt: the inner product of f and g
+\langle f, g \rangle = \int_a^b f(x)\, g(x) \,\mathrm{d}x
+$$
+```
+
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
-A page that sets its own `hero_image` can also set `hero_image_small` (a version around 640 px wide) for phones; the theme preloads whichever applies.
+#### Homepage
+
+Create `index.md` with `layout: home`. Its hero uses a dark gradient and needs
+no image. Set one or both calls to action and list the feature cards in the
+page's front matter:
+
+```yaml
+---
+layout: home
+hero_title: Research worth exploring
+hero_tagline: Reproducible analysis, open data, and clear explanations.
+hero_cta_label: Read the research
+hero_cta_url: /blog/
+hero_secondary_cta_label: Explore projects
+hero_secondary_cta_url: /portfolio/
+home_features_heading: What you can explore
+home_features:
+  - title: Research notes
+    description: Methods, findings, and reproducible code.
+    url: /blog/
+  - title: Open datasets
+    description: Provenance and documentation alongside the data.
+    url: /datasets/
+  - title: Projects
+    description: Case studies and working demos.
+    url: /portfolio/
+---
+```
+
+Each action appears only when its URL is set. Each card needs a title; its
+description and link are optional. Remove a card, or omit `home_features`
+entirely, to hide it. Recent posts and featured portfolio entries appear
+below the cards only when those collections have content. Use site-root paths
+for local links so `baseurl` is applied.
+
+To add a hero background image, set `hero_image` on the page. An optional
+`hero_image_small` supplies a version around 640 px wide for phones. Only
+configured hero images are preloaded; the gradient works without one.
+
+#### Colour scheme
+
+DataLog opens in its dark indigo/cyan palette. The header toggle lets each
+visitor choose light or dark, and the choice persists across pages. To start a
+site in light mode, or to follow the visitor's operating-system setting until
+they use the toggle, set:
+
+```yaml
+theme_options:
+  color_scheme:
+    default: light  # or dark (the default), or system
+```
+
+The theme applies this initial palette before its script bundles load. A
+visitor's saved choice always takes precedence. Theme colours are defined in
+the Sass variables and CSS custom properties, so a site can also override
+the palette in its own stylesheet without changing the gem.
 
 #### Images
 
@@ -99,6 +199,73 @@ theme_options:
 - A copy that fails to encode is left out, with a warning, and the page does not offer it.
 - An image keeps its markup when it already has a `srcset`, sits in a `<picture>` of its own, or sets `data-no-optimize="true"`.
 
+##### Dark figures
+
+A plot exported for a white page is a white rectangle on a dark one. Export the figure twice and the theme serves whichever suits the reader: put `power-dark.png` beside `power.png` and it becomes a `<source media="(prefers-color-scheme: dark)">` at the front of the same `<picture>`, with its own resized copies and modern formats. Nothing else changes. The `<img>` still points at the light file and keeps its alt text and its dimensions, so it is the same figure described once, and a browser that ignores the query shows the light version.
+
+```yaml
+theme_options:
+  images:
+    dark_suffix: "-dark"   # "" turns the convention off
+```
+
+`prefers-color-scheme` follows the operating system; the site's default and its toggle may not. `assets/js/core/dark-mode.js` closes that gap, selecting the companion that matches the effective page palette. Without JavaScript, image sources still follow the operating system; on a site whose default differs, the plot may not match the page until the scripts run. The browser may briefly fetch the other file first.
+
+A figure that does not follow the convention names its companion itself:
+
+```liquid
+{% figure id="fig-power" src="/assets/img/power.png" dark_src="/assets/img/power-night.png" alt="Power curve" %}
+Power as a function of effect size.
+{% endfigure %}
+```
+
+Any `<img data-dark-src="/assets/img/power-night.png">` is treated the same way, in a Markdown page or in a notebook's HTML. A companion the variant pipeline never reads, an SVG or an image on another host, is offered as the single file it is. A page's `hero_image` follows the convention too.
+
+#### Share cards
+
+A link to a post shows a preview image wherever it is shared. Without one of its own, every post shows `social.default_image`, so a link to an article looks the same as a link to the about page. With share cards on, the build draws a 1200×630 PNG for each post that names no image. The card shows the post's title, its series or subtitle, its authors and date, and the site's name and logo, on the theme's colours. A research article also shows its venue and DOI.
+
+```yaml
+theme_options:
+  social_cards:
+    enabled: true               # off by default
+    scheme: dark                # or light
+    background: "#0b1d3d"       # over the scheme's background
+    logo: /assets/img/logo.svg  # an SVG or an image; false for none; true or unset for the theme's mark
+    template: _social/card.svg  # a template of the site's own
+    collections: [posts]        # add "pages" for the site's pages
+```
+
+- **Tools:** the cards need ImageMagick, the same tool the image optimizer uses: `magick`, or `convert` outside Windows. Nothing else is needed. The card's text is set in IBM Plex, which ships with the gem, and drawn as outlines, so no font has to be installed. On a runner, install ImageMagick before the build step with `sudo apt-get install -y --no-install-recommends imagemagick`. Without ImageMagick, the build warns once and every page keeps `social.default_image`. No page points at a card that was not drawn.
+- **Which image a page gets:** `og_image` or `image` in front matter always wins, then the card, then `social.default_image`. A blank `image:` counts as none. `social_card: false` in front matter asks for no card. A page with a card also gets `og:image:width`, `og:image:height`, `og:image:alt` (its title) and `twitter:image:alt`, and its JSON-LD `image` is the card.
+- **Maths in titles:** TeX in a title becomes readable text: `$\alpha$-stable laws for $X_t^2$` reads "α-stable laws for X_t²". A long title wraps and shrinks to fit. A 140-character title fits whole; past four lines at the smallest size, it ends in an ellipsis.
+- **Caching:** cards are published as `/assets/social/<page>-<hash>.png` and kept in `.jekyll-cache/datalog-social-cards`. The cache is keyed by everything drawn on the card, including the content of its logo and of any image the template shows, so a later build draws only the cards whose pages changed. A changed card gets a new address, so sites that cached the old preview fetch the new one. A site that sets `disable_disk_cache` keeps the cards in a temporary directory, removed when Jekyll exits.
+- **Colours:** both schemes keep every text colour at 4.5:1 or more against their background (WCAG AA). A `background` of your own is checked too, and the build warns when a text colour falls below 4.5:1 on it.
+
+A template of your own is an SVG file inside the site. It may use `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `path`, `image` (a file in the site) and `g`, with fills, strokes, opacity and transforms. Fills, strokes and opacity set on the `<svg>` itself reach every element in it; a transform there is not applied, so put it on a `g`. Gradients, filters and masks are not drawn, and the build names any element it skipped. ImageMagick reads no SVG on a minimal install, so the build draws the template itself. Text goes in slots: an empty `<text>` with `data-field` set to `site`, `kicker` (the series or subtitle), `title`, `byline` or `detail`. The slot's `y` is the top of its box. `<rect data-field="logo">` is where the logo goes. `{{background}}`, `{{ink}}`, `{{muted}}` and `{{accent}}` are the scheme's colours. Copy [the default template](../lib/datalog/social_cards/template.svg) to start:
+
+```xml
+<text data-field="title" x="80" y="236" width="1040" height="262"
+      font-size="66" data-min-font-size="40" data-max-lines="4"
+      data-line-height="1.15" data-font="serif" fill="{{ink}}"/>
+```
+
+`data-font` is `serif` (IBM Plex Serif SemiBold) or `sans` (IBM Plex Sans). Both fonts are under the SIL Open Font License, which ships beside them.
+
+#### Search results
+
+A result is a page, and under it the sections of that page the query was found in — at most three, each a link to the heading itself rather than to the top of the article. A reader who searches for a term buried in a long methods post lands on the paragraph instead of starting again with Ctrl+F.
+
+The sections come from the page's own headings. `_plugins/search_sections.rb` splits each document at its `h2` and `h3` when `search.json` is built, and takes the anchor from the id kramdown already gave the heading — the same id the contents list links to. Nothing to configure and nothing to write in front matter:
+
+- A page with no headings indexes as one section, which is what every page did before.
+- The text before the first heading belongs to the page, not to a section of it, so it is never offered as one.
+- A heading with no id still indexes; its section links to the page.
+- The split runs over the document's own content, so the headings a layout puts around an article — "About this post", "Reading notes" — are not sections of every result.
+- `exclude_from_search: true` keeps a page out of the index entirely, sections and all.
+
+The index repeats each page's text under its headings, which is smaller than it sounds: on the demo site it takes `search.json` from 147 KB to 224 KB uncompressed, but from 32 KB to 39 KB served compressed, because the repeat is exactly what a compressor is good at. `tests/test_search_sections.rb` holds the index to a budget per indexed page so it cannot drift.
+
 #### Critical CSS
 
 With `critical_css.enabled: true`, a production build inlines the CSS each page needs to draw its first screen and loads `main.css` without blocking rendering. That CSS depends on your own pages and styles, so the theme ships none. Write your site's with:
@@ -112,19 +279,21 @@ The command builds the site for production into a temporary directory, extracts 
 ```yaml
 critical_css:
   enabled: true
-  dimensions:                # the viewports a page's first screen is measured in
+  engine: render             # or static
+  dimensions:                # the viewports the render engine measures a page's first screen in
     - { width: 1920, height: 1080 }
     - { width: 375, height: 667 }
-  penthouse_options:
-    timeout: 30000
   pages:                     # optional: which pages to extract from, as site paths
     default: /blog/
 ```
 
-- The command runs the [critical](https://github.com/addyosmani/critical) npm package, which needs Node.js 22.13 or later and renders pages in headless Chrome that its install downloads. It uses `node_modules/.bin/critical` when your site has installed it (`npm install --save-dev critical@8`), and `npx --yes critical@8` otherwise. `--critical` names another command.
-- Without `pages`, each file comes from the first page with that layout, nearest the site root; `default` skips pages kept out of search engines, such as the search page.
-- Only `assets/css/main.css` is read, so the inlined CSS carries no Google Fonts rules.
-- A production build warns when `critical_css.enabled` is true and one of the three files is empty.
+- **What it runs:** the [critical](https://github.com/addyosmani/critical) npm package, version 9, which needs Node.js 22.13 or later; the command checks that first. It uses `node_modules/.bin/critical` when your site has installed it (`npm install --save-dev critical@9 playwright`), and `npx` otherwise. `--critical` names another command. A site that installed critical 8 is asked to update it, since critical 9 takes other arguments.
+- **`engine: render`** (the default) opens each page in [Playwright](https://playwright.dev)'s Chromium at each viewport in `dimensions` and keeps the CSS for what is painted there, as critical 8 did in Puppeteer's Chrome. critical 9 does not install the browser. Install it with `npx playwright install chromium` (`--with-deps` on a CI runner) before the command. When the command runs critical through npx, it asks npx for Playwright as well and installs Chromium itself the first time.
+- **`engine: static`** needs no browser and no download: it keeps every rule the page's markup uses, in a second or two per page. That is more CSS than the first screen needs. On the demo, gzipped, it is 4.5 KB for the home page and 7.8 KB for a long post, where the render engine writes 4.4 KB and 5.2 KB.
+- **Pages:** without `pages`, each file comes from the first page with that layout, nearest the site root; `default` skips pages kept out of search engines, such as the search page.
+- **What critical reads:** each page with `assets/css/main.css` as its only stylesheet, so the inlined CSS carries no Google Fonts rules, whatever the site's `baseurl`.
+- **`penthouse_options`** no longer does anything: critical 9 replaced penthouse. The build warns while it is set.
+- **Empty files:** a production build warns when `critical_css.enabled` is true and one of the three files is empty.
 
 ### 4. Integrations
 

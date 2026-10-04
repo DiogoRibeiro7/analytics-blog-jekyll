@@ -1,6 +1,7 @@
 ---
 layout: default
 show_title: false # this layout renders the page's <h1>
+article_meta: false # the default heading adds no date or byline above this layout's own header
 ---
 
 {%- comment -%}
@@ -24,10 +25,13 @@ show_title: false # this layout renders the page's <h1>
     <p class="notebook-article__summary">{{ page.summary | default: page.excerpt }}</p>
 
     <ul class="notebook-article__meta">
+      {%- assign notebook_published = page | published_date %}
+      {%- if notebook_published %}
       <li>
         <span>{% t 'notebook.meta.published' %}</span>
-        <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">{{ page.date | localize_date: date_format }}</time>
+        <time datetime="{{ notebook_published | date_to_xmlschema }}" itemprop="datePublished">{{ notebook_published | localize_date: date_format }}</time>
       </li>
+      {%- endif %}
 
       {% if page.last_modified_at %}
         <li>

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # Newsletter subscriptions (#254): no form without a backend, the form's
@@ -12,14 +10,6 @@ class SubscriptionsTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "features" => { "subscriptions" => true } }.freeze
   FORM = %w[footer post].map { |where| "{% include components/subscribe-form.html where='#{where}' %}\n" }.join.freeze
   MANAGE = "{% include components/subscription-manage.html %}\n"
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_without_a_backend_renders_no_form_and_an_honest_manage_page
     home = SiteBuilder.read("index.html")
@@ -122,19 +112,10 @@ class SubscriptionsTest < Minitest::Test
   end
 
   def render(body, config, front_matter = "")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    %w[subscribe-form.html subscription-manage.html].each do |include|
-      FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", include),
-                   File.join(@dir, "_includes", "components", include))
-    end
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "index.html"), "---\nlayout: null\ntitle: Paper\n#{front_matter}---\n\n#{body}")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Subscriptions",
-        "url" => "https://example.org", "author" => { "name" => "Test" } }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build(config.merge(title: "Subscriptions")) do |source|
+      source.theme("_includes/components/subscribe-form.html",
+                   "_includes/components/subscription-manage.html", "_data/i18n")
+      source.page("index.html", body, "layout: null\ntitle: Paper\n#{front_matter}")
+    end.html("index.html")
   end
 end

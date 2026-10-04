@@ -5,7 +5,6 @@ date: 2024-04-09
 tags: [experimentation, statistics, design]
 difficulty: intermediate
 summary: Document hypotheses, sample-size calculations, and statistical tests with tables and callouts for product teams.
-hero: /assets/images/posts/experiment-design.jpg
 ---
 
 Thoughtful experiment logs help product teams align on hypotheses before shipping features. This blueprint captures the essentials—design tables, power analysis code, and interpretation guidelines—all rendered cleanly by the **DataLog** theme.

@@ -17,11 +17,11 @@ description: Step-by-step instructions for migrating from popular Jekyll themes 
 
 <section class="section section-alt">
   <div class="container">
-    <h2>Minimal Mistakes → DataLog</h2>
+    <h2 id="minimal-mistakes-to-datalog">Minimal Mistakes → DataLog</h2>
     <ol>
       <li>Rename <code>_posts</code> and collection folders to match the theme naming (`_portfolio`, `_datasets`, `_notebooks`).</li>
       <li>Replace layouts with the DataLog equivalents (<code>post</code>, <code>project</code>, <code>dataset</code>, <code>notebook</code>).</li>
-      <li>Swap includes (e.g. hero, callouts) with the DataLog component includes demonstrated in the <a href="/features/components/">component showcase</a>.</li>
+      <li>Swap includes (e.g. hero, callouts) with the DataLog component includes demonstrated in the <a href="{{ '/features/components/' | relative_url }}">component showcase</a>.</li>
       <li>Review navigation in `_data/navigation.yml` to ensure header links point to the new sections.</li>
     </ol>
   </div>
@@ -29,19 +29,19 @@ description: Step-by-step instructions for migrating from popular Jekyll themes 
 
 <section class="section">
   <div class="container">
-    <h2>Just the Docs → DataLog</h2>
+    <h2 id="just-the-docs-to-datalog">Just the Docs → DataLog</h2>
     <ol>
       <li>Move Markdown files from the `docs/` directory into `_pages/` or appropriate collections.</li>
       <li>Remove the Just the Docs navigation config and adopt the DataLog navigation data structure.</li>
       <li>Set <code>permalink: pretty</code> in `_config.yml` to maintain clean URLs.</li>
-      <li>Enable search by including <code>search_enabled: true</code> and running the theme's search index generator.</li>
+      <li>Enable search with <code>features.search: true</code>; the theme generates the search page and index during the Jekyll build.</li>
     </ol>
   </div>
 </section>
 
 <section class="section section-alt">
   <div class="container">
-    <h2>Chirpy → DataLog</h2>
+    <h2 id="chirpy-to-datalog">Chirpy → DataLog</h2>
     <ol>
       <li>Copy blog posts into `_posts/` preserving filenames to retain permalinks.</li>
       <li>Translate `_config.yml` settings such as Disqus, analytics, and author metadata into the DataLog config schema.</li>
@@ -53,7 +53,7 @@ description: Step-by-step instructions for migrating from popular Jekyll themes 
 
 <section class="section">
   <div class="container">
-    <h2>Post-migration checklist</h2>
+    <h2 id="post-migration-checklist">Post-migration checklist</h2>
     <ul>
       <li>Regenerate favicons and touch icons to match your branding.</li>
       <li>Run the theme stability test suite (`bundle exec ruby -Itests ...`) to ensure notebooks, math, and visualizations render correctly.</li>

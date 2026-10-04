@@ -1,5 +1,6 @@
 title: DataLog Theme Documentation
 description: Official documentation, demos, and migration guides for the DataLog analytics storytelling theme.
+# Where the site is meant to be published. Nothing publishes it yet: see README.md.
 url: https://datalog-theme.github.io
 baseurl: ""
 lang: en
@@ -15,6 +16,17 @@ author:
   email: dfr@esmad.ipp.pt
 
 hero_tagline: Build analytics narratives with notebooks, dashboards, and reproducible research in minutes.
+
+theme_options:
+  color_scheme:
+    default: dark
+
+features:
+  search: true
+  dark_mode_toggle: true
+
+search:
+  title: Search documentation
 
 defaults:
   - scope:
@@ -45,7 +57,7 @@ defaults:
   - scope:
       path: guides
     values:
-      layout: page
+      layout: docs
   - scope:
       path: showcase
     values:
@@ -70,6 +82,7 @@ markdown: kramdown
 highlighter: rouge
 
 plugins:
+  - datalog-theme
   - jekyll-feed
   - jekyll-seo-tag
 

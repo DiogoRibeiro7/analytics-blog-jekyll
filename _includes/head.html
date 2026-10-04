@@ -36,7 +36,7 @@
 <meta name="robots" content="{{ page.robots | default: 'index,follow' }}" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="application-name" content="{{ site.title | escape }}" />
-<meta property="og:site_name" content="{{ site.title | escape }}" />
+{% assign head_identity = site | site_identity %}<meta property="og:site_name" content="{{ head_identity.name | default: site.title | escape }}" />
 {% if page.layout == 'post' or page.collection == 'posts' %}
 <meta property="og:type" content="article" />
 {% else %}
@@ -45,8 +45,21 @@
 <meta property="og:title" content="{{ page_title | normalize_whitespace | escape }}" />
 <meta property="og:description" content="{{ page_description | normalize_whitespace | escape }}" />
 <meta property="og:url" content="{{ canonical_url }}" />
-{% if page.og_image or page.image %}
-<meta property="og:image" content="{{ page.og_image | default: page.image | absolute_url }}" />
+{%- comment -%}
+  The share image: the page's own, else the card the build drew for it
+  (theme_options.social_cards), else the site's default. A blank `image:`
+  is no image, as the card generator reads it.
+{%- endcomment %}
+{%- assign share_image = page.og_image | strip | default: page.image | strip -%}
+{%- assign twitter_share_image = page.twitter_image | strip | default: share_image -%}
+{% if share_image != "" %}
+<meta property="og:image" content="{{ share_image | absolute_url }}" />
+{% elsif page.datalog_social_card %}
+<meta property="og:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="{{ page.datalog_social_card.width }}" />
+<meta property="og:image:height" content="{{ page.datalog_social_card.height }}" />
+<meta property="og:image:alt" content="{{ page.datalog_social_card.alt | escape }}" />
 {% elsif site.social.default_image %}
 <meta property="og:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
@@ -56,8 +69,11 @@
 <meta name="twitter:site" content="{{ site.social.twitter | default: site.twitter_username }}" />
 <meta name="twitter:title" content="{{ page_title | normalize_whitespace | escape }}" />
 <meta name="twitter:description" content="{{ page_description | normalize_whitespace | escape }}" />
-{% if page.twitter_image or page.og_image or page.image %}
-<meta name="twitter:image" content="{{ page.twitter_image | default: page.og_image | default: page.image | absolute_url }}" />
+{% if twitter_share_image != "" %}
+<meta name="twitter:image" content="{{ twitter_share_image | absolute_url }}" />
+{% elsif page.datalog_social_card %}
+<meta name="twitter:image" content="{{ page.datalog_social_card.url | absolute_url }}" />
+<meta name="twitter:image:alt" content="{{ page.datalog_social_card.alt | escape }}" />
 {% elsif site.social.default_image %}
 <meta name="twitter:image" content="{{ site.social.default_image | absolute_url }}" />
 {% endif %}
@@ -154,10 +170,17 @@
 <link rel="shortcut icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" />
 <meta name="msapplication-TileColor" content="#0b1d3d" />
 
+{%- comment -%}
+  ` | <site title>` follows a page's own title. `seo_title_suffix: false` leaves
+  it out, for a title that already names the site; a string replaces the site
+  title after the bar.
+{%- endcomment %}
+{% assign title_suffix = site.title %}
+{% if page.seo_title_suffix == false or page.seo_title_suffix == '' %}{% assign title_suffix = nil %}{% elsif page.seo_title_suffix %}{% assign title_suffix = page.seo_title_suffix %}{% endif %}
 {% if page.seo_title %}
-<title>{{ page.seo_title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
+<title>{{ page.seo_title | normalize_whitespace | escape }}{% if title_suffix %} | {{ title_suffix | escape }}{% endif %}</title>
 {% elsif page.title and page.title != site.title %}
-<title>{{ page.title | normalize_whitespace | escape }} | {{ site.title | escape }}</title>
+<title>{{ page.title | normalize_whitespace | escape }}{% if title_suffix %} | {{ title_suffix | escape }}{% endif %}</title>
 {% else %}
 <title>{{ site.title | escape }}</title>
 {% endif %}
@@ -261,6 +284,9 @@
   {% else %}
 <script nonce="{{ page.csp_nonce }}">
   window.MathJax = {
+    // The maths toolkit's options. MathJax keeps them in MathJax.config, where
+    // ready() below and math.js, whichever runs second, both read them (#421).
+    datalog: { numbering: '{{ math_numbering }}' },
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']],
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
@@ -270,7 +296,8 @@
       // used in \require prefix", and nothing was typeset. Every extension the
       // pages use is loaded below, so authors never need \require.
       packages: { '[+]': ['ams', 'mathtools', 'physics', 'mhchem', 'boldsymbol', 'braket', 'cancel'] },
-      tags: 'all',
+      // theme_options.math.numbering: `ams` (the default), `all` or `none`.
+      tags: '{{ math_numbering }}',
       tagSide: 'right',
       tagIndent: '1.25em',
       macros: {
@@ -303,11 +330,23 @@
       enableAssistiveMml: true,
       enableMenu: true,
       skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'code', 'pre'],
-      renderActions: { addMenu: [0, '', ''] },
+      renderActions: {
+        addMenu: [0, '', ''],
+        // After MathJax inserts an expression (STATE.INSERTED is 200), on every
+        // render: MathJax draws one again into a new container when a reader
+        // changes a menu setting, and that container needs what the toolkit
+        // gave the first (#412). It is configuration rather than added at
+        // start, because the menu builds a new document for some settings.
+        datalogRestore: [210,
+          (doc) => { if (window.DatalogMath) { window.DatalogMath.restoreAll(doc); } return false; },
+          (math) => { if (window.DatalogMath) { window.DatalogMath.restore(math); } return false; }]
+      },
       menuOptions: {
         settings: {
           assistiveMml: true,
-          collapsible: true,
+          // Collapsible math wraps parts of an expression in toggles: a click
+          // meant to select a formula collapsed part of it to ◂…▸ (#412).
+          collapsible: false,
           // MathJax's explorer gives each equation tabindex="1" when it
           // attaches, which takes the equations out of the page's tab order.
           // The assistive MathML above is what screen readers read.
@@ -320,9 +359,29 @@
     startup: {
       ready() {
         const MJ = MathJax;
+        {%- if math_numbering == 'ams' %}
+        // `ams` numbers what amsmath numbers (equation, align, gather and the
+        // rest, not their starred forms) and also a $$...$$ display with a
+        // \label, as the theme's guides write them: MathJax's own `ams` leaves
+        // that display unnumbered, and its \eqref reads (???).
+        const tex = MJ._ && MJ._.input && MJ._.input.tex;
+        const AmsTags = tex && tex.ams && tex.ams.AmsConfiguration && tex.ams.AmsConfiguration.AmsTags;
+        if (AmsTags) {
+          const finalize = AmsTags.prototype.finalize;
+          AmsTags.prototype.finalize = function (node, env) {
+            if (env.display && this.label && this.currentTag.tag == null && !this.currentTag.env &&
+                !this.history.some((tag) => tag.taggable)) {
+              return this.enTag(node, this.getTag(true));
+            }
+            return finalize.call(this, node, env);
+          };
+        }
+        {%- endif %}
         MJ.startup.defaultReady();
+        // math.js may not have arrived yet; if so, it starts the toolkit itself
+        // when it does (#421).
         if (window.DatalogMath && typeof window.DatalogMath.init === 'function') {
-          window.DatalogMath.init(MJ);
+          window.DatalogMath.init(MJ, MJ.config.datalog);
         }
         MJ.startup.promise.then(() => {
           document.querySelectorAll('[data-math-alt]').forEach((el) => {

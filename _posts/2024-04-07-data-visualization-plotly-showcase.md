@@ -5,7 +5,6 @@ date: 2024-04-07
 tags: [visualization, plotly, dashboard]
 difficulty: beginner
 summary: Embed interactive Plotly charts, annotate export controls, and provide accessible descriptions for decision makers.
-hero: /assets/images/posts/plotly-dashboard.jpg
 slides:
   src: https://revealjs.com/demo/
   title: reveal.js demo deck

@@ -9,6 +9,9 @@ require_relative "test_helper"
 class PublisherIdentityTest < Minitest::Test
   POST = "2024/04/05/sql-optimization-guide/index.html"
   SITE_URL = "https://diogoribeiro7.github.io"
+  # The publisher's stable @id: the site author's own when the author publishes (#322).
+  PERSON_ID = "#{SITE_URL}/#person".freeze
+  ORGANIZATION_ID = "#{SITE_URL}/#organization".freeze
   DEFAULT_LOGO = {
     "@type" => "ImageObject",
     "url" => "#{SITE_URL}/assets/img/favicons/android-chrome-512x512.png",
@@ -33,7 +36,8 @@ class PublisherIdentityTest < Minitest::Test
   def test_the_demo_author_publishes_the_demo_and_keeps_their_affiliation
     ["index.html", POST].each do |path|
       data = schema_with_publisher(SiteBuilder.read(path))
-      assert_equal({ "@type" => "Person", "name" => "Diogo Ribeiro", "url" => "#{SITE_URL}/" }, data["publisher"], path)
+      assert_equal({ "@type" => "Person", "@id" => PERSON_ID, "name" => "Diogo Ribeiro", "url" => "#{SITE_URL}/" },
+                   data["publisher"], path)
     end
 
     affiliation = schema_with_publisher(SiteBuilder.read(POST)).dig("author", "affiliation")
@@ -61,7 +65,8 @@ class PublisherIdentityTest < Minitest::Test
     )
 
     assert_equal(
-      { "@type" => "Organization", "name" => "Example University", "url" => "#{SITE_URL}/", "logo" => DEFAULT_LOGO },
+      { "@type" => "Organization", "@id" => ORGANIZATION_ID, "name" => "Example University", "url" => "#{SITE_URL}/",
+        "logo" => DEFAULT_LOGO },
       data["publisher"]
     )
     assert_equal({ "@type" => "Organization", "name" => "Example University" }, data["author"]["affiliation"])
@@ -91,13 +96,16 @@ class PublisherIdentityTest < Minitest::Test
       "publisher" => { "type" => "Person", "name" => "John Roe", "url" => "https://john.example" }
     )
 
-    assert_equal({ "@type" => "Person", "name" => "John Roe", "url" => "https://john.example" }, data["publisher"])
+    assert_equal({ "@type" => "Person", "@id" => "#{SITE_URL}/#publisher", "name" => "John Roe",
+                   "url" => "https://john.example" }, data["publisher"], "another person is not the site author's @id")
   end
 
   def test_the_author_publishes_when_only_a_name_is_configured
     data = render_schema("author" => "Jane Doe")
 
-    assert_equal({ "@type" => "Person", "name" => "Jane Doe", "url" => "#{SITE_URL}/" }, data["publisher"])
+    assert_equal({ "@type" => "Person", "@id" => PERSON_ID, "name" => "Jane Doe", "url" => "#{SITE_URL}/" },
+                 data["publisher"])
+    assert_equal PERSON_ID, data["author"]["@id"], "the author and the publisher are one entity"
     assert_equal "Jane Doe", data["author"]["name"]
     refute data["author"].key?("affiliation")
   end
@@ -105,7 +113,8 @@ class PublisherIdentityTest < Minitest::Test
   def test_the_site_title_publishes_when_there_is_no_author_name
     [{}, { "author" => "" }].each do |site|
       assert_equal(
-        { "@type" => "Organization", "name" => "Example Site", "url" => "#{SITE_URL}/", "logo" => DEFAULT_LOGO },
+        { "@type" => "Organization", "@id" => ORGANIZATION_ID, "name" => "Example Site", "url" => "#{SITE_URL}/",
+          "logo" => DEFAULT_LOGO },
         render_schema(site)["publisher"]
       )
     end

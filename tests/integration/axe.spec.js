@@ -23,6 +23,9 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const PAGES = [
   '/',
   '/blog/',
+  '/tags/',
+  '/categories/',
+  '/archives/years/',
   '/visualizations/',
   '/portfolio/',
   '/search/',
@@ -31,14 +34,44 @@ const PAGES = [
   '/2024/04/05/sql-optimization-guide/',
   // Numbered equations and \eqref links, once MathJax has drawn them.
   '/2024/04/08/mathematical-proof-numbered-equations/',
+  // Citations from a BibTeX file and the list of the cited works (#289).
+  '/2024/04/06/research-paper-with-citations/',
   // The package docs: a dark sidebar, tinted panels, API signatures and the
   // installation tabs, in a stylesheet that had no dark mode of its own.
   '/packages/statflow/',
+  // The package index: a card per package with its release and install command (#290).
+  '/packages/',
+  // The academic dashboard: profiles, citation metrics, the filtered
+  // submission and calendar lists, which nothing rendered before #355.
+  '/academic/',
+  // A notebook: its header, cells and sidebar. axe can't judge the header's
+  // colours past its gradient; notebook-contrast.spec.js measures them.
+  '/notebooks/sample-analysis/',
 ];
 
 // What a page shows once its scripts have finished what the scan is about.
 const READY = {
   '/2024/04/08/mathematical-proof-numbered-equations/': '.math-reference-link',
+  '/academic/': '[data-citation-timeline] li[style]',
+  // Its one inline equation, typeset and named.
+  '/notebooks/sample-analysis/': 'mjx-container[role="math"]',
+};
+
+// A page whose interesting markup only exists after someone has used it. The
+// sweep loaded /search/ and scanned an empty result list, so the result cards,
+// their code and math blocks and the query highlighting had never been looked
+// at once. They had 17 violations between them.
+const INTERACT = {
+  '/search/': async (page) => {
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', {
+      timeout: 15000,
+    });
+    await page.locator('[data-search-input]').fill('reproducibility');
+    await page.locator('.search-result').first().waitFor({ state: 'visible', timeout: 15000 });
+    // A result carrying each of the things a result can carry, so the scan
+    // covers them: a code sample, a LaTeX snippet and a section list.
+    await page.locator('[data-result-code]:not([hidden])').first().waitFor({ state: 'visible' });
+  },
 };
 
 // axe has to be injected as an inline script, which the site's Content Security
@@ -58,6 +91,9 @@ for (const theme of ['light', 'dark']) {
         await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
         if (READY[path]) {
           await page.locator(READY[path]).first().waitFor({ state: 'attached' });
+        }
+        if (INTERACT[path]) {
+          await INTERACT[path](page);
         }
 
         await page.addScriptTag({ content: axeSource });

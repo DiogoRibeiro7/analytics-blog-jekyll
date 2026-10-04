@@ -6,13 +6,40 @@ hero_title: Components in action
 hero_tagline: Each section below renders a live include shipped with the theme so you can copy the markup into your own site.
 hero_cta_url: /visualizations/
 hero_cta_label: Explore visualization embeds
-academic_stats:
-  citations: "1,248"
-  h_index: 23
-  i10_index: 41
-  datasets: 12
-  notebooks: 18
-  dashboards: 9
+# The academic dashboard's data, in the shape of _data/academic.yml.
+academic_demo:
+  citations:
+    metrics:
+      total: 1248
+      h_index: 23
+      i10_index: 41
+      since_2020:
+        total: 812
+        h_index: 17
+        i10_index: 26
+  submissions:
+    - title: Reproducible dashboards for public health surveillance
+      venue: Journal of Open Source Software
+      type: journal
+      status: Under review
+      deadline: 2026-11-15
+    - title: Accessible charts for screen-reader users
+      venue: IEEE VIS
+      type: conference
+      status: Drafting
+      deadline: 2027-03-31
+  calendar:
+    events:
+      - name: Open Science Workshop
+        type: workshop
+        location: Porto
+        start_date: 2026-11-20 09:00
+        end_date: 2026-11-20 17:00
+      - name: Data Visualization Summit
+        type: conference
+        location: Online
+        start_date: 2027-02-10 14:00
+        end_date: 2027-02-12 18:00
 citation_entry:
   title: DataLog Theme
   authors: Ribeiro, D.
@@ -33,9 +60,10 @@ open_science_badges:
 <section class="section">
   <div class="container">
     <h2>Academic dashboard</h2>
-    <p>The <code>academic-dashboard</code> include assembles publication stats, citation metrics, and collaboration links.
-    Pass your own data via front matter or liquid assigns.</p>
-    {% include components/academic-dashboard.html stats=page.academic_stats %}
+    <p>The <code>academic-dashboard</code> include assembles citation metrics, submissions, the academic calendar and
+    collaboration links from <code>_data/academic.yml</code>. Pass a map of the same shape as <code>academic</code>
+    to render other data, as this page does from its front matter.</p>
+    {% include components/academic-dashboard.html academic=page.academic_demo %}
   </div>
 </section>
 

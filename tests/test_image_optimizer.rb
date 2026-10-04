@@ -45,14 +45,14 @@ class ImageOptimizerTest < Minitest::Test
     end
   end
 
-  def test_built_home_page_leaves_priority_to_its_preloaded_hero
+  def test_built_home_page_does_not_preload_an_unused_hero_image
     doc = Nokogiri::HTML5(SiteBuilder.read("index.html"))
-    assert doc.at_css('link[rel="preload"][as="image"]'), "The home page should preload its hero image"
+    refute doc.at_css('link[rel="preload"][as="image"]'), "The gradient hero needs no image preload"
 
     card = doc.at_css(".card-media img")
     skip "No post card image on the home page" unless card
     assert_equal "lazy", card["loading"], "A post card image below the hero should be lazy"
-    assert_nil card["fetchpriority"], "A post card image should not compete with the hero"
+    assert_nil card["fetchpriority"], "A post card image below the hero should not compete for priority"
   end
 
   # ---------------------------------------------------------------------------

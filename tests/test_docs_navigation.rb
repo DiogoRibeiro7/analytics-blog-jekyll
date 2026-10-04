@@ -1,0 +1,56 @@
+# frozen_string_literal: true
+
+require_relative "test_helper"
+
+class DocsNavigationTest < Minitest::Test
+  def test_docs_guides_search_and_project_paths
+    Dir.mktmpdir("datalog-docs") do |dir|
+      source = File.join(SiteBuilder.root, "docs/site")
+      config = Jekyll.configuration(
+        "source" => source,
+        "destination" => File.join(dir, "site"),
+        "config" => [File.join(source, "_config.yml")],
+        "baseurl" => "/preview",
+        "quiet" => true
+      )
+      Jekyll::Site.new(config).process
+
+      html = Nokogiri::HTML5(File.read(File.join(dir, "site/guides/installation/index.html")))
+      assert_equal "/preview/guides/installation/", html.at_css('.docs-sidebar [aria-current="page"]')["href"]
+      assert_equal "/preview/search/", html.at_css("form.site-search")["action"]
+      assert_equal "/preview/guides/configuration/", html.at_css(".docs-pagination a:last-child")["href"]
+      assert html.at_css('.docs-on-this-page a[href="#requirements"]'), "guide contents should link to a real heading"
+      assert html.at_css(".docs-content h2#requirements"), "the contents target should exist"
+      assert html.at_css('.docs-sidebar__repo[href*="analytics-blog-jekyll"]')
+
+      assert_docs_home(dir)
+      assert_technical_guide(dir)
+
+      assert File.exist?(File.join(dir, "site/search/index.html")), "search page should be generated"
+      index = JSON.parse(File.read(File.join(dir, "site/search.json")))
+      assert_includes index.to_s, "Install DataLog", "the guide should be discoverable in search"
+    end
+  end
+
+  private
+
+  def assert_docs_home(dir)
+    home = Nokogiri::HTML5(File.read(File.join(dir, "site/index.html")))
+    action_urls = home.css(".hero-actions a").map { |link| link["href"] }
+    assert_equal ["/preview/guides/installation/", "/preview/features/"], action_urls
+    assert_equal 3, home.css(".home-feature-card a").size
+    assert_equal "Documentation quick stats", home.at_css(".section-intro .card h3").text
+    home.css(".home-feature-card a").each do |link|
+      assert link["href"].start_with?("/preview/"), "feature link should include the project path"
+    end
+  end
+
+  def assert_technical_guide(dir)
+    guide = Nokogiri::HTML5(File.read(File.join(dir, "site/guides/technical-content/index.html")))
+    assert_equal "Technical content", guide.at_css('.docs-sidebar [aria-current="page"]').text
+    assert guide.at_css('.docs-on-this-page a[href="#equations"]')
+    assert_equal "Example observations used to estimate the mean", guide.at_css(".docs-content table caption").text
+    assert guide.at_css('.docs-content .callout[role="note"]')
+    assert_equal 2, guide.css(".docs-content pre > code").size
+  end
+end

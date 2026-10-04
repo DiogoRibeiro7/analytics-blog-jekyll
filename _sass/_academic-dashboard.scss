@@ -1,5 +1,6 @@
-// The academic dashboard (_includes/components/academic-dashboard.html): citation
-// metrics, bibliography export, and the submission, calendar and funding lists.
+// The academic dashboard (_includes/components/academic-dashboard.html), which
+// the demo renders at /academic/: profiles, citation metrics, the bibliography
+// export, and the submission, calendar and funding lists.
 // _components.scss loads this only when features.academic_dashboard is on.
 
 @use 'sass:map';
@@ -11,21 +12,6 @@
 .academic-dashboard {
   display: grid;
   gap: 2.5rem;
-}
-
-.academic-dashboard__header {
-  text-align: center;
-  max-width: 60ch;
-  margin: 0 auto;
-}
-
-.academic-dashboard__header h1 {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  margin-bottom: 0.5rem;
-}
-
-.academic-dashboard__header p {
-  color: var(--muted-foreground, #4a5568);
 }
 
 .academic-dashboard__profiles {
@@ -47,10 +33,10 @@
 }
 
 .academic-profile {
-  border: 1px solid rgba(12, 35, 64, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.5rem;
-  background: rgba(12, 35, 64, 0.03);
+  background: var(--surface-elevated);
   display: grid;
   gap: 1rem;
 }
@@ -69,7 +55,7 @@
 .academic-profile a {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--accent, #3277f6);
+  color: var(--accent);
 }
 
 .academic-profile dl {
@@ -97,12 +83,13 @@
   gap: 1.5rem;
   border-radius: 1.25rem;
   padding: 2rem;
-  background: rgba(50, 119, 246, 0.08);
+  background: rgba($color-accent-primary, 0.08);
 }
 
 .citation-metrics__totals {
   display: grid;
   gap: 1rem;
+  margin: 0;
 }
 
 @media (min-width: 40rem) {
@@ -112,7 +99,7 @@
 }
 
 .citation-metrics .metric {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface-card);
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
@@ -133,7 +120,7 @@
 }
 
 .citation-metrics__details {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-card);
   border-radius: 1rem;
   padding: 1rem 1.5rem;
 }
@@ -164,7 +151,7 @@
   gap: 1rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  background: linear-gradient(90deg, rgba(50, 119, 246, 0.15) var(--timeline-value, 35%), transparent 0);
+  background: linear-gradient(90deg, rgba($color-accent-primary, 0.15) var(--timeline-value, 0%), transparent 0);
 }
 
 .bibliography-export {
@@ -177,9 +164,9 @@
   min-height: 16rem;
   font-family: var(--font-mono, "Fira Code", monospace);
   border-radius: 0.75rem;
-  border: 1px solid rgba(12, 35, 64, 0.2);
+  border: 1px solid var(--color-border);
   padding: 1.25rem;
-  background: rgba(12, 35, 64, 0.04);
+  background: var(--surface-elevated);
 }
 
 .bibliography-export__actions {
@@ -221,10 +208,10 @@
 .opportunity-list li,
 .mentorship-list li,
 .workflow-list li {
-  border: 1px solid rgba(12, 35, 64, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-card);
 }
 
 .status-badge {
@@ -233,8 +220,8 @@
   gap: 0.4rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: rgba(50, 119, 246, 0.15);
-  color: var(--accent-foreground, #0b1d3d);
+  background: rgba($color-accent-primary, 0.15);
+  color: var(--color-accent-text);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -254,6 +241,7 @@
   display: grid;
   gap: 1.25rem;
 }
+
 
 @media (min-width: 48rem) {
   .networking-grid {

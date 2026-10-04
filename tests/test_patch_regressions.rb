@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "tmpdir"
 require "nokogiri"
 require_relative "test_helper"
 
@@ -70,31 +69,21 @@ class PatchRegressionsTest < Minitest::Test
   end
 
   def with_built_regression_site(archives: false)
-    Dir.mktmpdir do |dir|
-      %w[_layouts _includes _data].each { |path| FileUtils.cp_r(File.join(SiteBuilder.root, path), dir) }
-      FileUtils.mkdir_p(File.join(dir, "_posts"))
-      title = "When p < 0.05 and power > 80%: a<b test </script>"
-      data = { "layout" => "post", "title" => title, "description" => "p < 0.05 & power > 80%",
-               "updated" => "2026-03-05", "scholarly" => true, "tags" => ["statistics"], "categories" => ["research"],
-               "citation_authors" => "Smith, Jane; Tester, Ada" }
-      File.write(File.join(dir, "_posts/2026-01-01-test.md"), "#{data.to_yaml}---\nBody.\n")
-      research = { "layout" => "research", "title" => "Research", "issue" => "7",
-                   "authors" => [{ "name" => "The Lab", "type" => "Organization" }] }
-      File.write(File.join(dir, "research.md"), "#{research.to_yaml}---\nBody.\n")
-      config = Jekyll.configuration(
-        "source" => dir, "destination" => File.join(dir, "_site"), "quiet" => true,
-        "url" => "https://example.test", "baseurl" => "/sub", "title" => "Site",
-        "author" => { "name" => "Jane </script>" }, "plugins" => %w[jekyll-feed jekyll-sitemap]
-      )
-      if archives
-        %w[tags categories].each do |name|
-          File.write(File.join(dir, "#{name}.md"), "---\npermalink: /#{name}/\n---\nArchive\n")
-        end
-      end
-      site = Jekyll::Site.new(config)
-      site.process
-      yield site, title, dir
+    title = "When p < 0.05 and power > 80%: a<b test </script>"
+    post = { "layout" => "post", "title" => title, "description" => "p < 0.05 & power > 80%",
+             "updated" => "2026-03-05", "scholarly" => true, "tags" => ["statistics"], "categories" => ["research"],
+             "citation_authors" => "Smith, Jane; Tester, Ada" }
+    research = { "layout" => "research", "title" => "Research", "issue" => "7",
+                 "authors" => [{ "name" => "The Lab", "type" => "Organization" }] }
+    site = TestSite.build(url: "https://example.test", baseurl: "/sub", title: "Site",
+                          author: { "name" => "Jane </script>" },
+                          plugins: %w[jekyll-feed jekyll-sitemap]) do |source|
+      source.theme("_layouts", "_includes", "_data")
+      source.post("2026-01-01-test", "Body.", post)
+      source.page("research.md", "Body.", research)
+      %w[tags categories].each { |name| source.page("#{name}.md", "Archive", "permalink: /#{name}/\n") } if archives
     end
+    yield site.jekyll, title, site.dir
   end
 
   def test_built_titles_and_exports_preserve_plain_text

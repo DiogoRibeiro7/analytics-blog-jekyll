@@ -3,25 +3,48 @@
 required:
   - person
 ---
-One schema.org Person, as JSON, for a record from `page | page_authors` or
-`page | page_contributors`. The site's own author links to the site when the
-record names no url of its own.
+One schema.org Person, as JSON, for a record from `page | page_authors`,
+`page | page_contributors` or `site | site_author_record`. The site's own
+author links to the site when the record names no url of its own, and carries
+the `@id` that the publisher, the homepage's identity graph and a ProfilePage's
+`mainEntity` give it too, so every page names the same person (#322). Each
+other field is written when the record has it.
 {%- endcomment -%}
-{%- assign person_url = include.person.url -%}
-{%- if person_url == nil and include.person.site_author -%}{%- assign person_url = '/' -%}{%- endif -%}
+{%- assign json_person = include.person -%}
+{%- assign json_person_url = json_person.url -%}
+{%- if json_person_url == nil and json_person.site_author -%}{%- assign json_person_url = '/' -%}{%- endif -%}
+{%- assign json_person_description = json_person.bio | strip_html | normalize_whitespace -%}
 {
-    "@type": {% if include.person.type == 'Organization' %}"Organization"{% else %}"Person"{% endif %},
-    "name": {{ include.person.name | jsonify_script }}
-    {%- if person_url -%},
-    "url": {{ person_url | absolute_url | jsonify_script }}
+    "@type": {% if json_person.type == 'Organization' %}"Organization"{% else %}"Person"{% endif %},
+    {%- if json_person.site_author and json_person.type != 'Organization' %}
+    "@id": {{ '/' | absolute_url | append: '#person' | jsonify_script }},
+    {%- endif %}
+    "name": {{ json_person.name | jsonify_script }}
+    {%- if json_person.alternate_names.size > 0 -%},
+    "alternateName": {% if json_person.alternate_names.size == 1 %}{{ json_person.alternate_names.first | jsonify_script }}{% else %}{{ json_person.alternate_names | jsonify_script }}{% endif %}
     {%- endif -%}
-    {%- if include.person.affiliation -%},
+    {%- if json_person_url -%},
+    "url": {{ json_person_url | absolute_url | jsonify_script }}
+    {%- endif -%}
+    {%- if json_person.image -%},
+    "image": {{ json_person.image | absolute_url | jsonify_script }}
+    {%- endif -%}
+    {%- if json_person.job_titles.size > 0 -%},
+    "jobTitle": {% if json_person.job_titles.size == 1 %}{{ json_person.job_titles.first | jsonify_script }}{% else %}{{ json_person.job_titles | jsonify_script }}{% endif %}
+    {%- endif -%}
+    {%- if json_person_description != '' -%},
+    "description": {{ json_person_description | jsonify_script }}
+    {%- endif -%}
+    {%- if json_person.affiliation -%},
     "affiliation": {
       "@type": "Organization",
-      "name": {{ include.person.affiliation | jsonify_script }}
+      "name": {{ json_person.affiliation | jsonify_script }}
     }
     {%- endif -%}
-    {%- if include.person.same_as.size > 0 -%},
-    "sameAs": {{ include.person.same_as | jsonify_script }}
+    {%- if json_person.knows_about.size > 0 -%},
+    "knowsAbout": {{ json_person.knows_about | jsonify_script }}
+    {%- endif -%}
+    {%- if json_person.same_as.size > 0 -%},
+    "sameAs": {{ json_person.same_as | jsonify_script }}
     {%- endif -%}
   }

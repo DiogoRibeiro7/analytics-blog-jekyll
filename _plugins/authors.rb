@@ -22,6 +22,8 @@ module Datalog
     }.freeze
     PROFILE_LINKS = %w[researchgate google_scholar].freeze
     ORCID_ID = /\A\d{4}-\d{4}-\d{4}-\d{3}[\dX]\z/
+    # Profile links open in a new tab; no `profile_rel` setting removes these.
+    SAFE_REL = %w[noopener noreferrer].freeze
 
     # `authors:`, else `author:`, else the site's author.
     def authors(page, site)
@@ -94,6 +96,10 @@ module Datalog
       record["affiliation"] ||= record["institution"]
       record["bio"] ||= record["biography"]
       record["image"] ||= record["avatar"] || record["photo"]
+      # What the JSON-LD Person says about them besides the name, each a list.
+      record["alternate_names"] = list(record, "alternate_names", "alternate_name")
+      record["job_titles"] = list(record, "job_title", "roles")
+      record["knows_about"] = list(record, "knows_about", "expertise", "research_areas")
       record["orcid"] = "https://orcid.org/#{record['orcid']}" if record["orcid"].to_s.match?(ORCID_ID)
       record["site_author"] = record["name"] == site_author_profile(site)&.fetch("name")
       PROFILE_URLS.each do |key, template|
@@ -107,11 +113,44 @@ module Datalog
       record
     end
 
+    # The `rel` of a person's profile links. The site's own author gets `me`,
+    # which says the profile belongs to whoever owns the site: the relationship
+    # the JSON-LD `sameAs` states, in the form IndieAuth and Mastodon's
+    # verified links read. Anyone else gets it only when their record sets
+    # `profile_rel`, so a guest is never claimed as the site's owner. A record's
+    # `profile_rel` replaces `me`, and `author.profile_rel` in _config.yml does
+    # so for the site author; neither can drop noopener or noreferrer.
+    def profile_rel(person, site)
+      record = person.is_a?(String) ? { "name" => person } : present(person)
+      owner = site_author?(record, site)
+      configured = record["profile_rel"]
+      configured = site_author_profile(site)&.fetch("profile_rel", nil) if configured.nil? && owner
+      tokens = configured.to_s.downcase.split
+      tokens = ["me"] if configured.nil? && owner
+      (tokens + SAFE_REL).uniq.join(" ")
+    end
+
+    # A record from `page_authors` knows; a raw data record is compared by name.
+    def site_author?(record, site)
+      return record["site_author"] == true if record.key?("site_author")
+
+      name = site_author_profile(site)&.fetch("name")
+      !name.nil? && record["name"] == name
+    end
+
+    # The profiles the record names, then any other address it lists in `same_as`.
     def profiles(record)
       urls = [record["orcid"]]
       urls += PROFILE_URLS.map { |key, template| format(template, record[key]) if record[key] }
       urls += PROFILE_LINKS.map { |key| record[key] }
-      urls.compact.map(&:to_s).reject(&:empty?).uniq
+      urls += Array(record["same_as"])
+      urls.compact.map { |url| url.to_s.strip }.reject(&:empty?).uniq
+    end
+
+    # The first of `keys` the record sets, as a list of its non-blank values.
+    def list(record, *keys)
+      found = keys.map { |key| record[key] }.compact.first
+      Array(found).map { |item| item.to_s.strip }.reject(&:empty?)
     end
 
     # `author_affiliation` in front matter names the affiliation of a page's
@@ -144,6 +183,16 @@ module Datalog
 
     def page_contributors(page)
       Authors.contributors(page, @context["site"])
+    end
+
+    def author_profile_rel(person)
+      Authors.profile_rel(person, @context["site"])
+    end
+
+    # The site's own author as one full record, whatever the input:
+    # `{% assign owner = site | site_author_record %}`.
+    def site_author_record(_input = nil)
+      Authors.site_author(@context["site"])
     end
   end
 end

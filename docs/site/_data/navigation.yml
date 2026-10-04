@@ -21,6 +21,32 @@ header:
     url: /blog/
     section: blog
 
+docs:
+  - title: Start here
+    links:
+      - title: Guides
+        url: /guides/
+      - title: Installation
+        url: /guides/installation/
+      - title: Configuration
+        url: /guides/configuration/
+      - title: Technical content
+        url: /guides/technical-content/
+      - title: Migration
+        url: /guides/migration/
+  - title: Explore
+    links:
+      - title: Features
+        url: /features/
+      - title: Layouts
+        url: /features/layouts/
+      - title: Components
+        url: /features/components/
+      - title: Content types
+        url: /features/content-types/
+      - title: Visualizations
+        url: /visualizations/
+
 quick_links:
   - title: Launch the starter repository
     url: https://github.com/DiogoRibeiro7/datalog-starter
@@ -31,11 +57,11 @@ quick_links:
   - title: Browse the plugin marketplace
     url: /plugins/
   - title: Clone the documentation source
-    url: https://github.com/datalog-theme/datalog-theme.github.io
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/tree/develop/docs/site
 
 footer:
   - title: GitHub
-    url: https://github.com/DiogoRibeiro7
+    url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll
   - title: Issues
     url: https://github.com/DiogoRibeiro7/analytics-blog-jekyll/issues
   - title: License

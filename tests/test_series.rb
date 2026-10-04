@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/series"
 
@@ -10,14 +8,6 @@ require_relative "../_plugins/series"
 class SeriesTest < Minitest::Test
   Doc = Struct.new(:data, :url, :relative_path)
   Site = Struct.new(:documents, :pages, :data)
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def doc(title, series = nil, **extra)
     slug = title.downcase.tr(" ", "-")
@@ -193,23 +183,16 @@ class SeriesTest < Minitest::Test
   end
 
   def post_doc(slug)
-    path = Dir[File.join(@dir, "_site", "**", slug, "index.html")].first
-    refute_nil path, "expected #{slug} to be built"
-    Nokogiri::HTML5.fragment(File.read(path))
+    doc = @site.find("**/#{slug}/index.html")
+    refute_nil doc, "expected #{slug} to be built"
+    doc
   end
 
   # A site of five posts: a three-part series, one in Portuguese, a series of one and a plain post.
   def build
-    FileUtils.mkdir_p(File.join(@dir, "_posts"))
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "series-nav.html"),
-                 File.join(@dir, "_includes", "components", "series-nav.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    File.write(File.join(@dir, "_data", "series.yml"), "missing:\n  title: Missing Data\n  description: Three parts.\n")
     body = "{% include components/series-nav.html page=page %}" \
            "{% include components/series-nav.html page=page compact=true %}"
-    {
+    posts = {
       "2026-01-01-part-one" => "title: Part One\nseries:\n  id: missing\n  order: 1\n",
       "2026-01-02-part-two" => "title: Part Two\nseries: missing\nseries_order: 2\n",
       "2026-01-03-part-three" => "title: Part Three\nseries:\n  id: missing\n  order: 3\n",
@@ -220,14 +203,11 @@ class SeriesTest < Minitest::Test
       "2026-01-07-alone" => "title: Alone\nseries:\n  id: alone\n  order: 1\n",
       "2026-01-08-escaped" => "title: Escaped\nseries:\n  id: esc\n  title: Bold <b>title</b> & more\n  order: 1\n",
       "2026-01-09-plain" => "title: Plain\n"
-    }.each do |name, front_matter|
-      File.write(File.join(@dir, "_posts", "#{name}.md"), "---\nlayout: null\n#{front_matter}---\n\n#{body}\n")
+    }
+    @site = TestSite.build(title: "Series", baseurl: "/blog", permalink: "/:year/:month/:day/:title/") do |source|
+      source.theme("_includes/components/series-nav.html", "_data/i18n")
+      source.data("series.yml", "missing:\n  title: Missing Data\n  description: Three parts.\n")
+      posts.each { |name, front_matter| source.post(name, body, "layout: null\n#{front_matter}") }
     end
-    config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Series",
-      "url" => "https://example.org", "baseurl" => "/blog", "author" => { "name" => "Test" },
-      "permalink" => "/:year/:month/:day/:title/"
-    )
-    Jekyll::Site.new(config).process
   end
 end

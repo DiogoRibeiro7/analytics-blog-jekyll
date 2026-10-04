@@ -177,6 +177,8 @@ body.dark-mode pre.highlight {
   background: rgba($dark-surface-300, 0.8);
 }
 
+// Every token the light theme colours has a colour here too: one left out
+// keeps its light colour, about 2:1 on the dark code background.
 body.dark-mode .highlight {
   .c,
   .ch,
@@ -185,6 +187,7 @@ body.dark-mode .highlight {
   .cpf,
   .c1,
   .cs,
+  .p,
   .rouge-gutter {
     color: $dark-ink-500;
   }
@@ -229,7 +232,13 @@ body.dark-mode .highlight {
   .kv,
   .ow,
   .cp,
-  .o {
+  .o,
+  .ni,
+  .nv,
+  .vc,
+  .vg,
+  .vi,
+  .vm {
     color: $dark-accent-primary;
   }
 
@@ -239,5 +248,18 @@ body.dark-mode .highlight {
   .nd,
   .ne {
     color: #9fb6ff;
+  }
+
+  .nt,
+  .no,
+  .ss,
+  .gd {
+    color: $dark-accent-tertiary;
+  }
+
+  .sr,
+  .gr,
+  .gt {
+    color: $dark-warning;
   }
 }

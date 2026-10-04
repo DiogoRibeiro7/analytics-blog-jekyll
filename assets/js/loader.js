@@ -74,8 +74,12 @@ const FEATURE_CONFIG = [
     test: () => document.body?.dataset.featureMath === "true"
   },
   {
+    // The citation hooks, and the academic dashboard's submission and calendar
+    // filters, which a dashboard without citation metrics still has.
     name: "academic",
-    test: () => document.querySelector("[data-citation-metric], [data-citation-table], [data-citation-chart]")
+    test: () => document.querySelector(
+      "[data-citation-metric], [data-citation-table], [data-citation-chart], [data-submission-filter], [data-calendar-filter]"
+    )
   },
   {
     name: "notebook",
@@ -88,7 +92,7 @@ const FEATURE_CONFIG = [
   },
   {
     name: "corrections",
-    test: () => document.querySelector("[data-correction-report]")
+    test: () => document.querySelector("[data-correction-report], [data-correction-fallback]")
   },
   {
     name: "contact",

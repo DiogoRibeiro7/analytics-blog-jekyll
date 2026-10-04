@@ -639,6 +639,22 @@ describe('Loader Module', () => {
       expect(document.body.dataset.featureAcademicState).toBe('ready');
     });
 
+    it('should auto-detect academic from the dashboard filters', async () => {
+      document.body.dataset.featureAcademic = 'auto';
+      document.body.innerHTML += '<select data-calendar-filter></select>';
+
+      const manifest = {
+        core: 'data:text/javascript,export default {}',
+        features: {
+          academic: 'data:text/javascript,export default {}'
+        }
+      };
+
+      await bootstrapFeatures(manifest);
+
+      expect(document.body.dataset.featureAcademicState).toBe('ready');
+    });
+
     it('should auto-detect academic from citation-chart', async () => {
       document.body.dataset.featureAcademic = 'auto';
       document.body.innerHTML += '<div data-citation-chart></div>';

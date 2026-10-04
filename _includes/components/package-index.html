@@ -1,0 +1,121 @@
+{%- comment -%}
+Package Index Component
+Every package in the packages collection with its latest release, the command
+that installs it and what it is for, as a card grid or a table. The release
+comes from _data/package_releases.yml when `datalog packages refresh` has
+written it, else from the package's front matter, as on the package page.
+
+Usage:
+  {% include components/package-index.html %}
+  {% include components/package-index.html style="table" group_by="language" %}
+
+Parameters (all optional):
+  - style: cards (default) or table
+  - group_by: a front matter field, such as language or group; one heading
+    per value, in alphabetical order, and the packages without it last
+  - packages: the packages to list (default: site.packages)
+  - heading_level: the level of the first headings it writes (default: 2);
+    with group_by, a card's heading is one level below its group's, and
+    neither goes below h6
+{%- endcomment -%}
+
+{%- assign index_packages = include.packages | default: site.packages -%}
+{%- assign index_level = include.heading_level | default: 2 | plus: 0 | at_least: 1 | at_most: 6 -%}
+{%- if include.group_by -%}
+  {%- assign index_item_level = index_level | plus: 1 | at_most: 6 -%}
+  {%- assign index_groups = index_packages | group_by: include.group_by | sort: 'name' -%}
+  {%- assign index_named = index_groups | where_exp: 'group', 'group.name != ""' -%}
+  {%- assign index_unnamed = index_groups | where: 'name', '' -%}
+  {%- assign index_groups = index_named | concat: index_unnamed -%}
+{%- else -%}
+  {%- assign index_item_level = index_level -%}
+  {%- assign index_groups = index_packages | group_by_exp: 'package', '""' -%}
+{%- endif -%}
+{%- capture index_label %}{% t 'packages.index.title' %}{% endcapture -%}
+
+{%- if index_packages.size > 0 -%}
+<div class="package-index" data-package-index>
+{%- for group in index_groups -%}
+  {%- if include.group_by -%}
+    {%- capture group_title %}{% if group.name == '' %}{% t 'packages.index.other' %}{% else %}{{ group.name }}{% endif %}{% endcapture -%}
+  {%- else -%}
+    {%- assign group_title = index_label -%}
+  {%- endif -%}
+  {%- if include.group_by %}
+  <h{{ index_level }} class="package-index__group">{{ group_title | strip | escape }}</h{{ index_level }}>
+  {%- endif -%}
+
+  {%- if include.style == 'table' %}
+  <div class="content-table" role="region" tabindex="0" aria-label="{{ group_title | strip | escape }}">
+    <table class="package-index__table">
+      <thead>
+        <tr>
+          <th scope="col">{% t 'packages.index.package' %}</th>
+          <th scope="col">{% t 'packages.index.release' %}</th>
+          <th scope="col">{% t 'packages.index.install' %}</th>
+          <th scope="col">{% t 'packages.index.purpose' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {%- for package in group.items -%}
+        {%- assign release = package | package_release -%}
+        {%- assign install = package | package_install_tabs | first -%}
+        <tr data-package="{{ package.title | slugify }}">
+          <th scope="row"><a href="{{ package.url | relative_url }}">{{ package.title | escape }}</a></th>
+          <td>
+            {%- if release.version -%}
+              <span data-package-version>v{{ release.version | escape }}</span>
+              {%- if release.prerelease %} · {% t 'packages.prerelease' %}{% endif -%}
+              {%- if release.yanked %} · {% t 'packages.yanked' %}{% endif -%}
+              {%- if release.released %}<br><time datetime="{{ release.released | escape }}">{{ release.released | localize_date: 'short' }}</time>{% endif -%}
+            {%- endif -%}
+          </td>
+          <td>{% if install and install.id != 'git' %}<code translate="no">{{ install.commands.first.command | escape }}</code>{% endif %}</td>
+          <td>{{ package.tagline | default: package.description | escape }}</td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- else %}
+  <div class="card-grid">
+  {%- for package in group.items -%}
+    {%- assign release = package | package_release -%}
+    {%- assign install = package | package_install_tabs | first -%}
+    {%- assign registry_link = package | package_links | first %}
+    <article class="card project-card" data-package="{{ package.title | slugify }}">
+      <p class="card-meta">
+        {%- if package.language %}<span class="post-meta__badge">{{ package.language | escape }}</span>{% endif -%}
+        {%- if release.version %} <span class="post-meta__badge" data-package-version>v{{ release.version | escape }}</span>{% endif -%}
+        {%- if release.prerelease %} <span>{% t 'packages.prerelease' %}</span>{% endif -%}
+        {%- if release.yanked %} <span>{% t 'packages.yanked' %}</span>{% endif -%}
+        {%- if release.license %} <span>{{ release.license | escape }}</span>{% endif -%}
+      </p>
+      <h{{ index_item_level }}><a href="{{ package.url | relative_url }}">{% if package.icon %}{{ package.icon }} {% endif %}{{ package.title | escape }}</a></h{{ index_item_level }}>
+      {%- if package.tagline %}
+      <p><strong>{{ package.tagline | escape }}</strong></p>
+      {%- endif -%}
+      {%- if package.description %}
+      <p>{{ package.description | escape }}</p>
+      {%- endif -%}
+      {%- if install and install.id != 'git' %}
+      <p><code translate="no">{{ install.commands.first.command | escape }}</code></p>
+      {%- endif %}
+      <div class="project-links">
+        <a class="btn btn-primary" href="{{ package.url | relative_url }}">{% t 'packages.documentation' %}</a>
+        {%- if package.github_url %}
+        <a class="btn btn-secondary" href="{{ package.github_url | escape }}" target="_blank" rel="noopener">GitHub</a>
+        {%- endif -%}
+        {%- if registry_link %}
+        <a class="btn btn-secondary" href="{{ registry_link.url | escape }}" target="_blank" rel="noopener">{{ registry_link.label }}</a>
+        {%- endif %}
+      </div>
+    </article>
+  {%- endfor %}
+  </div>
+  {%- endif -%}
+{%- endfor %}
+</div>
+{%- else %}
+<p class="package-index__empty">{% t 'packages.index.empty' %}</p>
+{%- endif -%}

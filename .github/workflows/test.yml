@@ -108,6 +108,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends imagemagick libavif-bin
 
+      # critical 9 measures pages in Playwright's Chromium, which installing it
+      # does not download (critical 8's Puppeteer downloaded Chrome).
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Build site
         env:
           JEKYLL_ENV: test
@@ -116,8 +121,9 @@ jobs:
       # Also `bundle exec rake test`. The suite replaced `rake ci:verify`, whose
       # scripts checked source files for strings; Python was only set up here
       # for one of them.
-      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and the
-      # Chrome it runs, so its consumer test must not skip here.
+      # DATALOG_CRITICAL_CSS=required: `npm ci` above installs critical and
+      # Playwright, and the step above its Chromium, so the consumer test that
+      # runs `datalog critical-css` must not skip here.
       - name: Run Minitest suite
         env:
           DATALOG_IMAGE_TOOLS: required
@@ -139,7 +145,11 @@ jobs:
   ruby-versions:
     name: Ruby Tests (Ruby ${{ matrix.ruby }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The 3.4 leg runs the suite under SimpleCov, which costs about three
+    # times the runtime of a plain run.
+    timeout-minutes: 25
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     strategy:
       fail-fast: false
@@ -168,8 +178,30 @@ jobs:
       - name: Build JS bundles
         run: npm run build:js
 
+      # critical 9 measures pages in Playwright's Chromium, which installing it
+      # does not download (critical 8's Puppeteer downloaded Chrome).
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Run Minitest suite
+        if: matrix.ruby != '3.4'
         run: bundle exec rake test
+
+      # One leg runs it under SimpleCov, which enforces the thresholds in
+      # .simplecov. It costs about three times the runtime, so only one leg
+      # pays it — the same shape as the Node 22 leg above.
+      - name: Run Minitest suite with coverage
+        if: matrix.ruby == '3.4'
+        run: bundle exec rake coverage
+
+      - name: Upload coverage to Codecov
+        if: matrix.ruby == '3.4' && github.event_name == 'push' && env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./coverage/coverage.json
+          flags: ruby
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # The Playwright specs in tests/integration/ used to run only in the deploy
   # after a merge, so a browser regression reached develop with every pull
@@ -209,6 +241,19 @@ jobs:
         env:
           CI: 'true'
         run: npm run test:integration
+
+      - name: Build documentation preview
+        run: bundle exec jekyll build --source docs/site --config docs/site/_config.yml --destination tmp/docs-preview --trace
+
+      - name: Run documentation browser checks
+        env:
+          CI: 'true'
+          DOCS_SITE_TESTS: '1'
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+        run: |
+          npx http-server tmp/docs-preview -p 4173 --silent > /tmp/datalog-docs-server.log 2>&1 &
+          npx wait-on http-get://127.0.0.1:4173
+          npx playwright test tests/integration/docs-site.spec.js
 
       - name: Upload Playwright report
         if: failure()

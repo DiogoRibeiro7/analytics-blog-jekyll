@@ -46,7 +46,7 @@ This post's front matter is written the way the [Minimal Mistakes](https://mmist
 | `seo_description` | `description` | The meta description |
 | `classes: wide` | body class `wide` | Paragraphs use the full content width |
 | `subtitle` | subtitle under the title | The line under the heading |
-| `why_this_exists`, `evidence`, `methodology`, `reviewed_at` | provenance note | The editorial note above the article body |
+| `why_this_exists`, `evidence`, `methodology`, `reviewed_at` | provenance note | The editorial note after the article body, and the "Author and editorial note" row of the metadata |
 | `redirect_from` | redirect page | `/legacy/minimal-mistakes-post/` redirects here |
 
 ## What is ignored

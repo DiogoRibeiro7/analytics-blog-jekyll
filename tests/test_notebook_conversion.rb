@@ -36,4 +36,104 @@ class NotebookConversionTest < Minitest::Test
     assert_includes @notebook_html, "$e^{i\\pi} + 1 = 0$",
                     "Inline math from the notebook should be preserved"
   end
+
+  # The demo notebook opens with `# Notebook: Exploratory Data Snapshot`, its
+  # title, which showed again as an <h2> in a cell box of its own (#416).
+  def test_the_demo_notebook_shows_its_title_once
+    page = Nokogiri::HTML5(@notebook_html)
+    title = "Notebook: Exploratory Data Snapshot"
+    headings = page.css("h1, h2, h3, h4, h5, h6").select { |heading| heading.text.strip == title }
+
+    assert_equal ["h1"], headings.map(&:name), "the title should be the page's <h1> and nothing else"
+    assert_equal "This notebook demonstrates how DataLog renders .ipynb files using the notebook layout.",
+                 page.at_css(".notebook-article__content .notebook-cell--markdown")&.text&.strip,
+                 "the first cell shown should be the notebook's second, its first being only the title"
+  end
+
+  def test_an_opening_heading_that_is_the_title_is_left_out
+    html = render_cells([["markdown", "# Notebook title"], ["markdown", "Some text."]])
+
+    assert_empty headings(html)
+    assert_equal ["Some text."], markdown_cells(html), "a cell left empty is not drawn"
+  end
+
+  def test_the_rest_of_the_opening_cell_stays
+    html = render_cells([["markdown", "# Notebook title\n\nWhat this notebook does.\n\n## Data"]])
+
+    assert_equal ["Data"], headings(html).map(&:text)
+    assert_includes markdown_cells(html).first, "What this notebook does."
+  end
+
+  def test_a_heading_that_differs_from_the_title_stays
+    html = render_cells([["markdown", "# Another heading\n\nText."]], title: "Notebook title")
+
+    heading = headings(html).first
+
+    assert_equal ["h2", "Another heading"], [heading&.name, heading&.text]
+    assert_equal 1, headings(html).size
+  end
+
+  # Spacing, case and an ATX heading's closing #s are not part of its text,
+  # and a setext heading is a heading too.
+  def test_the_title_heading_is_recognised_however_it_is_written
+    [
+      "\n\n#   notebook   TITLE ##\n",
+      "### Notebook title",
+      "Notebook title\n==============",
+      "   Notebook title\n---"
+    ].each do |opening|
+      html = render_cells([["markdown", opening], ["markdown", "Text."]])
+
+      assert_empty headings(html), "#{opening.inspect} should be left out"
+    end
+  end
+
+  # What the site's Markdown doesn't read as the title heading stays: an
+  # indented line is a paragraph or code, and a setext heading's #s are text.
+  def test_what_markdown_does_not_read_as_the_title_stays
+    {
+      "  # Notebook title" => "# Notebook title",
+      "    # Notebook title" => "# Notebook title",
+      "\t# Notebook title" => "# Notebook title",
+      "Notebook title #\n---" => "Notebook title #"
+    }.each do |opening, shown|
+      html = render_cells([["markdown", opening]])
+
+      # Code also shows its line number.
+      assert_includes markdown_cells(html).first.to_s, shown, "#{opening.inspect} should stay"
+    end
+  end
+
+  def test_only_the_first_markdown_cell_loses_the_title
+    html = render_cells([
+                          ["code", "import pandas as pd"],
+                          ["markdown", "# Notebook title"],
+                          ["markdown", "## Notebook title\n\nA section that repeats it."]
+                        ])
+
+    assert_equal ["Notebook title"], headings(html).map(&:text), "the code cell first does not count"
+    refute_includes html, "<h2>Notebook title</h2>", "the opening heading is the one left out"
+  end
+
+  def test_nothing_is_left_out_without_a_title
+    notebook = { "cells" => [{ "cell_type" => "markdown", "source" => ["# Notebook title"] }] }
+    html = Datalog::NotebookRenderer.render(notebook, metadata: {}, site: SiteBuilder.site)
+
+    assert_equal ["Notebook title"], headings(html).map(&:text)
+  end
+
+  private
+
+  def render_cells(cells, title: "Notebook title")
+    cells = cells.map { |type, source| { "cell_type" => type, "source" => [source], "outputs" => [] } }
+    Datalog::NotebookRenderer.render({ "cells" => cells }, metadata: { title: title }, site: SiteBuilder.site).to_s
+  end
+
+  def headings(html)
+    Nokogiri::HTML5.fragment(html).css("h1, h2, h3, h4, h5, h6").to_a
+  end
+
+  def markdown_cells(html)
+    Nokogiri::HTML5.fragment(html).css(".notebook-cell--markdown").map { |cell| cell.text.strip }
+  end
 end

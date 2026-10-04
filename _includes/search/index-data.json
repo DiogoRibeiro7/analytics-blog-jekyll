@@ -70,7 +70,9 @@
         {% endfor %}
       {% endif %}
       {% assign raw_content = doc.content | default: '' %}
-      {% assign content_text = raw_content | markdownify | strip_html | normalize_whitespace %}
+      {% assign rendered_content = raw_content | markdownify %}
+      {% assign content_text = rendered_content | strip_html | normalize_whitespace %}
+      {% assign sections = rendered_content | search_sections %}
       {% assign summary = doc.summary | default: doc.excerpt | default: content_text | truncate: 280, '' %}
       {% assign inline_math_segments = raw_content | split: '$' %}
       {% assign display_math_segments = raw_content | split: '$$' %}
@@ -89,6 +91,13 @@
         "type": {{ doc_type | strip | jsonify }},
         "summary": {{ summary | strip | jsonify }},
         "content": {{ content_text | jsonify }},
+        {%- comment -%}
+        The passages of the page, each under the heading it belongs to, so a
+        result can link to the section rather than the top of the article. The
+        text is repeated here, which costs little once the file is served
+        compressed: the duplicate compresses almost entirely away.
+        {%- endcomment %}
+        "sections": {{ sections | jsonify }},
         "code": {{ doc.search_code | default: no_code | jsonify }},
         "math": [
           {% assign math_counter = 0 %}

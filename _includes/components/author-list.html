@@ -10,22 +10,23 @@ Lists the people who wrote or contributed to a page as schema.org Person
 items: each name, linked to the person's url when there is one, with their
 role and affiliation. `people` comes from `page | page_authors` or
 `page | page_contributors`; `property` is the microdata property, author
-(the default) or contributor.
+(the default) or contributor, and `false` for a list in no item.
 {%- endcomment -%}
 {%- assign list_property = include.property | default: 'author' -%}
+{%- if include.property == false -%}{%- assign list_property = nil -%}{%- endif -%}
 <ul class="author-list">
 {%- for person in include.people -%}
-  <li class="author-list__person" itemprop="{{ list_property }}" itemscope itemtype="https://schema.org/{% if person.type == 'Organization' %}Organization{% else %}Person{% endif %}">
+  <li class="author-list__person"{% if list_property %} itemprop="{{ list_property }}" itemscope itemtype="https://schema.org/{% if person.type == 'Organization' %}Organization{% else %}Person{% endif %}"{% endif %}>
     {%- if person.url -%}
       {%- assign person_href = person.url -%}
       {%- unless person_href contains '://' -%}{%- assign person_href = person_href | relative_url -%}{%- endunless -%}
-      <a href="{{ person_href | escape }}" itemprop="url"><span itemprop="name">{{ person.name | escape }}</span></a>
+      <a href="{{ person_href | escape }}"{% if list_property %} itemprop="url"{% endif %}><span{% if list_property %} itemprop="name"{% endif %}>{{ person.name | escape }}</span></a>
     {%- else -%}
-      <span itemprop="name">{{ person.name | escape }}</span>
+      <span{% if list_property %} itemprop="name"{% endif %}>{{ person.name | escape }}</span>
     {%- endif -%}
     {%- if person.role %} <span class="author-list__role">({{ person.role | escape }})</span>{%- endif -%}
     {%- if person.affiliation and include.show_affiliation != false -%}
-      <span class="post-author-affiliation" itemprop="affiliation">{{ person.affiliation | escape }}</span>
+      <span class="post-author-affiliation"{% if list_property %} itemprop="affiliation"{% endif %}>{{ person.affiliation | escape }}</span>
     {%- endif -%}
   </li>
 {%- endfor -%}

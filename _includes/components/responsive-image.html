@@ -26,29 +26,23 @@
   {% assign loading_mode = include.loading | default: site.datalog_image_config.lazy_loading | default: 'lazy' %}
   {% if responsive_entry %}
     <picture>
+      {% comment %}
+        The same figure exported for a dark page, if there is one. It comes
+        first: a <picture> takes the first source whose media and type both
+        match, so a dark source after a light one is never reached. Its own
+        format is offered too, for a browser with neither AVIF nor WebP.
+      {% endcomment %}
+      {% assign dark_entry = responsive_entry.dark %}
+      {% for source in dark_entry.sources %}
+        <source media="(prefers-color-scheme: dark)" data-dark-source type="{{ source.type }}" srcset="{{ source.variants | image_srcset }}" sizes="{{ requested_sizes }}">
+      {% endfor %}
+      {% if dark_entry.fallback.variants.size > 0 %}
+        <source media="(prefers-color-scheme: dark)" data-dark-source{% if dark_entry.fallback.type %} type="{{ dark_entry.fallback.type }}"{% endif %} srcset="{{ dark_entry.fallback.variants | image_srcset }}" sizes="{{ requested_sizes }}">
+      {% endif %}
       {% for source in responsive_entry.sources %}
-        {% assign srcset_items = '' %}
-        {% for variant in source.variants %}
-          {% assign variant_url = variant.url | relative_url %}
-          {% assign descriptor = variant.width | append: 'w' %}
-          {% if forloop.first %}
-            {% assign srcset_items = variant_url | append: ' ' | append: descriptor %}
-          {% else %}
-            {% assign srcset_items = srcset_items | append: ', ' | append: variant_url | append: ' ' | append: descriptor %}
-          {% endif %}
-        {% endfor %}
-        <source type="{{ source.type }}" srcset="{{ srcset_items }}" sizes="{{ requested_sizes }}">
+        <source type="{{ source.type }}" srcset="{{ source.variants | image_srcset }}" sizes="{{ requested_sizes }}">
       {% endfor %}
-      {% assign fallback_srcset = '' %}
-      {% for variant in responsive_entry.fallback.variants %}
-        {% assign variant_url = variant.url | relative_url %}
-        {% assign descriptor = variant.width | append: 'w' %}
-        {% if forloop.first %}
-          {% assign fallback_srcset = variant_url | append: ' ' | append: descriptor %}
-        {% else %}
-          {% assign fallback_srcset = fallback_srcset | append: ', ' | append: variant_url | append: ' ' | append: descriptor %}
-        {% endif %}
-      {% endfor %}
+      {% assign fallback_srcset = responsive_entry.fallback.variants | image_srcset %}
       {% assign fallback_default = responsive_entry.fallback.variants | last %}
       {% assign fallback_src = fallback_default.url | relative_url %}
       <img src="{{ fallback_src }}" srcset="{{ fallback_srcset }}" sizes="{{ requested_sizes }}" alt="{{ alt_text }}" loading="{{ loading_mode }}" decoding="async"{% if responsive_entry.width %} width="{{ responsive_entry.width }}"{% endif %}{% if responsive_entry.height %} height="{{ responsive_entry.height }}"{% endif %}{% if include.class %} class="{{ include.class }}"{% endif %}>

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 require_relative "../_plugins/reproducibility"
 
@@ -19,14 +17,6 @@ class ReproducibilityTest < Minitest::Test
     "notebook" => { "url" => "/notebooks/example/" },
     "results" => { "url" => "#{REPO}/releases/tag/results-v1", "version" => "results-v1" }
   }.freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   # Positional, since a bare `"key" => value` argument would be read as keywords.
   def resolve(value, baseurl = "")
@@ -178,20 +168,12 @@ class ReproducibilityTest < Minitest::Test
 
   # A page holding the panel, with the theme's translations.
   def render(value, baseurl = "", lang = nil)
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "reproducibility.html"),
-                 File.join(@dir, "_includes", "components", "reproducibility.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    front_matter = { "layout" => nil, "title" => "Paper", "lang" => lang, "reproducibility" => value }.compact.to_yaml
-    File.write(File.join(@dir, "index.html"),
-               "#{front_matter}---\n\n{% include components/reproducibility.html page=page %}\n")
-    config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Reproduce",
-      "url" => "https://example.org", "baseurl" => baseurl, "author" => { "name" => "Test" }
-    )
-    Jekyll::Site.new(config).process
-    @html = File.read(File.join(@dir, "_site", "index.html"))
-    Nokogiri::HTML5.fragment(@html)
+    front_matter = { "layout" => nil, "title" => "Paper", "lang" => lang, "reproducibility" => value }.compact
+    site = TestSite.build(title: "Reproduce", baseurl: baseurl) do |source|
+      source.theme("_includes/components/reproducibility.html", "_data/i18n")
+      source.page("index.html", "{% include components/reproducibility.html page=page %}", front_matter)
+    end
+    @html = site.read("index.html")
+    site.html("index.html")
   end
 end

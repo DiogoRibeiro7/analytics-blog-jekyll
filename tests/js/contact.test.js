@@ -266,6 +266,19 @@ describe('the form', () => {
     expect(client.feature).toHaveBeenCalledTimes(1);
   });
 
+  it('asks at once when the reader was already in the form before the script arrived', async () => {
+    const service = fakeClient({ feature: vi.fn().mockRejectedValue(new ServiceError('unsupported', 'x')) });
+    form.elements.namedItem('name').focus();
+    initContactForm(root, { client: service });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.feature).toHaveBeenCalledTimes(1);
+    expect(form.dataset.state).toBe('disabled');
+    form.elements.namedItem('email').dispatchEvent(new Event('focusin', { bubbles: true }));
+    expect(service.feature).toHaveBeenCalledTimes(1);
+  });
+
   it('submits through the form event and wires every form on the page', () => {
     window.DatalogDynamicServices = { base_url: 'https://api.example.test', features: { contact: true } };
     const controllers = initContactForms(document);

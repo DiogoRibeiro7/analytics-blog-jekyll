@@ -90,6 +90,22 @@ class CLITest < Minitest::Test
     end
   end
 
+  def test_new_archive_scaffolds_a_valid_topic_page_and_rejects_unsafe_paths
+    Dir.mktmpdir do |dir|
+      cli = Datalog::CLI::New.new([], { root: dir, type: "topic", title: 'Data: "Methods"' })
+      capture_io { cli.archive }
+      file = File.join(dir, "_pages", "archive-topic.md")
+      front = YAML.safe_load(File.read(file)[/\A---\n(.*?)\n---\n/m, 1])
+      assert_equal "archive", front["layout"]
+      assert_equal 'Data: "Methods"', front["title"]
+      assert_equal ["example-topic"], front.dig("topic", "tags")
+
+      invalid = Datalog::CLI::New.new([], { root: dir, type: "year", path: "/../outside/" })
+      assert_raises(SystemExit) { capture_io { invalid.archive } }
+      refute File.exist?(File.join(dir, "_pages", "archive-year.md"))
+    end
+  end
+
   # The slug names the file and, through it, the page's URL. An ASCII-only
   # character class deleted every accented letter instead of carrying it
   # across, which is most of the titles in the languages this theme is

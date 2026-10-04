@@ -17,6 +17,18 @@ This guide documents the configuration keys validated by the automated configura
 | `author` | String or map, required | A name, or a map with `name` |
 | `author.name` | String, required when `author` is a map | Any |
 | `author.email` | String | An email address |
+| `author.profile_rel` | String | Link types separated by spaces, such as `me noopener noreferrer` |
+| `author.alternate_name` | String or list | Another name, such as a handle |
+| `author.alternate_names` | List or string | Other names |
+| `author.job_title` | String or list | Any |
+| `author.roles` | List or string | Any; read when `job_title` is not set |
+| `author.knows_about` | String or list | Any |
+| `author.same_as` | String or list | URLs of other profiles |
+| `site_identity` | Boolean or map | `true`, or a map with the keys below |
+| `site_identity.enabled` | Boolean | `true` (default), `false` |
+| `site_identity.name` | String | Any; defaults to `title` |
+| `site_identity.alternate_names` | List or string | Other names of the site |
+| `site_identity.alternate_name` | String | One other name of the site |
 | `publisher` | Map | Any |
 | `publisher.type` | String | `Person`, `Organization` |
 | `publisher.name` | String | Any |
@@ -79,6 +91,13 @@ This guide documents the configuration keys validated by the automated configura
 | `timezone` | String | Any |
 | `collections` | Map | Any |
 | `plugins` | List | Any |
+| `audit` | Map | Any |
+| `audit.known_keys` | List | Front matter keys a site reads its own way |
+| `audit.ignore_links` | List | URL prefixes built outside Jekyll |
+| `audit.revision_after_days` | Integer | Days after publication an edit counts; default `30` |
+| `citations` | Map | Any |
+| `citations.style` | String | `numeric` (default), `author-year` |
+| `citations.bibliography` | String or list | Paths of BibTeX (`.bib`) or CSL-JSON (`.json`) files in the site |
 | `features` | Map | Any |
 | `features.mathjax` | Boolean | `true`, `false` |
 | `features.search` | Boolean | `true`, `false` |
@@ -93,12 +112,21 @@ This guide documents the configuration keys validated by the automated configura
 | `seo` | Map | Any |
 | `seo.type` | String | Any |
 | `seo.name` | String | Any |
+| `critical_css` | Map | Any |
+| `critical_css.enabled` | Boolean | `true`, `false` (default) |
+| `critical_css.engine` | String | `render` (default), `static` |
+| `critical_css.dimensions` | List | Maps with `width` and `height`: the viewports the render engine measures |
+| `critical_css.pages` | Map | `home`, `post` and `default`, each a site path |
 | `sass` | Map | Any |
 | `sass.style` | String | `compressed`, `expanded` |
 | `theme_options` | Map | Any |
+| `theme_options.color_scheme` | Map | Any |
+| `theme_options.color_scheme.default` | String | `dark` (default), `light`, `system` |
 | `theme_options.math` | Map | Any |
 | `theme_options.math.engine` | String | `mathjax`, `katex` |
 | `theme_options.math.enabled` | Boolean | `true`, `false`; deprecated, with no effect |
+| `theme_options.math.display_style` | String | `plain` (default), `card` |
+| `theme_options.math.numbering` | String | `ams` (default), `all`, `none` |
 | `theme_options.reading_mode` | Map | Any |
 | `theme_options.reading_mode.enabled` | Boolean | `true` (default), `false` |
 | `theme_options.reading_mode.remember` | Boolean | `true`, `false` (default) |
@@ -108,6 +136,15 @@ This guide documents the configuration keys validated by the automated configura
 | `theme_options.reading_state.progress` | Boolean | `true` (default), `false` |
 | `theme_options.reading_state.highlights` | Boolean | `true` (default), `false` |
 | `theme_options.reading_state.list_url` | String | The path of the page that lists the saved articles |
+| `theme_options.provenance` | Map | Any |
+| `theme_options.provenance.position` | String | `end` (default), `start` |
+| `theme_options.social_cards` | Map | Any |
+| `theme_options.social_cards.enabled` | Boolean | `true`, `false` (default) |
+| `theme_options.social_cards.scheme` | String | `dark` (default), `light` |
+| `theme_options.social_cards.background` | String | A colour, over the scheme's background |
+| `theme_options.social_cards.logo` | String or Boolean | A path in the site to an SVG or an image; `true` (default) for the theme's mark; `false` for none |
+| `theme_options.social_cards.template` | String | A path in the site to an SVG template |
+| `theme_options.social_cards.collections` | List | Collection labels, and `pages` for the site's pages; `[posts]` by default |
 
 ## Global Settings
 
@@ -154,6 +191,57 @@ This guide documents the configuration keys validated by the automated configura
   ```yaml
   author:
     email: author@example.com
+  ```
+
+#### author.profile_rel
+- **Required:** No
+- **Type:** String (link types separated by spaces)
+- **Default:** `me noopener noreferrer`
+- **Description:** The `rel` of the author's profile links in the author card, the research layout and the footer's ORCID link. `me` marks them as the site owner's own profiles, which IndieAuth and Mastodon's verified links read. Other authors never get `me` by default. `noopener` and `noreferrer` are added to any value that leaves them out. See [components.md: Identity Links](components.md#identity-links-relme).
+- **Example:**
+  ```yaml
+  author:
+    profile_rel: noopener noreferrer   # no rel="me"
+  ```
+
+#### Identity fields
+- **Required:** No
+- **Type:** Strings or lists
+- **Description:** What the JSON-LD `Person` says about the author besides the name, on every page that names them and in the homepage's identity graph ([site_identity](#site_identity)). Each is written only when set, and a `_data/authors.yml` record takes the same keys.
+
+  | Key | JSON-LD |
+  | --- | --- |
+  | `alternate_name` or `alternate_names` | `alternateName` |
+  | `job_title` or `roles` | `jobTitle` |
+  | `avatar`, `image` or `photo` | `image`, made absolute |
+  | `bio` or `biography` | `description`, as plain text |
+  | `knows_about`, `expertise` or `research_areas` | `knowsAbout` |
+  | `affiliation` or `institution` | `affiliation` |
+  | `orcid`, `github`, `twitter`, `linkedin`, `researchgate`, `google_scholar`, then `same_as` | `sameAs`, each address once |
+
+  The site's own author also carries `"@id": "<site>/#person"` on every page, which the publisher shares when the author publishes; another author has no `@id`.
+- **Example:**
+  ```yaml
+  author:
+    name: Jane Doe
+    alternate_name: janedoe
+    roles: [Lead Data Scientist, Professor]
+    same_as: [https://mastodon.example/@jane]
+  ```
+
+## Site Identity
+
+### site_identity
+- **Required:** No
+- **Type:** `true`, or a map with `name`, `alternate_names` (or `alternate_name`) and `enabled`
+- **Default:** off
+- **Description:** Describes the site itself on its homepage: a second JSON-LD block holding a `WebSite` node (`"@id": "<site>/#website"`, with its URL, `name`, `alternateName`, description, language and publisher) and the publisher's full node, the author's `Person` (`#person`) or the `Organization` (`#organization`). Search engines read the `WebSite` name as the site's name. `name` defaults to `title`; `og:site_name` uses the same name. A page with `schema_type: ProfilePage`, and the homepage, then say they are `isPartOf` the website. Off by default so a site that wrote its own `WebSite` block does not end up with two; delete yours when you turn this on. See [user-guide.md: Naming the site and its owner](user-guide.md#naming-the-site-and-its-owner).
+- **Example:**
+  ```yaml
+  site_identity:
+    name: Jane Doe
+    alternate_names:
+      - janedoe
   ```
 
 ## Publisher
@@ -328,12 +416,45 @@ This guide documents the configuration keys validated by the automated configura
   scholarly: [posts, notebooks]
   ```
 
+### audit
+- **Required:** No
+- **Type:** Map
+- **Description:** Settings of `bundle exec datalog audit`. `known_keys` lists the front matter keys a site's pages carry that nothing in the theme reads, such as keys a site's own plugin reads from its data, so the audit does not report them. `ignore_links` lists URL prefixes the site builds outside Jekyll's reader. `revision_after_days` is how long after publication an edit must come to suggest a revision entry. See [scripts-reference.md: datalog audit](scripts-reference.md#datalog-audit).
+- **Example:**
+  ```yaml
+  audit:
+    known_keys: [legacy_id]
+    revision_after_days: 60
+  ```
+
+### citations
+- **Required:** No
+- **Type:** Map
+- **Description:** In-text citations, for a site with the `datalog-citations` plugin in `datalog_plugins.enabled`. `style` is `numeric` ("[1]", the list in citation order) or `author-year` ("(Rubin 1987)", the list by author and year); a page overrides it with `citation_style`. `bibliography` names the BibTeX or CSL-JSON files a page cites from when its front matter names none. See [components.md: Citations](components.md#citations).
+- **Example:**
+  ```yaml
+  citations:
+    style: author-year
+    bibliography: _bibliography/main.bib
+  ```
+
 ## Theme Options
 
 ### theme_options
 - **Required:** No
 - **Type:** Map
 - **Description:** Container for theme-specific configuration such as math rendering, typography, and component toggles.
+
+#### theme_options.color_scheme
+- **Required:** No
+- **Type:** Map
+- **Description:** Sets the first-visit palette. A visitor's explicit toggle choice is stored in the browser and takes precedence. The theme's default is dark, with indigo and cyan accents; `system` follows the operating-system preference until the visitor chooses a mode.
+- **Example:**
+  ```yaml
+  theme_options:
+    color_scheme:
+      default: light
+  ```
 
 #### theme_options.math
 - **Required:** No
@@ -349,6 +470,28 @@ This guide documents the configuration keys validated by the automated configura
   theme_options:
     math:
       engine: mathjax
+  ```
+
+##### theme_options.math.display_style
+- **Required:** No
+- **Type:** String (enum: `plain`, `card`)
+- **Description:** How a display equation is set. `plain`, the default, puts it on its own line with a `1.25rem` margin above and below and nothing else, as in print; its copy and edit tools appear at the end of its line when the pointer or the keyboard focus reaches it, and a focus ring goes round it. `card` sets each one in a framed panel with its tools always in view, as the theme used to. The theme's `assets/css/main.scss` compiles the card's styles only for a site that chooses it. The setting applies to both engines; the copy and edit tools come with MathJax only.
+- **Example:**
+  ```yaml
+  theme_options:
+    math:
+      display_style: card
+  ```
+
+##### theme_options.math.numbering
+- **Required:** No
+- **Type:** String (enum: `ams`, `all`, `none`)
+- **Description:** Which display equations MathJax numbers. `ams`, the default, numbers what LaTeX's amsmath numbers, `equation`, `align`, `gather`, `multline` and the others but not their starred forms, and also a `$$…$$` display that carries a `\label{}`, so that `\eqref{}` can refer to it; `$$x = 1$$` stays unnumbered, and `\notag` leaves out one line. `all` numbers every display equation, as the theme used to. `none` numbers only an equation the author tags with `\tag{}`, so `\eqref{}` has nothing else to refer to. KaTeX numbers only a `\tag{}`, whatever the setting.
+- **Example:**
+  ```yaml
+  theme_options:
+    math:
+      numbering: all
   ```
 
 #### theme_options.reading_mode
@@ -378,6 +521,31 @@ This guide documents the configuration keys validated by the automated configura
       list_url: /saved/
   ```
 
+#### theme_options.provenance
+- **Required:** No
+- **Type:** Map
+- **Description:** Where a post's author and editorial note goes (the note that `why_this_exists`, `evidence`, `methodology` and `reviewed_at` make). `position: end`, the default, puts it after the article body and the reproducibility panel, before the revision history and "How to cite", with a row in the metadata that links to it; `start` puts it between the topics and the body, where it used to be. A post overrides it with `provenance_position` in its front matter. See [components.md: Where the Author and Editorial Note Goes](components.md#where-the-author-and-editorial-note-goes).
+- **Example:**
+  ```yaml
+  theme_options:
+    provenance:
+      position: start
+  ```
+
+#### theme_options.social_cards
+- **Required:** No
+- **Type:** Map
+- **Description:** A share card for each page that names no image of its own: a 1200×630 PNG with its title, series or subtitle, authors and date, and the site's name and logo, which `og:image`, `twitter:image` and the JSON-LD `image` point at. Off by default, since the build needs ImageMagick to draw them; without it, the build warns once and pages keep `social.default_image`. `og_image` or `image` in front matter wins over the card, and `social_card: false` asks for none. A path in `logo` or `template` that is not a file in the site stops the build. See [configuration-guide.md: Share cards](configuration-guide.md#share-cards).
+- **Example:**
+  ```yaml
+  theme_options:
+    social_cards:
+      enabled: true
+      scheme: light
+      logo: /assets/img/logo.svg
+      collections: [posts, pages]
+  ```
+
 ## Deprecations
 
 The validator also inspects configuration keys that have moved, been renamed or stopped having an effect, and provides non-blocking warnings, migrating values automatically where it can.
@@ -391,6 +559,11 @@ The validator also inspects configuration keys that have moved, been renamed or 
 ### theme_options.math.enabled (deprecated)
 - **Status:** Deprecated. Nothing reads it, so it has no effect.
 - **Replacement:** `theme_options.math.render_on_load` (`auto`, `true` or `false`) decides which pages load the math engine, and a page's `math` front matter overrides it.
+- **Action:** Remove the key.
+
+### critical_css.penthouse_options (deprecated)
+- **Status:** Deprecated. `datalog critical-css` runs critical 9, which replaced penthouse and takes none of its options, so they have no effect.
+- **Replacement:** `critical_css.dimensions` still sets the viewports, and `critical_css.engine` chooses how the CSS is found.
 - **Action:** Remove the key.
 
 ## Troubleshooting

@@ -28,7 +28,7 @@ The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.4 or la
    source "https://rubygems.org"
 
    gem "jekyll", "~> 4.4"
-   gem "datalog-theme", "~> 0.10.0"
+   gem "datalog-theme", "~> 0.11.0"
    ```
 
    The constraint takes the patch releases of the current minor series and
@@ -61,7 +61,9 @@ The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.4 or la
 
    The theme then generates `/search/` and the `/search.json` index it reads,
    because a theme gem can ship layouts and includes but not pages. A site that
-   defines either path itself keeps its own version.
+   defines either path itself keeps its own version. Results link to the
+   section of a page the query was found in, not just to the page; see
+   [Search results](configuration-guide.md#search-results).
 
 3. **Install and preview** with `bundle install` and `bundle exec jekyll serve`.
 
@@ -92,11 +94,15 @@ supply, and the theme leaves it out when you do not:
 - **Social links and feeds.** `_data/social.yml` lists the profiles in the
   footer's "Connect" column under `primary:` and its feeds under `rss:`. Without
   it the footer shows `author.email`, if you set one, and a link to `/feed.xml`.
+  Each link takes a `rel`, `noopener` when it has none; give your own profiles
+  `me noopener` to claim them, as the author card does for the site's author
+  ([components.md: Identity Links](components.md#identity-links-relme)).
 
   ```yaml
   primary:
     - label: GitHub
       url: https://github.com/your-name
+      rel: me noopener
   rss:
     - label: All posts
       url: /feed.xml
@@ -117,7 +123,7 @@ releases, and the work that is not released yet:
 Bundler can install from any of them. Pin a release tag:
 
 ```ruby
-gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.10.1"
+gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.11.0"
 ```
 
 Write `branch: "main"` in place of the tag to follow releases, or
@@ -193,15 +199,32 @@ Layouts, includes, Sass, assets and the theme's `_data` then all come from
   update. Delete it. Your own `assets/css/main.scss`, translations in
   `_data/i18n` and images still override the theme's as they should.
 
-To update, check out another tag, build the bundles again and commit the
-submodule:
+To update, run the CLI from your site's directory. It lists newer release
+tags, chooses the latest stable tag by default, checks for local changes,
+builds the theme bundles, installs the site's gems, checks for stale site
+copies and configuration, and stages the submodule pointer:
 
 ```bash
-git -C vendor/datalog fetch --tags
-git -C vendor/datalog checkout vX.Y.Z
-(cd vendor/datalog && npm ci && npm run build:js)
-git add vendor/datalog && git commit -m "Update the DataLog theme to vX.Y.Z"
+bundle exec datalog update --dry-run
+bundle exec datalog update --to vX.Y.Z
+# or: bundle exec datalog update --to latest --build
 ```
+
+`--to latest` skips prerelease tags; name a prerelease tag explicitly to use
+one. `--dry-run` only reports the intended steps, and `--build` verifies the
+site in a temporary output directory. The command prints Removed, Changed and
+Deprecated changelog entries across the selected releases. It never commits
+or pushes: inspect the staged pointer and use the printed `git commit` command
+when ready. Exit status 0 means already current, 2 means updated, and 1 means
+the update failed. Already current is not a reason to skip anything else: the
+command still builds the theme's bundles when they are missing or out of date,
+runs the site checks, and builds the site with `--build`. If preflight finds a stale copy or old `*_dir` setting,
+resolve every reported check and run the command again. A failed build also
+needs attention before committing.
+
+For a site using the published gem, the same command runs `bundle update
+datalog-theme`, refreshes the site's npm packages when available, and prints
+the relevant changelog sections after a version change.
 
 On GitHub Actions, check out the submodule and build the bundles before
 Jekyll:
@@ -286,7 +309,8 @@ GitHub Actions and publish the result instead:
 This repository's `.github/workflows/deploy.yml` publishes the demo site the same
 way, with its test suites added. To publish AVIF, WebP and resized copies of your
 images, install ImageMagick and avifenc before the build step; the
-[configuration guide](configuration-guide.md#images) has the command. With
+[configuration guide](configuration-guide.md#images) has the command. ImageMagick
+also draws the [share cards](configuration-guide.md#share-cards). With
 `critical_css.enabled`, also set up Node.js and run
 `bundle exec datalog critical-css` before the build step
 ([critical CSS](configuration-guide.md#critical-css)).

@@ -21,9 +21,12 @@ The `post` layout adds five components to every post: social sharing buttons, br
 15. [Reactions](#reactions)
 16. [Webmentions](#webmentions)
 17. [Newsletter Subscriptions](#newsletter-subscriptions)
-18. [Front Matter](#front-matter)
-19. [Customization](#customization)
-20. [Troubleshooting](#troubleshooting)
+18. [Academic Dashboard](#academic-dashboard)
+19. [Citations](#citations)
+20. [Package Pages](#package-pages)
+21. [Front Matter](#front-matter)
+22. [Customization](#customization)
+23. [Troubleshooting](#troubleshooting)
 
 The components follow the light and dark themes through the CSS variables described under [Customization](#customization).
 
@@ -211,6 +214,34 @@ author:
 - `show_avatar` - Show author avatar (default: true)
 - `show_social` - Show social links (default: true)
 - `compact` - Avatar, name, affiliation and links only, without the biography and research interests (default: false)
+
+### Identity Links (`rel="me"`)
+
+`rel="me"` on a link says that the profile it points to belongs to whoever owns the page, which is how IndieAuth, Mastodon's verified links and other identity checks connect a site to its owner's accounts. The JSON-LD says the same thing with `sameAs`.
+
+The theme adds `me` to the profile links of the **site's own author**, the person named by `author` in `_config.yml`. Everyone else's profile links keep `noopener noreferrer` alone, so a guest's GitHub or ORCID is never claimed as the site owner's. The rule is the same everywhere the theme links an author's profiles:
+
+| Where | Site author | Any other author |
+| --- | --- | --- |
+| Author card (GitHub, Twitter/X, LinkedIn, ORCID, Google Scholar) | `me noopener noreferrer` | `noopener noreferrer` |
+| Research layout, each author's ORCID link | `me noopener noreferrer` | `noopener noreferrer` |
+| Footer ORCID link (`author.orcid`) | `me noopener noreferrer` | — |
+| Footer "Connect" links (`_data/social.yml`) | Each link's own `rel`, `noopener` when it has none | — |
+
+`profile_rel` changes the `rel` for one person. On the site author it goes under `author` in `_config.yml`, and on anyone else in their `_data/authors.yml` record or their entry in front matter:
+
+```yaml
+author:
+  name: Your Name
+  profile_rel: noopener noreferrer   # stop claiming the profiles with me
+
+# _data/authors.yml: the site owner writing under another name
+pen_name:
+  name: Y. Name
+  profile_rel: me
+```
+
+`noopener` and `noreferrer` are added back to any value that leaves them out, so a setting can only add link types or remove `me`. Set `me` on another record only when those profiles really are the site owner's. The footer's "Connect" links are listed by hand, so mark your own profiles there with `rel: me noopener` in `_data/social.yml`.
 
 ### Authors and Contributors
 
@@ -480,11 +511,27 @@ The list may be in any order; it is shown newest first, and two revisions on one
 | --- | --- | --- |
 | `date` | When the article was published. It never changes, and neither does the URL. | "Published" in the metadata, `datePublished` |
 | `last_modified_at` (or `updated`) | When the article last changed. The newest revision sets it when later. | "Updated" in the metadata, `dateModified`, the feed and the sitemap |
-| `reviewed_at` | When the article was last read through by its author or an editor. | "Reviewed" in the provenance note |
+| `reviewed_at` | When the article was last read through by its author or an editor. | "Reviewed" in the provenance note, and in the metadata when the note follows the article |
 | `why_this_exists`, `evidence`, `methodology` | Provenance: why the article exists and what it rests on. | The provenance note |
 | `revisions` | The history: what changed since publication, when and why. | The notice, the history and the structured data |
 
 Provenance explains the evidence and the method; the revision history explains how the published claim changed over time. A `review` revision records a read-through in the history and leaves `reviewed_at` alone.
+
+### Where the Author and Editorial Note Goes
+
+The note that `why_this_exists`, `evidence`, `methodology` and `reviewed_at` make is editorial apparatus, like the reproducibility panel, the revision history and "How to cite", so by default it follows the article with them: after the article body and the reproducibility panel, before the correction report, the revision history and the citation tools. It is there in the document, not only on screen, so a screen reader and the printed page meet it after the article too.
+
+The metadata at the top of the post keeps it in reach. A row, "Author and editorial note", says when the article was reviewed and links to the note: "Reviewed 13 September 2026 · How this article was made". Without `reviewed_at` the row holds the link alone. The row is in the three languages the theme ships.
+
+To put the note back before the article, between the topics and the body, set:
+
+```yaml
+theme_options:
+  provenance:
+    position: start   # or end, the default
+```
+
+A post chooses for itself with `provenance_position: start` or `provenance_position: end` in its front matter, over the site's setting. With `start` there is no row in the metadata, since the note is right there. The research layout does not show the note, so the setting does not reach it.
 
 ### Styling
 
@@ -813,17 +860,19 @@ mark.reading-highlight { }        // a highlight, without it
 
 ### What It Does
 
-A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, as structured feedback apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history: a collapsed block with a category, the section (filled from the article's headings), the message, an optional email for a reply, and, when the reader had text selected as they opened it, that passage attached. The article's address and title go with the report.
+A reader who finds a mathematical or factual error, a broken citation, outdated code, a reproducibility failure, a typo that changes the meaning or an accessibility problem can report it, apart from comments. "Report an error or suggest a correction" sits under the article, before the revision history. With a backend, it is a collapsed form with a category, section, message, optional reply email and selected passage. Without one, it is a link to a pre-filled issue or email.
 
-The report goes to the site's backend through the [dynamic services](dynamic-services.md) and is **never shown on the page**. It is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it. Nothing turns a report into a public notice on its own.
+The form sends reports privately through [dynamic services](dynamic-services.md). An issue fallback is **public**; the link says so before the reader follows it. An email fallback opens the reader's email client. A report is an incoming claim; the [revision history](#revision-history) is what the author publishes after looking into it.
 
 ### Usage
 
-The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`), and:
+The form renders on a site with a backend that offers the feature (`dynamic_services.base_url` set, `dynamic_services.features.corrections` not `false`). Otherwise, the site offers a plain link when a supported repository or contact email is configured:
 
 ```yaml
 corrections:
-  enabled: true                   # false removes the form from every post
+  enabled: true                   # false removes the form and fallback from every post
+  fallback: issue                 # issue | email | none; optional
+  issue_labels: [correction]      # optional; default: [correction]
   categories:                     # the choices, in this order; the labels are in _data/i18n under corrections.categories
     - mathematical-error
     - factual-error
@@ -835,7 +884,7 @@ corrections:
     - other
 ```
 
-A post opts out with `corrections: false` in its front matter. A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`.
+A post opts out of both with `corrections: false` in its front matter. Without an explicit `fallback`, a valid `repository` URL on GitHub or GitLab selects `issue`; otherwise `contact_email` (or `author.email`) selects `email`; otherwise no link appears. `fallback: none` suppresses the link. A requested issue/email mode with no valid destination displays no link. The new-issue subject and body include the article title and canonical address; labels are included for issues. JavaScript adds the last article heading above the viewport and selected passage when the reader follows the link. The original link still works without JavaScript, and the address is capped to avoid excessively long URLs. Issue links are only formed from `https://github.com/<owner>/<repo>` or `https://gitlab.com/<group>/<project>` (nested GitLab groups are supported). A site that adds a category adds its label under `corrections.categories.<key>` in `_data/i18n/<lang>.yml`; fallback labels and public notice live under `corrections.fallback.*`.
 
 ### What the Service Receives
 
@@ -852,7 +901,7 @@ A post opts out with `corrections: false` in its front matter. A site that adds 
 }
 ```
 
-`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the reference deployment in [dynamic-services.md](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) does the first.
+`section`, `contact_email` and `quote` are present only when given. The service answers `202` (or `200`) with JSON; a `422` with `error.errors` marks the fields; a `429` with `Retry-After` and a `5xx` show as such, with the request id for reference. The backend validates and sanitizes everything, keeps the email private, rate-limits, and may store the report, mail it, open an issue or feed a moderation queue; the [reference service](dynamic-services.md#the-reference-service) stores it for the [moderation inbox](moderation.md).
 
 ### States
 
@@ -860,12 +909,13 @@ The form is one `<form>` with `data-state`: `idle`, `pending` (submit disabled, 
 
 ### From a Report to a Revision
 
-A report is private and unverified. The workflow the theme supports: the report arrives in the backend's store or inbox; the author checks it; if the article changes, the author edits it and adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which is what readers then see, dated, under the metadata and in the revision history. The reporter's email, if any, is for a reply; it never appears on the site.
+A report is unverified. With a backend it arrives privately in the service's store or inbox; with the issue fallback it is public on the repository; with the email fallback it goes through the reader's email client. The author checks it and, if the article changes, adds a `revisions:` entry (`correction`, `update` or `editorial`) with a summary, which readers then see in the article's revision history.
 
 ### Styling
 
 ```scss
 .correction-report { }             // the collapsed block
+.correction-report--fallback { }   // the static link and, for issues, its public notice
 .service-form { }                  // the form, shared with the contact form; [data-state="…"]
 .service-form__field { }           // a label, its control, hint and error
 .service-form__status { }          // the announced state
@@ -1005,7 +1055,7 @@ Writing, `POST /v1/comments` with `Content-Type: application/json` and an `Idemp
 }
 ```
 
-`email` and `url` are present only when given. The service answers `201` with `{ "comment": { … }, "status": "published" }` when the comment is up, or `202` with `"status": "pending"` when it is held for moderation (the theme then shows it to its author with the badge); a `422` with `error.errors` keyed `name`, `email`, `url` or `body` marks the fields; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), with the request id.
+`email` and `url` are present only when given. The service answers `201` with `{ "comment": { … }, "status": "published" }` when the comment is up, or `202` with `"status": "pending"` when it is held for moderation (the theme then shows it to its author with the badge); a `422` with `error.errors` keyed `name`, `email`, `url` or `body` marks the fields; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#errors), with the request id.
 
 What the backend does, and the theme cannot: validate and limit the size of every field; strip or escape markup (the theme renders text, but another consumer of the store may not); hash or drop the email; rate-limit by IP or token; restrict CORS to the site's origin; keep a `status` (`pending`, `approved`, `spam`, `deleted`) and serve only `approved` on `GET`; run whatever anti-spam challenge it likes before storing, the theme's own defence being a honeypot field that bots fill and readers never see.
 
@@ -1027,7 +1077,7 @@ A document in MongoDB, or a row anywhere else:
 }
 ```
 
-An index on `(page_id, status, created_at)` serves the `GET`; `idempotency_key` keeps a retried `POST` from storing twice. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows the handler shape and where the credential lives (in the function's environment, never in the site). MongoDB is not required: the contract is HTTP and JSON.
+An index on `(page_id, status, created_at)` serves the `GET`; `idempotency_key` keeps a retried `POST` from storing twice. The [reference service](dynamic-services.md#the-reference-service) keeps the same fields in a SQL table, with the email only as a keyed hash; any store fits, since the contract is HTTP and JSON.
 
 ### States
 
@@ -1090,7 +1140,7 @@ Writing, `POST /v1/reactions` with an `Idempotency-Key`:
 { "path": "/2024/04/05/sql-optimization-guide/", "reaction": "useful" }
 ```
 
-The service answers `201` with `{ "counts": { … }, "reaction": "useful" }`; returning the counts is what lets the strip update them, and without them it keeps the ones it had rather than adding one itself. A `409` means the service already holds this reader's reaction, shown as counted; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#the-error-model), and change nothing.
+The service answers `201` with `{ "counts": { … }, "reaction": "useful" }`; returning the counts is what lets the strip update them, and without them it keeps the ones it had rather than adding one itself. A `409` means the service already holds this reader's reaction, shown as counted; `429` with `Retry-After` and `5xx` show as in the [error model](dynamic-services.md#errors), and change nothing.
 
 ### Honesty and Privacy
 
@@ -1175,7 +1225,7 @@ One shape, none of it required: a receiver route (`POST /webmention` with `sourc
 { "_id": "m1", "source": "…", "target": "…", "type": "reply", "author": { "name": "…", "url": "…" }, "title": "…", "excerpt": "…", "published_at": "…", "received_at": "…", "verified": true, "status": "approved" }
 ```
 
-in MongoDB or any store, with an index on `(target, status, published_at)`; and a read route under the dynamic services that returns the approved, verified entries of a target in the shape above. A hosted receiver (webmention.io) with a small read proxy that normalizes its answer into that shape works just as well. The [reference deployment](dynamic-services.md#reference-deployment-serverless-functions-and-mongodb-atlas) shows where the credentials live.
+in MongoDB or any store, with an index on `(target, status, published_at)`; and a read route under the dynamic services that returns the approved, verified entries of a target in the shape above. A hosted receiver (webmention.io) with a small read proxy that normalizes its answer into that shape works just as well. The [reference service](dynamic-services.md#the-reference-service) has both routes: its `/webmention` receiver is the endpoint to advertise.
 
 ### States
 
@@ -1233,7 +1283,7 @@ Subscribing, `POST /v1/subscriptions` with an `Idempotency-Key`:
 { "email": "reader@example.org", "topics": ["new-articles", "datasets"], "source_url": "https://example.org/", "locale": "en" }
 ```
 
-`topics` is present only when the site lists topics. The service answers `202` with `{ "status": "pending" }` when it has sent a confirmation email (double opt-in), or `201` with `{ "status": "confirmed" }`; without a `status` the form goes by `double_opt_in`. A `409` means the address is already subscribed, shown as such and not as an error; a service that would rather not disclose membership answers `202` instead, and the form cannot tell the difference. A `422` with `error.errors.email` (or `.topics`) marks the field; `429` and `5xx` show as in the [error model](dynamic-services.md#the-error-model).
+`topics` is present only when the site lists topics. The service answers `202` with `{ "status": "pending" }` when it has sent a confirmation email (double opt-in), or `201` with `{ "status": "confirmed" }`; without a `status` the form goes by `double_opt_in`. A `409` means the address is already subscribed, shown as such and not as an error; a service that would rather not disclose membership answers `202` instead, and the form cannot tell the difference. A `422` with `error.errors.email` (or `.topics`) marks the field; `429` and `5xx` show as in the [error model](dynamic-services.md#errors).
 
 From the emails, all keyed by the token the backend put in the link:
 
@@ -1285,6 +1335,323 @@ The form is a `.service-form` with `data-state` as the other forms (`idle`, `pen
 
 ---
 
+## Academic Dashboard
+
+### What It Does
+
+`components/academic-dashboard.html` sets out a researcher's working life from `_data/academic.yml`: the Google Scholar, ORCID, ResearchGate and Academia.edu profiles, citation metrics (with a "since" period and a per-publication snapshot) and citations by year, the bibliography export, the submission tracker, peer review and collaborations, the academic calendar, funding, collaboration opportunities, mentorship, the open-science badges and networking channels. Each section appears only when the data has it. The demo renders it at `/academic/`.
+
+The submission tracker filters by status and the calendar by event type. `assets/js/academic.js` runs both filters and sizes the bars for citations by year. The labels are translated in English, Portuguese and Spanish.
+
+### Usage
+
+```liquid
+---
+title: Academic Operations
+layout: page
+permalink: /academic/
+---
+{% include components/academic-dashboard.html %}
+```
+
+The page gives the title, and the dashboard's sections start at `h2`. Its styles are compiled into the stylesheet when the site sets:
+
+```yaml
+features:
+  academic_dashboard: true
+```
+
+To render other data, pass a map shaped like `_data/academic.yml` as `academic`, for example from the page's front matter: `{% include components/academic-dashboard.html academic=page.academic %}`. The citation metrics then come from that map. Without `academic`, they come from `_data/publications.yml` where the publications generator computes them, and otherwise from `_data/academic.yml`. The site's own bibliography export is shown only without `academic`.
+
+### The Data
+
+```yaml
+profiles:
+  google_scholar: { label: Google Scholar, url: "https://scholar.google.com/...", user_id: abc123, auto_update: true }
+  orcid: { url: "https://orcid.org/...", sync: { scope: [works, funding], last_synced: 2026-03-01 } }
+  researchgate: { url: "...", projects: [Energy forecasting] }
+  academia: { url: "...", collections: [Teaching portfolio] }
+citations:
+  metrics: { total: 245, h_index: 9, i10_index: 12, since_2019: { total: 210, h_index: 8, i10_index: 11 } }
+  per_publication: { datalog2024: { total: 18, last_updated: 2026-03-01 } }
+  yearly_totals: { "2023": 62, "2024": 58 }   # citations received each year
+bibliography:
+  exports: [{ format: bibtex, filename: publications.bib }]   # files under /assets/publications/
+submissions: [{ title: ..., venue: ..., type: journal, status: In review, deadline: 2026-04-15, submitted: 2026-03-18, collaborators: [...], notes: ... }]
+workflow:
+  peer_review: [{ title: ..., journal: ..., status: ..., assigned_date: ..., due_date: ..., notes: ... }]
+  collaborations: [{ name: ..., role: ..., stage: ..., contact: name@example.org, notes: ... }]
+calendar:
+  description: ...
+  events: [{ name: ..., type: conference, location: ..., start_date: 2026-07-10, end_date: 2026-07-13, submission_deadline: 2026-04-15 }]
+funding: [{ title: ..., agency: ..., role: ..., amount: ..., status: ..., deadline: ... }]   # or period instead of deadline
+collaboration_opportunities: [{ title: ..., description: ..., tags: [...], contact: ... }]
+mentorship: [{ program: ..., offering: ..., cohorts: ..., schedule: ..., application_deadline: ..., contact: ... }]
+badges: [{ label: Open Data, description: ..., criteria: ... }]
+networking:
+  platforms: [{ name: ..., role: ..., url: ... }]
+  mentorship_channels: [{ channel: ..., description: ... }]
+```
+
+A calendar event shows times when its dates carry them (`2026-07-10 09:00`); a date alone shows as a date. The profile links are the site owner's, so they carry `rel="me"` like the author card's (see [Identity Links](#identity-links-relme)).
+
+### Styling
+
+```scss
+.academic-dashboard { }                     // the whole dashboard
+.academic-dashboard__profiles, .academic-profile { }
+.citation-metrics, .citation-metrics__totals, .citation-metrics__timeline { }
+.submission-list, .submission-card, .status-badge { }
+.calendar-list, .funding-list, .opportunity-list, .mentorship-list, .workflow-list { }
+```
+
+---
+
+## Citations
+
+### What It Does
+
+The `datalog-citations` plugin turns `{% cite key %}` into a citation of a work in the page's bibliography, and puts the list of the cited works after the article: numbered in the order they are first cited, or by author and year. Each citation links to its entry, and each entry links back to every place it is cited. A key the page's sources lack stops the build. The Highwire `citation_reference` tags and the JSON-LD `citation` list describe the cited works on a research article. The plugin needs no other plugin. With `datalog-search` on, it also adds the keys a page cites to the search index.
+
+### Usage
+
+```yaml
+# _config.yml
+datalog_plugins:
+  enabled:
+    - datalog-citations
+citations:
+  style: numeric                         # or author-year
+  bibliography: _bibliography/main.bib   # for pages that name none; a list is fine too
+```
+
+```markdown
+---
+bibliography: _bibliography/missing-data.bib   # or [a.bib, b.json]
+---
+Multiple imputation {% cite rubin1987 %}, its variance {% cite rubin1987 p="76" %},
+and its critics {% cite allison2001 vanbuuren2018 %}.
+```
+
+| Tag | Reads |
+| --- | --- |
+| `{% cite key %}` | "[1]" or "(Rubin 1987)" |
+| `{% cite key1 key2 %}` | "[2, 3]" or "(Allison 2001; van Buuren 2018)" |
+| `{% cite key p="76" %}` | "[1, p. 76]"; also `pp=`, `chap=`, `sec=`, and `loc=` for any text |
+| `{% datalog_cite ... %}` | The same as `{% cite %}`, under the name it had before |
+
+The post layout puts the list under "References" after the article, and the research layout in its References section. `{% datalog_bibliography %}` renders it anywhere else a layout wants it. `datalog_plugins.options.datalog-citations.bibliography_title` changes the heading.
+
+### Front Matter
+
+| Key | Meaning |
+| --- | --- |
+| `bibliography` | A file or a list of files, from the site's folder or the page's own; `false` for none, over the site's |
+| `citations` | Entries in front matter: maps with `id`, `title`, `authors` (`["Last, First", ...]`), `journal`, `year`, `volume`, `issue`, `pages`, `doi`, `url`, `publisher`, `note`; or strings, cited by their slug |
+| `references` | Read as entries only when it is a list of maps. The research layout's hand-written list of strings is left to it |
+| `citation_group` | A group of entries in `_data/citations.yml` |
+| `citation_style` | `numeric` or `author-year`, over the site's `citations.style` |
+| `nocite` | Keys to list without citing them, or `all` |
+
+### What Is Read
+
+**BibTeX**, without a dependency:
+- **Entries:** every entry type, with `@string` macros, `#` concatenation and the month names. `@comment` and `@preamble` are skipped.
+- **Fields:** `author` (or `editor`), `title`, `journal` / `journaltitle` / `booktitle` / `series`, `publisher` / `school` / `institution` / `organization`, `year` (or `date`), `volume`, `number` (or `issue`), `pages`, `doi`, `url` (or a URL in `howpublished`) and `note`. Others are read and not shown.
+- **Names:** "Last, First" and "First von Last" are split into family and given names. A braced name (`{World Health Organization}`) stays whole, and `and others` becomes "et al.".
+- **LaTeX:** the common accents (`{\"u}`, `\'e`, `\c{c}`, `\v{s}`), `\ss`, `\o`, the escaped characters and `--`/`---` become the characters they stand for, and the braces that protect capitals are dropped.
+- **Errors:** a malformed entry stops the build with the file and the line.
+
+**CSL-JSON**: `id`, `type`, `title`, `author` (or `editor`, with `family`/`given` or `literal`), `issued` (`date-parts`), `container-title`, `publisher`, `volume`, `issue`, `page`, `DOI`, `URL` and `note`.
+
+### What Renders
+
+```html
+<span class="datalog-cite">[<a href="#cite-rubin1987" id="cite-ref-rubin1987-1">1</a>]</span>
+
+<ol class="datalog-bibliography datalog-bibliography--numeric">   <!-- <ul> in author-year -->
+  <li id="cite-rubin1987">Rubin, D. B. (1987). <em>Multiple Imputation for Nonresponse in Surveys</em>. Wiley.
+    <a href="https://doi.org/10.1002/9780470316696">https://doi.org/10.1002/9780470316696</a>
+    <span class="datalog-bibliography__back">↩ <a href="#cite-ref-rubin1987-1" aria-label="Back to citation 1">a</a> <a href="#cite-ref-rubin1987-2" aria-label="Back to citation 2">b</a></span>
+  </li>
+</ol>
+```
+
+- **Entries:** set in the manner of APA. Every value is escaped.
+- **Links:** only a DOI (as `https://doi.org/...`) or an `http(s)` address becomes a link, and its address is the link's text, so a printed page keeps it.
+- **Keys:** a citation key may hold any character but spaces, quotes, `<`, `>`, `&`, braces and `%`.
+- **Excerpts:** a citation in an excerpt on a listing page reads as it does in the post, and links to the post's list.
+
+### Errors
+
+The build stops, naming the page, when it:
+- cites a key none of its sources has, or lists one in `nocite`;
+- has two entries with the same key;
+- names a bibliography that is not a file in the site, or is neither `.bib` nor `.json`;
+- has a bibliography that cannot be parsed.
+
+`{% cite %}` on a site without the plugin stops the build with the setting to add.
+
+### Styling
+
+```scss
+.datalog-cite { }                    // the marker in the text
+.datalog-bibliography { }            // the list; --numeric or --author-year
+.datalog-bibliography__back { }      // the links back to the text
+```
+
+---
+
+## Package Pages
+
+### What It Does
+
+The `package` layout documents a software package: its latest release, a link to each registry that lists it, and an installation panel with a tab for each registry. A package names its registries in front matter. `bundle exec datalog packages refresh` reads the latest releases from those registries into `_data/package_releases.yml`. The layout shows the release from that file before any `version` in front matter, so a page shows what the registry has. The build itself never asks a registry. `components/package-index.html` lists every package, and each package page describes its package as schema.org `SoftwareSourceCode`.
+
+### Front Matter
+
+```yaml
+---
+layout: package
+title: HeavyTails
+tagline: Heavy-tailed distributions for Python
+language: Python
+license: MIT
+status: beta                  # alpha, beta, stable: shown beside the version
+github_url: https://github.com/example/heavytails
+docs_url: https://example.github.io/heavytails
+registry:                     # one key per registry; the value is the package's name there
+  pypi: heavytails
+  conda_forge: heavytails
+version: 0.4.0                # shown until the data file has a release
+---
+```
+
+| `registry` key | Link | Install tab |
+| --- | --- | --- |
+| `pypi` | PyPI | pip: `pip install NAME` |
+| `conda_forge` | conda-forge | conda: `conda install -c conda-forge NAME` |
+| `cran` | CRAN | CRAN: `install.packages('NAME')` |
+| `crates` | crates.io and docs.rs | cargo: `cargo add NAME` |
+| `rubygems` | RubyGems | gem: `gem install NAME` and the Gemfile line `gem "NAME"` |
+| `npm` | npm | npm: `npm install NAME` |
+| `julia` | JuliaHub | Pkg: `using Pkg; Pkg.add("NAME")` |
+
+- **Git:** with `github_url`, a Git tab follows the registries' tabs: `git clone` and `cd`, then `pip install -e .` for Python. An R package gets `devtools::install_github` instead.
+- **No `registry`:** a Python page keeps its pip, conda and Git tabs, and an R page its CRAN and GitHub tabs. A page in any other language gets the Git tab alone. A page with neither a registry nor a repository gets no installation panel, not an empty one.
+- **Older pages:** `pypi_url` and `cran_url` still work. Each counts as its registry, and its address is the link.
+- **`docs_url`:** a "Documentation" button beside the registries.
+
+The page places the installation panel where it wants it, under a heading of its own:
+
+```liquid
+{% include components/package-install.html %}
+```
+
+`package_name`, `language` and `git_url` replace the page's title, language and `github_url`. `pip_command`, `conda_command` and `cran_command` replace the command of that tab.
+
+### Releases From the Registries
+
+```bash
+bundle exec datalog packages refresh             # writes _data/package_releases.yml
+bundle exec datalog packages refresh --dry-run   # prints it instead
+```
+
+The command reads the front matter of every document in `_packages` and asks each registry that has an API: PyPI's JSON API, the crates.io API (with a `User-Agent`, which crates.io requires), the RubyGems API, CRAN through crandb, and the npm registry. conda-forge and JuliaHub are linked but not read. It writes one release per package and registry:
+
+```yaml
+pypi:
+  heavytails:
+    version: 0.4.1
+    released: '2026-08-14'
+    license: MIT
+    prerelease: false
+    requires_python: ">=3.10"   # or rust_version, required_ruby_version, r_version, node_version
+crates:
+  copula-core:
+    version: 0.3.0
+    ...
+```
+
+- **Which release:** for PyPI, the version PyPI calls the latest, released when its first file was uploaded, and `yanked: true` when every file was yanked. For crates.io, the latest stable version, not a newer beta, and `yanked: true` when it was yanked. For RubyGems, the newest version that is not a pre-release. For npm, the `latest` tag; npm has no yank, and a deprecated version still installs.
+- **Pre-releases:** by each registry's rules: PEP 440 for PyPI (`1.0rc1`, `1!2.0a1`, `1.0.post1.dev2`, but not `1.0.post1`), a hyphen for crates.io, npm and Julia (`1.0.0-beta.2`), any letter for RubyGems (`2.0.0.pre1`). A `version` in front matter is judged by the page's first registry.
+- **Failures:** when a registry cannot be reached, answers with an error, has no package by that name, or sends something that is not a release, the command names each package and registry that failed. It then exits 1 without writing. The file holds either every release or what it held before.
+- **What the page shows:** the release for the first of the page's registries that the file has. That is the version, with "pre-release" for a PEP 440, RubyGems or semver pre-release and "yanked" when the release was withdrawn, plus the release date, the language it needs ("Python >=3.10", "Rust >= 1.74") and the licence. With no release in the file, the page shows `version` and `license` from front matter.
+
+The file holds nothing but the releases, so it changes only when a release does. A scheduled workflow can run the command and propose the change:
+
+```yaml
+# .github/workflows/package-releases.yml
+name: Package releases
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: ruby/setup-ruby@a0102e0972be65f351c307e2d64b9314a57c8073 # v1.324.0
+        with:
+          bundler-cache: true
+      - run: bundle exec datalog packages refresh
+      - name: Open a pull request when a release changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add _data/package_releases.yml
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c package-releases-${{ github.run_id }}
+          git commit -m "Update package releases"
+          git push -u origin HEAD
+          gh pr create --fill
+```
+
+The actions are pinned to commits, as [the theme's own are](action-pinning-policy.md). A pull request opened with the workflow's own `GITHUB_TOKEN` starts no other workflow. For the site's checks to run on it, give the checkout and `GH_TOKEN` a token of your own.
+
+### The Index
+
+```liquid
+{% include components/package-index.html %}
+{% include components/package-index.html style="table" group_by="language" %}
+```
+
+The index lists every package in `site.packages` with its name, its release (from the data file, as on the package page), the command that installs it from its first registry, and its `tagline` or `description`.
+
+| Parameter | Meaning |
+| --- | --- |
+| `style` | `cards` (the default), a card per package; or `table`, one row per package, in a region that scrolls on a narrow screen |
+| `group_by` | A front matter field, such as `language` or `group`. Each value gets a heading, in alphabetical order, and the packages without the field come last under "Other" |
+| `packages` | The packages to list, by default `site.packages` |
+| `heading_level` | The level of the first headings it writes, `2` by default, and never below `6`. With `group_by`, the groups take this level and each card's package name the next; in a table, the package names are row headers, not headings |
+
+A site with no packages gets "No packages yet." The labels are translated in English, Portuguese and Spanish. The demo's `/packages/` page is the include alone.
+
+### Structured Data
+
+A package page carries two JSON-LD blocks. One describes the page as a `WebPage`. The other describes the package as a `SoftwareSourceCode`, with `name`, `description`, `url`, `codeRepository` (`github_url`), `programmingLanguage`, `runtimePlatform` (the language requirement), `version`, `license`, `author`, and `sameAs` (the registries' pages and `docs_url`). The licence is the address of the front matter's licence when the registry reports the same one, and otherwise the registry's own words, such as `MIT OR Apache-2.0`.
+
+### Styling
+
+The layout keeps the `package-docs` styles. The index adds no styles of its own: it uses the card grid, the table defaults and the badges.
+
+```scss
+.package-docs__meta > div { }            // version, requirement, licence, status
+.package-docs__action-btn { }            // GitHub, the registries, Documentation
+.package-install__tab-btn { }            // a registry's tab
+.package-index { }                       // the index; .package-index__group for a group's heading
+```
+
+---
+
 ## Front Matter
 
 The components read these keys from a post's front matter:
@@ -1292,6 +1659,7 @@ The components read these keys from a post's front matter:
 ```yaml
 ---
 title: My Post
+summary: One sentence  # under the title; the post's first paragraph is not repeated there
 difficulty: advanced   # the badge level
 toc: true              # show the table of contents
 toc_label: On this page
@@ -1307,10 +1675,11 @@ series:                # the article's series and its place in it; see Series Na
 reproducibility:       # the code, data and environment behind it; see Reproducibility Panel
   code: {url: https://github.com/example/missing-data, ref: 4f2c1ab}
 corrections: false     # no correction-report form on this post; see Correction Reports
+provenance_position: start   # the editorial note before the article, not after it; see Revision History
 ---
 ```
 
-There are no site-wide switches for the components. To leave one out, copy `_layouts/post.html` into your site and remove its include.
+A few components have settings in `_config.yml`, such as `theme_options.provenance.position` for where the editorial note goes; the others have none. To leave one out, copy `_layouts/post.html` into your site and remove its include.
 
 ---
 
@@ -1371,6 +1740,66 @@ Components are mobile-first. Customize breakpoints:
 ```
 
 ---
+
+## Archive pages
+
+The gem ships an `archive` layout and `components/post-list.html`. Add a page under your site's `_pages` directory with `layout: archive`, a `title`, and `archive: year`, `tag`, or `category`. The starter template already includes these three pages at `/archives/years/`, `/tags/`, and `/categories/`. Tag and category section IDs match the links on posts and in breadcrumbs. A site with different archive paths should set `tag_archive.path` and `category_archive.path` in `_config.yml` to those paths.
+
+```yaml
+---
+layout: archive
+title: Tags
+archive: tag
+permalink: /tags/
+archive_limit: 20 # optional; each group reveals the rest in a native details element
+---
+```
+
+The year archive lists years newest first. Set `archive_months: true` on that page to split each year into months. Each index has an anchor jump list, counts, and dated entries. The layout uses one page title as its H1 and its sections as H2 (months as H3). Page body text appears before the index.
+
+A curated hub uses `archive: topic` with `topic.tags` and/or `topic.categories`. Matches are case insensitive, and the page body is its introduction. `topic.featured` takes post URLs; matching featured posts appear first. Parts of a series appear once under Series, linking to the most recent matching part. Other posts appear under Articles. A topic with no matches shows an empty state.
+
+```yaml
+---
+layout: archive
+title: Data methods
+archive: topic
+permalink: /archives/data-methods/
+topic:
+  tags: [statistics, research]
+  categories: [Methods]
+  featured: [/2026/02/01/field-notes/]
+---
+```
+
+Run `datalog new archive --type tag` to scaffold a page; `--type year`, `category`, and `topic` are also available. `--title` and `--path` override the defaults. The shared post list accepts `posts` and `variant: compact`, `dated` (default), or `teaser`; it escapes titles and descriptions and renders localized dates in the dated variant. The demo's language and difficulty pages use the same layout with `archive: facet`, `archive_field`, and `archive_terms` to select terms from post front matter.
+
+## Related posts
+
+The theme selects related posts once during a Jekyll build. It indexes tags, categories and keywords, then ranks only posts sharing one of those terms. Shared tags carry an inverse document frequency weight: a tag used on two posts contributes more than one used on most of the site. Categories have a smaller weight. Newer posts win ties in relevance. The post layout renders the selected list using the existing related-post markup and shows the archive message when no candidate qualifies.
+
+Configure the limit, threshold and weights in `_config.yml`:
+
+```yaml
+related_posts:
+  limit: 3
+  min_score: 0.1
+  weights:
+    tags: 3.0
+    categories: 0.35
+    keywords: 1.5
+    text: 0.0 # optional shared title and excerpt words; off by default
+```
+
+The score adds each shared tag's weight times `1 + ln((number of posts + 1) / (posts with that tag + 1))`, and adds the configured weight for each shared category or keyword. With `text` above zero, it also adds that weight per shared title or excerpt word of at least three characters. `min_score` applies to automatic matches, not author-selected picks.
+
+To choose recommendations, set `related_posts` to a list of post URLs, `_posts/…` paths or exact titles in a post's front matter. Picks appear in the given order; the scorer fills remaining slots. A missing or ambiguous pick stops the build and names the source post. Parts of the source post's own series do not appear, and another series contributes at most one part. `related: false` removes a post from other posts' recommendations. `related_posts: false` on a post hides its entire related-post section.
+
+```yaml
+related_posts:
+  - /2024/02/10/sql-analytics-guide/
+  - "Experimental Design"
+```
 
 ## Troubleshooting
 

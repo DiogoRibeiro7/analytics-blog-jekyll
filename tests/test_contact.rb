@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "nokogiri"
-require "tmpdir"
 require_relative "test_helper"
 
 # The contact and collaboration form (#261): the demo's contact page without
@@ -9,14 +7,6 @@ require_relative "test_helper"
 # category, the privacy wording, and the settings that remove it.
 class ContactTest < Minitest::Test
   SERVICES = { "base_url" => "https://api.example.org", "api_version" => "v1", "features" => { "contact" => true } }.freeze
-
-  def setup
-    @dir = Dir.mktmpdir
-  end
-
-  def teardown
-    FileUtils.rm_rf(@dir)
-  end
 
   def test_the_demo_contact_page_falls_back_to_the_email_address
     html = SiteBuilder.read("contact/index.html")
@@ -98,22 +88,12 @@ class ContactTest < Minitest::Test
 
   # A page holding the form, under the given site configuration and front matter.
   def render(config, front_matter = "", body = "{% include components/contact-form.html %}\n")
-    FileUtils.mkdir_p(File.join(@dir, "_includes", "components"))
-    FileUtils.mkdir_p(File.join(@dir, "_data"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_includes", "components", "contact-form.html"),
-                 File.join(@dir, "_includes", "components", "contact-form.html"))
-    FileUtils.cp_r(File.join(SiteBuilder.root, "_data", "i18n"), File.join(@dir, "_data"))
-    # The theme's page layout over a bare default layout, so the test needs no other include.
-    FileUtils.mkdir_p(File.join(@dir, "_layouts"))
-    FileUtils.cp(File.join(SiteBuilder.root, "_layouts", "page.html"), File.join(@dir, "_layouts", "page.html"))
-    File.write(File.join(@dir, "_layouts", "default.html"), "{{ content }}\n")
     front_matter = "layout: null\n#{front_matter}" unless front_matter.include?("layout:")
-    File.write(File.join(@dir, "index.html"), "---\ntitle: Contact\n#{front_matter}---\n\n#{body}")
-    site_config = Jekyll.configuration(
-      { "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "title" => "Contact",
-        "url" => "https://example.org", "author" => { "name" => "Test" }, "contact_email" => "hello@example.org" }.merge(config)
-    )
-    Jekyll::Site.new(site_config).process
-    Nokogiri::HTML5.fragment(File.read(File.join(@dir, "_site", "index.html")))
+    TestSite.build({ title: "Contact", contact_email: "hello@example.org" }.merge(config)) do |source|
+      source.theme("_includes/components/contact-form.html", "_data/i18n", "_layouts/page.html")
+      # The theme's page layout over a bare default one, so the test needs no other include.
+      source.layout("default.html", "{{ content }}\n")
+      source.page("index.html", body, "title: Contact\n#{front_matter}")
+    end.html("index.html")
   end
 end

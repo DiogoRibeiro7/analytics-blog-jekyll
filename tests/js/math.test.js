@@ -480,35 +480,17 @@ describe('equation reference updates', () => {
   });
 });
 
-describe('LaTeX segment sanitization', () => {
-  it('removes LaTeX commands', () => {
-    const sanitized = toolkit.sanitizeSegment('\\frac{a}{b}');
-    expect(sanitized).toBe('a b');
+// The words themselves are tested in latex-speech.test.js (#417).
+describe('the label an expression gets', () => {
+  it('reads every command, where it used to drop those it had no rule for', () => {
+    expect(toolkit.generateAltFromLatex('f : [a, b] \\to \\mathbb{R}')).toBe('f: [a, b] to double-struck R');
+    expect(toolkit.generateAltFromLatex('c \\in (a, b)')).toBe('c in (a, b)');
   });
 
-  it('preserves non-command text', () => {
-    const sanitized = toolkit.sanitizeSegment('abc');
-    expect(sanitized).toBe('abc');
-  });
-
-  it('removes multiple commands and braces', () => {
-    const sanitized = toolkit.sanitizeSegment('\\sqrt{x^2} + \\int{y}');
-    expect(sanitized).toBe('x^2 + y');
-  });
-
-  it('normalizes whitespace', () => {
-    const sanitized = toolkit.sanitizeSegment('a   b    c');
-    expect(sanitized).toBe('a b c');
-  });
-
-  it('handles empty input', () => {
-    const sanitized = toolkit.sanitizeSegment('');
-    expect(sanitized).toBe('');
-  });
-
-  it('handles null input', () => {
-    const sanitized = toolkit.sanitizeSegment(null);
-    expect(sanitized).toBe('');
+  it('names an expression with nothing to read, and gives none for no LaTeX', () => {
+    expect(toolkit.generateAltFromLatex('\\left. \\right.')).toBe('Mathematical expression');
+    expect(toolkit.generateAltFromLatex('')).toBe('');
+    expect(toolkit.generateAltFromLatex(null)).toBe('');
   });
 });
 
@@ -537,6 +519,16 @@ describe('MathJax initialization', () => {
     expect(toolkit.displayCounter).toBe(0);
     expect(toolkit.anchorCounter).toBe(0);
     expect(toolkit.editor).toBeDefined();
+  });
+
+  it('takes the numbering the theme passes', () => {
+    const mockMathJax = { startup: { promise: Promise.resolve(), document: { math: [] } } };
+
+    toolkit.init(mockMathJax, { numbering: 'ams' });
+    expect(toolkit.numbering).toBe('ams');
+
+    toolkit.init(mockMathJax);
+    expect(toolkit.numbering).toBeNull();
   });
 
   it('handles MathJax startup promise resolution', async () => {
@@ -715,6 +707,36 @@ describe('who numbers a display equation', () => {
     const badge = container.parentElement.querySelector('.math-expression__number');
     expect(badge).toBeTruthy();
     expect(badge.textContent).toBe('(1)');
+    toolkit.MathJax = null;
+  });
+
+  // theme_options.math.numbering: none is MathJax's tags: 'none' too, but the
+  // theme's head says so, and the author asked for no numbers.
+  it('adds no number of its own when the theme set the numbering to none', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'none' } } };
+    toolkit.numbering = 'none';
+    const container = numberedDisplay(null);
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: 'E = mc^2', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBeUndefined();
+    toolkit.numbering = null;
+    toolkit.MathJax = null;
+  });
+
+  it('keeps the number of an author\'s \\tag when the theme set the numbering to none', () => {
+    toolkit.MathJax = { config: { tex: { tags: 'none' } } };
+    toolkit.numbering = 'none';
+    const container = numberedDisplay('(A)');
+
+    toolkit.decorateMathItem({ typesetRoot: container, math: 'E = mc^2 \\tag{A}', display: true });
+
+    const wrapper = container.parentElement;
+    expect(wrapper.querySelector('.math-expression__number')).toBeNull();
+    expect(wrapper.dataset.equationNumber).toBe('(A)');
+    toolkit.numbering = null;
     toolkit.MathJax = null;
   });
 });
@@ -1322,5 +1344,269 @@ describe('generateAltFromLatex', () => {
   it('handles nested fractions', () => {
     const alt = toolkit.generateAltFromLatex('\\frac{\\frac{a}{b}}{c}');
     expect(alt).toContain('over');
+  });
+});
+
+/**
+ * MathJax draws an expression again, into a new container, when a reader
+ * changes a menu setting or toggles a collapsible part. The new container had
+ * no tab stop, role or label, and the focus fell to the page (#412).
+ */
+describe('a container MathJax draws again', () => {
+  const typeset = (html) => {
+    const container = document.createElement('mjx-container');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    return container;
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    toolkit.focusedRecord = null;
+    toolkit.recordByContainer = new WeakMap();
+  });
+
+  const decorated = (latex = 'x^2', display = false) => {
+    const container = typeset('<mjx-math aria-hidden="true">x</mjx-math>');
+    const item = { typesetRoot: container, math: latex, display };
+    toolkit.decorateMathItem(item);
+    return item;
+  };
+
+  const redraw = (item) => {
+    const fresh = typeset('<mjx-math aria-hidden="true">x</mjx-math>');
+    item.typesetRoot.replaceWith(fresh);
+    item.typesetRoot = fresh;
+    return fresh;
+  };
+
+  it('gets the tab stop, role, label and inline class back', () => {
+    const item = decorated();
+    const label = item.typesetRoot.getAttribute('aria-label');
+    const fresh = redraw(item);
+
+    window.DatalogMath.restore(item);
+
+    expect(fresh.getAttribute('tabindex')).toBe('0');
+    expect(fresh.getAttribute('role')).toBe('math');
+    expect(fresh.getAttribute('aria-label')).toBe(label);
+    expect(fresh.dataset.mathLatex).toBe('x^2');
+    expect(fresh.classList.contains('math-expression__inline')).toBe(true);
+  });
+
+  it('gets the focus back when it had it, and only then', () => {
+    const item = decorated();
+    item.typesetRoot.focus();
+    toolkit.trackFocus({ target: item.typesetRoot });
+    const fresh = redraw(item);
+    expect(document.activeElement).toBe(document.body);
+
+    window.DatalogMath.restoreAll({ math: [item] });
+    expect(document.activeElement).toBe(fresh);
+
+    const other = document.createElement('button');
+    document.body.appendChild(other);
+    other.focus();
+    toolkit.trackFocus({ target: other });
+    redraw(item);
+    window.DatalogMath.restore(item);
+    expect(document.activeElement).toBe(other);
+  });
+
+  // A document the menu builds anew copies each expression into a new item.
+  it('is restored through a copied item, which shares the record', () => {
+    const item = decorated();
+    item.typesetRoot.focus();
+    toolkit.trackFocus({ target: item.typesetRoot });
+    const copy = Object.assign({}, item);
+    const fresh = redraw(copy);
+
+    window.DatalogMath.restore(copy);
+
+    expect(fresh.getAttribute('role')).toBe('math');
+    expect(document.activeElement).toBe(fresh);
+  });
+
+  it('leaves alone a container it has already seen, and an undecorated one', () => {
+    const item = decorated();
+    item.typesetRoot.setAttribute('aria-label', 'changed by the page');
+    window.DatalogMath.restore(item);
+    expect(item.typesetRoot.getAttribute('aria-label')).toBe('changed by the page');
+
+    expect(() => window.DatalogMath.restore({ typesetRoot: typeset('') })).not.toThrow();
+    expect(() => window.DatalogMath.restoreAll(null)).not.toThrow();
+  });
+
+  it('keeps the one link exposed for a reference drawn again', () => {
+    const drawn = '<mjx-math aria-hidden="true"><a href="#eq:one">(1)</a></mjx-math>' +
+      '<mjx-assistive-mml><a href="#eq:one">1</a></mjx-assistive-mml>';
+    const container = typeset(drawn);
+    toolkit.exposeReferenceLinks(container);
+    const fresh = typeset(drawn);
+    container.replaceWith(fresh);
+
+    toolkit.exposeReferenceLinks(fresh);
+
+    expect(document.querySelectorAll('.math-reference-link')).toHaveLength(1);
+  });
+});
+
+// The head's ready() starts the toolkit only when math.js is already there;
+// when math.js arrives after it, math.js starts the toolkit itself (#421).
+describe('starting after MathJax', () => {
+  const readyMathJax = (datalog) => ({
+    config: { datalog },
+    startup: { promise: Promise.resolve(), document: { math: [] } },
+  });
+
+  beforeEach(() => {
+    toolkit.initialized = false;
+    toolkit.MathJax = null;
+    toolkit.recordByContainer = new WeakMap();
+    document.body.innerHTML = '';
+  });
+
+  it('starts the toolkit, with the configured numbering, once MathJax is ready', () => {
+    const MathJax = readyMathJax({ numbering: 'all' });
+
+    expect(toolkit.start(MathJax)).toBe(true);
+    expect(toolkit.initialized).toBe(true);
+    expect(toolkit.MathJax).toBe(MathJax);
+    expect(toolkit.numbering).toBe('all');
+  });
+
+  it('waits while window.MathJax is still only the configuration', () => {
+    const configuration = { datalog: { numbering: 'ams' }, startup: { ready() {}, pageReady() {} } };
+
+    expect(toolkit.start(configuration)).toBe(false);
+    expect(toolkit.start(undefined)).toBe(false);
+    expect(toolkit.initialized).toBe(false);
+  });
+
+  it('starts once, whichever side starts it first', () => {
+    const init = vi.spyOn(toolkit, 'init');
+    const MathJax = readyMathJax({ numbering: 'ams' });
+
+    window.DatalogMath.init(MathJax, MathJax.config.datalog);
+    expect(toolkit.start(MathJax)).toBe(false);
+    window.DatalogMath.init(MathJax, MathJax.config.datalog);
+
+    expect(init).toHaveBeenCalledTimes(1);
+    init.mockRestore();
+  });
+
+  it('decorates what MathJax typeset before the toolkit started', async () => {
+    const container = document.createElement('mjx-container');
+    container.innerHTML = '<mjx-math aria-hidden="true">c</mjx-math>';
+    document.body.appendChild(container);
+    const MathJax = readyMathJax({ numbering: 'ams' });
+    MathJax.startup.document.math = [{ typesetRoot: container, math: 'c \\in (a, b)', display: false }];
+
+    toolkit.start(MathJax);
+    await MathJax.startup.promise;
+    await Promise.resolve();
+
+    expect(container.getAttribute('tabindex')).toBe('0');
+    expect(container.getAttribute('role')).toBe('math');
+    expect(container.getAttribute('aria-label')).toBe('c in (a, b)');
+  });
+});
+
+// What renderLatex draws after the page's own expressions: the editor's live
+// preview, which it names, and the search results' previews, which stay
+// unnamed and inert (#422).
+describe('an expression renderLatex draws', () => {
+  // MathJax typesets one call after another, each drawing what the target
+  // holds when its turn comes, and the test says when each turn ends.
+  const fakeMathJax = () => {
+    const pending = [];
+    const MathJax = {
+      typesetPromise: vi.fn(([target]) => new Promise((resolve) => {
+        pending.push(() => {
+          if (!target.querySelector('mjx-container')) {
+            const source = target.textContent;
+            target.replaceChildren(Object.assign(document.createElement('mjx-container'), { textContent: source }));
+          }
+          resolve();
+        });
+      })),
+    };
+    return { MathJax, finish: () => pending.shift()() };
+  };
+
+  beforeEach(() => {
+    toolkit.renderedLatex = new WeakMap();
+  });
+
+  it('sets the LaTeX as text, so a "<" in it is not read as a tag', () => {
+    const { MathJax } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    toolkit.renderLatex(target, 'a<b', { display: true });
+
+    expect(target.textContent).toBe('\\[a<b\\]');
+    expect(target.children).toHaveLength(0);
+  });
+
+  it('names the expression when asked, as the page names its own', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, '\\sigma^2 + \\mathbb{E}[X]', { display: true, name: true });
+    finish();
+    await drawn;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.getAttribute('role')).toBe('math');
+    expect(container.getAttribute('aria-label')).toBe('sigma squared + double-struck E [X]');
+    expect(container.hasAttribute('tabindex')).toBe(false);
+  });
+
+  it('takes an alt comment for the name, as the page does', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, '% alt: the variance\n\\sigma^2', { name: true });
+    finish();
+    await drawn;
+
+    expect(target.querySelector('mjx-container').getAttribute('aria-label')).toBe('the variance');
+  });
+
+  it('leaves an expression unnamed unless asked, as the search previews are', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, 'x^2', { display: false, enhance: false });
+    finish();
+    await drawn;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.hasAttribute('role')).toBe(false);
+    expect(container.hasAttribute('aria-label')).toBe(false);
+  });
+
+  // A reader types faster than MathJax draws: the first draw may finish on
+  // the LaTeX typed after it, and must not give it the earlier name.
+  it('names the expression for the latest LaTeX when typing outruns the drawing', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const first = toolkit.renderLatex(target, 'x', { name: true });
+    const second = toolkit.renderLatex(target, 'x^2', { name: true });
+    finish();
+    await first;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.hasAttribute('aria-label')).toBe(false);
+
+    finish();
+    await second;
+    expect(container.getAttribute('aria-label')).toBe('x squared');
   });
 });

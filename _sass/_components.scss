@@ -143,11 +143,11 @@ body.dark-mode .btn--ghost:hover {
   transition: all 0.2s ease;
 
   &--primary {
-    background: var(--color-accent, #3b82f6);
-    color: white;
+    background: var(--color-accent);
+    color: var(--accent-foreground, white);
 
     &:hover {
-      background: var(--color-accent-dark, #2563eb);
+      background: var(--color-accent-dark);
     }
   }
 
@@ -968,11 +968,15 @@ body.dark-mode {
     box-shadow: 0 20px 48px rgba($dark-ink-900, 0.32);
   }
 
+  .notebook-article__label {
+    color: $dark-accent-primary;
+  }
+
   .notebook-article__summary,
   .notebook-article__meta,
   .notebook-sidebar__metadata dd,
   .notebook-sidebar__stats li {
-    color: rgba($dark-ink-200, 0.9);
+    color: $dark-ink-500;
   }
 
   .notebook-article__meta span,
@@ -986,34 +990,28 @@ body.dark-mode {
   }
 
   .notebook-cell {
-    background: rgba($dark-accent-primary, 0.14);
+    background: rgba($dark-accent-primary, 0.22);
     box-shadow: inset 0 0 0 1px rgba($dark-ink-900, 0.35);
   }
 
+  // Code and outputs sit a shade darker than their cell, as in the light
+  // theme. $dark-ink-900 is the lightest ink, so it lightened them instead.
   .notebook-cell__code {
-    background: rgba($dark-ink-900, 0.45);
+    background: rgba($dark-surface-100, 0.45);
   }
 
   .notebook-output {
-    background: rgba($dark-ink-900, 0.35);
+    background: rgba($dark-surface-100, 0.35);
     color: $dark-ink-050;
   }
 
   .notebook-output__warning {
-    color: rgba($dark-ink-100, 0.8);
-  }
-
-  .notebook-output--widget {
-    color: $dark-accent-secondary;
+    color: $dark-ink-300;
   }
 
   .notebook-output-plotly,
   .notebook-output-vega {
-    background: rgba($dark-ink-900, 0.32);
-  }
-
-  .notebook-cell {
-    background: rgba($dark-accent-primary, 0.22);
+    background: rgba($dark-surface-100, 0.32);
   }
 
   .reference-list li::before,
@@ -1112,7 +1110,7 @@ body.dark-mode {
 
   div {
     padding: 0.75rem;
-    background: rgba(50, 119, 246, 0.08);
+    background: rgba($color-accent-primary, 0.08);
     border-radius: 0.75rem;
     text-align: center;
   }
@@ -1134,7 +1132,7 @@ body.dark-mode {
 
   body.dark-mode & {
     div {
-      background: rgba(50, 119, 246, 0.2);
+      background: rgba($dark-accent-primary, 0.2);
     }
 
     dt {
@@ -1168,7 +1166,7 @@ body.dark-mode {
     align-items: center;
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
-    background: rgba(50, 119, 246, 0.1);
+    background: rgba($color-accent-primary, 0.1);
     color: inherit;
     text-decoration: none;
     font-size: 0.8125rem;
@@ -1176,16 +1174,16 @@ body.dark-mode {
 
   a:hover,
   a:focus-visible {
-    background: rgba(50, 119, 246, 0.2);
+    background: rgba($color-accent-primary, 0.2);
   }
 
   body.dark-mode & a {
-    background: rgba(50, 119, 246, 0.25);
+    background: rgba($dark-accent-primary, 0.25);
   }
 
   body.dark-mode & a:hover,
   body.dark-mode & a:focus-visible {
-    background: rgba(50, 119, 246, 0.35);
+    background: rgba($dark-accent-primary, 0.35);
   }
 }
 

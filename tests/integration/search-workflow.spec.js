@@ -41,13 +41,13 @@ test.describe('Search workflow', () => {
     await input.focus();
     await page.keyboard.press('ArrowDown');
 
+    // The arrows move real focus into the list. They used to move
+    // aria-activedescendant around a listbox whose options held links, which
+    // meant a screen reader in browse mode could reach none of them (#365).
     const activeResult = resultsList.locator('.search-result.is-active').first();
     await expect(activeResult).toBeVisible();
-
-    const activeId = await activeResult.getAttribute('id');
-    if (activeId) {
-      await expect(input).toHaveAttribute('aria-activedescendant', activeId);
-    }
+    await expect(activeResult.locator('[data-result-link]')).toBeFocused();
+    expect(await input.getAttribute('aria-activedescendant')).toBeNull();
     await expect(liveSelection).toContainText(/Result 1/i);
 
     const initialUrl = page.url();
@@ -69,5 +69,75 @@ test.describe('Search workflow', () => {
     await expect(liveStatus).toContainText(/cleared/i);
     await expect(input).toHaveValue('');
     await expect(resultsList.locator('.search-result')).toHaveCount(0, { timeout: 5000 });
+  });
+
+  // A list of cards with links in them is not a listbox, and saying it was one
+  // hid everything inside each card from assistive technology (#365).
+  test('a result is an ordinary list item whose links can be reached', async ({ page }) => {
+    await page.goto(`${baseUrl}/search/`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', { timeout: 15000 });
+
+    await page.locator('[data-search-input]').fill('reproducibility');
+    const first = page.locator('.search-result').first();
+    await expect(first).toBeVisible({ timeout: 15000 });
+
+    const roles = await page.evaluate(() => ({
+      list: document.querySelector('[data-search-results]').getAttribute('role'),
+      item: document.querySelector('.search-result').getAttribute('role'),
+      tabindex: document.querySelector('.search-result').getAttribute('tabindex'),
+    }));
+    expect(roles).toEqual({ list: null, item: null, tabindex: null });
+
+    // Tab alone reaches the title, which is what role="option" prevented.
+    await page.locator('[data-search-input]').focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(first.locator('[data-result-link]')).toBeFocused();
+
+    // Escape from the list comes back to the query rather than clearing it.
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-search-input]')).toBeFocused();
+    await expect(page.locator('[data-search-input]')).toHaveValue('reproducibility');
+  });
+
+  // A result used to point at the top of a 6,000-word article. It now lists
+  // the sections the words were in, and following one has to land on the
+  // heading rather than the top of the page (#336).
+  test('a result links to the section the words were in', async ({ page }) => {
+    await page.goto(`${baseUrl}/search/`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document?.body?.dataset?.featureSearchState === 'ready', { timeout: 15000 });
+
+    await page.locator('[data-search-input]').fill('reproducibility');
+    await expect(page.locator('[data-result-sections]:not([hidden])').first()).toBeVisible({ timeout: 15000 });
+
+    // A heading with no id of its own links to the page, which is right but is
+    // not what this is about.
+    const link = page.locator('[data-result-sections]:not([hidden]) a[href*="#"]').first();
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute('href');
+    const anchor = href.slice(href.indexOf('#') + 1);
+
+    await link.click();
+    await page.waitForLoadState('load');
+    await expect(page).toHaveURL(new RegExp(`#${anchor}$`));
+
+    // getElementById, not querySelector: kramdown gives "1. Introduction" the
+    // id "1-introduction", which is not a valid CSS identifier (#330). The
+    // theme sets scroll-behavior: smooth, so the jump is animated and is not
+    // over when the load event fires.
+    await page.waitForFunction(
+      (id) => {
+        const element = document.getElementById(decodeURIComponent(id));
+        if (!element) {
+          return false;
+        }
+        const top = element.getBoundingClientRect().top;
+        return top >= -2 && top < window.innerHeight;
+      },
+      anchor,
+      { timeout: 15000 }
+    );
+
+    const tag = await page.evaluate((id) => document.getElementById(decodeURIComponent(id)).tagName, anchor);
+    expect(['H2', 'H3']).toContain(tag);
   });
 });

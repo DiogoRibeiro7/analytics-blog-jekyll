@@ -2,6 +2,7 @@
 
 require_relative "test_helper"
 require "fastimage"
+require "json"
 require "nokogiri"
 require "open3"
 require "rbconfig"
@@ -22,12 +23,10 @@ class ImageVariantsTest < Minitest::Test
   WIDTHS = [320, 640, 960, 1200].freeze
 
   def setup
-    @dir = Dir.mktmpdir
     @scripts = Dir.mktmpdir
   end
 
   def teardown
-    FileUtils.rm_rf(@dir)
     FileUtils.rm_rf(@scripts)
   end
 
@@ -56,22 +55,64 @@ class ImageVariantsTest < Minitest::Test
       refute_includes html, "</source>", "#{page} should write <source> as a void element"
 
       (sources.values.flatten + srcset_urls(img)).each do |url|
-        assert File.exist?(File.join(@dir, "_site", url.delete_prefix("/blog"))), "#{url} should be written"
+        assert @site.exist?(url.delete_prefix("/blog")), "#{url} should be written"
       end
     end
   end
 
+  # A plot exported for a white page is unreadable on a dark one, so an author
+  # puts plot-dark.png beside plot.png and the build pairs them (#335).
+  def test_a_dark_companion_beside_the_image_is_offered_behind_the_scheme_query
+    build(encoders: fake_encoders, dark: true)
+
+    picture = Nokogiri::HTML5(read("index.html")).at_css("picture")
+    sources = picture.css("source")
+    dark = sources.select { |source| source["media"] }
+    types = dark.map { |source| source["type"] }
+    queries = dark.map { |source| source["media"] }
+
+    assert_equal sources.first, dark.first, "a dark source after a light one of the same type is never reached"
+    assert_equal ["(prefers-color-scheme: dark)"] * 3, queries
+    assert_equal %w[image/avif image/webp image/png], types
+    dark.flat_map { |source| srcset_urls(source) }.each do |url|
+      assert_includes url, "plot-dark.png"
+      assert @site.exist?(url.delete_prefix("/blog")), "#{url} should be written"
+    end
+  end
+
+  # The figure is the same figure: one <img>, one alt text, one pair of
+  # dimensions, and the light file for a browser that ignores the query.
+  def test_the_dark_companion_does_not_change_the_image_it_belongs_to
+    build(encoders: fake_encoders, dark: true)
+
+    img = Nokogiri::HTML5(read("index.html")).at_css("picture img")
+
+    assert_equal "/blog/assets/img/plot.png", img["src"]
+    assert_equal "A plot", img["alt"]
+    assert_equal %w[1200 630], [img["width"], img["height"]]
+    assert(srcset_urls(img).none? { |url| url.include?("-dark") })
+  end
+
+  def test_the_companion_is_not_paired_with_one_of_its_own
+    build(encoders: fake_encoders, dark: true)
+    manifest = JSON.parse(read("assets/img/responsive/manifest.json"))
+
+    assert_equal "/assets/img/plot-dark.png", manifest["/assets/img/plot.png"]["dark"]["source"]
+    refute manifest["/assets/img/plot-dark.png"].key?("dark"), "plot-dark.png is the twin; it has none of its own"
+  end
+
   def test_a_second_build_takes_the_variants_from_the_cache
-    build(encoders: fake_encoders)
+    first = build(encoders: fake_encoders)
     replacing(:encode_into_cache, ->(*) { flunk "a cached variant was encoded again" }) do
-      build(encoders: fake_encoders)
+      build(encoders: fake_encoders, again: first)
     end
 
     assert Nokogiri::HTML5(read("index.html")).at_css("picture source"), "The rebuilt page should keep its sources"
   end
 
   def test_image_paths_with_spaces_are_encoded_once_in_the_manifest_and_markup
-    site = build(encoders: fake_encoders, filename: "my plot.png", image_url: "/blog/assets/img/my%20plot.png")
+    site = build(encoders: fake_encoders, filename: "my plot.png",
+                 image_url: "/blog/assets/img/my%20plot.png").jekyll
     picture = Nokogiri::HTML5(read("index.html")).at_css("picture")
     urls = picture.css("source, img").flat_map { |node| srcset_urls(node) }
 
@@ -80,7 +121,7 @@ class ImageVariantsTest < Minitest::Test
     urls.each do |url|
       refute_match(/\s|%2520/, url)
       path = URI::DEFAULT_PARSER.unescape(url.delete_prefix("/blog"))
-      assert File.exist?(File.join(@dir, "_site", path)), "#{url} must point to a written image"
+      assert @site.exist?(path), "#{url} must point to a written image"
     end
     manifest = JSON.parse(read("assets/img/responsive/manifest.json"))
     entry = manifest.fetch("/assets/img/my plot.png")
@@ -104,8 +145,9 @@ class ImageVariantsTest < Minitest::Test
     img = Nokogiri::HTML5(read("index.html")).at_css("img")
     refute_equal "picture", img.parent.name
     assert_nil img["srcset"]
-    refute File.exist?(File.join(@dir, "_site/assets/img/responsive/plot.png-320w.webp"))
-    assert_empty Dir.glob(File.join(@dir, ".jekyll-cache", "**", "*.*")), "A failed encode should leave nothing cached"
+    refute @site.exist?("assets/img/responsive/plot.png-320w.webp")
+    assert_empty Dir.glob(File.join(@site.dir, ".jekyll-cache", "**", "*.*")),
+                 "A failed encode should leave nothing cached"
   end
 
   def test_without_imagemagick_the_image_keeps_its_original_only
@@ -115,7 +157,7 @@ class ImageVariantsTest < Minitest::Test
     refute_equal "picture", img.parent.name
     assert_nil img["srcset"]
     assert_equal %w[1200 630], [img["width"], img["height"]]
-    refute Dir.exist?(File.join(@dir, "_site/assets/img/responsive/plot.png-320w.png"))
+    refute @site.exist?("assets/img/responsive/plot.png-320w.png")
   end
 
   def test_variants_false_turns_the_encoders_off
@@ -200,7 +242,7 @@ class ImageVariantsTest < Minitest::Test
     variants << ["image/png", srcset_urls(picture.at_css("img")).first(3)]
     variants.each do |type, urls|
       urls.each do |url|
-        path = File.join(@dir, "_site", url.delete_prefix("/blog"))
+        path = @site.path(url.delete_prefix("/blog"))
         width = url[/-(\d+)w\./, 1].to_i
         assert_equal type.delete_prefix("image/").to_sym, FastImage.type(path), "#{url} should be #{type}"
         assert_equal [width, (630.0 * width / PLOT_WIDTH).round], FastImage.size(path),
@@ -212,23 +254,22 @@ class ImageVariantsTest < Minitest::Test
   private
 
   # A site at /blog whose Markdown shows /assets/img/plot.png, once in a layout
-  # and once without one.
-  def build(encoders: nil, config: {}, filename: "plot.png", image_url: "/blog/assets/img/plot.png")
-    FileUtils.mkdir_p(File.join(@dir, "assets/img"))
-    FileUtils.mkdir_p(File.join(@dir, "_layouts"))
-    FileUtils.cp(PLOT, File.join(@dir, "assets/img", filename))
-    File.write(File.join(@dir, "_layouts/default.html"),
-               "<!DOCTYPE html><html><body><main class=\"post-content\">{{ content }}</main></body></html>")
-    File.write(File.join(@dir, "index.md"), "---\nlayout: default\n---\n\n![A plot](#{image_url})\n")
-    File.write(File.join(@dir, "bare.md"), "---\nlayout: null\n---\n\n![A plot](#{image_url})\n")
-
-    site_config = Jekyll.configuration(
-      "source" => @dir, "destination" => File.join(@dir, "_site"), "quiet" => true, "baseurl" => "/blog",
-      "title" => "Variants", "url" => "https://example.org", "author" => { "name" => "Test" }
-    ).merge(config)
-    site = Jekyll::Site.new(site_config)
-    encoders ? replacing(:tools, -> { encoders }) { site.process } : site.process
-    site
+  # and once without one. `again:` rebuilds an earlier site's source, for the
+  # tests about what a second build does.
+  def build(encoders: nil, config: {}, filename: "plot.png", image_url: "/blog/assets/img/plot.png",
+            dark: false, again: nil)
+    layout = "<!DOCTYPE html><html><body><main class=\"post-content\">{{ content }}</main></body></html>"
+    make = lambda do
+      @site = TestSite.build({ baseurl: "/blog", title: "Variants", dir: again&.dir }.merge(config)) do |source|
+        source.copy("assets/img/social-card.png", "assets/img/#{filename}")
+        source.copy("assets/img/social-card.png", "assets/img/#{filename.sub(/(\.\w+)\z/, '-dark\1')}") if dark
+        source.layout("default.html", layout)
+        source.page("index.md", "![A plot](#{image_url})", "layout: default\n")
+        source.page("bare.md", "![A plot](#{image_url})")
+      end
+    end
+    encoders ? replacing(:tools, -> { encoders }) { make.call } : make.call
+    @site
   end
 
   # Writes the last argument, as ImageMagick and avifenc write their output.
@@ -262,7 +303,7 @@ class ImageVariantsTest < Minitest::Test
   end
 
   def read(page)
-    File.read(File.join(@dir, "_site", page))
+    @site.read(page)
   end
 
   def srcset_urls(node)

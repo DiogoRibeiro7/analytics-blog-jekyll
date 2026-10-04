@@ -61,11 +61,14 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      # critical 9 measures pages in it, and the Playwright suites below use it.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Generate critical CSS
         env:
           JEKYLL_ENV: production
           NODE_ENV: production
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
         run: npm run build:critical
 
       - name: Generate CDN SRI metadata
@@ -75,10 +78,6 @@ jobs:
         env:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --trace
-
-      - name: Install Playwright browsers
-        if: github.ref == 'refs/heads/develop'
-        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright test suites
         if: github.ref == 'refs/heads/develop'

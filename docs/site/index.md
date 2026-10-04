@@ -1,22 +1,34 @@
 ---
 layout: home
 permalink: /
-hero_title: DataLog Theme Documentation
-hero_tagline: Explore the analytics storytelling toolkit powering notebooks, datasets, dashboards, and research hubs.
-hero_cta_url: /features/
-hero_cta_label: Browse theme features
+hero_title: DataLog documentation
+hero_tagline: Build research sites with articles, notebooks, datasets, and interactive visualizations.
+hero_cta_url: /guides/installation/
+hero_cta_label: Get started
+hero_secondary_cta_url: /features/
+hero_secondary_cta_label: Explore features
+home_features_heading: Start exploring
+home_features:
+  - title: Layout reference
+    description: Compare posts, projects, research pages, and other layouts.
+    url: /features/layouts/
+  - title: Interactive visualizations
+    description: Adapt live charts and dashboards for your own analytics work.
+    url: /visualizations/
+  - title: Migration guides
+    description: Move from an existing theme with practical checklists.
+    url: /guides/migration/
 ---
 
 <section class="section section-intro">
   <div class="container">
-    <h2>Why ship your docs with DataLog?</h2>
+    <h2>Learn DataLog by using it</h2>
     <div class="split-grid">
       <div>
-        <p>The documentation site is rendered with the DataLog theme itself, so every heading, callout, and interactive
-        widget you see here ships with the gem. Clone the repository, wire up your datasets and notebooks, and you are
-        ready to publish analytics stories across your organisation.</p>
-        <p>Use the navigation above to deep-dive into feature walkthroughs, interactive visualization recipes, migration
-        guidance, and a gallery of teams already building with DataLog.</p>
+        <p>This documentation site runs on the DataLog Jekyll theme. The guides explain installation and configuration;
+        the feature pages show the same layouts, components, and visualizations in use.</p>
+        <p>Start with a working site, then explore example articles, notebooks, datasets, and projects below. Each example
+        is rendered by the theme and keeps its own documentation URL.</p>
       </div>
       <div class="card card--accent">
         <h3>Documentation quick stats</h3>
@@ -27,26 +39,6 @@ hero_cta_label: Browse theme features
           <li><strong>{{ site.notebooks | size }}</strong> interactive notebook walk-throughs</li>
         </ul>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section-highlight">
-  <div class="container">
-    <h2 class="section-title">Featured highlights</h2>
-    <div class="card-grid">
-      <article class="card">
-        <h3><a href="/features/layouts/">Layout reference</a></h3>
-        <p>Side-by-side comparisons of every layout with tips on when to use posts, projects, research pages, and more.</p>
-      </article>
-      <article class="card">
-        <h3><a href="/visualizations/">Interactive visualization demos</a></h3>
-        <p>Plotly, D3, Observable, Bokeh, R Shiny, and ipywidgets examples that you can copy and adapt for your own dashboards.</p>
-      </article>
-      <article class="card">
-        <h3><a href="/guides/migration/">Migration guides</a></h3>
-        <p>Step-by-step migration checklists for upgrading from Minimal Mistakes, Chirpy, and Just the Docs.</p>
-      </article>
     </div>
   </div>
 </section>
