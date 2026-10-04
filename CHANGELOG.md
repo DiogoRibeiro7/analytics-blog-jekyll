@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Upgrading from 0.10.x
+
+These change what an existing site shows. Each names the setting that keeps the old behaviour, where there is one:
+
+- **A first visit is dark.** A site without `theme_options.color_scheme.default` used to follow the operating system; set `default: system` to keep that (#374).
+- **Display equations are plain, and only the ones the text can refer to are numbered.** Set `theme_options.math.display_style: card` and `theme_options.math.numbering: all` for the old cards and numbers (#318).
+- **The author and editorial note follows the article.** `theme_options.provenance.position: start`, or `provenance_position` in a post's front matter, puts it back before the body (#317).
+- **A page lists only the works it cites.** A page that cites none listed every entry; add `nocite: all` to keep the full list (#289).
+- **Related posts are ranked by relevance**, so a post may recommend different ones. `related_posts` in `_config.yml` tunes the ranking, and a post's front matter can name its own picks (#294).
+- **A post shows its `summary` under its title**, where the heading repeated its first paragraph; a post without one shows none. Pages with a header of their own (packages, datasets, projects, notebooks, research articles, the home page) no longer get a date, a byline and the build time as "Published" above it (#411).
+
+These need an edit, or can stop a build:
+
+- **Three components are gone:** `components/enhanced-code-block.html`, `components/performance-monitor.html` and `components/viz-table-fallback.html`. A site that includes one gets a build error naming it; remove the include (#355).
+- **Citation keys are checked.** A cited key that no source has, or that two entries share, stops the build and names the page and the key. In `{% datalog_cite key label %}` the second word is now a second key, not a label (#289).
+- **An error raised in a plugin hook stops the build.** A `Jekyll::Errors::FatalException` from a hook was logged as a warning (#289).
+- **`datalog critical-css` runs critical 9.** It needs Node.js 22.13, and Playwright's Chromium for the default `render` engine (`npx playwright install chromium`); `critical_css.engine: static` needs no browser. Remove `critical_css.penthouse_options`, which the build now warns about. A site whose own `node_modules` holds critical 8 needs to update it, and the command says how (#360).
+
+One more to know about, needing no edit: `$dark-ink-200` and `$dark-ink-100` are now slate greys that read on dark surfaces. A site that uses them in its own styles gets the new colours, and one that sets them keeps its own (#415).
+
 ### Fixed
 
 - **The maths editor's preview names what it draws** (#422).
