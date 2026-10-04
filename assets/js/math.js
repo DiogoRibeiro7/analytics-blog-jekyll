@@ -54,6 +54,24 @@ import { speakLatex } from './math/latex-speech.js';
     },
 
     /**
+     * Starts the toolkit when this script loads after MathJax's ready() has
+     * run. The head's ready() starts it only when this script is already
+     * there, and the loader imports it after DOMContentLoaded while MathJax
+     * loads async, so with MathJax cached nothing started it: no expression
+     * got its tab stop, its name or its tools (#421).
+     * @param {Object} MathJax - window.MathJax, the configuration until
+     *   MathJax loads; its `startup.document` exists once ready() has run
+     * @returns {boolean} Whether this call started the toolkit
+     */
+    start(MathJax) {
+      if (this.initialized || !MathJax || !MathJax.startup || !MathJax.startup.document) {
+        return false;
+      }
+      this.init(MathJax, (MathJax.config && MathJax.config.datalog) || {});
+      return true;
+    },
+
+    /**
      * MathJax draws an expression again, into a new container, when a reader
      * changes a setting in its menu or toggles a collapsible part. The new
      * container had nothing decorateMathItem gave the first: no tab stop, no
@@ -964,8 +982,12 @@ import { speakLatex } from './math/latex-speech.js';
   }
 
   window.DatalogMath = {
+    // The head's ready() calls this when this script is already there; the
+    // toolkit starts once, whichever way it is started.
     init(MathJax, options) {
-      MathToolkit.init(MathJax, options);
+      if (!MathToolkit.initialized) {
+        MathToolkit.init(MathJax, options);
+      }
     },
     onPageReady() {
       if (MathToolkit.initialized) {
@@ -983,4 +1005,7 @@ import { speakLatex } from './math/latex-speech.js';
       MathToolkit.restoreAll(mathDocument);
     }
   };
+
+  // MathJax may have been ready before this script loaded (#421).
+  MathToolkit.start(window.MathJax);
 })();

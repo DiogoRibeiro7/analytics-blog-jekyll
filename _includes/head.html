@@ -284,6 +284,9 @@
   {% else %}
 <script nonce="{{ page.csp_nonce }}">
   window.MathJax = {
+    // The maths toolkit's options. MathJax keeps them in MathJax.config, where
+    // ready() below and math.js, whichever runs second, both read them (#421).
+    datalog: { numbering: '{{ math_numbering }}' },
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']],
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
@@ -375,8 +378,10 @@
         }
         {%- endif %}
         MJ.startup.defaultReady();
+        // math.js may not have arrived yet; if so, it starts the toolkit itself
+        // when it does (#421).
         if (window.DatalogMath && typeof window.DatalogMath.init === 'function') {
-          window.DatalogMath.init(MJ, { numbering: '{{ math_numbering }}' });
+          window.DatalogMath.init(MJ, MJ.config.datalog);
         }
         MJ.startup.promise.then(() => {
           document.querySelectorAll('[data-math-alt]').forEach((el) => {

@@ -1450,3 +1450,64 @@ describe('a container MathJax draws again', () => {
     expect(document.querySelectorAll('.math-reference-link')).toHaveLength(1);
   });
 });
+
+// The head's ready() starts the toolkit only when math.js is already there;
+// when math.js arrives after it, math.js starts the toolkit itself (#421).
+describe('starting after MathJax', () => {
+  const readyMathJax = (datalog) => ({
+    config: { datalog },
+    startup: { promise: Promise.resolve(), document: { math: [] } },
+  });
+
+  beforeEach(() => {
+    toolkit.initialized = false;
+    toolkit.MathJax = null;
+    toolkit.recordByContainer = new WeakMap();
+    document.body.innerHTML = '';
+  });
+
+  it('starts the toolkit, with the configured numbering, once MathJax is ready', () => {
+    const MathJax = readyMathJax({ numbering: 'all' });
+
+    expect(toolkit.start(MathJax)).toBe(true);
+    expect(toolkit.initialized).toBe(true);
+    expect(toolkit.MathJax).toBe(MathJax);
+    expect(toolkit.numbering).toBe('all');
+  });
+
+  it('waits while window.MathJax is still only the configuration', () => {
+    const configuration = { datalog: { numbering: 'ams' }, startup: { ready() {}, pageReady() {} } };
+
+    expect(toolkit.start(configuration)).toBe(false);
+    expect(toolkit.start(undefined)).toBe(false);
+    expect(toolkit.initialized).toBe(false);
+  });
+
+  it('starts once, whichever side starts it first', () => {
+    const init = vi.spyOn(toolkit, 'init');
+    const MathJax = readyMathJax({ numbering: 'ams' });
+
+    window.DatalogMath.init(MathJax, MathJax.config.datalog);
+    expect(toolkit.start(MathJax)).toBe(false);
+    window.DatalogMath.init(MathJax, MathJax.config.datalog);
+
+    expect(init).toHaveBeenCalledTimes(1);
+    init.mockRestore();
+  });
+
+  it('decorates what MathJax typeset before the toolkit started', async () => {
+    const container = document.createElement('mjx-container');
+    container.innerHTML = '<mjx-math aria-hidden="true">c</mjx-math>';
+    document.body.appendChild(container);
+    const MathJax = readyMathJax({ numbering: 'ams' });
+    MathJax.startup.document.math = [{ typesetRoot: container, math: 'c \\in (a, b)', display: false }];
+
+    toolkit.start(MathJax);
+    await MathJax.startup.promise;
+    await Promise.resolve();
+
+    expect(container.getAttribute('tabindex')).toBe('0');
+    expect(container.getAttribute('role')).toBe('math');
+    expect(container.getAttribute('aria-label')).toBe('c in (a, b)');
+  });
+});

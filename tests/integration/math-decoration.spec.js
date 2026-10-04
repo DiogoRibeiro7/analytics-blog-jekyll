@@ -110,3 +110,34 @@ test.describe('Math the build did not wrap', () => {
     await expect(page.locator('#unwrapped-math [data-math-alt]:not(mjx-container)')).toHaveCount(0);
   });
 });
+
+// The toolkit starts whichever of MathJax and math.js is ready second. With
+// MathJax cached it was often ready first, and then nothing started the
+// toolkit: no expression got its tab stop, its name or its tools (#421).
+test.describe('Math toolkit start-up', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
+
+  test('starts when math.js loads after MathJax has typeset the page', async ({ page }) => {
+    let release;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route('**/assets/js/dist/math.js', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(new URL(article, baseUrl).href, { waitUntil: 'load' });
+
+    // MathJax has typeset the page, and nothing has decorated it yet.
+    await page.waitForFunction(
+      () => window.MathJax?.startup?.document && document.querySelectorAll('mjx-container').length > 10
+    );
+    await expect(page.locator('mjx-container[tabindex="0"]')).toHaveCount(0);
+    release();
+
+    const total = await page.locator('mjx-container:not(:has(a[href]))').count();
+    await expect(page.locator('mjx-container[tabindex="0"][role="math"][aria-label]')).toHaveCount(total);
+    await expect(page.locator('[data-math-edit]').first()).toBeAttached();
+    expect(await page.evaluate(() => window.__DATALOG_MATH_INTERNALS__.numbering)).toBe('ams');
+  });
+});
