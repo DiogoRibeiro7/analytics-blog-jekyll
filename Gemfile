@@ -14,7 +14,7 @@ group :development do
   # cops that fail the Lint job on code nobody changed.
   gem "rubocop", "1.91.0", require: false
   # Loaded by tests/test_helper.rb only when COVERAGE is set; see .simplecov.
-  gem "simplecov", "~> 0.22", require: false
+  gem "simplecov", "~> 1.3", require: false
 end
 
 
