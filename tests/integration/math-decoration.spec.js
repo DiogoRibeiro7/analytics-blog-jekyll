@@ -30,6 +30,18 @@ test.describe('Math decoration', () => {
     await expect(named).toHaveCount(total);
   });
 
+  // A name used to lose every command without a rule: Theorem 1's
+  // "f : [a, b] \to \mathbb{R}" was named "f : [a, b] R" (#417).
+  test('each name says what its expression says', async ({ page }) => {
+    const labels = await page
+      .locator('mjx-container[role="math"]')
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label')));
+    expect(labels).toEqual(expect.arrayContaining(['f: [a, b] to double-struck R', 'c in (a, b)', 'square']));
+    for (const label of labels) {
+      expect(label).not.toMatch(/\\|eq:|Mathematical expression/);
+    }
+  });
+
   test('a display equation carries the copy and edit tools', async ({ page }) => {
     const equation = page.locator('.math-expression').first();
     await expect(equation.locator('[data-math-copy]')).toHaveCount(1);
@@ -68,5 +80,31 @@ test.describe('Math decoration', () => {
       Boolean(document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))))
     );
     expect(resolved).toBe(true);
+  });
+});
+
+// The build names the expressions it wraps. The browser names, in the same
+// words, one the build left alone, such as maths written in raw HTML (#417).
+// The expression goes in before MathJax reads the page, on the page's first
+// load, as the tests above load it.
+test.describe('Math the build did not wrap', () => {
+  test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
+
+  test('is named in the same words', async ({ page }) => {
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const paragraph = document.createElement('p');
+        paragraph.id = 'unwrapped-math';
+        paragraph.textContent = '\\(\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1\\)';
+        document.querySelector('.post-content').append(paragraph);
+      });
+    });
+    await page.goto(new URL(article, baseUrl).href, { waitUntil: 'load' });
+
+    await expect(page.locator('#unwrapped-math mjx-container')).toHaveAttribute(
+      'aria-label',
+      'limit as x approaches 0 sin x over x = 1'
+    );
+    await expect(page.locator('#unwrapped-math [data-math-alt]:not(mjx-container)')).toHaveCount(0);
   });
 });

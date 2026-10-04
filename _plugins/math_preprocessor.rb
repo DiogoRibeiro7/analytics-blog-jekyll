@@ -3,6 +3,7 @@
 require "cgi"
 require "kramdown"
 require "kramdown-parser-gfm"
+require_relative "../lib/datalog/latex_speech"
 
 module MathPreprocessor
   DISPLAY_PATTERNS = [
@@ -215,55 +216,13 @@ module MathPreprocessor
       latex.to_s.strip
     end
 
+    # The words the expression reads as (lib/datalog/latex_speech.rb), as the
+    # browser reads one the build didn't wrap. Every command is read, or dropped
+    # when it draws nothing; this used to drop each command it had no rule
+    # for, so "c \in (a, b)" was labelled "c (a, b)" (#417).
     def auto_alt_text(latex)
-      text = latex.to_s.dup
-
-      text.gsub!(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/) do
-        numerator = sanitize_segment(Regexp.last_match[1])
-        denominator = sanitize_segment(Regexp.last_match[2])
-        "#{numerator} over #{denominator}"
-      end
-
-      text.gsub!(/\\int(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/) do
-        lower = Regexp.last_match[1] || Regexp.last_match[2]
-        upper = Regexp.last_match[3] || Regexp.last_match[4]
-        phrase = "integral"
-        phrase += " from #{sanitize_segment(lower)}" if lower && !lower.empty?
-        phrase += " to #{sanitize_segment(upper)}" if upper && !upper.empty?
-        phrase
-      end
-
-      text.gsub!(/\\sum(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/) do
-        lower = Regexp.last_match[1] || Regexp.last_match[2]
-        upper = Regexp.last_match[3] || Regexp.last_match[4]
-        phrase = "summation"
-        phrase += " from #{sanitize_segment(lower)}" if lower && !lower.empty?
-        phrase += " to #{sanitize_segment(upper)}" if upper && !upper.empty?
-        phrase
-      end
-
-      text.gsub!(/\\sqrt\s*\{([^{}]+)\}/) do
-        "square root of #{sanitize_segment(Regexp.last_match[1])}"
-      end
-
-      text.gsub!(/\\mathrm\s*\{([^{}]+)\}/) { sanitize_segment(Regexp.last_match[1]) }
-      text.gsub!(/\\operatorname\*?\s*\{([^{}]+)\}/) { sanitize_segment(Regexp.last_match[1]) }
-      text.gsub!(/\\[a-zA-Z]+\s*/m, " ")
-      text.gsub!(/[{}]/, " ")
-      text.gsub!(/\s+/, " ")
-      text = text.strip
-
-      return "Mathematical expression" if text.empty?
-
-      text
-    end
-
-    def sanitize_segment(segment)
-      return "" unless segment
-
-      cleaned = segment.gsub(/\\[a-zA-Z]+/, " ")
-      cleaned = cleaned.gsub(/[{}]/, " ")
-      cleaned.gsub(/\s+/, " ").strip
+      text = Datalog::LatexSpeech.speak(latex)
+      text.empty? ? "Mathematical expression" : text
     end
   end
 

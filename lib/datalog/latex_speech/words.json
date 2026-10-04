@@ -1,0 +1,88 @@
+{
+  "about": "How a LaTeX expression reads as a label for a screen reader (#417). The build (lib/datalog/latex_speech.rb) and the browser (assets/js/math/latex-speech.js) both read this file, so the two say the same; tests/fixtures/latex-speech.json holds the cases both test suites check.",
+  "greek": [
+    "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu",
+    "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+  ],
+  "words": {
+    "varepsilon": "epsilon", "vartheta": "theta", "varphi": "phi", "varrho": "rho", "varsigma": "sigma",
+    "varpi": "pi", "varkappa": "kappa",
+
+    "leq": "less than or equal to", "le": "less than or equal to", "leqslant": "less than or equal to",
+    "geq": "greater than or equal to", "ge": "greater than or equal to", "geqslant": "greater than or equal to",
+    "neq": "not equal to", "ne": "not equal to", "approx": "approximately equal to",
+    "equiv": "equivalent to", "sim": "similar to", "simeq": "similar or equal to", "cong": "congruent to",
+    "propto": "proportional to", "ll": "much less than", "gg": "much greater than",
+    "in": "in", "notin": "not in", "ni": "contains", "subset": "subset of",
+    "subseteq": "subset of or equal to", "supset": "superset of", "supseteq": "superset of or equal to",
+    "mid": "given", "parallel": "parallel to", "perp": "perpendicular to",
+
+    "to": "to", "rightarrow": "to", "longrightarrow": "to", "mapsto": "maps to",
+    "leftarrow": "left arrow", "gets": "gets", "Rightarrow": "implies", "implies": "implies",
+    "Longrightarrow": "implies", "Leftarrow": "is implied by", "impliedby": "is implied by",
+    "Leftrightarrow": "if and only if", "iff": "if and only if", "leftrightarrow": "left right arrow",
+    "uparrow": "up arrow", "downarrow": "down arrow",
+
+    "times": "times", "cdot": "dot", "div": "divided by", "pm": "plus or minus", "mp": "minus or plus",
+    "ast": "star", "star": "star", "circ": "circle", "bullet": "bullet", "oplus": "direct sum",
+    "otimes": "tensor product", "cup": "union", "cap": "intersection", "setminus": "minus",
+    "wedge": "and", "land": "and", "vee": "or", "lor": "or", "neg": "not", "lnot": "not",
+    "forall": "for all", "exists": "there exists", "nexists": "there does not exist",
+
+    "infty": "infinity", "partial": "partial", "nabla": "nabla", "emptyset": "empty set",
+    "varnothing": "empty set", "prime": "prime", "angle": "angle", "triangle": "triangle",
+    "square": "square", "Box": "square", "blacksquare": "end of proof", "qed": "end of proof",
+    "hbar": "h bar", "ell": "ell", "aleph": "aleph", "dagger": "dagger",
+    "ldots": "dots", "cdots": "dots", "dots": "dots", "vdots": "dots", "ddots": "dots",
+
+    "langle": "left angle bracket", "rangle": "right angle bracket", "lvert": "|", "rvert": "|",
+    "vert": "|", "lVert": "double bar", "rVert": "double bar", "Vert": "double bar", "|": "double bar",
+    "lfloor": "floor of", "rfloor": "", "lceil": "ceiling of", "rceil": "",
+    "{": "{", "}": "}", "%": "percent", "$": "$", "&": "and", "#": "#", "_": "_", "colon": ":",
+
+    "newline": ";", ",": "", ";": "", ":": "", "!": "", " ": "", "quad": "", "qquad": "",
+    "enspace": "", "thinspace": "", "medspace": "", "thickspace": "", "negthinspace": "",
+    "negmedspace": "", "negthickspace": "",
+
+    "displaystyle": "", "textstyle": "", "scriptstyle": "", "scriptscriptstyle": "", "limits": "",
+    "nolimits": "", "nonumber": "", "notag": "", "allowbreak": "", "hline": "", "toprule": "",
+    "midrule": "", "bottomrule": ""
+  },
+  "big_operators": {
+    "sum": "summation", "prod": "product", "coprod": "coproduct", "bigcup": "union",
+    "bigcap": "intersection", "bigoplus": "direct sum", "bigotimes": "tensor product",
+    "int": "integral", "iint": "double integral", "iiint": "triple integral", "oint": "contour integral",
+    "max": "max", "min": "min", "sup": "sup", "inf": "inf", "argmax": "argmax", "argmin": "argmin"
+  },
+  "limits": { "lim": "limit", "limsup": "limit superior", "liminf": "limit inferior" },
+  "text": [
+    "text", "textrm", "textit", "textbf", "textsf", "texttt", "textnormal", "emph", "mbox", "hbox",
+    "mathrm", "mathit", "mathsf", "mathtt", "mathnormal", "operatorname", "boxed", "overbrace", "underbrace"
+  ],
+  "text_mode": [
+    "text", "textrm", "textit", "textbf", "textsf", "texttt", "textnormal", "emph", "mbox", "hbox"
+  ],
+  "styles": {
+    "mathbb": "double-struck", "mathcal": "script", "mathscr": "script", "mathfrak": "fraktur",
+    "mathbf": "bold", "boldsymbol": "bold", "bm": "bold", "pmb": "bold",
+    "vec": "vector", "overrightarrow": "vector", "cancel": "cancelled", "bcancel": "cancelled",
+    "xcancel": "cancelled", "sout": "cancelled"
+  },
+  "accents": {
+    "hat": "hat", "widehat": "hat", "bar": "bar", "overline": "bar", "tilde": "tilde",
+    "widetilde": "tilde", "dot": "dot", "ddot": "double dot", "underline": "underline",
+    "check": "check", "breve": "breve", "acute": "acute", "grave": "grave"
+  },
+  "silent_with_argument": [
+    "label", "tag", "hspace", "vspace", "phantom", "hphantom", "vphantom", "color", "eqref", "ref"
+  ],
+  "sizes": [
+    "left", "right", "middle", "big", "Big", "bigg", "Bigg", "bigl", "bigr", "Bigl", "Bigr", "biggl", "biggr",
+    "Biggl", "Biggr"
+  ],
+  "matrices": ["matrix", "pmatrix", "bmatrix", "Bmatrix", "vmatrix", "Vmatrix", "smallmatrix"],
+  "with_columns": ["array", "tabular", "alignat", "alignedat"],
+  "superscripts": { "2": "squared", "3": "cubed", "T": "transpose", "-1": "inverse", "prime": "prime" },
+  "primes": ["", "prime", "double prime", "triple prime"],
+  "roots": { "2": "square root", "3": "cube root" }
+}

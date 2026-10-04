@@ -480,35 +480,17 @@ describe('equation reference updates', () => {
   });
 });
 
-describe('LaTeX segment sanitization', () => {
-  it('removes LaTeX commands', () => {
-    const sanitized = toolkit.sanitizeSegment('\\frac{a}{b}');
-    expect(sanitized).toBe('a b');
+// The words themselves are tested in latex-speech.test.js (#417).
+describe('the label an expression gets', () => {
+  it('reads every command, where it used to drop those it had no rule for', () => {
+    expect(toolkit.generateAltFromLatex('f : [a, b] \\to \\mathbb{R}')).toBe('f: [a, b] to double-struck R');
+    expect(toolkit.generateAltFromLatex('c \\in (a, b)')).toBe('c in (a, b)');
   });
 
-  it('preserves non-command text', () => {
-    const sanitized = toolkit.sanitizeSegment('abc');
-    expect(sanitized).toBe('abc');
-  });
-
-  it('removes multiple commands and braces', () => {
-    const sanitized = toolkit.sanitizeSegment('\\sqrt{x^2} + \\int{y}');
-    expect(sanitized).toBe('x^2 + y');
-  });
-
-  it('normalizes whitespace', () => {
-    const sanitized = toolkit.sanitizeSegment('a   b    c');
-    expect(sanitized).toBe('a b c');
-  });
-
-  it('handles empty input', () => {
-    const sanitized = toolkit.sanitizeSegment('');
-    expect(sanitized).toBe('');
-  });
-
-  it('handles null input', () => {
-    const sanitized = toolkit.sanitizeSegment(null);
-    expect(sanitized).toBe('');
+  it('names an expression with nothing to read, and gives none for no LaTeX', () => {
+    expect(toolkit.generateAltFromLatex('\\left. \\right.')).toBe('Mathematical expression');
+    expect(toolkit.generateAltFromLatex('')).toBe('');
+    expect(toolkit.generateAltFromLatex(null)).toBe('');
   });
 });
 
