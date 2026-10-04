@@ -787,7 +787,7 @@ import { speakLatex } from './math/latex-speech.js';
         this.editor.preview.appendChild(placeholder);
         return;
       }
-      this.renderLatex(this.editor.preview, latex, { display: true, enhance: false });
+      this.renderLatex(this.editor.preview, latex, { display: true, name: true });
     },
 
     insertSymbol(value) {
@@ -876,11 +876,34 @@ import { speakLatex } from './math/latex-speech.js';
         return Promise.resolve();
       }
       const wrapperLatex = display ? `\\[${latex}\\]` : `\\(${latex}\\)`;
-      // innerHTML required for MathJax rendering
-      target.innerHTML = wrapperLatex;
-      return this.MathJax.typesetPromise([target]).catch((error) => {
+      // As text, which is what MathJax reads. As HTML, a "<" in the LaTeX
+      // (a<b) began a tag, and nothing was typeset (#422).
+      target.textContent = wrapperLatex;
+      if (!this.renderedLatex) {
+        this.renderedLatex = new WeakMap();
+      }
+      this.renderedLatex.set(target, latex);
+      const typeset = this.MathJax.typesetPromise([target]).catch((error) => {
         console.warn('MathJax failed to typeset preview', error);
       });
+      return options.name ? typeset.then(() => this.nameRendered(target, latex)) : typeset;
+    },
+
+    /**
+     * Names an expression renderLatex typeset after the page's own, as those
+     * are named. The editor's preview is a live region, so a screen reader
+     * announces what is drawn in it: unnamed, that was its MathML flattened
+     * to text, "σ 2 + E [X]" for \sigma^2 + \mathbb{E}[X] (#422).
+     * @param {Element} target - Where renderLatex drew the expression
+     * @param {string} latex - What it drew, which a later call may replace
+     */
+    nameRendered(target, latex) {
+      const container = target.querySelector('mjx-container');
+      if (!container || this.renderedLatex.get(target) !== latex) {
+        return;
+      }
+      container.setAttribute('role', 'math');
+      container.setAttribute('aria-label', this.resolveAltText(null, latex));
     },
 
     cleanLatex(latex) {

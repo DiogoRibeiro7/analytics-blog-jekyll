@@ -1511,3 +1511,102 @@ describe('starting after MathJax', () => {
     expect(container.getAttribute('aria-label')).toBe('c in (a, b)');
   });
 });
+
+// What renderLatex draws after the page's own expressions: the editor's live
+// preview, which it names, and the search results' previews, which stay
+// unnamed and inert (#422).
+describe('an expression renderLatex draws', () => {
+  // MathJax typesets one call after another, each drawing what the target
+  // holds when its turn comes, and the test says when each turn ends.
+  const fakeMathJax = () => {
+    const pending = [];
+    const MathJax = {
+      typesetPromise: vi.fn(([target]) => new Promise((resolve) => {
+        pending.push(() => {
+          if (!target.querySelector('mjx-container')) {
+            const source = target.textContent;
+            target.replaceChildren(Object.assign(document.createElement('mjx-container'), { textContent: source }));
+          }
+          resolve();
+        });
+      })),
+    };
+    return { MathJax, finish: () => pending.shift()() };
+  };
+
+  beforeEach(() => {
+    toolkit.renderedLatex = new WeakMap();
+  });
+
+  it('sets the LaTeX as text, so a "<" in it is not read as a tag', () => {
+    const { MathJax } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    toolkit.renderLatex(target, 'a<b', { display: true });
+
+    expect(target.textContent).toBe('\\[a<b\\]');
+    expect(target.children).toHaveLength(0);
+  });
+
+  it('names the expression when asked, as the page names its own', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, '\\sigma^2 + \\mathbb{E}[X]', { display: true, name: true });
+    finish();
+    await drawn;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.getAttribute('role')).toBe('math');
+    expect(container.getAttribute('aria-label')).toBe('sigma squared + double-struck E [X]');
+    expect(container.hasAttribute('tabindex')).toBe(false);
+  });
+
+  it('takes an alt comment for the name, as the page does', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, '% alt: the variance\n\\sigma^2', { name: true });
+    finish();
+    await drawn;
+
+    expect(target.querySelector('mjx-container').getAttribute('aria-label')).toBe('the variance');
+  });
+
+  it('leaves an expression unnamed unless asked, as the search previews are', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const drawn = toolkit.renderLatex(target, 'x^2', { display: false, enhance: false });
+    finish();
+    await drawn;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.hasAttribute('role')).toBe(false);
+    expect(container.hasAttribute('aria-label')).toBe(false);
+  });
+
+  // A reader types faster than MathJax draws: the first draw may finish on
+  // the LaTeX typed after it, and must not give it the earlier name.
+  it('names the expression for the latest LaTeX when typing outruns the drawing', async () => {
+    const { MathJax, finish } = fakeMathJax();
+    toolkit.MathJax = MathJax;
+    const target = document.createElement('div');
+
+    const first = toolkit.renderLatex(target, 'x', { name: true });
+    const second = toolkit.renderLatex(target, 'x^2', { name: true });
+    finish();
+    await first;
+
+    const container = target.querySelector('mjx-container');
+    expect(container.hasAttribute('aria-label')).toBe(false);
+
+    finish();
+    await second;
+    expect(container.getAttribute('aria-label')).toBe('x squared');
+  });
+});
