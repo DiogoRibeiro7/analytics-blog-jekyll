@@ -53,6 +53,7 @@
 
   { "about": "Matrices and cases" },
   { "latex": "\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}", "label": "matrix a, b; c, d end matrix" },
+  { "latex": "\\begin{bmatrix*} 1 & 0 \\end{bmatrix*}", "label": "matrix 1, 0 end matrix" },
   { "latex": "|x| = \\begin{cases} x & x \\geq 0 \\\\ -x & x < 0 \\end{cases}", "label": "|x| = cases x, x greater than or equal to 0; -x, x < 0 end cases" },
 
   { "about": "A command no table knows is read by its name" },

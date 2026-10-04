@@ -192,7 +192,9 @@ module Datalog
       end
 
       def environment_change(name)
-        environment = argument.filter_map { |token| token[:value] if token[:type] == :char }.join.strip.sub("*", "")
+        # A starred environment (align*) is the same environment, unnumbered.
+        named = argument.filter_map { |token| token[:value] if token[:type] == :char }.join.strip
+        environment = named.delete_suffix("*")
         if name == "begin"
           @context[:environments] << environment
           argument if WITH_COLUMNS.include?(environment)

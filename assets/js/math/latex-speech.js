@@ -243,7 +243,9 @@ function speak(tokens, context) {
       } else if (name === 'to' && context.approaches) {
         word('approaches');
       } else if (name === 'begin' || name === 'end') {
-        const environment = plain(argument()).replace('*', '');
+        // A starred environment (align*) is the same environment, unnumbered.
+        const named = plain(argument());
+        const environment = named.endsWith('*') ? named.slice(0, -1) : named;
         if (name === 'begin') {
           context.environments.push(environment);
           if (WITH_COLUMNS.has(environment)) {
