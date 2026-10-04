@@ -62,7 +62,10 @@ class MathDisplayTest < Minitest::Test
     # MathJax's own `ams` leaves `$$ y \label{eq:y} $$` unnumbered, and the
     # \eqref to it reads (???); the head numbers a display with a \label.
     assert_includes config, "AmsTags.prototype.finalize"
-    assert_includes config, "window.DatalogMath.init(MJ, { numbering: 'ams' })"
+    # The toolkit's options sit in the configuration, where ready() and a
+    # math.js that loads after it both read them (#421).
+    assert_includes config, "datalog: { numbering: 'ams' }"
+    assert_includes config, "window.DatalogMath.init(MJ, MJ.config.datalog)"
   end
 
   def test_all_and_none_reach_mathjax_without_the_label_rule

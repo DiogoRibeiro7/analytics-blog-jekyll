@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **The maths toolkit starts whichever script loads second** (#421).
+  - **The bug:** MathJax's `ready()` started the toolkit only if `math.js` had already loaded, and the loader imports `math.js` after `DOMContentLoaded` while MathJax loads `async`. With MathJax in the browser's cache it was often ready first, and then nothing started the toolkit: no expression got its tab stop, its name on the rendered formula, or its copy and edit tools.
+  - **Now:** `math.js` starts the toolkit itself when it arrives after MathJax's `ready()`, and the toolkit starts once either way. Its options (`numbering`) now sit in the MathJax configuration, under `datalog`, so both sides read the same ones.
+
 - **A formula's screen-reader name says what the formula says** (#417).
   - **The bug:** the build and the browser derived the name from the LaTeX by spelling out a few commands and replacing every other one with a space. So `f : [a, b] \to \mathbb{R}` was named "f : [a, b] R", `c \in (a, b)` "c (a, b)", and `\pi`, `\sin` and the Greek letters vanished. Spacing commands and `\label` keys were read out, and `\square` became "Mathematical expression".
   - **Now:** both read the LaTeX as words from one table (`lib/datalog/latex_speech/words.json`). Theorem 1 reads "f: [a, b] to double-struck R", and `\lim_{x \to 0}` reads "limit as x approaches 0". Fractions and roots nest, and a command with no word of its own is read by its name. Sizing, spacing, `\label`, the equation number from `\tag` and the names of environments such as `equation` or `align` are left out of the name; a matrix or `cases` is announced, as "matrix … end matrix".
