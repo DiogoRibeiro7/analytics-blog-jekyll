@@ -42,6 +42,28 @@ test.describe('Math decoration', () => {
     }
   });
 
+  // The editor's preview is a live region, so a screen reader announces what
+  // is drawn in it. Unnamed, that was its MathML flattened to text: "σ 2 + E
+  // [X]" for \sigma^2 + \mathbb{E}[X], and "\[a" for a<b, which drew nothing
+  // (#422).
+  test("the editor's preview names what it draws", async ({ page }) => {
+    await page.locator('[data-math-edit]').first().click();
+    const input = page.locator('[data-math-editor-input]');
+    const preview = page.locator('[data-math-editor-preview]');
+    const expression = preview.locator('mjx-container');
+    await expect(preview).toHaveAttribute('aria-live', 'polite');
+
+    await input.fill('\\sigma^2 + \\mathbb{E}[X]');
+    await expect(expression).toHaveAttribute('aria-label', 'sigma squared + double-struck E [X]');
+    await expect(expression).toHaveAttribute('role', 'math');
+    await expect(preview).toMatchAriaSnapshot('- math "sigma squared + double-struck E [X]"');
+
+    // The name follows the LaTeX, and a "<" in it is drawn, not read as a tag.
+    await input.fill('a<b');
+    await expect(expression).toHaveAttribute('aria-label', 'a<b');
+    await expect(preview).not.toContainText('\\[');
+  });
+
   test('a display equation carries the copy and edit tools', async ({ page }) => {
     const equation = page.locator('.math-expression').first();
     await expect(equation.locator('[data-math-copy]')).toHaveCount(1);

@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **The maths editor's preview names what it draws** (#422).
+  - **The name:** the preview is a live region, so a screen reader announces what is drawn in it. Its expression had no name, so what was announced was its MathML flattened to text: "σ 2 + E [X]" for `\sigma^2 + \mathbb{E}[X]`. It now gets `role="math"` and the name the rest of the page would give it ("sigma squared + double-struck E [X]"), or its `% alt:` comment, and the name follows each change.
+  - **A "<" in the LaTeX:** `renderLatex` set the LaTeX as HTML, so `a<b` began a tag and nothing was drawn; the preview showed, and announced, "\[a". It now sets it as text.
+  - **Search previews:** the maths previews in search results are drawn the same way, and stay unnamed and out of the tab order, since the LaTeX beside them is what is read (#365).
+
 - **The maths toolkit starts whichever script loads second** (#421).
   - **The bug:** MathJax's `ready()` started the toolkit only if `math.js` had already loaded, and the loader imports `math.js` after `DOMContentLoaded` while MathJax loads `async`. With MathJax in the browser's cache it was often ready first, and then nothing started the toolkit: no expression got its tab stop, its name on the rendered formula, or its copy and edit tools.
   - **Now:** `math.js` starts the toolkit itself when it arrives after MathJax's `ready()`, and the toolkit starts once either way. Its options (`numbering`) now sit in the MathJax configuration, under `datalog`, so both sides read the same ones.
