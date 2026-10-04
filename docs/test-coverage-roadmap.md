@@ -8,57 +8,79 @@ nav_order: 13
 
 ## Current Status
 
-**JavaScript line coverage:** 91.59% ✅ (target 65%+, exceeded)
+**JavaScript line coverage:** 92.16% ✅ (gate 88%)
+**Ruby line coverage:** 89.67%, branch 70.5% ✅ (gates 81% and 59%)
 
-Coverage is no longer only a JavaScript unit-test question. Three suites run on
-every pull request:
+Three suites run on every pull request:
 
 | Suite | Size | What it covers |
 |-------|------|----------------|
-| Vitest | 890 tests (2 skipped) | JavaScript units, measured below |
-| Minitest | 271 runs (2 skipped), on Ruby 3.2, 3.3 and 3.4 | Plugins, Liquid output, CSP, packaging and the built site |
-| Playwright | 69 tests (1 skipped) | The built site in Chromium, both themes, with axe-core |
+| Vitest | 1,170 tests (2 skipped) in 41 files | JavaScript units, measured below |
+| Minitest | 798 runs in 86 files, on Ruby 3.2, 3.3 and 3.4 | Plugins, the CLI, Liquid output, CSP, packaging, the built site and sites built against the gem |
+| Playwright | 184 tests (13 skipped) in 31 specs, and 12 for the documentation site | The built site in Chromium, both themes, with axe-core on 16 pages |
 
-The figures are from the Tests workflow on `develop` at v0.8.0. The `rake ci:verify`
-scripts, which mostly checked source files for strings, were removed in 0.8.0; the
-checks nothing else covered moved into Minitest, against the built site.
+The figures are from the Tests workflow on `develop` at v0.11.0 (c6571ff). Ruby
+coverage is measured by SimpleCov on the Ruby 3.4 leg (`bundle exec rake coverage`),
+over the Ruby files in `lib/` and `_plugins/`, including the sites the consumer
+tests build in a subprocess. Two files are left out, `lib/datalog/theme/package.rb`
+and `lib/datalog/theme/version.rb`: Bundler loads them with the gemspec before
+coverage starts, and `tests/test_gem_package.rb` covers what they do. `.simplecov`
+holds the gates.
 
 ## Progress Summary
 
 ### Coverage by Module
 
-Line coverage from `npm run test:coverage`.
+Line coverage from `npm run test:coverage`. ⚠️ marks a module below 80%, or one
+that has fallen by more than five points since the 0.8.0 figures.
 
 | Module | Coverage | Status |
 |--------|----------|--------|
-| **Core Modules** | 96.08% | ✅ Excellent |
+| **Core Modules** (`core/`) | 93.11% | ✅ Excellent |
 | `dark-mode.js` | 100% | ✅ Complete |
 | `scroll-progress.js` | 100% | ✅ Complete |
 | `github-cards.js` | 98.64% | ✅ Excellent |
+| `code-blocks.js` | 97.36% | ✅ Excellent |
+| `install-tabs.js` | 96.87% | ✅ Excellent |
 | `navigation.js` | 96% | ✅ Excellent |
 | `skip-links.js` | 96% | ✅ Excellent |
-| `copy-buttons.js` | 93.1% | ✅ Excellent |
+| `toc.js` | 91.78% | ✅ Excellent |
 | `language-filter.js` | 90% | ✅ Excellent |
 | `search-hotkeys.js` | 88.88% | ✅ Good |
-| **Search Modules** | 92.43% | ✅ Excellent |
+| `copy-buttons.js` | 65.95% | ⚠️ was 93.1% |
+| **Search Modules** (`search/`) | 92.81% | ✅ Excellent |
 | `filters.js` | 100% | ✅ Complete |
 | `autocomplete.js` | 98.55% | ✅ Excellent |
-| `engine.js` | 98.33% | ✅ Excellent |
 | `utils.js` | 97.95% | ✅ Excellent |
 | `analytics.js` | 97.91% | ✅ Excellent |
-| `render.js` | 87.59% | ✅ Good |
+| `engine.js` | 97.51% | ✅ Excellent |
+| `render.js` | 89.44% | ✅ Good |
 | `app.js` | 84.1% | ✅ Good |
-| **Main Modules** | 90.35% | ✅ Excellent |
-| `analytics-dashboard.js` | 100% | ✅ Complete |
-| `academic.js` | 97.16% | ✅ Excellent |
-| `loader.js` | 95.16% | ✅ Excellent |
-| `math.js` | 94.91% | ✅ Excellent |
+| **Main Modules** (`assets/js/*.js`) | 88.5% | ✅ Good |
+| `academic.js` | 97.29% | ✅ Excellent |
+| `analytics-dashboard.js` | 96.72% | ✅ Excellent |
+| `math.js` | 95.83% | ✅ Excellent |
 | `notebook.js` | 89.33% | ✅ Good |
-| `visualizations.js` | 84.58% | ✅ Good |
-| `search.js` | 80.32% | ✅ Good |
+| `visualizations.js` | 84.64% | ✅ Good |
+| `loader.js` | 84.28% | ⚠️ was 95.16% |
+| `search.js` | 78.49% | ⚠️ was 80.32% |
+| **Feature Modules** (added since 0.8.0) | | |
+| `dynamic-services/` (`client.js`, `form-state.js`) | 98.74% | ✅ Excellent |
+| `corrections/` | 98.48% | ✅ Excellent |
+| `subscriptions/` | 98.08% | ✅ Excellent |
+| `contact/form.js` | 97.26% | ✅ Excellent |
+| `reactions/widget.js` | 96.68% | ✅ Excellent |
+| `math/latex-speech.js` | 95.96% | ✅ Excellent |
+| `comments/thread.js` | 95.7% | ✅ Excellent |
+| `webmentions/list.js` | 95.51% | ✅ Excellent |
+| `moderation/inbox.js` | 95.16% | ✅ Excellent |
+| `reading-state/` | 88.69% | ✅ Good |
 
 `search.js` is the search orchestrator in `assets/js/`, so it counts with the main
-modules.
+modules. The main modules' figure includes eight entry files at 0%
+(`comments.js`, `contact.js`, `corrections.js`, `moderation.js`, `reactions.js`,
+`reading-state.js`, `subscriptions.js`, `webmentions.js`): each only starts its
+feature module on the page, and the tests import the feature modules directly.
 
 ## Phase 1: Completed ✅
 
@@ -169,34 +191,89 @@ It was run by hand and is not in the repository.
 | Browser Tests and coverage on pull requests | Playwright and coverage failures that used to surface only after a merge |
 | Docker Images workflow | Dockerfiles that no longer build |
 
+### Where we looked next
+
+Where each item stood at 0.11.0:
+
+1. **Check rendered output on every kind of page.** Partly done. The maths specs
+   (`math-decoration`, `math-display`, `math-rerender`) wait for MathJax to typeset
+   the demo article and check what it drew, and `csp-charts.spec.js` and
+   `reading-state.spec.js` fail on page errors. No spec yet loads every kind of
+   page and fails on any CSP violation, page error or failed request.
+2. **Widen the axe audit.** Mostly done. The sweep covers 16 pages, among them
+   `/academic/`, the package pages, a notebook, and the search page with results
+   showing. `/research/`, `/datasets/` and `/notebooks/` are still audited by hand.
+3. **Test against the real library, not a stub of it.** Partly done. The maths
+   specs run the pinned MathJax from the CDN, which is how the collapse-on-click
+   (#412) and start-up (#421) defects were found, and `csp-charts.spec.js` loads
+   Plotly and the widget manager.
+4. **Check external addresses.** Still open. The broken-links workflow runs lychee
+   with `--offline`, so external links and the embed addresses in `data-viz-src`
+   are never requested.
+5. **Move to Vitest 5.** ✅ Done. The suite runs on Vitest 5.
+6. **Measure Ruby coverage.** ✅ Done. SimpleCov measures the Ruby files in `lib/`
+   and `_plugins/`, all but the two the gemspec loads first, on the Ruby 3.4 leg,
+   including the consumer sites built in a subprocess. It fails the job below 81%
+   of lines or 59% of branches.
+
+## Phase 7: What a passing suite still missed
+
+The releases from 0.9.0 to 0.11.0 fixed defects that every suite passed. They
+have a shape in common: each test looked where the defect wasn't.
+
+- **The toolkit never decorated a real article** (#329). MathJax hands over its
+  expressions as a linked list, the toolkit called `forEach` on it, and a `catch`
+  swallowed the error. The unit tests mocked the list as an array, the one shape it
+  never has.
+- **What a test spelled out was all it checked** (#417). The screen-reader name of
+  each expression was derived twice, once by the build and once in the browser,
+  and both dropped every LaTeX command they had no rule for. The tests checked
+  what each copy spelled out (an integral, a fraction), never what it dropped, and
+  the page showed the build's copy, where the browser's had most of the tests.
+- **One load order was never tested** (#421). The toolkit started only if its
+  script arrived before MathJax was ready. Every test loaded pages with an empty
+  cache, where it always did; with MathJax cached, about one reload in six left
+  the page undecorated.
+- **axe passed what it could not judge** (#415). It leaves text over a gradient or
+  a pseudo-element undecided rather than failing it, and passes over single
+  characters. The notebook header's values were at 2.1:1 in dark mode, and 14
+  syntax-token colours, punctuation among them, at about 2:1 in every dark-mode
+  code block.
+- **A click was never made** (#412). A click on a formula collapsed part of it, and
+  the redrawn expression lost its name, its tab stop and the focus. No test
+  clicked a formula.
+
+### Guards added
+
+| Guard | Catches |
+|-------|---------|
+| `tests/fixtures/latex-speech.json`, run by `test_latex_speech.rb` and `latex-speech.test.js` | The build's and the browser's labels saying different things |
+| The start-up test in `math-decoration.spec.js` | A toolkit that does not start when `math.js` loads after MathJax |
+| `tests/integration/notebook-contrast.spec.js` | Low contrast that axe leaves undecided, measured against the layers under each text |
+| `test_toc_and_contrast.rb` (dark palette, token colours) | A dark ink that does not read on the dark surfaces, a code token with no dark colour |
+| `tests/integration/math-rerender.spec.js` | A redrawn expression that loses its name, tab stop or focus |
+| SimpleCov gates | Ruby code the suite stops running |
+
 ### Where to look next
 
-1. **Check rendered output on every kind of page.** A Playwright spec could load
-   each page with math, a notebook, an embed or comments, wait for what should
-   appear (an `mjx-container`, a chart, an iframe), and fail on any CSP violation,
-   page error or failed request. `csp-charts.spec.js` does this for two pages.
-2. **Widen the axe audit.** Carried over from Phase 5. The spec covers six pages;
-   `/research/`, `/academic/`, `/datasets/`, `/notebooks/` and the notebook pages
-   are audited by hand only. axe judges only what has rendered: the math wrapper's
-   ARIA error and MathJax's positive `tabindex` surfaced once equations rendered.
-3. **Test against the real library, not a stub of it.** A stub repeats the theme's
-   assumptions about a library's API. Where the theme calls a third-party library,
-   one test should load the pinned version, as `csp-charts.spec.js` does for Plotly
-   and the widget manager.
-4. **Check external addresses.** The broken-links workflow runs lychee with
-   `--offline`, so it checks only links within the site. External links and the
-   embed addresses in `data-viz-src` are never requested; two Observable notebooks
-   returned 404 and the slide host did not resolve, and nothing reported it.
-5. **Move to Vitest 5.** #214 and #215 are held. Vitest 5 rejects the `vi.mock`
-   call that is not at the top level of `tests/js/loader.test.js`, and 15 search
-   app tests fail with "Cannot set property history of [object Window]".
-6. **Measure Ruby coverage.** Nothing measures how much of `_plugins/` and `lib/`
-   the Minitest suite runs; the figures above cover JavaScript only.
+1. **Measure contrast where axe can't, on every page.** Only the notebook page's
+   text is measured against what it sits on. Other components with a gradient or
+   an overlay (cards, the home hero, the package header) rely on axe alone.
+2. **Force the other load orders.** Comments, charts and the analytics dashboard
+   also wait on a script that may arrive first or second. A test can hold one back
+   with `page.route`, as the start-up test does for `math.js`.
+3. **Find the behaviours written twice.** Where the build and the browser both
+   produce the same output, one fixture should check both, as the LaTeX labels'
+   does.
+4. **Win back the coverage that fell.** `copy-buttons.js` is down from 93.1% to
+   65.95%, `loader.js` from 95.16% to 84.28%, and `search.js` is just under 80%.
+5. **Carried over:** the rendered-output spec, the last three pages for axe, and
+   external addresses, from Phase 6.
 
-### Maintenance goals
+## Maintenance goals
 
 - Keep JavaScript coverage above the thresholds in `vitest.config.js` and
-  `scripts/check_coverage.js`
+  `scripts/check_coverage.js`, and Ruby coverage above the gates in `.simplecov`
 - Add tests for any new feature, at the level where the risk actually lives
 - Prefer a guard that reproduces the failure over one that restates the code
 
@@ -265,7 +342,8 @@ it('should respond to user interactions', () => {
 - Coverage is uploaded to Codecov on pushes, when the `CODECOV_TOKEN` secret is set
 
 ### Coverage Gates
-- Whole suite (`vitest.config.js`): statements 88%, branches 78%, functions 83%, lines 88%
+- Ruby (`.simplecov`, on the Ruby 3.4 leg): lines 81%, branches 59%
+- Whole JavaScript suite (`vitest.config.js`): statements 88%, branches 78%, functions 83%, lines 88%
 - Critical modules (`scripts/check_coverage.js`, statement coverage):
 
 | Module | Minimum |
@@ -328,14 +406,17 @@ bundle exec rubocop
 ## Success Metrics
 
 ### Achieved Targets ✅
-- **Overall Coverage:** 91.59% (target was 65%+)
-- **Core Modules:** 96.08% (target was 90%+)
-- **Search Modules:** 92.43% (target was 75%+)
-- **Main Modules:** 90.35% (target was 60%+)
+- **Overall JavaScript coverage:** 92.16% (target was 65%+)
+- **Core Modules:** 93.11% (target was 90%+)
+- **Search Modules:** 92.81% (target was 75%+)
+- **Main Modules:** 88.5% (target was 60%+), counting the eight entry files at 0%
+- **Ruby coverage:** 89.67% of lines, 70.5% of branches
 
 ### Run Times
-- Vitest: about 27 s locally, 7 s of it in the tests themselves
-- Playwright: about 34 s in CI
+In CI at 0.11.0:
+- Vitest: 11 s on Node 24, 23 s with coverage on Node 22
+- Minitest: about 1 minute, and 1.5 minutes under SimpleCov
+- Playwright: about 1.8 minutes
 
 ## Blockers & Risks
 
@@ -347,9 +428,12 @@ bundle exec rubocop
 
 ### Ongoing Considerations
 - Stubs of third-party libraries can drift from the real APIs (see Phase 6)
-- Vitest 5 is held until the tests are migrated (#214, #215)
+- A test can only find a defect where it looks: a mocked shape, one load order or
+  one copy of a behaviour (see Phase 7)
 - Keep tests up to date with code changes
-- Monitor for flaky tests in CI
+- Monitor for flaky tests in CI. The Performance audit's critical CSS step timed
+  out once at 0.11.0 while a page loaded its external resources, and passed when
+  run again
 
 ## Review & Sign-off
 
@@ -358,11 +442,12 @@ bundle exec rubocop
 - [x] All critical modules above 70% ✅ (all above 80%)
 - [x] CI/CD gates implemented ✅
 - [x] Consumer site built in CI (Phase 5) ✅
+- [x] Ruby coverage measured and gated (Phase 6) ✅
 - [x] Documentation updated ✅
 
 ---
 
-**Document Version:** 3.0
-**Last Updated:** 2026-09-15
+**Document Version:** 4.0
+**Last Updated:** 2026-10-04
 **Owner:** Development Team
-**Status:** Coverage targets exceeded; Phase 6 open
+**Status:** Coverage targets exceeded; Phase 7 open
