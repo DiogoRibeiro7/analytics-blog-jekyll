@@ -210,7 +210,7 @@ Data-driven configuration allows you to publish or reorder projects, datasets, s
 Add the theme gem to your Jekyll site:
 
 ```ruby
-gem "datalog-theme", "~> 0.10.0"
+gem "datalog-theme", "~> 0.11.0"
 ```
 
 The constraint takes the patch releases of the current minor series. Until 1.0 a minor release may include breaking changes, listed in the [changelog](CHANGELOG.md).

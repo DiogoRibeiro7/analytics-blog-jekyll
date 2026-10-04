@@ -28,7 +28,7 @@ The theme is published on RubyGems as `datalog-theme` and needs Jekyll 4.4 or la
    source "https://rubygems.org"
 
    gem "jekyll", "~> 4.4"
-   gem "datalog-theme", "~> 0.10.0"
+   gem "datalog-theme", "~> 0.11.0"
    ```
 
    The constraint takes the patch releases of the current minor series and
@@ -123,7 +123,7 @@ releases, and the work that is not released yet:
 Bundler can install from any of them. Pin a release tag:
 
 ```ruby
-gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.10.1"
+gem "datalog-theme", github: "DiogoRibeiro7/analytics-blog-jekyll", tag: "v0.11.0"
 ```
 
 Write `branch: "main"` in place of the tag to follow releases, or
