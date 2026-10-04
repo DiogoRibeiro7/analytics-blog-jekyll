@@ -5,7 +5,8 @@ require "json"
 module Datalog
   # Reads a LaTeX expression as words, for the label a screen reader announces.
   # Symbols are spoken as words, since a screen reader may skip "∈" or "ℝ" at
-  # its usual settings. A command is read, or dropped when it draws nothing,
+  # its usual settings. A command is read, or left out of the name when it
+  # isn't part of what the expression says (spacing, \label, a \tag's number),
   # but never lost because no table knows it: an unknown one is read by its
   # name (#417).
   #
@@ -106,7 +107,8 @@ module Datalog
         "frac" => :fraction, "dfrac" => :fraction, "tfrac" => :fraction, "cfrac" => :fraction,
         "binom" => :binomial, "dbinom" => :binomial, "tbinom" => :binomial, "sqrt" => :root,
         "begin" => :environment_change, "end" => :environment_change, "\\" => :line_break, "pmod" => :pmod,
-        "textcolor" => :text_color, "overset" => :marked, "stackrel" => :marked, "underset" => :marked
+        "textcolor" => :text_color, "overset" => :marked, "stackrel" => :marked, "underset" => :marked,
+        "overbrace" => :brace, "underbrace" => :brace
       }.freeze
 
       def initialize(tokens, context)
@@ -224,6 +226,18 @@ module Datalog
       def marked(name)
         mark = read_tokens(argument)
         word("#{read_tokens(argument)} with #{mark} #{name == 'underset' ? 'below' : 'above'}")
+      end
+
+      # The script after a brace is its label, not a power or an index:
+      # \overbrace{a+b}^{n} reads "a+b with n above".
+      def brace(name)
+        base = read_tokens(argument)
+        side = name == "overbrace" ? "^" : "_"
+        skip_spaces
+        return word(base) unless char?(@tokens[@index], side)
+
+        @index += 1
+        word("#{base} with #{read_tokens(argument)} #{side == '^' ? 'above' : 'below'}")
       end
 
       def big_operator(name)

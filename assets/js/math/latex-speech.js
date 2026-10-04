@@ -1,8 +1,9 @@
 /**
  * @fileoverview Reads a LaTeX expression as words, for the label a screen
  * reader announces. Symbols are spoken as words, since a screen reader may
- * skip "∈" or "ℝ" at its usual settings. A command is read, or dropped when it
- * draws nothing, but never lost because no table knows it: an unknown one is
+ * skip "∈" or "ℝ" at its usual settings. A command is read, or left out of the
+ * name when it isn't part of what the expression says (spacing, \label, a
+ * \tag's number), but never lost because no table knows it: an unknown one is
  * read by its name (#417).
  *
  * The build reads expressions the same way (lib/datalog/latex_speech.rb), from
@@ -269,6 +270,18 @@ function speak(tokens, context) {
       } else if (name === 'overset' || name === 'stackrel' || name === 'underset') {
         const mark = read(argument());
         word(`${read(argument())} with ${mark} ${name === 'underset' ? 'below' : 'above'}`);
+      } else if (name === 'overbrace' || name === 'underbrace') {
+        // The script after a brace is its label, not a power or an index:
+        // \overbrace{a+b}^{n} reads "a+b with n above".
+        const base = read(argument());
+        const side = name === 'overbrace' ? '^' : '_';
+        skipSpaces();
+        if (isChar(tokens[index], side)) {
+          index += 1;
+          word(`${base} with ${read(argument())} ${side === '^' ? 'above' : 'below'}`);
+        } else {
+          word(base);
+        }
       } else if (TEXT.has(name)) {
         star();
         word(read(argument(), { ...inner, text: TEXT_MODE.has(name) }));

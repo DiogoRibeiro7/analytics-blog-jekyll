@@ -217,8 +217,8 @@ module MathPreprocessor
     end
 
     # The words the expression reads as (lib/datalog/latex_speech.rb), as the
-    # browser reads one the build didn't wrap. Every command is read, or dropped
-    # when it draws nothing; this used to drop each command it had no rule
+    # browser reads one the build didn't wrap. Every command is read, or left out
+    # when it isn't part of what the expression says; this used to drop each command it had no rule
     # for, so "c \in (a, b)" was labelled "c (a, b)" (#417).
     def auto_alt_text(latex)
       text = Datalog::LatexSpeech.speak(latex)

@@ -85,21 +85,23 @@ test.describe('Math decoration', () => {
 
 // The build names the expressions it wraps. The browser names, in the same
 // words, one the build left alone, such as maths written in raw HTML (#417).
-// The expression goes in before MathJax reads the page, on the page's first
-// load, as the tests above load it.
+// The expression goes into the page as it is served, so it is there before
+// MathJax, whose script is async, can look at the page.
 test.describe('Math the build did not wrap', () => {
   test.skip(!baseUrl, 'PLAYWRIGHT_BASE_URL must be provided to run integration tests.');
 
   test('is named in the same words', async ({ page }) => {
-    await page.addInitScript(() => {
-      document.addEventListener('DOMContentLoaded', () => {
-        const paragraph = document.createElement('p');
-        paragraph.id = 'unwrapped-math';
-        paragraph.textContent = '\\(\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1\\)';
-        document.querySelector('.post-content').append(paragraph);
-      });
+    const url = new URL(article, baseUrl).href;
+    await page.route(url, async (route) => {
+      const response = await route.fetch();
+      const html = (await response.text()).replace(
+        '<div class="post-content" itemprop="articleBody">',
+        '$&<p id="unwrapped-math">\\(\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1\\)</p>'
+      );
+      await route.fulfill({ response, body: html });
     });
-    await page.goto(new URL(article, baseUrl).href, { waitUntil: 'load' });
+    await page.goto(url, { waitUntil: 'load' });
+    await expect(page.locator('#unwrapped-math')).toHaveCount(1);
 
     await expect(page.locator('#unwrapped-math mjx-container')).toHaveAttribute(
       'aria-label',

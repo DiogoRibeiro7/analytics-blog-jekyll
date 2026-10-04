@@ -923,7 +923,7 @@ import { speakLatex } from './math/latex-speech.js';
     },
 
     // The words an expression reads as (math/latex-speech.js). Every command is
-    // read, or dropped when it draws nothing; it used to be dropped whenever
+    // read, or left out when it isn't part of what the expression says; it used to be dropped whenever
     // this had no rule for it, so "c \in (a, b)" read "c (a, b)" (#417).
     generateAltFromLatex(latex) {
       if (!latex) {

@@ -57,7 +57,7 @@
   "limits": { "lim": "limit", "limsup": "limit superior", "liminf": "limit inferior" },
   "text": [
     "text", "textrm", "textit", "textbf", "textsf", "texttt", "textnormal", "emph", "mbox", "hbox",
-    "mathrm", "mathit", "mathsf", "mathtt", "mathnormal", "operatorname", "boxed", "overbrace", "underbrace"
+    "mathrm", "mathit", "mathsf", "mathtt", "mathnormal", "operatorname", "boxed"
   ],
   "text_mode": [
     "text", "textrm", "textit", "textbf", "textsf", "texttt", "textnormal", "emph", "mbox", "hbox"
