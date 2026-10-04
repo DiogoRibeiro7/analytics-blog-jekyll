@@ -105,6 +105,21 @@ theme_options:
 
 With MathJax, each expression is a stop in the tab order, named for a screen reader by its alt text, with its MathML beside it for assistive technology. An `\eqref` or `\ref` is the exception: MathJax draws it as a link, so it is left out of the tab order and named by that link, which the theme repeats right after it as a real one. A click selects an expression and changes nothing in it. MathJax's option to collapse parts of a formula is off; a reader can turn it on, or change any other setting, from MathJax's menu (right-click an expression). MathJax then draws the expressions again, and each keeps its name and its place in the tab order, and the one that had the focus keeps it.
 
+The alt text is read from the LaTeX, in words: `f : [a, b] \to \mathbb{R}` is named "f: [a, b] to double-struck R", `\lim_{x \to 0}` "limit as x approaches 0", and `x^2` "x squared".
+- **Words, not symbols:** Greek letters, relations, arrows and operators are read as words, since a screen reader may skip "∈" or "ℝ" at its usual settings.
+- **Names kept:** function names (`\sin`, `\log`) are read as written, and so is a command with no word of its own, rather than left out.
+- **Left out of the name:** what isn't part of what the formula says: sizing such as `\left` and `\right`, spacing, `\label`, the equation number from `\tag`, and the names of environments such as `equation` or `align`. A matrix or `cases` is announced: `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` reads "matrix a, b; c, d end matrix".
+- **Who reads it:** the build names each expression it finds in a page. The browser names one the build didn't wrap, such as maths in raw HTML, in the same words: both read `lib/datalog/latex_speech/words.json`.
+
+To name an expression yourself, give it a `% alt:` comment, which is not drawn:
+
+```latex
+$$
+% alt: the inner product of f and g
+\langle f, g \rangle = \int_a^b f(x)\, g(x) \,\mathrm{d}x
+$$
+```
+
 Code needs no settings. Rouge highlights it when the site builds (`highlighter: rouge`), adding line numbers when `kramdown.syntax_highlighter_opts.block.line_numbers` is on, and pages load nothing for it. The theme used to load Prism in the browser as well. `theme_options.syntax_highlighting` no longer has an effect, and a build that still sets it prints a warning.
 
 #### Homepage

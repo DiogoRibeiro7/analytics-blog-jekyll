@@ -4,6 +4,8 @@
  * @module math
  */
 
+import { speakLatex } from './math/latex-speech.js';
+
 (function () {
   /**
    * MathToolkit object containing all math enhancement functionality.
@@ -920,66 +922,14 @@
       return '';
     },
 
+    // The words an expression reads as (math/latex-speech.js). Every command is
+    // read, or left out when it isn't part of what the expression says; it used to be dropped whenever
+    // this had no rule for it, so "c \in (a, b)" read "c (a, b)" (#417).
     generateAltFromLatex(latex) {
       if (!latex) {
         return '';
       }
-      let text = String(latex).replace(/%.*$/gm, '');
-
-      text = text.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, (_match, numerator, denominator) => {
-        const top = this.sanitizeSegment(numerator);
-        const bottom = this.sanitizeSegment(denominator);
-        return `${top} over ${bottom}`.trim();
-      });
-
-      text = text.replace(/\\int(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/g, (_match, lowerBraced, lowerSimple, upperBraced, upperSimple) => {
-        const lower = this.sanitizeSegment(lowerBraced || lowerSimple);
-        const upper = this.sanitizeSegment(upperBraced || upperSimple);
-        let phrase = 'integral';
-        if (lower) {
-          phrase += ` from ${lower}`;
-        }
-        if (upper) {
-          phrase += ` to ${upper}`;
-        }
-        return phrase;
-      });
-
-      text = text.replace(/\\sum(?:_\{([^}]*)\}|_([^\s^{}]+))?(?:\^\{([^}]*)\}|\^([^\s_{}]+))?/g, (_match, lowerBraced, lowerSimple, upperBraced, upperSimple) => {
-        const lower = this.sanitizeSegment(lowerBraced || lowerSimple);
-        const upper = this.sanitizeSegment(upperBraced || upperSimple);
-        let phrase = 'summation';
-        if (lower) {
-          phrase += ` from ${lower}`;
-        }
-        if (upper) {
-          phrase += ` to ${upper}`;
-        }
-        return phrase;
-      });
-
-      text = text.replace(/\\sqrt\s*\{([^{}]+)\}/g, (_match, radicand) => `square root of ${this.sanitizeSegment(radicand)}`);
-      text = text.replace(/\\mathrm\s*\{([^{}]+)\}/g, (_match, content) => this.sanitizeSegment(content));
-      text = text.replace(/\\operatorname\*?\s*\{([^{}]+)\}/g, (_match, content) => this.sanitizeSegment(content));
-      text = text.replace(/\\[a-zA-Z]+/g, ' ');
-      text = text.replace(/[{}]/g, ' ');
-      text = text.replace(/\s+/g, ' ').trim();
-
-      if (!text) {
-        return 'Mathematical expression';
-      }
-      return text;
-    },
-
-    sanitizeSegment(segment) {
-      if (!segment) {
-        return '';
-      }
-      return String(segment)
-        .replace(/\\[a-zA-Z]+/g, ' ')
-        .replace(/[{}]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      return speakLatex(latex) || 'Mathematical expression';
     },
 
     syncAltAttributes(wrapper, container, altText) {

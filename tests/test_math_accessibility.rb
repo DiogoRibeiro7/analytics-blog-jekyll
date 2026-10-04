@@ -36,6 +36,21 @@ class MathAccessibilityTest < Minitest::Test
     assert_includes inline["data-math-alt"], "integral from a to b"
   end
 
+  # The labels the build derives say what the expression says. They used to
+  # drop every command without a rule, so Theorem 1's "f : [a, b] \to
+  # \mathbb{R}" was "f : [a, b] R" and "c \in (a, b)" was "c (a, b)", and to
+  # read out a \label key and spacing commands (#417).
+  def test_derived_labels_keep_what_the_expression_says
+    labels = @document.css("[data-math-alt]").map { |node| node["data-math-alt"] }
+
+    assert_includes labels, "f: [a, b] to double-struck R"
+    assert_includes labels, "c in (a, b)"
+    assert_includes labels, "f double prime (c) + pi squared over (b-a) squared f(c) = 0"
+    labels.each do |label|
+      refute_match(/\\|eq:|Mathematical expression/, label, "a label should read the expression, not its source")
+    end
+  end
+
   def test_noscript_fallback_contains_sources
     noscript = @document.css("noscript.math-noscript").first
     refute_nil noscript, "Expected a noscript fallback block for math content"
